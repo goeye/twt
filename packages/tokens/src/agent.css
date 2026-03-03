@@ -1,0 +1,66 @@
+:root {
+  --agent-layout-nav-rail-width: 44px;
+  --agent-layout-sub-nav-width: 200px;
+  --agent-layout-session-pane-width: 320px;
+  --agent-layout-inbox-pane-width: 360px;
+  --agent-layout-detail-pane-width: 320px;
+  --agent-layout-message-composer-min-height: 220px;
+
+  --agent-space-4: 4px;
+  --agent-space-8: 8px;
+  --agent-space-12: 12px;
+  --agent-space-16: 16px;
+  --agent-space-20: 20px;
+  --agent-space-24: 24px;
+
+  --agent-radius-sm: 6px;
+  --agent-radius-md: 8px;
+  --agent-radius-lg: 12px;
+  --agent-radius-xl: 16px;
+
+  --agent-font-size-xs: 12px;
+  --agent-font-size-sm: 13px;
+  --agent-font-size-md: 14px;
+  --agent-font-size-lg: 16px;
+  --agent-font-size-xl: 20px;
+  --agent-font-size-2xl: 24px;
+  --agent-font-weight-regular: 400;
+  --agent-font-weight-medium: 500;
+  --agent-font-weight-semibold: 600;
+
+  --agent-color-brand-primary: #2f6bff;
+  --agent-color-brand-primary-hover: #2459e6;
+  --agent-color-brand-primary-active: #1d4bc2;
+  --agent-color-brand-soft: #e8f0ff;
+
+  --agent-color-text-primary: #1f2329;
+  --agent-color-text-secondary: #4e5969;
+  --agent-color-text-tertiary: #86909c;
+  --agent-color-text-disabled: #c9cdd4;
+
+  --agent-color-bg-page: #f2f3f5;
+  --agent-color-bg-panel: #ffffff;
+  --agent-color-bg-muted: #f7f8fa;
+
+  --agent-color-border-default: #e5e6eb;
+  --agent-color-border-strong: #c9cdd4;
+
+  --agent-color-status-success: #00b578;
+  --agent-color-status-warning: #ff7d00;
+  --agent-color-status-error: #f53f3f;
+  --agent-color-status-info: #2f6bff;
+
+  --agent-color-overlay-mask: rgba(0, 0, 0, 0.45);
+
+  --agent-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --agent-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.12);
+  --agent-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.16);
+
+  --agent-motion-fast: 120ms;
+  --agent-motion-base: 200ms;
+  --agent-motion-slow: 300ms;
+
+  --agent-z-dropdown: 1000;
+  --agent-z-modal: 1200;
+  --agent-z-toast: 1300;
+}

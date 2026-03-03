@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "mcp__figma-remote-mcp__get_design_context",
+      "mcp__plugin_figma_figma__get_design_context",
+      "mcp__figma-remote-mcp__get_screenshot",
+      "Bash(npx vue-tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(xxd:*)",
+      "Bash(sh:*)",
+      "Bash(rm:*)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

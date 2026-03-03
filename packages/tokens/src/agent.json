@@ -1,0 +1,86 @@
+{
+  "layout": {
+    "navRailWidth": "44px",
+    "subNavWidth": "200px",
+    "sessionPaneWidth": "320px",
+    "inboxPaneWidth": "360px",
+    "detailPaneWidth": "320px",
+    "messageComposerMinHeight": "220px"
+  },
+  "space": {
+    "4": "4px",
+    "8": "8px",
+    "12": "12px",
+    "16": "16px",
+    "20": "20px",
+    "24": "24px"
+  },
+  "radius": {
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px"
+  },
+  "font": {
+    "size": {
+      "xs": "12px",
+      "sm": "13px",
+      "md": "14px",
+      "lg": "16px",
+      "xl": "20px",
+      "2xl": "24px"
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600
+    }
+  },
+  "color": {
+    "brand": {
+      "primary": "#2F6BFF",
+      "primaryHover": "#2459E6",
+      "primaryActive": "#1D4BC2",
+      "soft": "#E8F0FF"
+    },
+    "text": {
+      "primary": "#1F2329",
+      "secondary": "#4E5969",
+      "tertiary": "#86909C",
+      "disabled": "#C9CDD4"
+    },
+    "bg": {
+      "page": "#F2F3F5",
+      "panel": "#FFFFFF",
+      "muted": "#F7F8FA"
+    },
+    "border": {
+      "default": "#E5E6EB",
+      "strong": "#C9CDD4"
+    },
+    "status": {
+      "success": "#00B578",
+      "warning": "#FF7D00",
+      "error": "#F53F3F",
+      "info": "#2F6BFF"
+    },
+    "overlay": {
+      "mask": "rgba(0, 0, 0, 0.45)"
+    }
+  },
+  "shadow": {
+    "sm": "0 2px 8px rgba(0, 0, 0, 0.08)",
+    "md": "0 6px 20px rgba(0, 0, 0, 0.12)",
+    "lg": "0 10px 30px rgba(0, 0, 0, 0.16)"
+  },
+  "motion": {
+    "fast": "120ms",
+    "base": "200ms",
+    "slow": "300ms"
+  },
+  "zIndex": {
+    "dropdown": 1000,
+    "modal": 1200,
+    "toast": 1300
+  }
+}

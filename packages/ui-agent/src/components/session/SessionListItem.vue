@@ -1,0 +1,137 @@
+<template>
+  <button class="session-item" :class="{ 'session-item--active': active }" type="button">
+    <span v-if="avatarText" class="session-item__avatar" :style="{ background: avatarColor }">{{ avatarText }}</span>
+    <div class="session-item__main">
+      <div class="session-item__row">
+        <span class="session-item__name-wrap">
+          <strong>{{ customerName }}</strong>
+          <span v-if="tag" class="session-item__tag">{{ tag }}</span>
+        </span>
+        <span class="session-item__time">{{ updatedAt }}</span>
+      </div>
+      <div class="session-item__row">
+        <span class="session-item__preview">{{ preview }}</span>
+        <span v-if="unreadCount && unreadCount > 0" class="session-item__unread">{{ unreadCount }}</span>
+      </div>
+    </div>
+  </button>
+</template>
+
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    customerName: string;
+    preview: string;
+    updatedAt: string;
+    unreadCount?: number;
+    active?: boolean;
+    tag?: string;
+    avatarText?: string;
+    avatarColor?: string;
+  }>(),
+  {
+    avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
+  }
+);
+</script>
+
+<style scoped>
+.session-item {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  cursor: pointer;
+  display: flex;
+  gap: var(--agent-space-8);
+  padding: var(--agent-space-12);
+  text-align: left;
+  width: 100%;
+}
+
+.session-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.session-item--active {
+  background: #e8f0ff;
+}
+
+.session-item__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.session-item__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+  min-width: 0;
+}
+
+.session-item__row {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-8);
+  justify-content: space-between;
+}
+
+.session-item__name-wrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.session-item strong {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-item__time {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  flex-shrink: 0;
+}
+
+.session-item__tag {
+  background: rgba(0, 181, 120, 0.12);
+  border-radius: 999px;
+  color: var(--agent-color-status-success);
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 6px;
+}
+
+.session-item__preview {
+  color: var(--agent-color-text-secondary);
+  flex: 1;
+  font-size: var(--agent-font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-item__unread {
+  background: var(--agent-color-status-error);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  min-width: 16px;
+  padding: 0 5px;
+  text-align: center;
+}
+</style>

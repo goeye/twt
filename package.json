@@ -1,0 +1,12 @@
+{
+  "name": "twt-prototype-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev:web-agent": "pnpm --filter web-agent dev",
+    "build:web-agent": "pnpm --filter web-agent build",
+    "upload:web-agent": "cd apps && bash upcode.sh web-agent",
+    "deploy:web-agent": "pnpm build:web-agent && pnpm upload:web-agent"
+  }
+}
