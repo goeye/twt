@@ -45,9 +45,9 @@
       <AiSettingsNav
         v-else-if="isCampaignRoute"
         title="营销"
-        :active-key="'campaign-chatting'"
+        :active-key="activeCampaignNavKey"
         :groups="campaignNavGroups"
-        @select="() => {}"
+        @select="handleCampaignNavSelect"
       />
       <section v-else class="module-subnav">
         <h2 class="module-subnav__title">{{ currentModuleLabel }}</h2>
@@ -142,7 +142,10 @@
 
     <SettingsRoutePage v-else-if="isSettingsRoute" :active-key="activeSettingsNavKey" @toast="showTopToast" />
     <AiAgentRoutePage v-else-if="isAiAgentRoute" :active-key="activeAiNavKey" @toast="showTopToast" />
-    <CampaignRoutePage v-else-if="isCampaignRoute" @toast="showTopToast" />
+    <template v-else-if="isCampaignRoute">
+      <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
+      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" @toast="showTopToast" />
+    </template>
 
     <section v-else class="agent-content-page module-page">
       <header class="agent-content-header">
@@ -266,6 +269,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
+import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import {
   AgentAppShell,
@@ -290,6 +294,7 @@ import {
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings";
 type SettingsNavKey = "install" | "team" | "quick-reply";
+type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 
 interface AgentEntry {
   id: string;
@@ -417,7 +422,8 @@ const campaignNavGroups = [
     key: "campaign",
     title: "",
     items: [
-      { key: "campaign-chatting", label: "群发消息", icon: "campaign" }
+      { key: "campaign-chatting", label: "群发消息", icon: "campaign" },
+      { key: "campaign-proactive", label: "主动营销", icon: "campaign" }
     ]
   }
 ];
@@ -704,6 +710,7 @@ const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
+const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
 const showToast = ref(false);
 const toastMessage = ref("");
 let toastTimer: number | undefined;
@@ -986,6 +993,12 @@ const handleSettingsNavSelect = (key: string) => {
 const handleAiNavSelect = (key: string) => {
   if (key === "doc-knowledge" || key === "faq" || key === "copilot-settings") {
     activeAiNavKey.value = key;
+  }
+};
+
+const handleCampaignNavSelect = (key: string) => {
+  if (key === "campaign-chatting" || key === "campaign-proactive") {
+    activeCampaignNavKey.value = key;
   }
 };
 
