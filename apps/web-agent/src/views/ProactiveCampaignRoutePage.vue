@@ -80,8 +80,8 @@
               <button v-if="!editorDraft.headerImage" type="button" class="upload-btn upload-btn--compact" @click="triggerHeaderImageSelect">上传图片</button>
               <div v-if="editorDraft.headerImage" class="header-image-preview header-image-preview--compact">
                 <img :src="editorDraft.headerImage" alt="图片预览" />
-                <button type="button" class="header-image-action-btn header-image-action-btn--edit" aria-label="编辑图片" @click="openCropForCurrentImage">
-                  ✎
+                <button type="button" class="header-image-action-btn header-image-action-btn--edit" aria-label="重新上传图片" @click="triggerHeaderImageSelect">
+                  ⤴
                 </button>
                 <button type="button" class="header-image-action-btn header-image-action-btn--delete" aria-label="删除图片" @click="removeHeaderImage">
                   🗑
@@ -91,17 +91,18 @@
 
             <div class="editor-field">
               <label class="editor-field__label">标题</label>
-              <input v-model="editorDraft.title" class="agent-input" maxlength="60" placeholder="请输入" />
+              <input v-model="editorDraft.title" class="agent-input" maxlength="20" placeholder="请输入" @input="limitDraftText('title', 20)" />
             </div>
 
             <div class="editor-field">
               <label class="editor-field__label">描述</label>
-              <textarea
+              <input
                 v-model="editorDraft.description"
-                class="agent-input editor-textarea"
+                class="agent-input"
                 :class="{ 'agent-input--error': shouldShowEditorFieldError('description', isDescriptionEmpty) }"
-                maxlength="180"
+                maxlength="100"
                 placeholder="请输入"
+                @input="limitDraftText('description', 100)"
                 @blur="markEditorFieldTouched('description')"
               />
               <p v-if="shouldShowEditorFieldError('description', isDescriptionEmpty)" class="editor-field__error">请输入</p>
@@ -308,7 +309,7 @@
               :class="{ 'agent-input--error': showTriggerDelayError }"
               type="number"
               min="1"
-              max="60"
+              max="600"
               @blur="handleTriggerDelayBlur"
             />
             <span>秒</span>
@@ -341,16 +342,13 @@
       <div v-if="cropState.imageSrc" class="crop-modal-content">
         <div
           class="crop-canvas"
+          :class="{ 'crop-canvas--dragging': cropDragging }"
           @mousedown.prevent="startCropDrag"
           @mousemove.prevent="handleCropDrag"
           @mouseup="endCropDrag"
           @mouseleave="endCropDrag"
         >
           <img :src="cropState.imageSrc" alt="裁剪预览" :style="cropImageStyle" draggable="false" />
-        </div>
-        <div class="crop-control-row">
-          <span>缩放</span>
-          <input v-model.number="cropState.zoom" type="range" min="1" max="3" step="0.01" />
         </div>
       </div>
       <template #footer>
@@ -365,7 +363,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { AgentSwitch, BaseModal, DataTable, type TableColumn } from "@twt/ui-agent";
 
 type ViewMode = "list" | "editor";
@@ -472,6 +470,7 @@ const actionTypeMeta: Record<ButtonActionType, { valueLabel: string; placeholder
 
 const CROP_WIDTH = 480;
 const CROP_HEIGHT = 270;
+const CROP_DRAG_SCALE = 1.2;
 
 const createId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -649,7 +648,6 @@ const cropState = ref({
   imageSrc: "",
   naturalWidth: 0,
   naturalHeight: 0,
-  zoom: 1,
   offsetX: 0,
   offsetY: 0
 });
@@ -704,7 +702,7 @@ const showTriggerDelayError = computed(() => {
 });
 
 const getCropDrawMetrics = () => {
-  const { naturalWidth, naturalHeight, zoom, offsetX, offsetY } = cropState.value;
+  const { naturalWidth, naturalHeight, offsetX, offsetY } = cropState.value;
   if (!naturalWidth || !naturalHeight) {
     return {
       drawWidth: 0,
@@ -716,8 +714,8 @@ const getCropDrawMetrics = () => {
     };
   }
   const baseScale = Math.max(CROP_WIDTH / naturalWidth, CROP_HEIGHT / naturalHeight);
-  const drawWidth = naturalWidth * baseScale * zoom;
-  const drawHeight = naturalHeight * baseScale * zoom;
+  const drawWidth = naturalWidth * baseScale * CROP_DRAG_SCALE;
+  const drawHeight = naturalHeight * baseScale * CROP_DRAG_SCALE;
   const maxOffsetX = Math.max(0, (drawWidth - CROP_WIDTH) / 2);
   const maxOffsetY = Math.max(0, (drawHeight - CROP_HEIGHT) / 2);
   const clampedOffsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
@@ -744,13 +742,6 @@ const cropImageStyle = computed(() => {
     top: `${top}px`
   };
 });
-
-watch(
-  () => cropState.value.zoom,
-  () => {
-    clampCropOffset();
-  }
-);
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const formatCurrentTime = () => {
@@ -780,6 +771,14 @@ const shouldShowEditorFieldError = (fieldKey: string, invalid: boolean) =>
 
 const isButtonLabelEmpty = (button: ActionButtonConfig) => button.label.trim().length === 0;
 const isButtonValueEmpty = (button: ActionButtonConfig) => button.value.trim().length === 0;
+
+const clampByCharCount = (value: string, maxLength: number) => Array.from(value).slice(0, maxLength).join("");
+
+const limitDraftText = (field: "title" | "description", maxLength: number) => {
+  if (!editorDraft.value) return;
+  const nextValue = clampByCharCount(String(editorDraft.value[field] ?? ""), maxLength).replace(/\r?\n/g, "");
+  editorDraft.value[field] = nextValue;
+};
 
 const triggerHeaderImageSelect = () => {
   headerImageInputRef.value?.click();
@@ -822,7 +821,6 @@ const openCropModalWithSource = async (source: string) => {
       imageSrc: source,
       naturalWidth: meta.width,
       naturalHeight: meta.height,
-      zoom: 1,
       offsetX: 0,
       offsetY: 0
     };
@@ -839,16 +837,9 @@ const closeCropModal = () => {
     imageSrc: "",
     naturalWidth: 0,
     naturalHeight: 0,
-    zoom: 1,
     offsetX: 0,
     offsetY: 0
   };
-};
-
-const openCropForCurrentImage = () => {
-  const imageSrc = editorDraft.value?.headerImage;
-  if (!imageSrc) return;
-  void openCropModalWithSource(imageSrc);
 };
 
 const startCropDrag = (event: MouseEvent) => {
@@ -1038,7 +1029,7 @@ const removeButton = (index: number) => {
 };
 const actionValuePlaceholder = (actionType: ButtonActionType) => actionTypeMeta[actionType].placeholder;
 
-const normalizeDelay = (value: unknown) => Math.min(60, Math.max(1, Math.round(Number(value))));
+const normalizeDelay = (value: unknown) => Math.min(600, Math.max(1, Math.round(Number(value))));
 
 const openTriggerModal = () => {
   if (!editorDraft.value) return;
@@ -1367,11 +1358,6 @@ const removeHeaderImage = () => {
   font-weight: var(--agent-font-weight-medium);
 }
 
-.editor-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
 .condition-trigger {
   align-items: center;
   background: #fff;
@@ -1655,12 +1641,17 @@ const removeHeaderImage = () => {
 
 .preview-bubble__title,
 .preview-bubble__desc {
-  display: -webkit-box;
+  display: block;
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.preview-bubble__title::-webkit-scrollbar,
+.preview-bubble__desc::-webkit-scrollbar {
+  height: 4px;
 }
 
 .preview-bubble__title {
@@ -1889,30 +1880,20 @@ const removeHeaderImage = () => {
   background: #f4f6fa;
   border: 1px solid var(--agent-color-border-default);
   border-radius: 12px;
+  cursor: grab;
   height: 270px;
   overflow: hidden;
   position: relative;
   width: 480px;
 }
 
+.crop-canvas--dragging {
+  cursor: grabbing;
+}
+
 .crop-canvas img {
   position: absolute;
   user-select: none;
-}
-
-.crop-control-row {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-}
-
-.crop-control-row span {
-  color: var(--agent-color-text-secondary);
-  font-size: 12px;
-}
-
-.crop-control-row input[type="range"] {
-  flex: 1;
 }
 
 @media (max-width: 1200px) {
