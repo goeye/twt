@@ -7,7 +7,7 @@
     <section v-if="activeKey === 'install'" class="settings-install">
       <!-- Current layout: original 3 cards stacked -->
       <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">方法一：随时随地与客户聊天</h2>
+        <h2 class="settings-card__title agent-settings-feature-title">方法一：聊天页面</h2>
         <p class="settings-card__description agent-settings-feature-description">
           把聊天页面链接发给客户，打开即可对话；无需网站部署，适用于邮件、App、社交媒体等渠道
         </p>

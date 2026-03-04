@@ -1124,7 +1124,7 @@ const handleConfirmInvite = (ids: string[]) => {
 
   const now = new Date();
   const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-  const names = invitees.map((i) => i.name).join("、");
+  const names = invitees.map((i) => i.name).join(",");
   const sysMsg: MessageItem = {
     id: `m-${session.id}-invite-${now.getTime()}`,
     role: "system",
