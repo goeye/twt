@@ -5,7 +5,12 @@
         <div class="proactive-list-header__text">
           <h1 class="agent-content-title">主动营销</h1>
         </div>
-        <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">+ 新建</button>
+        <div class="proactive-list-header__actions">
+          <button type="button" class="agent-btn agent-btn--ghost" @click.stop="openVisitorPerspectiveModal">
+            访客端视角
+          </button>
+          <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">+ 新建</button>
+        </div>
       </header>
 
       <DataTable bare :columns="columns" :rows="tableRows">
@@ -359,6 +364,69 @@
         </div>
       </template>
     </BaseModal>
+
+    <BaseModal :open="visitorPreviewModalOpen" title="访客端视角" @close="closeVisitorPerspectiveModal">
+      <div class="visitor-preview-modal">
+        <div class="visitor-preview-mode-group">
+          <button
+            v-for="option in visitorPreviewModeOptions"
+            :key="option.value"
+            type="button"
+            class="visitor-preview-mode-btn"
+            :class="{ 'visitor-preview-mode-btn--active': visitorPreviewMode === option.value }"
+            @click="visitorPreviewMode = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <div class="visitor-preview-canvas">
+          <div class="visitor-preview-canvas__header">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div class="visitor-preview-canvas__body">
+            <div class="visitor-preview-bg">
+              <div class="visitor-preview-bg__hero">
+                <p>Visitor Page</p>
+                <h4>营销弹窗样式观察</h4>
+              </div>
+            </div>
+
+            <div class="visitor-preview-widget">
+              <section class="preview-bubble preview-bubble--visitor-modal" :class="{ 'preview-bubble--overflow': visitorPreviewContent.overflowScroll }">
+                <img v-if="visitorPreviewContent.headerImage" class="preview-bubble__image" :src="visitorPreviewContent.headerImage" alt="头图" />
+                <h4 v-if="visitorPreviewContent.showTitle" class="preview-bubble__title" :class="{ 'preview-bubble__title--wrap': visitorPreviewContent.overflowScroll }">
+                  {{ visitorPreviewContent.title }}
+                </h4>
+                <p class="preview-bubble__desc" :class="{ 'preview-bubble__desc--wrap': visitorPreviewContent.overflowScroll }">
+                  {{ visitorPreviewContent.description }}
+                </p>
+                <div class="preview-bubble__actions">
+                  <button
+                    v-for="(buttonLabel, index) in visitorPreviewContent.buttonLabels"
+                    :key="`${visitorPreviewMode}-${buttonLabel}-${index}`"
+                    type="button"
+                    class="preview-bubble__btn"
+                    :class="{ 'preview-bubble__btn--primary': index === 0 }"
+                  >
+                    {{ buttonLabel }}
+                  </button>
+                </div>
+              </section>
+              <button type="button" class="preview-fab" aria-label="在线客服">客服</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span />
+        <div class="modal-footer-actions">
+          <button type="button" class="agent-btn agent-btn--primary" @click="closeVisitorPerspectiveModal">关闭</button>
+        </div>
+      </template>
+    </BaseModal>
   </section>
 </template>
 
@@ -367,6 +435,7 @@ import { computed, ref } from "vue";
 import { AgentSwitch, BaseModal, DataTable, type TableColumn } from "@twt/ui-agent";
 
 type ViewMode = "list" | "editor";
+type VisitorPreviewMode = "image-title-desc-buttons" | "image-desc-buttons" | "overflow-scroll";
 type AudienceType = "all" | "first" | "returning";
 type DisplayFrequency = "every_visit" | "once_per_user";
 type DisplayTiming = "online_only" | "all_day";
@@ -644,6 +713,8 @@ const headerImageInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
 const cropDragging = ref(false);
 const cropDragStart = ref({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+const visitorPreviewModalOpen = ref(false);
+const visitorPreviewMode = ref<VisitorPreviewMode>("image-title-desc-buttons");
 const cropState = ref({
   imageSrc: "",
   naturalWidth: 0,
@@ -701,6 +772,74 @@ const showTriggerDelayError = computed(() => {
   return isDelayValueInvalid(triggerModalDraft.value.delaySeconds);
 });
 
+const visitorPreviewModeOptions: Array<{ label: string; value: VisitorPreviewMode }> = [
+  { label: "图片+标题+描述+按钮", value: "image-title-desc-buttons" },
+  { label: "图片+描述+按钮", value: "image-desc-buttons" },
+  { label: "超出滚动", value: "overflow-scroll" }
+];
+
+const toExactLength = (input: string, targetLength: number, padChar: string) => {
+  const sliced = Array.from(input).slice(0, targetLength).join("");
+  const missing = Math.max(0, targetLength - Array.from(sliced).length);
+  return `${sliced}${padChar.repeat(missing)}`;
+};
+
+const overflowTitleText = toExactLength("访客端营销气泡标题滚动样式观察文本", 20, "标");
+const overflowDescriptionText = toExactLength(
+  "这是用于观察访客端营销气泡内容超出后的滚动效果示例文本，包含图片、标题、描述与多个按钮，请重点查看内容边界、滚动条表现、按钮顺序和整体视觉层级是否符合预期。",
+  100,
+  "内"
+);
+
+const visitorPreviewSource = computed(() => {
+  const task = tasks.value.find((item) => item.status) ?? tasks.value[0] ?? null;
+  const fallback = templateLibrary[0]?.defaults ?? createDraft();
+  const buttonLabels = (task?.buttons ?? fallback.buttons)
+    .map((button) => button.label.trim())
+    .filter((label) => label.length > 0);
+
+  return {
+    headerImage: task?.headerImage || fallback.headerImage,
+    title: task?.title || fallback.title || "欢迎来到 TWT",
+    description: task?.description || fallback.description || "你好呀，在线客服随时为你解答产品与价格问题。",
+    buttonLabels: buttonLabels.length > 0 ? buttonLabels : ["立即咨询"]
+  };
+});
+
+const visitorPreviewContent = computed(() => {
+  const source = visitorPreviewSource.value;
+  if (visitorPreviewMode.value === "image-desc-buttons") {
+    return {
+      headerImage: source.headerImage,
+      title: source.title,
+      showTitle: false,
+      description: source.description,
+      buttonLabels: source.buttonLabels.slice(0, 5),
+      overflowScroll: false
+    };
+  }
+
+  if (visitorPreviewMode.value === "overflow-scroll") {
+    return {
+      headerImage: source.headerImage,
+      title: overflowTitleText,
+      showTitle: true,
+      description: overflowDescriptionText,
+      buttonLabels: ["立即咨询", "领取折扣", "查看活动", "获取报价", "联系顾问"],
+      overflowScroll: true
+    };
+  }
+
+  return {
+    headerImage: source.headerImage,
+    title: source.title,
+    showTitle: true,
+    description: source.description,
+    buttonLabels: source.buttonLabels.slice(0, 5),
+    overflowScroll: false
+  };
+});
+
 const getCropDrawMetrics = () => {
   const { naturalWidth, naturalHeight, offsetX, offsetY } = cropState.value;
   if (!naturalWidth || !naturalHeight) {
@@ -751,6 +890,16 @@ const formatCurrentTime = () => {
 
 const closeActionMenu = () => {
   openActionMenuTaskId.value = null;
+};
+
+const openVisitorPerspectiveModal = () => {
+  visitorPreviewMode.value = "image-title-desc-buttons";
+  visitorPreviewModalOpen.value = true;
+  closeActionMenu();
+};
+
+const closeVisitorPerspectiveModal = () => {
+  visitorPreviewModalOpen.value = false;
 };
 
 const resetEditorValidationState = () => {
@@ -1134,6 +1283,11 @@ const removeHeaderImage = () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.proactive-list-header__actions {
+  display: inline-flex;
+  gap: 8px;
 }
 
 .proactive-list-card :deep(.agent-table) {
@@ -1896,6 +2050,133 @@ const removeHeaderImage = () => {
   user-select: none;
 }
 
+.visitor-preview-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(760px, 78vw);
+}
+
+.visitor-preview-mode-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.visitor-preview-mode-btn {
+  background: #f2f5fb;
+  border: 1px solid #d9e2f2;
+  border-radius: 999px;
+  color: #4d617e;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 12px;
+}
+
+.visitor-preview-mode-btn--active {
+  background: #e9f1ff;
+  border-color: #b4cbff;
+  color: var(--agent-color-brand-primary);
+}
+
+.visitor-preview-canvas {
+  background: #f5f8ff;
+  border: 1px solid #dce6f8;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.visitor-preview-canvas__header {
+  align-items: center;
+  background: #edf2fb;
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+}
+
+.visitor-preview-canvas__header span {
+  background: #c5d0e2;
+  border-radius: 999px;
+  display: block;
+  height: 8px;
+  width: 8px;
+}
+
+.visitor-preview-canvas__body {
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.9) 0%, rgba(244, 248, 255, 0.82) 36%, rgba(237, 242, 251, 0.96) 100%),
+    linear-gradient(180deg, #f4f7ff 0%, #eef3fb 100%);
+  min-height: 430px;
+  position: relative;
+}
+
+.visitor-preview-bg {
+  inset: 14px;
+  position: absolute;
+}
+
+.visitor-preview-bg__hero {
+  background: linear-gradient(130deg, #dfe9ff 0%, #eef3ff 52%, #f8fbff 100%);
+  border: 1px solid #d7e2f5;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 118px;
+  padding: 14px;
+}
+
+.visitor-preview-bg__hero p {
+  color: #48627a;
+  font-size: 11px;
+  font-weight: var(--agent-font-weight-medium);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.visitor-preview-bg__hero h4 {
+  color: #1f2937;
+  font-size: 16px;
+  margin: 0;
+}
+
+.visitor-preview-widget {
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  right: 14px;
+  width: min(340px, calc(100% - 28px));
+}
+
+.preview-bubble--visitor-modal {
+  border-color: #d4deef;
+  box-shadow: 0 14px 30px rgba(38, 56, 88, 0.16);
+}
+
+.preview-bubble--overflow {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.preview-bubble--overflow::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-bubble--overflow::-webkit-scrollbar-thumb {
+  background: #c8d4e8;
+  border-radius: 999px;
+}
+
+.preview-bubble__title--wrap,
+.preview-bubble__desc--wrap {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 @media (max-width: 1200px) {
   .proactive-page--editor {
     overflow: auto;
@@ -1928,6 +2209,10 @@ const removeHeaderImage = () => {
 @media (max-width: 920px) {
   .template-modal__body {
     grid-template-columns: 1fr;
+  }
+
+  .visitor-preview-modal {
+    width: min(100%, 94vw);
   }
 }
 </style>
