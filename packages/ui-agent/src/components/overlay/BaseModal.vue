@@ -1,7 +1,7 @@
 <template>
   <teleport to="body">
     <div v-if="open" class="modal-mask" @click.self="$emit('close')">
-      <section class="modal-card agent-panel" role="dialog" aria-modal="true">
+      <section class="modal-card agent-panel" role="dialog" aria-modal="true" :style="{ maxWidth }">
         <header class="modal-card__header">
           <h3 class="agent-title">{{ title }}</h3>
           <button class="close-btn" type="button" aria-label="Close" @click="$emit('close')">x</button>
@@ -18,10 +18,14 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  open: boolean;
-  title: string;
-}>();
+withDefaults(
+  defineProps<{
+    open: boolean;
+    title: string;
+    maxWidth?: string;
+  }>(),
+  { maxWidth: "560px" }
+);
 
 defineEmits<{
   (e: "close"): void;
