@@ -38,7 +38,7 @@
           :class="{ 'conversation-header__dropdown-item--disabled': !canCollaborate }"
           type="button"
           @click="handleInvite"
-        >邀请客服</button>
+        >添加客服</button>
         <button
           class="conversation-header__dropdown-item"
           :class="{ 'conversation-header__dropdown-item--disabled': !canCollaborate }"

@@ -228,7 +228,7 @@
     <BaseModal :open="confirmTransferModalOpen" title="确认转移" @close="handleCloseConfirmTransfer">
       <div class="confirm-transfer-modal">
         <p class="confirm-transfer-modal__description">
-          转移后，会话负责人将变更为指定客服，你将被移出当前会话
+          转移后你将自动移出当前会话
         </p>
       </div>
 
@@ -634,7 +634,7 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       id: "m-102",
       role: "agent",
       sender: "客服主管",
-      content: "已帮您核对物流状态，包裹正在派送中，预计今晚 20:00 前送达。",
+      content: "已帮你核对物流状态，包裹正在派送中，预计今晚 20:00 前送达。",
       time: "10:33"
     }
   ],
@@ -1124,7 +1124,7 @@ const handleConfirmInvite = (ids: string[]) => {
 
   const now = new Date();
   const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-  const names = invitees.map((i) => i.name).join("、");
+  const names = invitees.map((i) => i.name).join(",");
   const sysMsg: MessageItem = {
     id: `m-${session.id}-invite-${now.getTime()}`,
     role: "system",

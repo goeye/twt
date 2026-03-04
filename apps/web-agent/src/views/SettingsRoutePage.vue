@@ -7,7 +7,7 @@
     <section v-if="activeKey === 'install'" class="settings-install">
       <!-- Current layout: original 3 cards stacked -->
       <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">方法一：随时随地与客户聊天</h2>
+        <h2 class="settings-card__title agent-settings-feature-title">方法一：聊天页面</h2>
         <p class="settings-card__description agent-settings-feature-description">
           把聊天页面链接发给客户，打开即可对话；无需网站部署，适用于邮件、App、社交媒体等渠道
         </p>
@@ -20,33 +20,51 @@
       <article class="settings-card settings-card--html-download agent-panel">
         <div class="html-download-head">
           <div class="html-download-meta">
-            <h2 class="settings-card__title agent-settings-feature-title">方法二：HTML 下载</h2>
+            <h2 class="settings-card__title agent-settings-feature-title">安装2: HTML下载</h2>
             <p class="settings-card__description agent-settings-feature-description">
-              你可以下载 HTML 部署包，将其上传至你自己的服务器。完成后，访客即可通过你的域名访问聊天窗口
+              你可以下载HTML部署包(内含已配置好的网页代码)，将其上传至你自己的服务器。完成后，访客即可通过你的专属域名访问聊天窗口。
             </p>
           </div>
         </div>
 
         <div class="html-download-steps">
-          <div class="html-download-step">
-            <p class="html-download-step__index">步骤 1</p>
-            <p class="html-download-step__title">下载 HTML 文件</p>
-          </div>
-          <div class="html-download-step">
-            <p class="html-download-step__index">步骤 2</p>
-            <p class="html-download-step__title">上传至你的服务器</p>
-          </div>
-          <div class="html-download-step">
-            <p class="html-download-step__index">步骤 3</p>
-            <p class="html-download-step__title">使用自有域名分享</p>
-          </div>
-        </div>
-
-        <div class="html-download-actions">
-          <button type="button" class="agent-btn html-download-btn" @click="downloadHtmlDeployment">
-            <span>下载 HTML 文件</span>
-          </button>
-          <button type="button" class="html-download-tutorial-btn" @click="emitToast('教程功能开发中')">查看教程</button>
+          <article class="html-download-step">
+            <div class="html-download-step__main">
+              <span class="html-download-step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3v10.5M8.5 10.5 12 14l3.5-3.5M5 17.5h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <p class="html-download-step__title">下载HTML文件</p>
+            </div>
+            <button type="button" class="html-download-step__link" @click="downloadHtmlDeployment">立即下载</button>
+          </article>
+          <article class="html-download-step">
+            <div class="html-download-step__main">
+              <span class="html-download-step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="6" width="16" height="4" rx="1.5" stroke="currentColor" stroke-width="2" />
+                  <rect x="4" y="14" width="16" height="4" rx="1.5" stroke="currentColor" stroke-width="2" />
+                  <circle cx="8" cy="8" r="1" fill="currentColor" />
+                  <circle cx="8" cy="16" r="1" fill="currentColor" />
+                </svg>
+              </span>
+              <p class="html-download-step__title">上传至服务器</p>
+            </div>
+            <button type="button" class="html-download-step__link" @click="emitToast('教程功能开发中')">查看教程</button>
+          </article>
+          <article class="html-download-step">
+            <div class="html-download-step__main">
+              <span class="html-download-step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" />
+                  <path d="M8 12h8M12 8v8M10 10l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <p class="html-download-step__title">使用自有域名分享</p>
+            </div>
+            <button type="button" class="html-download-step__link" @click="emitToast('域名配置说明开发中')">注意事项</button>
+          </article>
         </div>
       </article>
 
@@ -81,7 +99,7 @@
     <section v-else-if="activeKey === 'team'" class="settings-card agent-panel">
       <div class="settings-card__title-row">
         <h2 class="agent-settings-feature-title">团队成员</h2>
-        <button type="button" class="agent-btn agent-btn--primary" @click="emitToast('邀请功能开发中')">邀请客服</button>
+        <button type="button" class="agent-btn agent-btn--primary" @click="emitToast('邀请功能开发中')">添加客服</button>
       </div>
       <table class="settings-table">
         <thead>
@@ -181,7 +199,7 @@ const teamMembers = ref<TeamMember[]>([
 ]);
 
 const quickReplies = ref<string[]>([
-  "您好，已收到您的问题，我马上为您处理。",
+  "你好，已收到你的问题，我马上为你处理。",
   "请稍等 1-2 分钟，我正在核对订单信息。",
   "如果方便，请提供一下订单号或邮箱。"
 ]);
@@ -375,58 +393,65 @@ const removeQuickReply = (target: string) => {
 }
 
 .html-download-steps {
+  align-items: stretch;
   display: grid;
-  gap: var(--agent-space-12);
+  gap: 48px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .html-download-step {
   background: var(--agent-color-bg-muted);
   border: 1px solid var(--agent-color-border-default);
-  border-radius: 14px;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 78px;
-  padding: 12px;
+  gap: 10px;
+  justify-content: center;
+  min-height: 96px;
+  padding: 16px var(--agent-space-16) 14px;
+  position: relative;
 }
 
-.html-download-step__index,
-.html-download-step__title {
-  margin: 0;
+.html-download-step:not(:last-child)::after {
+  border-top: 2px dashed #c9d2e2;
+  content: "";
+  position: absolute;
+  right: -34px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
 }
 
-.html-download-step__index {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-}
-
-.html-download-step__title {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.45;
-}
-
-.html-download-actions {
-  align-items: flex-start;
+.html-download-step__main {
+  align-items: center;
   display: flex;
   gap: var(--agent-space-12);
 }
 
-.html-download-btn {
-  background: #ffffff;
-  border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
-  min-width: 186px;
-  padding: 10px 16px;
+.html-download-step__icon {
+  align-items: center;
+  color: #1f2430;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
 }
 
-.html-download-btn:hover {
-  background: var(--agent-color-brand-soft);
+.html-download-step__icon svg {
+  height: 22px;
+  width: 22px;
 }
 
-.html-download-tutorial-btn {
+.html-download-step__title {
+  color: var(--agent-color-text-primary);
+  font-size: 18px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.html-download-step__link {
   background: transparent;
   border: 0;
   color: var(--agent-color-brand-primary);
@@ -434,11 +459,12 @@ const removeQuickReply = (target: string) => {
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
   line-height: 1;
-  margin-top: 12px;
+  margin-left: calc(22px + var(--agent-space-12));
   padding: 0;
+  text-align: left;
 }
 
-.html-download-tutorial-btn:hover {
+.html-download-step__link:hover {
   text-decoration: underline;
 }
 
@@ -879,6 +905,23 @@ const removeQuickReply = (target: string) => {
 
   .html-download-steps {
     grid-template-columns: 1fr;
+    gap: var(--agent-space-12);
+  }
+
+  .html-download-step {
+    align-items: flex-start;
+  }
+
+  .html-download-step:not(:last-child)::after {
+    display: none;
+  }
+
+  .html-download-step__title {
+    font-size: var(--agent-font-size-md);
+  }
+
+  .html-download-step__link {
+    margin-left: calc(22px + var(--agent-space-12));
   }
 
   .html-tab-grid {
