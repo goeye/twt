@@ -365,7 +365,7 @@
       </template>
     </BaseModal>
 
-    <BaseModal :open="visitorPreviewModalOpen" title="访客端视角" @close="closeVisitorPerspectiveModal">
+    <BaseModal :open="visitorPreviewModalOpen" title="访客端视角" max-width="800px" @close="closeVisitorPerspectiveModal">
       <div class="visitor-preview-modal">
         <div class="visitor-preview-mode-group">
           <button
@@ -374,9 +374,16 @@
             type="button"
             class="visitor-preview-mode-btn"
             :class="{ 'visitor-preview-mode-btn--active': visitorPreviewMode === option.value }"
-            @click="visitorPreviewMode = option.value"
+            @click="switchVisitorPreviewMode(option.value)"
           >
             {{ option.label }}
+          </button>
+          <button
+            type="button"
+            class="visitor-preview-mode-btn visitor-preview-mode-btn--simulate"
+            @click="simulateAgentMessage"
+          >
+            + 模拟客服消息
           </button>
         </div>
 
@@ -395,7 +402,8 @@
             </div>
 
             <div class="visitor-preview-widget">
-              <section class="preview-bubble preview-bubble--visitor-modal" :class="{ 'preview-bubble--overflow': visitorPreviewContent.overflowScroll }">
+              <section v-if="!visitorBubbleDismissed" class="preview-bubble preview-bubble--visitor-modal" :class="{ 'preview-bubble--overflow': visitorPreviewContent.overflowScroll }">
+                <button type="button" class="preview-bubble__close" aria-label="关闭" @click="visitorBubbleDismissed = true">&times;</button>
                 <img v-if="visitorPreviewContent.headerImage" class="preview-bubble__image" :src="visitorPreviewContent.headerImage" alt="头图" />
                 <h4 v-if="visitorPreviewContent.showTitle" class="preview-bubble__title" :class="{ 'preview-bubble__title--wrap': visitorPreviewContent.overflowScroll }">
                   {{ visitorPreviewContent.title }}
@@ -410,13 +418,71 @@
                     type="button"
                     class="preview-bubble__btn"
                     :class="{ 'preview-bubble__btn--primary': index === 0 }"
+                    @click="handleVisitorBubbleAction(buttonLabel)"
                   >
                     {{ buttonLabel }}
                   </button>
                 </div>
               </section>
-              <button type="button" class="preview-fab" aria-label="在线客服">客服</button>
+
+              <!-- 客服主动消息通知气泡 -->
+              <div v-if="agentNotifications.length > 0" class="agent-notify-wrap">
+                <button type="button" class="agent-notify-wrap__close" @click="agentNotifications = []">&times;</button>
+                <transition-group name="agent-notify" tag="div" class="agent-notify-stack">
+                  <div
+                    v-for="n in agentNotifications"
+                    :key="n.id"
+                    class="agent-notify-bubble"
+                    @click="clickAgentNotification(n.text)"
+                  >
+                    <span class="agent-notify-bubble__text">{{ n.text }}</span>
+                  </div>
+                </transition-group>
+              </div>
+
+              <button type="button" class="preview-fab" aria-label="在线客服" @click="openVisitorChat">客服</button>
             </div>
+
+            <!-- 访客聊天窗口 -->
+            <transition name="visitor-chat-slide">
+              <div v-if="visitorChatOpen" class="visitor-chat-panel">
+                <header class="visitor-chat-panel__header">
+                  <div class="visitor-chat-panel__header-left">
+                    <div class="visitor-chat-avatar">?</div>
+                    <span>新的会话</span>
+                  </div>
+                  <button type="button" class="visitor-chat-panel__close" @click="visitorChatOpen = false">&times;</button>
+                </header>
+                <div class="visitor-chat-panel__body">
+                  <div class="visitor-chat-time">{{ visitorChatTime }}</div>
+                  <div class="visitor-chat-msg visitor-chat-msg--agent">
+                    <div class="visitor-chat-msg__bubble visitor-chat-msg__bubble--agent">
+                      下午好，欢迎来到Chat。很高兴为您服务。请尽可能详细地描述您的使用场景，以便我更有效地帮助您。为了更好地协助您，能否请您提供您的姓名和联络地址？
+                    </div>
+                  </div>
+                  <template v-if="visitorChatMessages.length > 0">
+                    <div class="visitor-chat-time">{{ visitorChatTime }}</div>
+                    <div
+                      v-for="(msg, msgIdx) in visitorChatMessages"
+                      :key="msgIdx"
+                      class="visitor-chat-msg"
+                      :class="msg.role === 'agent' ? 'visitor-chat-msg--agent' : 'visitor-chat-msg--visitor'"
+                    >
+                      <div
+                        class="visitor-chat-msg__bubble"
+                        :class="msg.role === 'agent' ? 'visitor-chat-msg__bubble--agent' : 'visitor-chat-msg__bubble--visitor'"
+                      >
+                        {{ msg.text }}
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <footer class="visitor-chat-panel__footer">
+                  <input type="text" class="visitor-chat-input" placeholder="输入信息..." readonly />
+                  <div class="visitor-chat-powered">Powered by <strong>Chat</strong></div>
+                </footer>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -580,23 +646,52 @@ const cloneDraft = (draft: TaskDraft, resetButtonIds = false): TaskDraft => ({
   buttons: cloneButtons(draft.buttons).map((button) => (resetButtonIds ? { ...button, id: createId() } : button))
 });
 
-const createTemplatePreviewImage = (startColor: string, endColor: string, bubbleColor: string): string => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" fill="none">
+const createTemplatePreviewImage = (id: string): string => {
+  const configs: Record<string, { bg: string[]; accent: string; icon: string }> = {
+    "welcome-visitor": {
+      bg: ["#E0ECFF", "#F0F6FF"],
+      accent: "#3B82F6",
+      icon: `<circle cx="480" cy="148" r="48" fill="#3B82F6" opacity="0.12"/><path d="M464 136c0-8.8 7.2-16 16-16s16 7.2 16 16v8h-32v-8zm-4 12h40c2.2 0 4 1.8 4 4v20c0 2.2-1.8 4-4 4h-40c-2.2 0-4-1.8-4-4v-20c0-2.2 1.8-4 4-4z" fill="#3B82F6" opacity="0.7"/><path d="M460 180h40" stroke="#3B82F6" stroke-width="2" opacity="0.3"/><text x="480" y="210" text-anchor="middle" fill="#3B82F6" font-size="13" font-weight="600" font-family="system-ui">Hi, Welcome!</text>`
+    },
+    "social-follow": {
+      bg: ["#EDE7FF", "#F5F2FF"],
+      accent: "#8B5CF6",
+      icon: `<circle cx="480" cy="148" r="48" fill="#8B5CF6" opacity="0.12"/><path d="M468 140a16 16 0 0 1 24 0l6 8-6 8a16 16 0 0 1-24 0l-6-8z" fill="#8B5CF6" opacity="0.5"/><circle cx="480" cy="148" r="10" fill="#8B5CF6" opacity="0.7"/><text x="480" y="210" text-anchor="middle" fill="#8B5CF6" font-size="13" font-weight="600" font-family="system-ui">Follow Us</text>`
+    },
+    newsletter: {
+      bg: ["#FFF0D4", "#FFFAF0"],
+      accent: "#F59E0B",
+      icon: `<circle cx="480" cy="148" r="48" fill="#F59E0B" opacity="0.12"/><rect x="462" y="130" width="36" height="28" rx="4" fill="#F59E0B" opacity="0.6"/><path d="M462 134l18 14 18-14" stroke="#FFF" stroke-width="2.5" fill="none"/><text x="480" y="210" text-anchor="middle" fill="#D97706" font-size="13" font-weight="600" font-family="system-ui">Subscribe</text>`
+    },
+    "flash-sale": {
+      bg: ["#FFE4E6", "#FFF5F5"],
+      accent: "#EF4444",
+      icon: `<circle cx="480" cy="148" r="48" fill="#EF4444" opacity="0.12"/><path d="M474 126l-8 28h12l-2 22 16-30h-14z" fill="#EF4444" opacity="0.7"/><text x="480" y="210" text-anchor="middle" fill="#EF4444" font-size="13" font-weight="600" font-family="system-ui">Flash Sale</text>`
+    },
+    "customer-service": {
+      bg: ["#D1FAE5", "#F0FDF4"],
+      accent: "#10B981",
+      icon: `<circle cx="480" cy="148" r="48" fill="#10B981" opacity="0.12"/><rect x="460" y="130" width="40" height="30" rx="14" fill="#10B981" opacity="0.6"/><circle cx="473" cy="145" r="3" fill="#FFF"/><circle cx="487" cy="145" r="3" fill="#FFF"/><path d="M497 152c0 6-8 10-17 10" stroke="#10B981" stroke-width="3" fill="none" opacity="0.5"/><text x="480" y="210" text-anchor="middle" fill="#10B981" font-size="13" font-weight="600" font-family="system-ui">Live Chat</text>`
+    },
+    custom: {
+      bg: ["#F1F5F9", "#F8FAFC"],
+      accent: "#64748B",
+      icon: `<circle cx="480" cy="148" r="48" fill="#64748B" opacity="0.1"/><path d="M470 136h20v24h-20z" fill="none" stroke="#64748B" stroke-width="2.5" opacity="0.5" rx="3"/><path d="M474 144h12m-12 5h8m-8 5h10" stroke="#64748B" stroke-width="1.8" opacity="0.4"/><text x="480" y="210" text-anchor="middle" fill="#64748B" font-size="13" font-weight="600" font-family="system-ui">Custom</text>`
+    }
+  };
+  const c = configs[id] ?? configs.custom;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" fill="none">
     <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="960" y2="360" gradientUnits="userSpaceOnUse">
-        <stop stop-color="${startColor}" />
-        <stop offset="1" stop-color="${endColor}" />
+      <linearGradient id="bg-${id}" x1="0" y1="0" x2="960" y2="280" gradientUnits="userSpaceOnUse">
+        <stop stop-color="${c.bg[0]}"/><stop offset="1" stop-color="${c.bg[1]}"/>
       </linearGradient>
     </defs>
-    <rect width="960" height="360" rx="20" fill="url(#bg)" />
-    <rect x="600" y="86" width="310" height="186" rx="16" fill="${bubbleColor}" />
-    <rect x="622" y="114" width="184" height="16" rx="8" fill="#A8BCE6" />
-    <rect x="622" y="146" width="258" height="12" rx="6" fill="#C3D3EF" />
-    <rect x="622" y="166" width="214" height="12" rx="6" fill="#C3D3EF" />
-    <rect x="622" y="196" width="258" height="30" rx="10" fill="#2F6BFF" />
-    <rect x="56" y="58" width="468" height="32" rx="12" fill="#DCE7FC" />
-    <rect x="56" y="108" width="398" height="18" rx="9" fill="#E7EEFD" />
-    <rect x="56" y="138" width="352" height="18" rx="9" fill="#E7EEFD" />
+    <rect width="960" height="280" rx="16" fill="url(#bg-${id})"/>
+    <rect x="48" y="230" width="200" height="10" rx="5" fill="${c.accent}" opacity="0.12"/>
+    <rect x="48" y="250" width="140" height="8" rx="4" fill="${c.accent}" opacity="0.08"/>
+    <rect x="712" y="230" width="200" height="10" rx="5" fill="${c.accent}" opacity="0.12"/>
+    <rect x="712" y="250" width="140" height="8" rx="4" fill="${c.accent}" opacity="0.08"/>
+    ${c.icon}
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
@@ -604,10 +699,10 @@ const createTemplatePreviewImage = (startColor: string, endColor: string, bubble
 const templateLibrary: TemplateItem[] = [
   {
     id: "welcome-visitor",
-    name: "欢迎访客",
-    description: "友好问候语，引导在线咨询",
+    name: "欢迎",
+    description: "用友好的问候语给访客留下良好的第一印象",
     tags: ["全部访客", "每用户一次", "仅客服在线时"],
-    previewImage: createTemplatePreviewImage("#F8FBFF", "#EAF1FF", "#FFFFFF"),
+    previewImage: createTemplatePreviewImage("welcome-visitor"),
     defaults: createDraft({
       name: "欢迎访客",
       trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
@@ -618,10 +713,10 @@ const templateLibrary: TemplateItem[] = [
   },
   {
     id: "social-follow",
-    name: "关注社交媒体",
-    description: "引导访客关注 Twitter / Tiktok",
+    name: "关注我们",
+    description: "引导关注你的社交媒体账号，保持互动",
     tags: ["全部访客", "每用户一次", "全时段"],
-    previewImage: createTemplatePreviewImage("#F5F2FF", "#E7DEFF", "#FFFFFF"),
+    previewImage: createTemplatePreviewImage("social-follow"),
     defaults: createDraft({
       name: "关注社交媒体",
       trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 8 },
@@ -638,7 +733,7 @@ const templateLibrary: TemplateItem[] = [
     name: "订阅通讯",
     description: "邀请订阅获取优惠信息",
     tags: ["首次访客", "每用户一次", "仅客服在线时"],
-    previewImage: createTemplatePreviewImage("#FFF9F2", "#FFEBD5", "#FFFFFF"),
+    previewImage: createTemplatePreviewImage("newsletter"),
     defaults: createDraft({
       name: "订阅通讯",
       trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 6 },
@@ -650,15 +745,46 @@ const templateLibrary: TemplateItem[] = [
   {
     id: "flash-sale",
     name: "限时优惠",
-    description: "推送限时折扣活动",
+    description: "推送限时折扣活动，提升转化率",
     tags: ["首次访客", "每用户一次", "全时段"],
-    previewImage: createTemplatePreviewImage("#FFF7F7", "#FFE6E9", "#FFFFFF"),
+    previewImage: createTemplatePreviewImage("flash-sale"),
     defaults: createDraft({
       name: "限时优惠",
       trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 3 },
       title: "今日下单立减",
       description: "复制优惠码即享限时折扣，活动结束后将恢复原价。",
       buttons: [createButton({ label: "获取折扣", actionType: "paste_text", value: "20%OFF" })]
+    })
+  },
+  {
+    id: "customer-service",
+    name: "客服引导",
+    description: "主动邀请访客进行在线咨询，提升服务体验",
+    tags: ["全部访客", "每次访问", "仅客服在线时"],
+    previewImage: createTemplatePreviewImage("customer-service"),
+    defaults: createDraft({
+      name: "客服引导",
+      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 4 },
+      title: "需要帮助吗？",
+      description: "我们的客服团队在线等候，随时为你解答疑问。",
+      buttons: [
+        createButton({ label: "立即咨询", actionType: "send_message", value: "立即咨询" }),
+        createButton({ label: "稍后再说", actionType: "send_message", value: "稍后再说" })
+      ]
+    })
+  },
+  {
+    id: "custom",
+    name: "自定义",
+    description: "从零开始创建你自己的营销模板",
+    tags: ["自由配置"],
+    previewImage: createTemplatePreviewImage("custom"),
+    defaults: createDraft({
+      name: "自定义",
+      trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+      title: "自定义",
+      description: "自定义",
+      buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "立即咨询" })]
     })
   }
 ];
@@ -715,6 +841,11 @@ const cropDragging = ref(false);
 const cropDragStart = ref({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
 const visitorPreviewModalOpen = ref(false);
 const visitorPreviewMode = ref<VisitorPreviewMode>("image-title-desc-buttons");
+const visitorBubbleDismissed = ref(false);
+const visitorChatOpen = ref(false);
+const visitorChatMessages = ref<Array<{ role: "visitor" | "agent"; text: string }>>([]);
+const visitorChatTime = ref("");
+const agentNotifications = ref<Array<{ id: string; text: string }>>([]);
 const cropState = ref({
   imageSrc: "",
   naturalWidth: 0,
@@ -775,7 +906,7 @@ const showTriggerDelayError = computed(() => {
 const visitorPreviewModeOptions: Array<{ label: string; value: VisitorPreviewMode }> = [
   { label: "图片+标题+描述+按钮", value: "image-title-desc-buttons" },
   { label: "图片+描述+按钮", value: "image-desc-buttons" },
-  { label: "超出滚动", value: "overflow-scroll" }
+  { label: "图片+20字标题+100字描述+按钮(超出滚动)", value: "overflow-scroll" }
 ];
 
 const toExactLength = (input: string, targetLength: number, padChar: string) => {
@@ -791,6 +922,23 @@ const overflowDescriptionText = toExactLength(
   "内"
 );
 
+const visitorPreviewPlaceholderImage = (() => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" fill="none">
+    <defs>
+      <linearGradient id="pbg" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#E8F0FE"/><stop offset="1" stop-color="#D4E4FF"/>
+      </linearGradient>
+    </defs>
+    <rect width="640" height="360" rx="10" fill="url(#pbg)"/>
+    <rect x="220" y="120" width="200" height="24" rx="12" fill="#B8D0F5"/>
+    <rect x="180" y="160" width="280" height="14" rx="7" fill="#C8DAFA"/>
+    <rect x="210" y="190" width="220" height="14" rx="7" fill="#C8DAFA"/>
+    <circle cx="320" cy="260" r="24" fill="#A3C4F3" opacity="0.5"/>
+    <path d="M310 260l6-8h8l6 8-4 6h-12z" fill="#fff" opacity="0.7"/>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+})();
+
 const visitorPreviewSource = computed(() => {
   const task = tasks.value.find((item) => item.status) ?? tasks.value[0] ?? null;
   const fallback = templateLibrary[0]?.defaults ?? createDraft();
@@ -799,7 +947,7 @@ const visitorPreviewSource = computed(() => {
     .filter((label) => label.length > 0);
 
   return {
-    headerImage: task?.headerImage || fallback.headerImage,
+    headerImage: task?.headerImage || fallback.headerImage || visitorPreviewPlaceholderImage,
     title: task?.title || fallback.title || "欢迎来到 TWT",
     description: task?.description || fallback.description || "你好呀，在线客服随时为你解答产品与价格问题。",
     buttonLabels: buttonLabels.length > 0 ? buttonLabels : ["立即咨询"]
@@ -892,14 +1040,76 @@ const closeActionMenu = () => {
   openActionMenuTaskId.value = null;
 };
 
+const formatChatTime = () => {
+  const now = new Date();
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+};
+
+const switchVisitorPreviewMode = (mode: VisitorPreviewMode) => {
+  visitorPreviewMode.value = mode;
+  visitorBubbleDismissed.value = false;
+  visitorChatOpen.value = false;
+  agentNotifications.value = [];
+};
+
 const openVisitorPerspectiveModal = () => {
   visitorPreviewMode.value = "image-title-desc-buttons";
+  visitorBubbleDismissed.value = false;
+  visitorChatOpen.value = false;
+  visitorChatMessages.value = [];
+  agentNotifications.value = [];
   visitorPreviewModalOpen.value = true;
   closeActionMenu();
 };
 
 const closeVisitorPerspectiveModal = () => {
   visitorPreviewModalOpen.value = false;
+};
+
+const openVisitorChat = () => {
+  visitorChatTime.value = formatChatTime();
+  visitorChatOpen.value = true;
+};
+
+const handleVisitorBubbleAction = (label: string) => {
+  visitorChatTime.value = formatChatTime();
+  visitorChatMessages.value = [{ role: "visitor", text: label }];
+  visitorBubbleDismissed.value = true;
+  visitorChatOpen.value = true;
+};
+
+const pushAgentNotification = (text: string) => {
+  const id = createId();
+  agentNotifications.value = [...agentNotifications.value, { id, text }].slice(-3);
+};
+
+const dismissAgentNotification = (id: string) => {
+  agentNotifications.value = agentNotifications.value.filter((n) => n.id !== id);
+};
+
+const clickAgentNotification = (text: string) => {
+  visitorChatTime.value = formatChatTime();
+  visitorChatMessages.value = [{ role: "agent", text }];
+  agentNotifications.value = [];
+  visitorBubbleDismissed.value = true;
+  visitorChatOpen.value = true;
+};
+
+const agentSimMessages = [
+  "你好，有什么可以帮你的吗？",
+  "当前有限时优惠活动，需要了解一下吗？",
+  "欢迎回来！上次咨询的问题解决了吗？",
+  "新品已上架，点击查看详情。",
+  "今日下单可享 8 折优惠哦！"
+];
+let agentSimIndex = 0;
+
+const simulateAgentMessage = () => {
+  const text = agentSimMessages[agentSimIndex % agentSimMessages.length];
+  agentSimIndex++;
+  visitorBubbleDismissed.value = true;
+  visitorChatOpen.value = false;
+  pushAgentNotification(text);
 };
 
 const resetEditorValidationState = () => {
@@ -1910,8 +2120,8 @@ const removeHeaderImage = () => {
 
 .template-modal__body {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: auto;
   padding: 0 18px 18px;
 }
@@ -1938,7 +2148,7 @@ const removeHeaderImage = () => {
 }
 
 .template-card__preview img {
-  aspect-ratio: 16 / 6;
+  aspect-ratio: 16 / 9;
   display: block;
   height: auto;
   object-fit: cover;
@@ -2054,7 +2264,6 @@ const removeHeaderImage = () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: min(760px, 78vw);
 }
 
 .visitor-preview-mode-group {
@@ -2078,6 +2287,17 @@ const removeHeaderImage = () => {
   background: #e9f1ff;
   border-color: #b4cbff;
   color: var(--agent-color-brand-primary);
+}
+
+.visitor-preview-mode-btn--simulate {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #16a34a;
+}
+
+.visitor-preview-mode-btn--simulate:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
 }
 
 .visitor-preview-canvas {
@@ -2107,7 +2327,7 @@ const removeHeaderImage = () => {
   background:
     radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.9) 0%, rgba(244, 248, 255, 0.82) 36%, rgba(237, 242, 251, 0.96) 100%),
     linear-gradient(180deg, #f4f7ff 0%, #eef3fb 100%);
-  min-height: 430px;
+  min-height: 460px;
   position: relative;
 }
 
@@ -2154,6 +2374,23 @@ const removeHeaderImage = () => {
 .preview-bubble--visitor-modal {
   border-color: #d4deef;
   box-shadow: 0 14px 30px rgba(38, 56, 88, 0.16);
+  position: relative;
+}
+
+.preview-bubble--visitor-modal .preview-bubble__btn {
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.preview-bubble--visitor-modal .preview-bubble__btn:hover {
+  background: #e6edff;
+  border-color: #b8ccff;
+}
+
+.preview-bubble--visitor-modal .preview-bubble__btn--primary:hover {
+  background: var(--agent-color-brand-primary-hover);
+  border-color: var(--agent-color-brand-primary-hover);
 }
 
 .preview-bubble--overflow {
@@ -2173,8 +2410,276 @@ const removeHeaderImage = () => {
 
 .preview-bubble__title--wrap,
 .preview-bubble__desc--wrap {
+  overflow: visible;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+/* 气泡关闭按钮 — 悬浮在卡片上方右侧 */
+.preview-bubble__close {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  position: absolute;
+  right: 0;
+  top: -32px;
+  transition: background 0.15s;
+  width: 24px;
+  z-index: 2;
+}
+
+.preview-bubble__close:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* 访客聊天窗口 */
+.visitor-chat-panel {
+  background: #fff;
+  border-radius: 16px;
+  bottom: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 28px);
+  overflow: hidden;
+  position: absolute;
+  right: 14px;
+  width: min(360px, calc(100% - 28px));
+  z-index: 10;
+}
+
+.visitor-chat-panel__header {
+  align-items: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #fff;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.visitor-chat-panel__header-left {
+  align-items: center;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 10px;
+}
+
+.visitor-chat-avatar {
+  align-items: center;
+  background: #3b82f6;
+  border-radius: 999px;
+  color: #fff;
+  display: flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.visitor-chat-panel__close {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.visitor-chat-panel__close:hover {
+  color: #fff;
+}
+
+.visitor-chat-panel__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.visitor-chat-time {
+  color: #94a3b8;
+  font-size: 11px;
+  text-align: center;
+}
+
+.visitor-chat-msg {
+  display: flex;
+}
+
+.visitor-chat-msg--agent {
+  justify-content: flex-start;
+}
+
+.visitor-chat-msg--visitor {
+  justify-content: flex-end;
+}
+
+.visitor-chat-msg__bubble {
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 80%;
+  padding: 10px 14px;
+}
+
+.visitor-chat-msg__bubble--agent {
+  background: #f1f5f9;
+  border-bottom-left-radius: 4px;
+  color: #334155;
+}
+
+.visitor-chat-msg__bubble--visitor {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+
+.visitor-chat-panel__footer {
+  border-top: 1px solid #e2e8f0;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+}
+
+.visitor-chat-input {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  color: #94a3b8;
+  font-size: 13px;
+  outline: none;
+  padding: 8px 16px;
+  width: 100%;
+}
+
+.visitor-chat-powered {
+  color: #cbd5e1;
+  font-size: 10px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.visitor-chat-powered strong {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* 聊天窗口动画 */
+.visitor-chat-slide-enter-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.visitor-chat-slide-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.visitor-chat-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.visitor-chat-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
+
+/* 客服主动消息通知气泡 */
+.agent-notify-wrap {
+  position: relative;
+}
+
+.agent-notify-wrap__close {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  position: absolute;
+  right: 0;
+  top: -32px;
+  transition: background 0.15s;
+  width: 24px;
+  z-index: 2;
+}
+
+.agent-notify-wrap__close:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.agent-notify-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-notify-bubble {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  padding: 10px 14px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.agent-notify-bubble:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+.agent-notify-bubble__text {
+  color: #334155;
+  display: -webkit-box;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* 通知气泡进出动画 */
+.agent-notify-enter-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agent-notify-leave-active {
+  position: absolute;
+  transition: all 0.2s ease-in;
+  width: 100%;
+}
+
+.agent-notify-move {
+  transition: transform 0.25s ease;
+}
+
+.agent-notify-enter-from {
+  opacity: 0;
+  transform: translateY(8px) scale(0.95);
+}
+
+.agent-notify-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
 @media (max-width: 1200px) {
@@ -2208,11 +2713,13 @@ const removeHeaderImage = () => {
 
 @media (max-width: 920px) {
   .template-modal__body {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .visitor-preview-modal {
-    width: min(100%, 94vw);
+@media (max-width: 600px) {
+  .template-modal__body {
+    grid-template-columns: 1fr;
   }
 }
 </style>

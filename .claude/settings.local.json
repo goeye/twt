@@ -11,7 +11,10 @@
       "Bash(sh:*)",
       "Bash(rm:*)",
       "Bash(npm run:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pnpm dev:web-agent:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)"
     ]
   }
 }
