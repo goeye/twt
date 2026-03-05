@@ -258,7 +258,7 @@
     <BaseModal :open="triggerModalOpen" title="触发条件" @close="closeTriggerModal">
       <div v-if="triggerModalDraft" class="trigger-modal-form">
         <section class="trigger-section">
-          <p class="trigger-section__title">接收对象</p>
+          <p class="trigger-section__title">接收访客</p>
           <div class="pill-group">
             <button
               v-for="option in audienceOptions"
@@ -332,18 +332,18 @@
       </template>
     </BaseModal>
 
-    <BaseModal :open="Boolean(deleteTaskId)" title="删除营销任务" @close="deleteTaskId = null">
-      <p class="delete-modal__desc">确定删除「{{ selectedDeleteTask?.name ?? "该任务" }}」吗？此操作不可撤销。</p>
+    <BaseModal :open="Boolean(deleteTaskId)" title="删除数据" @close="deleteTaskId = null">
+      <p class="delete-modal__desc">删除后不可恢复，确认删除？</p>
       <template #footer>
         <span />
         <div class="modal-footer-actions">
           <button type="button" class="agent-btn agent-btn--ghost" @click="deleteTaskId = null">取消</button>
-          <button type="button" class="agent-btn agent-btn--danger" @click="confirmDelete">删除</button>
+          <button type="button" class="agent-btn agent-btn--danger" @click="confirmDelete">确认</button>
         </div>
       </template>
     </BaseModal>
 
-    <BaseModal :open="cropModalOpen" title="裁剪头图" @close="closeCropModal">
+    <BaseModal :open="cropModalOpen" title="图片裁剪" @close="closeCropModal">
       <div v-if="cropState.imageSrc" class="crop-modal-content">
         <div
           class="crop-canvas"
@@ -567,11 +567,11 @@ const audienceOptions: Array<{ label: string; value: AudienceType }> = [
 
 const frequencyOptions: Array<{ label: string; value: DisplayFrequency }> = [
   { label: "每次访问", value: "every_visit" },
-  { label: "每用户一次", value: "once_per_user" }
+  { label: "每访客一次", value: "once_per_user" }
 ];
 
 const timingOptions: Array<{ label: string; value: DisplayTiming }> = [
-  { label: "仅客服在线时", value: "online_only" },
+  { label: "客服在线", value: "online_only" },
   { label: "全时段", value: "all_day" }
 ];
 
@@ -589,11 +589,11 @@ const audienceLabelMap: Record<AudienceType, string> = {
 
 const frequencyLabelMap: Record<DisplayFrequency, string> = {
   every_visit: "每次访问",
-  once_per_user: "每用户一次"
+  once_per_user: "每访客一次"
 };
 
 const timingLabelMap: Record<DisplayTiming, string> = {
-  online_only: "仅客服在线时",
+  online_only: "客服在线",
   all_day: "全时段"
 };
 
@@ -701,27 +701,27 @@ const templateLibrary: TemplateItem[] = [
     id: "welcome-visitor",
     name: "欢迎",
     description: "用友好的问候语给访客留下良好的第一印象",
-    tags: ["全部访客", "每用户一次", "仅客服在线时"],
+    tags: ["全部访客", "每访客一次", "客服在线"],
     previewImage: createTemplatePreviewImage("welcome-visitor"),
     defaults: createDraft({
-      name: "欢迎访客",
+      name: "欢迎",
       trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
-      title: "欢迎来到 TWT",
-      description: "你好呀，在线客服随时为你解答产品与价格问题。",
-      buttons: [createButton({ label: "在线咨询", actionType: "send_message", value: "在线咨询" })]
+      title: "欢迎来到 Chat",
+      description: "你好，在线客服随时为你解答产品与价格问题",
+      buttons: [createButton({ label: "在线咨询", actionType: "send_message", value: "我要咨询价格" })]
     })
   },
   {
     id: "social-follow",
     name: "关注我们",
-    description: "引导关注你的社交媒体账号，保持互动",
-    tags: ["全部访客", "每用户一次", "全时段"],
+    description: "引导访客关注你的社交媒体账号，保持互动",
+    tags: ["全部访客", "每访客一次", "全时段"],
     previewImage: createTemplatePreviewImage("social-follow"),
     defaults: createDraft({
       name: "关注社交媒体",
       trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 8 },
-      title: "关注我们，领取最新活动",
-      description: "每天更新优惠与实操内容，点击下方渠道即可查看。",
+      title: "关注我们",
+      description: "每天更新内容，点击下方渠道即可查看",
       buttons: [
         createButton({ label: "Twitter", actionType: "open_link", value: "https://example.com" }),
         createButton({ label: "Tiktok", actionType: "open_link", value: "https://example.com" })
@@ -730,46 +730,45 @@ const templateLibrary: TemplateItem[] = [
   },
   {
     id: "newsletter",
-    name: "订阅通讯",
-    description: "邀请订阅获取优惠信息",
-    tags: ["首次访客", "每用户一次", "仅客服在线时"],
+    name: "分享重要更新",
+    description: "告诉访客重要通知及其他相关信息",
+    tags: ["首次访客", "每访客一次", "客服在线"],
     previewImage: createTemplatePreviewImage("newsletter"),
     defaults: createDraft({
-      name: "订阅通讯",
+      name: "分享重要更新",
       trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 6 },
-      title: "订阅新品与优惠",
-      description: "留下你的意向，我们会第一时间同步专属折扣。",
-      buttons: [createButton({ label: "立即订阅", actionType: "send_message", value: "立即订阅" })]
+      title: "重要更新",
+      description: "由于天气原因，配送可能延迟 1-2 天",
+      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询配送延迟问题" })]
     })
   },
   {
     id: "flash-sale",
     name: "限时优惠",
     description: "推送限时折扣活动，提升转化率",
-    tags: ["首次访客", "每用户一次", "全时段"],
+    tags: ["首次访客", "每访客一次", "全时段"],
     previewImage: createTemplatePreviewImage("flash-sale"),
     defaults: createDraft({
       name: "限时优惠",
       trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 3 },
       title: "今日下单立减",
-      description: "复制优惠码即享限时折扣，活动结束后将恢复原价。",
+      description: "复制优惠码即享限时折扣，活动结束后将恢复原价",
       buttons: [createButton({ label: "获取折扣", actionType: "paste_text", value: "20%OFF" })]
     })
   },
   {
     id: "customer-service",
     name: "客服引导",
-    description: "主动邀请访客进行在线咨询，提升服务体验",
-    tags: ["全部访客", "每次访问", "仅客服在线时"],
+    description: "主动邀请访客进行，提升服务体验",
+    tags: ["全部访客", "每次访问", "客服在线"],
     previewImage: createTemplatePreviewImage("customer-service"),
     defaults: createDraft({
       name: "客服引导",
       trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 4 },
       title: "需要帮助吗？",
-      description: "我们的客服团队在线等候，随时为你解答疑问。",
+      description: "我们的客服团队在线等候，随时为你解答疑问",
       buttons: [
-        createButton({ label: "立即咨询", actionType: "send_message", value: "立即咨询" }),
-        createButton({ label: "稍后再说", actionType: "send_message", value: "稍后再说" })
+        createButton({ label: "立即咨询", actionType: "send_message", value: "我需要帮助" }),
       ]
     })
   },

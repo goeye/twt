@@ -14,7 +14,12 @@
       "Bash(ls:*)",
       "Bash(pnpm dev:web-agent:*)",
       "Bash(curl:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(git fetch:*)",
+      "Bash(pnpm deploy:web-agent:*)",
+      "Bash(pnpm install:*)",
+      "Bash(node:*)",
+      "Bash(bash:*)"
     ]
   }
 }
