@@ -62,10 +62,10 @@
                 v-model="editorDraft.name"
                 class="agent-input"
                 :class="{ 'agent-input--error': shouldShowEditorFieldError('name', isTaskNameEmpty) }"
-                placeholder="请输入"
+                placeholder="请输入任务名称"
                 @blur="markEditorFieldTouched('name')"
               />
-              <p v-if="shouldShowEditorFieldError('name', isTaskNameEmpty)" class="editor-field__error">请输入</p>
+              <p v-if="shouldShowEditorFieldError('name', isTaskNameEmpty)" class="editor-field__error">请输入任务名称</p>
             </div>
 
             <div class="editor-field">
@@ -96,7 +96,7 @@
 
             <div class="editor-field">
               <label class="editor-field__label">标题</label>
-              <input v-model="editorDraft.title" class="agent-input" maxlength="20" placeholder="请输入" @input="limitDraftText('title', 20)" />
+              <input v-model="editorDraft.title" class="agent-input" maxlength="50" placeholder="请输入标题" @input="limitDraftText('title', 50)" />
             </div>
 
             <div class="editor-field">
@@ -105,12 +105,12 @@
                 v-model="editorDraft.description"
                 class="agent-input"
                 :class="{ 'agent-input--error': shouldShowEditorFieldError('description', isDescriptionEmpty) }"
-                maxlength="100"
-                placeholder="请输入"
-                @input="limitDraftText('description', 100)"
+                maxlength="200"
+                placeholder="请输入描述"
+                @input="limitDraftText('description', 200)"
                 @blur="markEditorFieldTouched('description')"
               />
-              <p v-if="shouldShowEditorFieldError('description', isDescriptionEmpty)" class="editor-field__error">请输入</p>
+              <p v-if="shouldShowEditorFieldError('description', isDescriptionEmpty)" class="editor-field__error">请输入描述</p>
             </div>
           </article>
 
@@ -129,9 +129,31 @@
             </div>
 
             <div class="button-editor-list">
-              <article v-for="(button, index) in editorDraft.buttons" :key="button.id" class="button-editor-item">
+              <article
+                v-for="(button, index) in editorDraft.buttons"
+                :key="button.id"
+                class="button-editor-item"
+                :class="{
+                  'button-editor-item--dragging': draggingButtonIndex === index,
+                  'button-editor-item--drag-over': dragOverButtonIndex === index && draggingButtonIndex !== null && draggingButtonIndex !== index
+                }"
+                @dragover.prevent="handleButtonDragOver(index)"
+                @drop.prevent="handleButtonDrop(index)"
+              >
                 <header class="button-editor-item__header">
-                  <strong class="button-editor-item__title">按钮 {{ index + 1 }}</strong>
+                  <div class="button-editor-item__title-wrap">
+                    <button
+                      type="button"
+                      class="button-editor-item__drag-handle"
+                      draggable="true"
+                      aria-label="拖动排序"
+                      @dragstart="startButtonDrag(index, $event)"
+                      @dragend="endButtonDrag"
+                    >
+                      ⋮⋮
+                    </button>
+                    <strong class="button-editor-item__title">按钮 {{ index + 1 }}</strong>
+                  </div>
                   <button
                     type="button"
                     class="text-danger-btn"
@@ -149,10 +171,10 @@
                     class="agent-input"
                     :class="{ 'agent-input--error': shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button)) }"
                     maxlength="20"
-                    placeholder="立即聊天"
+                    placeholder="请输入按钮文案"
                     @blur="markEditorFieldTouched(`button-label-${button.id}`)"
                   />
-                  <p v-if="shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button))" class="editor-field__error">请输入</p>
+                  <p v-if="shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button))" class="editor-field__error">请输入按钮文案</p>
                 </div>
 
                 <div class="editor-field">
@@ -163,15 +185,17 @@
                         {{ option.label }}
                       </option>
                     </select>
-                    <input
-                      v-model="button.value"
-                      class="agent-input"
-                      :class="{ 'agent-input--error': shouldShowEditorFieldError(`button-value-${button.id}`, isButtonValueEmpty(button)) }"
-                      :placeholder="actionValuePlaceholder(button.actionType)"
-                      @blur="markEditorFieldTouched(`button-value-${button.id}`)"
-                    />
+                    <div class="button-action-value">
+                      <input
+                        v-model="button.value"
+                        class="agent-input"
+                        :class="{ 'agent-input--error': shouldShowButtonValueError(button) }"
+                        :placeholder="actionValuePlaceholder(button.actionType)"
+                        @blur="markEditorFieldTouched(`button-value-${button.id}`)"
+                      />
+                      <p v-if="shouldShowButtonValueError(button)" class="editor-field__error">{{ getButtonValueError(button) }}</p>
+                    </div>
                   </div>
-                  <p v-if="shouldShowEditorFieldError(`button-value-${button.id}`, isButtonValueEmpty(button))" class="editor-field__error">请输入</p>
                 </div>
               </article>
             </div>
@@ -201,7 +225,7 @@
                         class="preview-bubble__btn"
                         :class="{ 'preview-bubble__btn--primary': index === 0 }"
                       >
-                        {{ button.label || "立即聊天" }}
+                        {{ button.label || "请输入" }}
                       </button>
                     </div>
                   </section>
@@ -533,6 +557,7 @@ interface TaskDraft {
 interface ProactiveTask extends TaskDraft {
   id: string;
   status: boolean;
+  displayCount: number;
   creator: string;
   createdAt: string;
 }
@@ -550,6 +575,7 @@ interface ProactiveTaskRow extends Record<string, unknown> {
   id: string;
   name: string;
   status: boolean;
+  displayCount: number;
   creator: string;
   createdAt: string;
   action: string;
@@ -618,9 +644,9 @@ const defaultTrigger = (): TriggerCondition => ({
 
 const createButton = (overrides: Partial<Omit<ActionButtonConfig, "id">> = {}): ActionButtonConfig => ({
   id: createId(),
-  label: "立即聊天",
+  label: "联系我们",
   actionType: "send_message",
-  value: "在线咨询",
+  value: "我要咨询",
   ...overrides
 });
 
@@ -699,16 +725,16 @@ const createTemplatePreviewImage = (id: string): string => {
 const templateLibrary: TemplateItem[] = [
   {
     id: "welcome-visitor",
-    name: "欢迎",
+    name: "欢迎访客",
     description: "用友好的问候语给访客留下良好的第一印象",
     tags: ["全部访客", "每访客一次", "客服在线"],
     previewImage: createTemplatePreviewImage("welcome-visitor"),
     defaults: createDraft({
-      name: "欢迎",
+      name: "欢迎访客",
       trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
       title: "欢迎来到 Chat",
       description: "你好，在线客服随时为你解答产品与价格问题",
-      buttons: [createButton({ label: "在线咨询", actionType: "send_message", value: "我要咨询价格" })]
+      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
     })
   },
   {
@@ -719,7 +745,7 @@ const templateLibrary: TemplateItem[] = [
     previewImage: createTemplatePreviewImage("social-follow"),
     defaults: createDraft({
       name: "关注社交媒体",
-      trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 8 },
+      trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
       title: "关注我们",
       description: "每天更新内容，点击下方渠道即可查看",
       buttons: [
@@ -730,16 +756,16 @@ const templateLibrary: TemplateItem[] = [
   },
   {
     id: "newsletter",
-    name: "分享重要更新",
+    name: "分享重要通知",
     description: "告诉访客重要通知及其他相关信息",
     tags: ["首次访客", "每访客一次", "客服在线"],
     previewImage: createTemplatePreviewImage("newsletter"),
     defaults: createDraft({
-      name: "分享重要更新",
-      trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 6 },
-      title: "重要更新",
+      name: "分享重要通知",
+      trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+      title: "重要通知",
       description: "由于天气原因，配送可能延迟 1-2 天",
-      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询配送延迟问题" })]
+      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
     })
   },
   {
@@ -750,7 +776,7 @@ const templateLibrary: TemplateItem[] = [
     previewImage: createTemplatePreviewImage("flash-sale"),
     defaults: createDraft({
       name: "限时优惠",
-      trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 3 },
+      trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
       title: "今日下单立减",
       description: "复制优惠码即享限时折扣，活动结束后将恢复原价",
       buttons: [createButton({ label: "获取折扣", actionType: "paste_text", value: "20%OFF" })]
@@ -759,12 +785,12 @@ const templateLibrary: TemplateItem[] = [
   {
     id: "customer-service",
     name: "客服引导",
-    description: "主动邀请访客进行，提升服务体验",
+    description: "主动邀请访客进行互动，提升服务体验",
     tags: ["全部访客", "每次访问", "客服在线"],
     previewImage: createTemplatePreviewImage("customer-service"),
     defaults: createDraft({
       name: "客服引导",
-      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 4 },
+      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
       title: "需要帮助吗？",
       description: "我们的客服团队在线等候，随时为你解答疑问",
       buttons: [
@@ -780,7 +806,7 @@ const templateLibrary: TemplateItem[] = [
     previewImage: createTemplatePreviewImage("custom"),
     defaults: createDraft({
       name: "自定义",
-      trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
       title: "自定义",
       description: "自定义",
       buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "立即咨询" })]
@@ -790,7 +816,7 @@ const templateLibrary: TemplateItem[] = [
 
 const makeInitialTask = (
   templateId: string,
-  options: { taskName: string; creator: string; createdAt: string; status?: boolean }
+  options: { taskName: string; creator: string; createdAt: string; status?: boolean; displayCount?: number }
 ): ProactiveTask => {
   const template = templateLibrary.find((item) => item.id === templateId);
   const draft = cloneDraft(template?.defaults ?? createDraft(), true);
@@ -798,6 +824,7 @@ const makeInitialTask = (
     id: createId(),
     name: options.taskName,
     status: options.status ?? true,
+    displayCount: options.displayCount ?? 0,
     creator: options.creator,
     createdAt: options.createdAt,
     trigger: draft.trigger,
@@ -810,16 +837,18 @@ const makeInitialTask = (
 
 const tasks = ref<ProactiveTask[]>([
   makeInitialTask("welcome-visitor", {
-    taskName: "首访欢迎气泡",
+    taskName: "欢迎访客",
     creator: "客服主管",
     createdAt: "2026-03-03 10:12",
-    status: true
+    status: true,
+    displayCount: 182
   }),
   makeInitialTask("flash-sale", {
     taskName: "首访限时优惠",
     creator: "客服主管",
     createdAt: "2026-03-02 18:30",
-    status: false
+    status: false,
+    displayCount: 76
   })
 ]);
 
@@ -834,6 +863,8 @@ const editorDraft = ref<TaskDraft | null>(null);
 const editorSubmitAttempted = ref(false);
 const editorFieldTouched = ref<Record<string, boolean>>({});
 const triggerDelayTouched = ref(false);
+const draggingButtonIndex = ref<number | null>(null);
+const dragOverButtonIndex = ref<number | null>(null);
 const headerImageInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
 const cropDragging = ref(false);
@@ -854,11 +885,12 @@ const cropState = ref({
 });
 
 const columns: TableColumn<ProactiveTaskRow>[] = [
-  { key: "name", title: "任务名称", width: "38%" },
-  { key: "status", title: "状态", width: "12%" },
+  { key: "name", title: "任务名称", width: "31%" },
+  { key: "status", title: "状态", width: "10%" },
+  { key: "displayCount", title: "显示次数", width: "14%" },
   { key: "creator", title: "创建人", width: "15%" },
   { key: "createdAt", title: "创建时间", width: "20%" },
-  { key: "action", title: "操作", width: "15%" }
+  { key: "action", title: "操作", width: "10%" }
 ];
 
 const tableRows = computed<ProactiveTaskRow[]>(() =>
@@ -866,6 +898,7 @@ const tableRows = computed<ProactiveTaskRow[]>(() =>
     id: task.id,
     name: task.name,
     status: task.status,
+    displayCount: task.displayCount,
     creator: task.creator,
     createdAt: task.createdAt,
     action: "..."
@@ -905,7 +938,7 @@ const showTriggerDelayError = computed(() => {
 const visitorPreviewModeOptions: Array<{ label: string; value: VisitorPreviewMode }> = [
   { label: "图片+标题+描述+按钮", value: "image-title-desc-buttons" },
   { label: "图片+描述+按钮", value: "image-desc-buttons" },
-  { label: "图片+20字标题+100字描述+按钮(超出滚动)", value: "overflow-scroll" }
+  { label: "图片+50字标题+200字描述+按钮(超出滚动)", value: "overflow-scroll" }
 ];
 
 const toExactLength = (input: string, targetLength: number, padChar: string) => {
@@ -914,10 +947,10 @@ const toExactLength = (input: string, targetLength: number, padChar: string) => 
   return `${sliced}${padChar.repeat(missing)}`;
 };
 
-const overflowTitleText = toExactLength("访客端营销气泡标题滚动样式观察文本", 20, "标");
+const overflowTitleText = toExactLength("访客端营销气泡标题滚动样式观察文本（用于长文本自动换行展示）", 50, "标");
 const overflowDescriptionText = toExactLength(
-  "这是用于观察访客端营销气泡内容超出后的滚动效果示例文本，包含图片、标题、描述与多个按钮，请重点查看内容边界、滚动条表现、按钮顺序和整体视觉层级是否符合预期。",
-  100,
+  "这是用于观察访客端营销气泡内容超出后的展示效果示例文本。现在描述字段最多支持输入二百字符，因此预览区域需要完整呈现文本内容，并在宽度不足时自动换行，避免发生裁切或横向滚动。请重点查看内容边界、换行行为、按钮顺序和整体视觉层级是否符合预期。",
+  200,
   "内"
 );
 
@@ -1129,6 +1162,27 @@ const shouldShowEditorFieldError = (fieldKey: string, invalid: boolean) =>
 
 const isButtonLabelEmpty = (button: ActionButtonConfig) => button.label.trim().length === 0;
 const isButtonValueEmpty = (button: ActionButtonConfig) => button.value.trim().length === 0;
+const isHttpUrl = (value: string) => {
+  const input = value.trim();
+  if (!input) return false;
+  try {
+    const parsed = new URL(input);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+const isButtonUrlInvalid = (button: ActionButtonConfig) =>
+  button.actionType === "open_link" && button.value.trim().length > 0 && !isHttpUrl(button.value);
+const getButtonValueError = (button: ActionButtonConfig) => {
+  if (isButtonValueEmpty(button)) return "请输入";
+  if (isButtonUrlInvalid(button)) return "无效URL";
+  return "";
+};
+const shouldShowButtonValueError = (button: ActionButtonConfig) => {
+  const fieldKey = `button-value-${button.id}`;
+  return shouldShowEditorFieldError(fieldKey, getButtonValueError(button).length > 0);
+};
 
 const clampByCharCount = (value: string, maxLength: number) => Array.from(value).slice(0, maxLength).join("");
 
@@ -1320,8 +1374,9 @@ const saveEditor = () => {
   const normalizedDescription = draft.description.trim();
   const hasEmptyButtonLabel = draft.buttons.some((button) => button.label.trim().length === 0);
   const hasEmptyActionValue = draft.buttons.some((button) => button.value.trim().length === 0);
+  const hasInvalidActionUrl = draft.buttons.some((button) => isButtonUrlInvalid(button));
 
-  if (!normalizedName || !normalizedDescription || hasEmptyButtonLabel || hasEmptyActionValue) {
+  if (!normalizedName || !normalizedDescription || hasEmptyButtonLabel || hasEmptyActionValue || hasInvalidActionUrl) {
     return;
   }
 
@@ -1336,7 +1391,7 @@ const saveEditor = () => {
     description: normalizedDescription,
     buttons: draft.buttons.map((button) => ({
       ...button,
-      label: button.label.trim() || "立即聊天",
+      label: button.label.trim() || "请输入",
       value: button.value.trim()
     }))
   };
@@ -1356,6 +1411,7 @@ const saveEditor = () => {
       {
         id: createId(),
         status: true,
+        displayCount: 0,
         creator: "当前客服",
         createdAt: formatCurrentTime(),
         ...normalizedDraft
@@ -1374,6 +1430,8 @@ const appendButton = () => {
     emit("toast", "最多添加 5 个按钮");
     return;
   }
+  draggingButtonIndex.value = null;
+  dragOverButtonIndex.value = null;
   editorDraft.value.buttons.push(createButton());
 };
 
@@ -1383,7 +1441,44 @@ const removeButton = (index: number) => {
     emit("toast", "至少保留 1 个按钮");
     return;
   }
+  draggingButtonIndex.value = null;
+  dragOverButtonIndex.value = null;
   editorDraft.value.buttons.splice(index, 1);
+};
+const startButtonDrag = (index: number, event: DragEvent) => {
+  if (!editorDraft.value) return;
+  draggingButtonIndex.value = index;
+  dragOverButtonIndex.value = index;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(index));
+  }
+};
+const handleButtonDragOver = (index: number) => {
+  if (draggingButtonIndex.value === null || draggingButtonIndex.value === index) return;
+  dragOverButtonIndex.value = index;
+};
+const handleButtonDrop = (index: number) => {
+  const draft = editorDraft.value;
+  const fromIndex = draggingButtonIndex.value;
+  if (!draft || fromIndex === null) {
+    draggingButtonIndex.value = null;
+    dragOverButtonIndex.value = null;
+    return;
+  }
+  const toIndex = dragOverButtonIndex.value ?? index;
+  if (fromIndex !== toIndex && toIndex >= 0 && toIndex < draft.buttons.length) {
+    const [moved] = draft.buttons.splice(fromIndex, 1);
+    if (moved) {
+      draft.buttons.splice(toIndex, 0, moved);
+    }
+  }
+  draggingButtonIndex.value = null;
+  dragOverButtonIndex.value = null;
+};
+const endButtonDrag = () => {
+  draggingButtonIndex.value = null;
+  dragOverButtonIndex.value = null;
 };
 const actionValuePlaceholder = (actionType: ButtonActionType) => actionTypeMeta[actionType].placeholder;
 
@@ -1854,12 +1949,51 @@ const removeHeaderImage = () => {
   flex-direction: column;
   gap: 10px;
   padding: 12px;
+  transition: border-color var(--agent-motion-fast) ease, box-shadow var(--agent-motion-fast) ease, opacity var(--agent-motion-fast) ease;
+}
+
+.button-editor-item--dragging {
+  border-color: #9db8ff;
+  border-style: dashed;
+  opacity: 0.68;
+}
+
+.button-editor-item--drag-over {
+  border-color: #4f7fff;
+  box-shadow: 0 0 0 2px rgba(79, 127, 255, 0.16);
 }
 
 .button-editor-item__header {
   align-items: center;
   display: flex;
   justify-content: space-between;
+}
+
+.button-editor-item__title-wrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.button-editor-item__drag-handle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  cursor: grab;
+  display: inline-flex;
+  font-size: 14px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.button-editor-item__drag-handle:active {
+  cursor: grabbing;
+}
+
+.button-editor-item__drag-handle:hover {
+  color: #64748b;
 }
 
 .button-editor-item__title {
@@ -1891,6 +2025,17 @@ const removeHeaderImage = () => {
   display: grid;
   gap: 10px;
   grid-template-columns: 140px minmax(0, 1fr);
+}
+
+.button-action-value {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.button-action-value .editor-field__error {
+  margin-top: 0;
 }
 
 .button-action-select {
@@ -2006,15 +2151,10 @@ const removeHeaderImage = () => {
 .preview-bubble__desc {
   display: block;
   margin: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  text-overflow: clip;
-  white-space: nowrap;
-}
-
-.preview-bubble__title::-webkit-scrollbar,
-.preview-bubble__desc::-webkit-scrollbar {
-  height: 4px;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .preview-bubble__title {
