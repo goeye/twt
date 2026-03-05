@@ -732,8 +732,8 @@ const templateLibrary: TemplateItem[] = [
     defaults: createDraft({
       name: "欢迎访客",
       trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
-      title: "欢迎来到 Chat",
-      description: "你好，在线客服随时为你解答产品与价格问题",
+      title: "欢迎",
+      description: "想找特定内容？让我们来帮你",
       buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
     })
   },
@@ -809,7 +809,7 @@ const templateLibrary: TemplateItem[] = [
       trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
       title: "自定义",
       description: "自定义",
-      buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "立即咨询" })]
+      buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "我要咨询" })]
     })
   }
 ];
@@ -980,8 +980,8 @@ const visitorPreviewSource = computed(() => {
 
   return {
     headerImage: task?.headerImage || fallback.headerImage || visitorPreviewPlaceholderImage,
-    title: task?.title || fallback.title || "欢迎来到 TWT",
-    description: task?.description || fallback.description || "你好呀，在线客服随时为你解答产品与价格问题。",
+    title: task?.title || fallback.title || "欢迎",
+    description: task?.description || fallback.description || "想找特定内容？让我们来帮你。",
     buttonLabels: buttonLabels.length > 0 ? buttonLabels : ["立即咨询"]
   };
 });
