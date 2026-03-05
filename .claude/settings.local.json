@@ -19,7 +19,9 @@
       "Bash(pnpm deploy:web-agent:*)",
       "Bash(pnpm install:*)",
       "Bash(node:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(claude mcp:*)",
+      "Bash(printf:*)"
     ]
   }
 }
