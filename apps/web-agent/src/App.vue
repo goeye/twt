@@ -140,7 +140,10 @@
       </section>
     </section>
 
-    <SettingsRoutePage v-else-if="isSettingsRoute" :active-key="activeSettingsNavKey" @toast="showTopToast" />
+    <template v-else-if="isSettingsRoute">
+      <WidgetCustomizePage v-if="activeSettingsNavKey === 'customize'" @toast="showTopToast" />
+      <SettingsRoutePage v-else :active-key="activeSettingsNavKey" @toast="showTopToast" />
+    </template>
     <AiAgentRoutePage v-else-if="isAiAgentRoute" :active-key="activeAiNavKey" @toast="showTopToast" />
     <template v-else-if="isCampaignRoute">
       <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
@@ -271,6 +274,7 @@ import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
+import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import {
   AgentAppShell,
   AiSettingsNav,
@@ -293,7 +297,7 @@ import {
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings";
-type SettingsNavKey = "install" | "team" | "quick-reply";
+type SettingsNavKey = "install" | "customize" | "team" | "quick-reply";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 
 interface AgentEntry {
@@ -401,7 +405,10 @@ const settingsNavGroups = [
     key: "install-group",
     title: "安装",
     leadingEmoji: "⚙️",
-    items: [{ key: "install", label: "聊天页面" }]
+    items: [
+      { key: "install", label: "聊天页面" },
+      { key: "customize", label: "自定义" }
+    ]
   },
   {
     key: "team-group",
@@ -985,7 +992,7 @@ const openSettingsPage = () => {
 };
 
 const handleSettingsNavSelect = (key: string) => {
-  if (key === "install" || key === "team" || key === "quick-reply") {
+  if (key === "install" || key === "customize" || key === "team" || key === "quick-reply") {
     activeSettingsNavKey.value = key;
   }
 };
