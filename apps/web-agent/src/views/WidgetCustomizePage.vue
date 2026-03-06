@@ -57,7 +57,7 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('position')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">小部件位置</h3>
-              <p class="wc-card__desc">设置聊天小部件在页面上的位置</p>
+              <p class="wc-card__desc">设置聊天小部件在网页上的位置</p>
             </div>
             <span class="wc-accordion__chevron" />
           </button>
@@ -151,7 +151,7 @@
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('外观设置已保存')">保存</button>
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('保存成功')">保存</button>
       </div>
 
       <!-- Content Tab -->
@@ -382,7 +382,6 @@
           <option value="form">表单</option>
           <option value="minimized">最小化</option>
         </select>
-        <span class="wc-preview__title">预览</span>
       </header>
 
       <div class="wc-preview__canvas">
@@ -766,7 +765,7 @@ const feedbackPreviewTitle = computed(() => {
 });
 
 const settings = reactive({
-  brandName: "够上信息科技（合肥）有限...",
+  brandName: "项目名称",
   brandLogoUrl: DEFAULT_LOGO,
   widgetPosition: "bottom-right" as "bottom-right" | "bottom-left",
   positionOffsetX: 20,
