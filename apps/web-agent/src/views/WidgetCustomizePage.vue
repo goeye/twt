@@ -124,7 +124,7 @@
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'quickAccess'" class="wc-accordion__body">
-            <div class="wc-lang-tabs">
+            <div class="wc-lang-tabs wc-lang-tabs--quick-access">
               <button
                 v-for="lang in langTabs"
                 :key="lang.key"
@@ -138,20 +138,28 @@
             </div>
             <div class="wc-quick-tags">
               <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="addQuickAccess">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-                添加
+                <span class="wc-quick-tag__add-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                </span>
+                <span class="wc-quick-tag__label">添加</span>
               </button>
-              <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag">
-                {{ item.label }}
+              <div v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag">
+                <span class="wc-quick-tag__icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M4 8l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                </span>
+                <span class="wc-quick-tag__label">{{ item.label }}</span>
+                <span class="wc-quick-tag__edit" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+                </span>
                 <button type="button" class="wc-quick-tag__remove" @click="removeQuickAccess(item.id)">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
                 </button>
-              </span>
+              </div>
             </div>
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('保存成功')">保存</button>
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- Content Tab -->
@@ -241,7 +249,7 @@
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('内容设置已保存')">保存</button>
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- Form Tab -->
@@ -304,7 +312,7 @@
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('表单设置已保存')">保存</button>
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- General Tab -->
@@ -343,12 +351,47 @@
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionFeatures'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">发起会话</span>
-                <span class="wc-switch-desc">开启后，聊天小部件中显示新的会话按钮，访客可主动发起咨询；关闭后入口隐藏</span>
+            <div class="wc-session-feature-card">
+              <div class="wc-session-feature-card__header">
+                <div class="wc-session-feature-card__text">
+                  <span class="wc-session-feature-card__title">发起会话</span>
+                  <span class="wc-session-feature-card__desc">开启后，聊天小部件中显示新的会话按钮，访客可主动发起咨询；关闭后入口隐藏</span>
+                </div>
+                <AgentSwitch v-model="settings.enableStartSession" />
               </div>
-              <AgentSwitch v-model="settings.enableStartSession" />
+              <div v-if="settings.enableStartSession" class="wc-session-feature-card__panel">
+                <label class="wc-session-feature-limit">
+                  <input v-model="settings.limitStartSessionCount" type="checkbox" class="wc-session-feature-limit__checkbox" />
+                  <div class="wc-session-feature-limit__text">
+                    <span class="wc-session-feature-limit__title">限制访客发起会话数上限</span>
+                    <span class="wc-session-feature-limit__desc">设置访客可同时发起的未结束会话的最大数量</span>
+                  </div>
+                </label>
+                <div v-if="settings.limitStartSessionCount" class="wc-session-feature-limit__controls">
+                  <label class="wc-session-feature-limit__field">
+                    <span class="wc-session-feature-limit__field-label">最大会话数</span>
+                    <div class="wc-session-feature-limit__stepper">
+                      <input
+                        v-model.number="settings.maxStartSessionCount"
+                        type="number"
+                        min="1"
+                        max="99"
+                        class="agent-input wc-session-feature-limit__input"
+                        @blur="normalizeStartSessionCount"
+                      />
+                      <button type="button" class="wc-session-feature-limit__step-btn" @click="incrementStartSessionCount" aria-label="增加最大会话数">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 14l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                <div v-if="settings.limitStartSessionCount" class="wc-session-feature-limit__notice">
+                  <span class="wc-session-feature-limit__notice-icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="currentColor" /><path d="M12 7v6" stroke="#fff" stroke-width="2" stroke-linecap="round" /><circle cx="12" cy="16.5" r="1" fill="#fff" /></svg>
+                  </span>
+                  <span>注意：启用限制后，如果访客删除未结束的会话，该会话仍会占用额度，可能导致访客无法发起新的会话。建议关闭“删除会话”功能，禁止访客删除会话。</span>
+                </div>
+              </div>
             </div>
             <div class="wc-divider" />
             <div class="wc-switch-row">
@@ -369,7 +412,15 @@
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('常规设置已保存')">保存</button>
+        <div class="wc-general-setting-card">
+          <div class="wc-general-setting-card__text">
+            <span class="wc-switch-label">隐藏联系我们</span>
+            <span class="wc-switch-desc">开启后，App 端我的页面将不显示“联系我们”入口</span>
+          </div>
+          <AgentSwitch v-model="settings.hideContactUs" />
+        </div>
+
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
     </div>
 
@@ -539,6 +590,19 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
+    <BaseModal :open="unsavedChangesModalOpen" title="未保存的修改" @close="cancelPendingNavigation">
+      <div class="wc-unsaved-modal">
+        <p class="wc-unsaved-modal__desc">当前内容已修改但尚未保存，切换后可能丢失本次修改。是否继续切换？</p>
+      </div>
+      <template #footer>
+        <span />
+        <div class="wc-unsaved-modal__actions">
+          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在当前页</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">继续切换</button>
+        </div>
+      </template>
+    </BaseModal>
+
     <!-- Image Crop Modal -->
     <teleport to="body">
       <div v-if="cropModalOpen" class="wc-crop-overlay" @click.self="cropModalOpen = false">
@@ -558,8 +622,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watch } from "vue";
-import { AgentSwitch } from "@twt/ui-agent";
+import { reactive, ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { AgentSwitch, BaseModal } from "@twt/ui-agent";
 
 interface QuickAccessItem {
   id: string;
@@ -587,6 +651,7 @@ const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "dirty-change", dirty: boolean): void;
 }>();
 
 const emitToast = (msg: string) => emit("toast", msg);
@@ -601,7 +666,8 @@ const tabs: { key: TabKey; label: string }[] = [
 const langTabs = [
   { key: "list", label: "访问列表" },
   { key: "en", label: "英文" },
-  { key: "zh-cn", label: "简体中文" }
+  { key: "zh-cn", label: "简体中文" },
+  { key: "zh-tw", label: "繁体中文" }
 ];
 
 const formLangTabs = [
@@ -736,7 +802,7 @@ const defaultSections: Record<TabKey, SectionKey> = {
   general: "msgStatus"
 };
 
-const switchTab = (key: TabKey) => {
+const applyTabSwitch = (key: TabKey) => {
   activeTab.value = key;
   openSection.value = defaultSections[key];
   if (openSection.value) {
@@ -745,6 +811,13 @@ const switchTab = (key: TabKey) => {
       previewMode.value = target;
     }
   }
+};
+
+const switchTab = (key: TabKey) => {
+  if (activeTab.value === key) {
+    return;
+  }
+  requestNavigation(() => applyTabSwitch(key));
 };
 
 // Computed: which auto-reply message to show in chat preview
@@ -794,10 +867,27 @@ const settings = reactive({
   ] as FormField[],
   enableReadReceipt: true,
   showAgentOnlineStatus: true,
+  hideContactUs: false,
   enableStartSession: true,
+  limitStartSessionCount: true,
+  maxStartSessionCount: 3,
   enableDeleteSession: false,
   enableEndSession: false
 });
+
+const normalizeStartSessionCount = () => {
+  const nextValue = Number(settings.maxStartSessionCount);
+  if (!Number.isFinite(nextValue)) {
+    settings.maxStartSessionCount = 1;
+    return;
+  }
+  settings.maxStartSessionCount = Math.min(99, Math.max(1, Math.round(nextValue)));
+};
+
+const incrementStartSessionCount = () => {
+  normalizeStartSessionCount();
+  settings.maxStartSessionCount = Math.min(99, settings.maxStartSessionCount + 1);
+};
 
 const widgetPositionStyle = computed(() => {
   const isLeft = settings.widgetPosition === "bottom-left";
@@ -872,6 +962,190 @@ const addFormField = () => {
 const removeFormField = (idx: number) => {
   settings.formFields.splice(idx, 1);
 };
+
+const unsavedChangesModalOpen = ref(false);
+const pendingNavigationAction = ref<(() => void) | null>(null);
+
+const getConfigSnapshot = () => JSON.stringify({
+  settings: {
+    brandName: settings.brandName,
+    brandLogoUrl: settings.brandLogoUrl,
+    widgetPosition: settings.widgetPosition,
+    positionOffsetX: settings.positionOffsetX,
+    positionOffsetY: settings.positionOffsetY,
+    hideBrandLogo: settings.hideBrandLogo,
+    quickAccessItems: settings.quickAccessItems.map((item) => ({ ...item })),
+    enableSessionForm: settings.enableSessionForm,
+    formTitle: settings.formTitle,
+    formFields: settings.formFields.map((field) => ({ ...field })),
+    enableReadReceipt: settings.enableReadReceipt,
+    showAgentOnlineStatus: settings.showAgentOnlineStatus,
+    hideContactUs: settings.hideContactUs,
+    enableStartSession: settings.enableStartSession,
+    limitStartSessionCount: settings.limitStartSessionCount,
+    maxStartSessionCount: settings.maxStartSessionCount,
+    enableDeleteSession: settings.enableDeleteSession,
+    enableEndSession: settings.enableEndSession
+  },
+  autoReplyToggles: { ...autoReplyToggles },
+  autoReplyTexts: {
+    welcome: { ...autoReplyTexts.welcome },
+    end: { ...autoReplyTexts.end },
+    sessionOffline: { ...autoReplyTexts.sessionOffline },
+    chatOffline: { ...autoReplyTexts.chatOffline }
+  },
+  autoReplyImages: {
+    welcome: {
+      en: [...autoReplyImages.welcome.en],
+      "zh-cn": [...autoReplyImages.welcome["zh-cn"]],
+      "zh-tw": [...autoReplyImages.welcome["zh-tw"]]
+    },
+    end: {
+      en: [...autoReplyImages.end.en],
+      "zh-cn": [...autoReplyImages.end["zh-cn"]],
+      "zh-tw": [...autoReplyImages.end["zh-tw"]]
+    },
+    sessionOffline: {
+      en: [...autoReplyImages.sessionOffline.en],
+      "zh-cn": [...autoReplyImages.sessionOffline["zh-cn"]],
+      "zh-tw": [...autoReplyImages.sessionOffline["zh-tw"]]
+    },
+    chatOffline: {
+      en: [...autoReplyImages.chatOffline.en],
+      "zh-cn": [...autoReplyImages.chatOffline["zh-cn"]],
+      "zh-tw": [...autoReplyImages.chatOffline["zh-tw"]]
+    }
+  },
+  feedbackEnabled: feedbackEnabled.value,
+  feedbackTitles: { ...feedbackTitles }
+});
+
+const savedSnapshot = ref("");
+savedSnapshot.value = getConfigSnapshot();
+
+const hasUnsavedChanges = computed(() => getConfigSnapshot() !== savedSnapshot.value);
+
+const restoreSavedSnapshot = () => {
+  const snapshot = JSON.parse(savedSnapshot.value) as {
+    settings: {
+      brandName: string;
+      brandLogoUrl: string;
+      widgetPosition: "bottom-right" | "bottom-left";
+      positionOffsetX: number;
+      positionOffsetY: number;
+      hideBrandLogo: boolean;
+      quickAccessItems: QuickAccessItem[];
+      enableSessionForm: boolean;
+      formTitle: string;
+      formFields: FormField[];
+      enableReadReceipt: boolean;
+      showAgentOnlineStatus: boolean;
+      hideContactUs: boolean;
+      enableStartSession: boolean;
+      limitStartSessionCount: boolean;
+      maxStartSessionCount: number;
+      enableDeleteSession: boolean;
+      enableEndSession: boolean;
+    };
+    autoReplyToggles: Record<AutoReplyKey, boolean>;
+    autoReplyTexts: Record<AutoReplyKey, Record<LangKey, string>>;
+    autoReplyImages: Record<AutoReplyKey, Record<LangKey, string[]>>;
+    feedbackEnabled: boolean;
+    feedbackTitles: Record<LangKey, string>;
+  };
+
+  settings.brandName = snapshot.settings.brandName;
+  settings.brandLogoUrl = snapshot.settings.brandLogoUrl;
+  settings.widgetPosition = snapshot.settings.widgetPosition;
+  settings.positionOffsetX = snapshot.settings.positionOffsetX;
+  settings.positionOffsetY = snapshot.settings.positionOffsetY;
+  settings.hideBrandLogo = snapshot.settings.hideBrandLogo;
+  settings.quickAccessItems = snapshot.settings.quickAccessItems.map((item) => ({ ...item }));
+  settings.enableSessionForm = snapshot.settings.enableSessionForm;
+  settings.formTitle = snapshot.settings.formTitle;
+  settings.formFields = snapshot.settings.formFields.map((field) => ({ ...field }));
+  settings.enableReadReceipt = snapshot.settings.enableReadReceipt;
+  settings.showAgentOnlineStatus = snapshot.settings.showAgentOnlineStatus;
+  settings.hideContactUs = snapshot.settings.hideContactUs;
+  settings.enableStartSession = snapshot.settings.enableStartSession;
+  settings.limitStartSessionCount = snapshot.settings.limitStartSessionCount;
+  settings.maxStartSessionCount = snapshot.settings.maxStartSessionCount;
+  settings.enableDeleteSession = snapshot.settings.enableDeleteSession;
+  settings.enableEndSession = snapshot.settings.enableEndSession;
+
+  autoReplyKeys.forEach((key) => {
+    autoReplyToggles[key] = snapshot.autoReplyToggles[key];
+    Object.keys(snapshot.autoReplyTexts[key]).forEach((lang) => {
+      const langKey = lang as LangKey;
+      autoReplyTexts[key][langKey] = snapshot.autoReplyTexts[key][langKey];
+      autoReplyImages[key][langKey] = [...snapshot.autoReplyImages[key][langKey]];
+    });
+  });
+
+  feedbackEnabled.value = snapshot.feedbackEnabled;
+  Object.keys(snapshot.feedbackTitles).forEach((lang) => {
+    const langKey = lang as LangKey;
+    feedbackTitles[langKey] = snapshot.feedbackTitles[langKey];
+  });
+};
+
+const handleSave = (message = "保存成功") => {
+  normalizeStartSessionCount();
+  savedSnapshot.value = getConfigSnapshot();
+  emit("dirty-change", false);
+  emitToast(message);
+};
+
+const requestNavigation = (action: () => void) => {
+  if (!hasUnsavedChanges.value) {
+    action();
+    return true;
+  }
+  pendingNavigationAction.value = action;
+  unsavedChangesModalOpen.value = true;
+  return false;
+};
+
+const cancelPendingNavigation = () => {
+  pendingNavigationAction.value = null;
+  unsavedChangesModalOpen.value = false;
+};
+
+const confirmPendingNavigation = () => {
+  const action = pendingNavigationAction.value;
+  restoreSavedSnapshot();
+  cancelPendingNavigation();
+  action?.();
+};
+
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (!hasUnsavedChanges.value) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = "";
+};
+
+watch(
+  hasUnsavedChanges,
+  (dirty) => {
+    emit("dirty-change", dirty);
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  window.addEventListener("beforeunload", handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+});
+
+defineExpose({
+  requestNavigation,
+  hasUnsavedChanges: () => hasUnsavedChanges.value
+});
 </script>
 
 <style scoped>
@@ -1171,6 +1445,175 @@ const removeFormField = (idx: number) => {
   gap: 2px;
 }
 
+.wc-session-feature-card {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 24px 24px;
+}
+
+.wc-session-feature-card__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.wc-session-feature-card__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wc-session-feature-card__title {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wc-session-feature-card__desc {
+  color: #98a2b3;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.wc-session-feature-card__panel {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 18px 18px 24px;
+}
+
+.wc-session-feature-limit {
+  align-items: flex-start;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+}
+
+.wc-session-feature-limit__checkbox {
+  accent-color: #2563eb;
+  height: 16px;
+  margin-top: 2px;
+  width: 16px;
+}
+
+.wc-session-feature-limit__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wc-session-feature-limit__title {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.wc-session-feature-limit__desc {
+  color: #98a2b3;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.wc-session-feature-limit__controls {
+  padding-left: 30px;
+}
+
+.wc-session-feature-limit__field {
+  align-items: center;
+  display: inline-flex;
+  gap: 18px;
+}
+
+.wc-session-feature-limit__field-label {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wc-session-feature-limit__stepper {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.wc-session-feature-limit__input {
+  appearance: textfield;
+  border-radius: 10px;
+  font-size: 14px;
+  height: 40px;
+  padding: 0 14px;
+  width: 88px;
+}
+
+.wc-session-feature-limit__input::-webkit-outer-spin-button,
+.wc-session-feature-limit__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.wc-session-feature-limit__step-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #475467;
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  width: 24px;
+}
+
+.wc-session-feature-limit__notice {
+  align-items: flex-start;
+  background: #fff3f2;
+  border-radius: 14px;
+  color: #f04438;
+  display: flex;
+  gap: 10px;
+  line-height: 1.75;
+  margin-left: 30px;
+  padding: 12px 14px;
+}
+
+.wc-session-feature-limit__notice-icon {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 18px;
+  justify-content: center;
+  margin-top: 3px;
+  width: 18px;
+}
+
+.wc-general-setting-card {
+  align-items: center;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 24px;
+  display: flex;
+  gap: var(--agent-space-16);
+  justify-content: space-between;
+  padding: 22px 24px;
+}
+
+.wc-general-setting-card__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
 .wc-switch-label {
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-sm);
@@ -1222,48 +1665,124 @@ const removeFormField = (idx: number) => {
   right: 8px;
 }
 
+.wc-lang-tabs--quick-access {
+  margin-bottom: 16px;
+}
+
+.wc-lang-tabs--quick-access .wc-lang-tab {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 0 14px;
+}
+
+.wc-lang-tabs--quick-access .wc-lang-tab + .wc-lang-tab {
+  margin-left: 32px;
+}
+
+.wc-lang-tabs--quick-access .wc-lang-tab--active {
+  color: #111827;
+}
+
+.wc-lang-tabs--quick-access .wc-lang-tab--active::after {
+  border-radius: 999px;
+  height: 2px;
+  left: 0;
+  right: 0;
+}
+
 /* Quick access tags */
 .wc-quick-tags {
+  align-items: center;
+  background: #f5f7fb;
+  border-radius: 14px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 16px;
 }
 
 .wc-quick-tag {
   align-items: center;
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
+  background: #ffffff;
+  border: 0;
+  border-radius: 12px;
+  color: #111827;
   display: inline-flex;
-  font-size: var(--agent-font-size-xs);
-  gap: 6px;
-  padding: 5px 12px;
+  font-size: 14px;
+  gap: 8px;
+  line-height: 1;
+  min-height: 38px;
+  padding: 9px 14px 9px 12px;
+  position: relative;
 }
 
 .wc-quick-tag--add {
-  border-style: dashed;
+  background: rgba(255, 255, 255, 0.72);
+  color: #4b5563;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  padding-right: 16px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .wc-quick-tag--add:hover {
-  border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
+  background: #ffffff;
+  color: #111827;
+}
+
+.wc-quick-tag__add-icon,
+.wc-quick-tag__icon {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.wc-quick-tag__add-icon {
+  background: #eef1f6;
+  color: #98a2b3;
+}
+
+.wc-quick-tag__icon {
+  background: #fff0eb;
+  color: #f97316;
+}
+
+.wc-quick-tag__label {
+  white-space: nowrap;
+}
+
+.wc-quick-tag__edit {
+  align-items: center;
+  color: #111827;
+  display: inline-flex;
 }
 
 .wc-quick-tag__remove {
   align-items: center;
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-text-tertiary);
+  background: #c7ccd6;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  color: #ffffff;
   cursor: pointer;
   display: inline-flex;
+  height: 16px;
+  justify-content: center;
   padding: 0;
-  transition: color 0.15s;
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  transition: background 0.15s ease;
+  width: 16px;
 }
 
-.wc-quick-tag__remove:hover { color: var(--agent-color-status-error); }
+.wc-quick-tag__remove:hover {
+  background: #9ca3af;
+}
 
 /* Save button */
 .wc-save-btn {
@@ -2151,6 +2670,23 @@ const removeFormField = (idx: number) => {
 .wc-crop-modal__actions {
   display: flex;
   gap: var(--agent-space-12);
+  justify-content: flex-end;
+}
+
+.wc-unsaved-modal {
+  padding-top: 8px;
+}
+
+.wc-unsaved-modal__desc {
+  color: var(--agent-color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.wc-unsaved-modal__actions {
+  display: flex;
+  gap: 12px;
   justify-content: flex-end;
 }
 
