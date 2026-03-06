@@ -378,7 +378,7 @@
       <header class="wc-preview__header">
         <select v-model="previewMode" class="agent-input wc-preview-select">
           <option value="sessionList">首页</option>
-          <option value="chat">聊天</option>
+          <option value="chat">消息</option>
           <option value="form">表单</option>
           <option value="minimized">最小化</option>
         </select>
@@ -426,8 +426,9 @@
               <span class="wc-widget__back-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
               </span>
-              <div class="wc-widget__chat-avatar">?</div>
-              <span class="wc-widget__chat-title">新的会话</span>
+              <img v-if="showChatPreviewDefaultAvatar" :src="DEFAULT_AVATAR" class="wc-widget__chat-avatar-img" alt="默认头像" />
+              <div v-else class="wc-widget__chat-avatar">?</div>
+              <span class="wc-widget__chat-title">{{ chatPreviewHeaderTitle }}</span>
             </div>
           </div>
 
@@ -581,7 +582,8 @@ type SectionKey = "brand" | "position" | "display" | "quickAccess"
   | "visitorFeedback"
   | "sessionForm" | "msgStatus" | "sessionFeatures" | null;
 
-const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6BFF'/%3E%3Cpath d='M44 22H20a2 2 0 00-2 2v12a2 2 0 002 2h4l4 4 4-4h12a2 2 0 002-2V24a2 2 0 00-2-2z' fill='white' opacity='0.9'/%3E%3Ccircle cx='26' cy='30' r='2' fill='%232F6BFF'/%3E%3Ccircle cx='32' cy='30' r='2' fill='%232F6BFF'/%3E%3Ccircle cx='38' cy='30' r='2' fill='%232F6BFF'/%3E%3Cpath d='M46 18h2a2 2 0 012 2v1' stroke='white' stroke-width='1.5' stroke-linecap='round' fill='none' opacity='0.7'/%3E%3Cpath d='M48 17l-1-2M50 19l2-1' stroke='white' stroke-width='1.2' stroke-linecap='round' fill='none' opacity='0.5'/%3E%3C/svg%3E";
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
+const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
@@ -758,6 +760,14 @@ const chatPreviewAgentMsg = computed(() => {
   const key = activeAutoReplyKey.value;
   const lang = activeContentLangs[key];
   return autoReplyTexts[key][lang] || "Hello!";
+});
+
+const showChatPreviewDefaultAvatar = computed(() => {
+  return previewMode.value === "chat" && activeAutoReplyKey.value === "chatOffline";
+});
+
+const chatPreviewHeaderTitle = computed(() => {
+  return showChatPreviewDefaultAvatar.value ? "聊天" : "新的会话";
 });
 
 const feedbackPreviewTitle = computed(() => {
@@ -1020,7 +1030,7 @@ const removeFormField = (idx: number) => {
 }
 
 .wc-logo-wrap {
-  border-radius: 14px;
+  border-radius: 50%;
   cursor: pointer;
   flex-shrink: 0;
   height: 64px;
@@ -1568,7 +1578,7 @@ const removeFormField = (idx: number) => {
 }
 
 .wc-widget__avatar-img {
-  border-radius: 10px;
+  border-radius: 50%;
   flex-shrink: 0;
   height: 34px;
   object-fit: cover;
@@ -1596,6 +1606,15 @@ const removeFormField = (idx: number) => {
   font-size: 12px;
   height: 28px;
   justify-content: center;
+  width: 28px;
+}
+
+.wc-widget__chat-avatar-img {
+  border-radius: 50%;
+  display: block;
+  flex-shrink: 0;
+  height: 28px;
+  object-fit: cover;
   width: 28px;
 }
 
