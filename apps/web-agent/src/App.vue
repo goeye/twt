@@ -297,7 +297,7 @@ import {
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings";
-type SettingsNavKey = "install" | "customize" | "team" | "quick-reply";
+type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 
 interface AgentEntry {
@@ -406,6 +406,7 @@ const settingsNavGroups = [
     title: "安装",
     leadingEmoji: "⚙️",
     items: [
+      { key: "website-code", label: "网站代码" },
       { key: "install", label: "聊天页面" },
       { key: "customize", label: "自定义" }
     ]
@@ -414,13 +415,54 @@ const settingsNavGroups = [
     key: "team-group",
     title: "团队",
     leadingEmoji: "👩‍💻",
-    items: [{ key: "team", label: "客服设置" }]
+    items: [
+      { key: "agents", label: "客服" },
+      { key: "team", label: "客服设置" }
+    ]
   },
   {
     key: "quick-reply-group",
     title: "快捷回复",
     leadingEmoji: "↩️",
-    items: [{ key: "quick-reply", label: "公共回复" }]
+    items: [
+      { key: "quick-reply", label: "公共回复" },
+      { key: "personal-reply", label: "个人回复" }
+    ]
+  },
+  {
+    key: "conversation-settings-group",
+    title: "会话设置",
+    leadingEmoji: "💬",
+    items: [
+      { key: "idle-conversation", label: "闲置会话" }
+    ]
+  },
+  {
+    key: "tags-group",
+    title: "标签",
+    leadingEmoji: "🏷️",
+    items: [
+      { key: "visitor-tags", label: "访客标签" },
+      { key: "conversation-tags", label: "会话标签" }
+    ]
+  },
+  {
+    key: "security-group",
+    title: "安全",
+    leadingEmoji: "🔒",
+    items: [
+      { key: "blacklist", label: "黑名单" },
+      { key: "trusted-domains", label: "信任域名" }
+    ]
+  },
+  {
+    key: "dev-settings-group",
+    title: "开发设置",
+    leadingEmoji: "💻",
+    items: [
+      { key: "dev-settings", label: "开发设置" },
+      { key: "webhooks", label: "Webhooks" }
+    ]
   }
 ];
 
@@ -992,9 +1034,7 @@ const openSettingsPage = () => {
 };
 
 const handleSettingsNavSelect = (key: string) => {
-  if (key === "install" || key === "customize" || key === "team" || key === "quick-reply") {
-    activeSettingsNavKey.value = key;
-  }
+  activeSettingsNavKey.value = key as SettingsNavKey;
 };
 
 const handleAiNavSelect = (key: string) => {

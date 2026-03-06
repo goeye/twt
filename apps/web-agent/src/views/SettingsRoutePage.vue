@@ -123,9 +123,9 @@
       </table>
     </section>
 
-    <section v-else class="settings-card agent-panel">
+    <section v-else-if="activeKey === 'quick-reply' || activeKey === 'personal-reply'" class="settings-card agent-panel">
       <div class="settings-card__title-row">
-        <h2 class="agent-settings-feature-title">快捷回复</h2>
+        <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
         <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('模板已保存')">保存</button>
       </div>
       <div class="quick-reply-editor">
@@ -141,6 +141,12 @@
         </li>
       </ul>
     </section>
+
+    <section v-else class="settings-card agent-panel settings-placeholder">
+      <div class="settings-placeholder__icon">🚧</div>
+      <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
+      <p class="agent-settings-feature-description">该功能页面正在开发中，敬请期待。</p>
+    </section>
   </section>
 </template>
 
@@ -148,7 +154,7 @@
 import { computed, ref } from "vue";
 import { DataTable, type TableColumn } from "@twt/ui-agent";
 
-type SettingsNavKey = "install" | "team" | "quick-reply";
+type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
 interface ChatParameterRow {
   param: string;
@@ -168,8 +174,19 @@ const props = defineProps<{
 
 const pageTitleMap: Record<SettingsNavKey, string> = {
   install: "聊天页面",
+  "website-code": "网站代码",
+  customize: "自定义",
+  agents: "客服",
   team: "客服设置",
-  "quick-reply": "公共回复"
+  "quick-reply": "公共回复",
+  "personal-reply": "个人回复",
+  "idle-conversation": "闲置会话",
+  "visitor-tags": "访客标签",
+  "conversation-tags": "会话标签",
+  blacklist: "黑名单",
+  "trusted-domains": "信任域名",
+  "dev-settings": "开发设置",
+  webhooks: "Webhooks"
 };
 
 const pageTitle = computed(() => pageTitleMap[props.activeKey]);
@@ -576,6 +593,18 @@ const removeQuickReply = (target: string) => {
   cursor: pointer;
   font-size: var(--agent-font-size-sm);
   padding: 0;
+}
+
+.settings-placeholder {
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  text-align: center;
+}
+
+.settings-placeholder__icon {
+  font-size: 48px;
+  line-height: 1;
 }
 
 /* Layout mode switcher */

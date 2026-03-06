@@ -3,8 +3,8 @@
     <!-- Left: Settings Panel -->
     <div class="wc-settings agent-scroll">
       <header class="wc-settings__header">
-        <h1 class="wc-settings__title">小部件设置</h1>
-        <p class="wc-settings__subtitle">配置您的聊天小部件功能和显示选项</p>
+        <h1 class="wc-settings__title">自定义</h1>
+        <p class="wc-settings__subtitle">设置你的聊天小部件功能和显示</p>
       </header>
 
       <!-- Tab Bar -->
@@ -85,11 +85,11 @@
             <div class="wc-offset-row">
               <div class="wc-offset-field">
                 <label class="wc-label">距离底部 (px)</label>
-                <input v-model.number="settings.positionOffsetY" type="number" class="agent-input wc-input" />
+                <input v-model.number="settings.positionOffsetY" type="number" min="20" max="200" class="agent-input wc-input" />
               </div>
               <div class="wc-offset-field">
                 <label class="wc-label">{{ settings.widgetPosition === 'bottom-left' ? '距离左边' : '距离右边' }} (px)</label>
-                <input v-model.number="settings.positionOffsetX" type="number" class="agent-input wc-input" />
+                <input v-model.number="settings.positionOffsetX" type="number" min="20" max="200" class="agent-input wc-input" />
               </div>
             </div>
           </div>
@@ -107,7 +107,7 @@
             <div class="wc-switch-row">
               <div class="wc-switch-row__text">
                 <span class="wc-switch-label">隐藏官方标识</span>
-                <span class="wc-switch-desc">隐藏小部件底部的官方品牌标识</span>
+                <span class="wc-switch-desc">开启后，访客端对话窗口底部将不显示 "Powered by Chat" 标识</span>
               </div>
               <AgentSwitch v-model="settings.hideBrandLogo" />
             </div>
@@ -119,7 +119,7 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('quickAccess')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">快捷入口</h3>
-              <p class="wc-card__desc">访客在聊天和会话过程中，可看到您配置的快捷入口，并支持点击跳转</p>
+              <p class="wc-card__desc">访客在聊天和会话过程中，可看到你配置的快捷入口，并支持点击跳转</p>
             </div>
             <span class="wc-accordion__chevron" />
           </button>
@@ -151,13 +151,7 @@
           </div>
         </article>
 
-        <a class="wc-help-link" href="javascript:void(0)" @click="emitToast('帮助文档开发中')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-            <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          了解如何自定义您的小部件
-        </a>
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('外观设置已保存')">保存</button>
       </div>
 
       <!-- Content Tab -->
@@ -194,8 +188,14 @@
                 rows="4"
                 :placeholder="block.placeholder"
               />
-              <div class="wc-rich-editor__toolbar">
-                <button type="button" class="wc-rich-editor__upload" @click="emitToast('图片上传功能开发中')">
+              <div class="wc-rich-editor__images-area">
+                <div v-for="(img, idx) in autoReplyImages[block.key][activeContentLangs[block.key]]" :key="idx" class="wc-reply-images__item">
+                  <img :src="img" class="wc-reply-images__thumb" alt="" />
+                  <button type="button" class="wc-reply-images__remove" @click="removeReplyImage(block.key, activeContentLangs[block.key], idx)">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+                  </button>
+                </div>
+                <button v-if="autoReplyImages[block.key][activeContentLangs[block.key]].length < 10" type="button" class="wc-reply-images__add" @click="triggerReplyImageUpload(block.key)">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
                 </button>
               </div>
@@ -203,6 +203,45 @@
             <p class="wc-upload-hint">支持png、jpg、jpeg格式图片，单张图片小于2MB，最多上传10张</p>
           </div>
         </article>
+
+        <!-- Visitor Feedback -->
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorFeedback' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorFeedback')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">访客评价</h3>
+              <p class="wc-card__desc">主动或自动关闭会话后，系统自动邀请访客评价</p>
+            </div>
+            <AgentSwitch v-model="feedbackEnabled" @click.stop />
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
+            <div class="wc-reply-section">
+              <span class="wc-reply-section__label">评价标题</span>
+              <div class="wc-lang-tabs">
+                <button
+                  v-for="lang in contentLangTabs"
+                  :key="lang.key"
+                  type="button"
+                  class="wc-lang-tab"
+                  :class="{ 'wc-lang-tab--active': activeFeedbackLang === lang.key }"
+                  @click="activeFeedbackLang = lang.key as LangKey"
+                >
+                  {{ lang.label }}
+                </button>
+              </div>
+            </div>
+            <div class="wc-rich-editor">
+              <textarea
+                v-model="feedbackTitles[activeFeedbackLang]"
+                class="wc-rich-editor__textarea"
+                rows="3"
+                placeholder="请输入评价标题..."
+              />
+            </div>
+          </div>
+        </article>
+
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('内容设置已保存')">保存</button>
       </div>
 
       <!-- Form Tab -->
@@ -264,6 +303,8 @@
             </div>
           </div>
         </article>
+
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('表单设置已保存')">保存</button>
       </div>
 
       <!-- General Tab -->
@@ -327,22 +368,21 @@
             </div>
           </div>
         </article>
+
+        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="emitToast('常规设置已保存')">保存</button>
       </div>
     </div>
 
     <!-- Right: Preview Panel -->
     <div class="wc-preview">
       <header class="wc-preview__header">
-        <div class="wc-preview__title-row">
-          <span class="wc-preview__title">预览</span>
-          <span class="wc-preview__sync">实时同步设置</span>
-        </div>
         <select v-model="previewMode" class="agent-input wc-preview-select">
-          <option value="sessionList">会话列表</option>
+          <option value="sessionList">首页</option>
           <option value="chat">聊天</option>
           <option value="form">表单</option>
           <option value="minimized">最小化</option>
         </select>
+        <span class="wc-preview__title">预览</span>
       </header>
 
       <div class="wc-preview__canvas">
@@ -361,134 +401,130 @@
               <img :src="settings.brandLogoUrl" class="wc-widget__avatar-img" alt="" />
               <span class="wc-widget__brand-name">{{ settings.brandName || 'TWT' }}</span>
             </div>
-            <div class="wc-widget__header-actions">
-              <span class="wc-widget__header-btn wc-widget__header-btn--dots">···</span>
-              <span class="wc-widget__header-btn">&times;</span>
-            </div>
           </div>
           <div class="wc-widget__session-list">
-            <div
-              v-for="(s, i) in mockSessions"
-              :key="i"
-              class="wc-session-item"
-              :class="{ 'wc-session-item--show-delete': settings.enableDeleteSession }"
-              @mouseenter="hoveredSession = i"
-              @mouseleave="hoveredSession = -1"
-            >
-              <!-- Delete button (visible on hover when enabled) -->
-              <button
-                v-if="settings.enableDeleteSession"
-                type="button"
-                class="wc-session-item__delete-btn"
-                @click.stop="deleteConfirmSession = deleteConfirmSession === i ? -1 : i"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                </svg>
-              </button>
-              <div class="wc-session-item__avatar" :style="{ background: s.color }">
-                <span>{{ s.icon }}</span>
-              </div>
+            <div v-for="i in 4" :key="i" class="wc-session-item wc-session-item--skeleton">
+              <div class="wc-skeleton wc-skeleton--avatar" />
               <div class="wc-session-item__body">
                 <div class="wc-session-item__top">
-                  <span class="wc-session-item__name">{{ s.name }}</span>
-                  <span class="wc-session-item__time">{{ s.time }}</span>
+                  <span class="wc-skeleton wc-skeleton--text" :style="{ width: i % 2 === 0 ? '60%' : '45%' }" />
+                  <span class="wc-skeleton wc-skeleton--text" style="width: 30px" />
                 </div>
                 <div class="wc-session-item__bottom">
-                  <span class="wc-session-item__msg">{{ s.lastMsg }}</span>
-                  <span v-if="s.badge" class="wc-session-item__badge">{{ s.badge }}</span>
+                  <span class="wc-skeleton wc-skeleton--text" :style="{ width: i % 2 === 0 ? '80%' : '65%' }" />
                 </div>
-              </div>
-              <!-- Delete confirmation popover -->
-              <div v-if="deleteConfirmSession === i" class="wc-delete-popover">
-                <button type="button" class="wc-delete-popover__item wc-delete-popover__item--danger">删除会话</button>
-                <button v-if="settings.enableEndSession" type="button" class="wc-delete-popover__item wc-delete-popover__item--danger">结束并删除会话</button>
-                <button type="button" class="wc-delete-popover__item" @click.stop="deleteConfirmSession = -1">取消</button>
               </div>
             </div>
           </div>
           <div v-if="settings.enableStartSession" class="wc-widget__new-session-btn">新的会话</div>
-          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">技术支持 CHATWIDGET</div>
+          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
         </div>
 
         <!-- Chat Preview Widget -->
         <div v-else-if="previewMode === 'chat'" class="wc-widget wc-widget--tall" :style="widgetPositionStyle">
-          <div class="wc-widget__header">
+          <div class="wc-widget__header wc-widget__header--chat">
             <div class="wc-widget__header-left">
-              <img :src="settings.brandLogoUrl" class="wc-widget__avatar-img" alt="" />
-              <div class="wc-widget__header-info">
-                <span class="wc-widget__brand-name">{{ settings.brandName || 'TWT' }}</span>
-                <span v-if="settings.showAgentOnlineStatus" class="wc-widget__online-dot" />
+              <span class="wc-widget__back-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </span>
+              <div class="wc-widget__chat-avatar">?</div>
+              <span class="wc-widget__chat-title">新的会话</span>
+            </div>
+          </div>
+
+          <!-- Feedback preview -->
+          <template v-if="openSection === 'visitorFeedback' && feedbackEnabled">
+            <div class="wc-widget__feedback-area">
+              <div class="wc-widget__feedback-card">
+                <p class="wc-widget__feedback-title">{{ feedbackPreviewTitle }}</p>
+                <div class="wc-widget__feedback-options">
+                  <div class="wc-widget__feedback-option">
+                    <span class="wc-widget__feedback-emoji">😊</span>
+                    <span class="wc-widget__feedback-label">满意</span>
+                  </div>
+                  <div class="wc-widget__feedback-option">
+                    <span class="wc-widget__feedback-emoji">😐</span>
+                    <span class="wc-widget__feedback-label">一般</span>
+                  </div>
+                  <div class="wc-widget__feedback-option">
+                    <span class="wc-widget__feedback-emoji">😞</span>
+                    <span class="wc-widget__feedback-label">不满意</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="wc-widget__header-actions">
-              <span class="wc-widget__header-btn">&#8211;</span>
-              <span class="wc-widget__header-btn">&times;</span>
-            </div>
-          </div>
-          <div class="wc-widget__messages">
-            <div v-if="activeAutoReplyKey !== 'end'" class="wc-widget__msg wc-widget__msg--agent">
-              <img :src="settings.brandLogoUrl" class="wc-widget__msg-avatar-img" alt="" />
-              <div class="wc-widget__msg-bubble">
-                <span class="wc-widget__msg-tag">{{ chatPreviewLabel }}</span>
-                {{ chatPreviewAgentMsg }}
+            <div class="wc-widget__session-ended-btn">会话已结束，请重新咨询</div>
+          </template>
+
+          <!-- Normal chat preview -->
+          <template v-else>
+            <div class="wc-widget__messages">
+              <div class="wc-widget__msg wc-widget__msg--agent">
+                <span class="wc-widget__msg-time">10:32</span>
+                <div class="wc-widget__msg-bubble">
+                  {{ chatPreviewAgentMsg }}
+                </div>
+              </div>
+              <div v-for="(src, idx) in chatPreviewImages" :key="idx" class="wc-widget__msg wc-widget__msg--agent">
+                <img :src="src" class="wc-widget__msg-img" alt="" />
               </div>
             </div>
-            <div class="wc-widget__msg wc-widget__msg--visitor">
-              <div class="wc-widget__msg-bubble wc-widget__msg-bubble--visitor">你好，我想了解一下你们的产品</div>
+            <div v-if="settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
+              <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-widget__qa-tag">{{ item.label }}</span>
             </div>
-            <div v-if="settings.enableReadReceipt" class="wc-widget__read-receipt">已读</div>
-            <div v-if="activeAutoReplyKey === 'end'" class="wc-widget__msg wc-widget__msg--agent">
-              <img :src="settings.brandLogoUrl" class="wc-widget__msg-avatar-img" alt="" />
-              <div class="wc-widget__msg-bubble">
-                <span class="wc-widget__msg-tag">{{ chatPreviewLabel }}</span>
-                {{ chatPreviewAgentMsg }}
+            <div class="wc-widget__input-area">
+              <div class="wc-widget__input-box">输入信息…</div>
+              <div class="wc-widget__input-toolbar">
+                <div class="wc-widget__toolbar-icons">
+                  <span class="wc-widget__toolbar-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  </span>
+                  <span class="wc-widget__toolbar-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  </span>
+                  <span class="wc-widget__toolbar-icon wc-widget__toolbar-icon--bg">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" /><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><circle cx="9" cy="9" r="1" fill="currentColor" /><circle cx="15" cy="9" r="1" fill="currentColor" /></svg>
+                  </span>
+                </div>
+                <span class="wc-widget__send-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
               </div>
             </div>
-          </div>
-          <div v-if="settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
-            <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-widget__qa-tag">{{ item.label }}</span>
-          </div>
-          <div class="wc-widget__input-area">
-            <span class="wc-widget__emoji-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <circle cx="9" cy="9" r="1" fill="currentColor" /><circle cx="15" cy="9" r="1" fill="currentColor" />
-              </svg>
-            </span>
-            <span class="wc-widget__input-placeholder">输入消息...</span>
-            <span class="wc-widget__send-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            </span>
-          </div>
-          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">技术支持 CHATWIDGET</div>
+          </template>
+
+          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
         </div>
 
         <!-- Form Preview Widget -->
         <div v-else-if="previewMode === 'form'" class="wc-widget wc-widget--tall" :style="widgetPositionStyle">
-          <div class="wc-widget__header">
+          <div class="wc-widget__header wc-widget__header--chat">
             <div class="wc-widget__header-left">
-              <img :src="settings.brandLogoUrl" class="wc-widget__avatar-img" alt="" />
-              <span class="wc-widget__brand-name">{{ settings.brandName || 'TWT' }}</span>
-            </div>
-            <div class="wc-widget__header-actions">
-              <span class="wc-widget__header-btn">&#8211;</span>
-              <span class="wc-widget__header-btn">&times;</span>
+              <span class="wc-widget__back-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </span>
+              <div class="wc-widget__chat-avatar">?</div>
+              <span class="wc-widget__chat-title">新的会话</span>
             </div>
           </div>
-          <div class="wc-widget__form-body">
-            <p class="wc-widget__form-title">{{ settings.formTitle || 'Welcome! Please fill in the information.' }}</p>
-            <div v-for="field in settings.formFields" :key="field.id" class="wc-widget__form-field">
-              <label class="wc-widget__form-label">
-                {{ field.label }}
-                <span v-if="field.required" class="wc-widget__required">*</span>
-              </label>
-              <div class="wc-widget__form-input">{{ field.placeholder }}</div>
+          <div class="wc-widget__messages">
+            <div class="wc-widget__msg wc-widget__msg--agent">
+              <span class="wc-widget__msg-time">10:32</span>
+              <div class="wc-widget__form-card">
+                <p class="wc-widget__form-card-title">{{ settings.formTitle || '请留下您的联系方式，以便我们与您联系：' }}</p>
+                <div class="wc-widget__form-card-fields">
+                  <div v-for="field in settings.formFields" :key="field.id" class="wc-widget__form-card-field">
+                    <label class="wc-widget__form-card-label">
+                      <span v-if="field.required" class="wc-widget__form-card-required">*</span>{{ field.label }}
+                    </label>
+                    <div class="wc-widget__form-card-input">{{ field.placeholder }}</div>
+                  </div>
+                </div>
+                <div class="wc-widget__form-card-submit">提交</div>
+              </div>
             </div>
-            <div class="wc-widget__form-submit">开始会话</div>
           </div>
-          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">技术支持 CHATWIDGET</div>
+          <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
         </div>
 
         <!-- Minimized Preview -->
@@ -499,6 +535,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Hidden file input for reply image upload -->
+    <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
     <!-- Image Crop Modal -->
     <teleport to="body">
@@ -540,6 +579,7 @@ type TabKey = "appearance" | "content" | "form" | "general";
 type PreviewMode = "sessionList" | "chat" | "form" | "minimized";
 type SectionKey = "brand" | "position" | "display" | "quickAccess"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
+  | "visitorFeedback"
   | "sessionForm" | "msgStatus" | "sessionFeatures" | null;
 
 const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6BFF'/%3E%3Cpath d='M44 22H20a2 2 0 00-2 2v12a2 2 0 002 2h4l4 4 4-4h12a2 2 0 002-2V24a2 2 0 00-2-2z' fill='white' opacity='0.9'/%3E%3Ccircle cx='26' cy='30' r='2' fill='%232F6BFF'/%3E%3Ccircle cx='32' cy='30' r='2' fill='%232F6BFF'/%3E%3Ccircle cx='38' cy='30' r='2' fill='%232F6BFF'/%3E%3Cpath d='M46 18h2a2 2 0 012 2v1' stroke='white' stroke-width='1.5' stroke-linecap='round' fill='none' opacity='0.7'/%3E%3Cpath d='M48 17l-1-2M50 19l2-1' stroke='white' stroke-width='1.2' stroke-linecap='round' fill='none' opacity='0.5'/%3E%3C/svg%3E";
@@ -580,9 +620,9 @@ type LangKey = "en" | "zh-cn" | "zh-tw";
 
 const autoReplyBlocks: { key: AutoReplyKey; title: string; desc: string; placeholder: string }[] = [
   { key: "welcome", title: "欢迎语", desc: "当访客发起会话时，系统自动发送一条欢迎语消息", placeholder: "Hello, is there anything I can help you with?" },
-  { key: "end", title: "结束语", desc: "会话结束时，系统自动发送一条告别消息", placeholder: "Thank you for your inquiry. Have a great day!" },
-  { key: "sessionOffline", title: "会话离线自动回复", desc: "当客服不在线时，访客在会话中收到的自动回复", placeholder: "Our agents are currently offline..." },
-  { key: "chatOffline", title: "单聊离线自动回复", desc: "当客服不在线时，访客在单聊中收到的自动回复", placeholder: "The agent is currently offline..." }
+  { key: "end", title: "结束语", desc: "当会话被客服主动结束或自动结束时，系统自动发送一条结束语", placeholder: "Thank you for your inquiry. Have a great day!" },
+  { key: "sessionOffline", title: "会话离线自动回复", desc: "当访客发送消息时，若全部客服不在线，系统将自动发送一条离线回复", placeholder: "Our agents are currently offline..." },
+  { key: "chatOffline", title: "单聊离线自动回复", desc: "客服与访客的单聊中，当客服不在线时，系统将自动发送一条离线回复", placeholder: "The agent is currently offline..." }
 ];
 
 const activeTab = ref<TabKey>("appearance");
@@ -606,6 +646,62 @@ const autoReplyTexts = reactive<Record<AutoReplyKey, Record<LangKey, string>>>({
   chatOffline: { en: "The agent is currently offline. Please try again later or leave your contact info.", "zh-cn": "客服暂时不在线，请稍后再试或留下您的联系方式。", "zh-tw": "客服暫時不在線，請稍後再試或留下您的聯繫方式。" }
 });
 
+const feedbackEnabled = ref(true);
+const activeFeedbackLang = ref<LangKey>("en");
+const feedbackTitles = reactive<Record<LangKey, string>>({
+  en: "Please evaluate our service",
+  "zh-cn": "请对我们的服务进行评价",
+  "zh-tw": "請對我們的服務進行評價"
+});
+
+const autoReplyImages = reactive<Record<AutoReplyKey, Record<LangKey, string[]>>>({
+  welcome: { en: [], "zh-cn": [], "zh-tw": [] },
+  end: { en: [], "zh-cn": [], "zh-tw": [] },
+  sessionOffline: { en: [], "zh-cn": [], "zh-tw": [] },
+  chatOffline: { en: [], "zh-cn": [], "zh-tw": [] }
+});
+
+const replyImageInput = ref<HTMLInputElement>();
+const uploadingReplyKey = ref<AutoReplyKey>("welcome");
+
+const triggerReplyImageUpload = (key: AutoReplyKey) => {
+  uploadingReplyKey.value = key;
+  replyImageInput.value?.click();
+};
+
+const handleReplyImageChange = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    emitToast("图片大小不能超过2MB");
+    (e.target as HTMLInputElement).value = "";
+    return;
+  }
+  const key = uploadingReplyKey.value;
+  const lang = activeContentLangs[key];
+  if (autoReplyImages[key][lang].length >= 10) {
+    emitToast("最多上传10张图片");
+    (e.target as HTMLInputElement).value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    autoReplyImages[key][lang].push(reader.result as string);
+  };
+  reader.readAsDataURL(file);
+  (e.target as HTMLInputElement).value = "";
+};
+
+const removeReplyImage = (key: AutoReplyKey, lang: LangKey, idx: number) => {
+  autoReplyImages[key][lang].splice(idx, 1);
+};
+
+const chatPreviewImages = computed(() => {
+  const key = activeAutoReplyKey.value;
+  const lang = activeContentLangs[key];
+  return autoReplyImages[key][lang];
+});
+
 // Section -> preview mapping (null = don't change)
 const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | null>> = {
   brand: "sessionList",
@@ -616,6 +712,7 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   end: "chat",
   sessionOffline: "chat",
   chatOffline: "chat",
+  visitorFeedback: "chat",
   sessionForm: "form",
   msgStatus: null,
   sessionFeatures: "sessionList"
@@ -664,14 +761,8 @@ const chatPreviewAgentMsg = computed(() => {
   return autoReplyTexts[key][lang] || "Hello!";
 });
 
-const chatPreviewLabel = computed(() => {
-  const labels: Record<AutoReplyKey, string> = {
-    welcome: "欢迎语",
-    end: "结束语",
-    sessionOffline: "会话离线回复",
-    chatOffline: "单聊离线回复"
-  };
-  return labels[activeAutoReplyKey.value];
+const feedbackPreviewTitle = computed(() => {
+  return feedbackTitles[activeFeedbackLang.value] || feedbackTitles.en;
 });
 
 const settings = reactive({
@@ -699,20 +790,12 @@ const settings = reactive({
   enableEndSession: false
 });
 
-const mockSessions = [
-  { name: "新的会话", lastMsg: "你好？", time: "06:56", badge: 0, icon: "?", color: "#42b4f5" },
-  { name: "了解域名金牌会员业务...", lastMsg: "已记录，专人跟进。", time: "06:56", badge: 1, icon: "了", color: "#f5a623" },
-  { name: "未知问题", lastMsg: "快点接入客服", time: "06:56", badge: 4, icon: "?", color: "#42b4f5" }
-];
-
-const hoveredSession = ref(-1);
-const deleteConfirmSession = ref(-1);
-
 const widgetPositionStyle = computed(() => {
   const isLeft = settings.widgetPosition === "bottom-left";
+  const clamp = (v: number) => Math.min(200, Math.max(20, v));
   return {
-    bottom: `${settings.positionOffsetY}px`,
-    [isLeft ? "left" : "right"]: `${settings.positionOffsetX}px`,
+    bottom: `${clamp(settings.positionOffsetY)}px`,
+    [isLeft ? "left" : "right"]: `${clamp(settings.positionOffsetX)}px`,
     [isLeft ? "right" : "left"]: "auto"
   };
 });
@@ -910,7 +993,6 @@ const removeFormField = (idx: number) => {
 }
 
 .wc-accordion__body {
-  border-top: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-16);
@@ -1174,17 +1256,12 @@ const removeFormField = (idx: number) => {
 
 .wc-quick-tag__remove:hover { color: var(--agent-color-status-error); }
 
-/* Help link */
-.wc-help-link {
-  align-items: center;
-  color: var(--agent-color-brand-primary);
-  display: inline-flex;
-  font-size: var(--agent-font-size-sm);
-  gap: 6px;
-  text-decoration: none;
+/* Save button */
+.wc-save-btn {
+  align-self: flex-start;
+  margin-top: var(--agent-space-4);
+  padding: 8px 32px;
 }
-
-.wc-help-link:hover { text-decoration: underline; }
 
 /* Reply section */
 .wc-reply-section {
@@ -1223,35 +1300,70 @@ const removeFormField = (idx: number) => {
   resize: none;
 }
 
-.wc-rich-editor__toolbar {
-  display: flex;
-  padding: 6px 12px 12px;
-}
-
-.wc-rich-editor__upload {
-  align-items: center;
-  background: var(--agent-color-bg-muted);
-  border: 0;
-  border-radius: 10px;
-  color: var(--agent-color-text-tertiary);
-  cursor: pointer;
-  display: inline-flex;
-  height: 36px;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  width: 36px;
-}
-
-.wc-rich-editor__upload:hover {
-  background: var(--agent-color-border-default);
-  color: var(--agent-color-text-secondary);
-}
-
 .wc-upload-hint {
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
   line-height: 1.4;
   margin: 0;
+}
+
+.wc-rich-editor__images-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 16px 12px;
+}
+
+.wc-reply-images__item {
+  position: relative;
+}
+
+.wc-reply-images__thumb {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  display: block;
+  height: 64px;
+  object-fit: cover;
+  width: 64px;
+}
+
+.wc-reply-images__remove {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 18px;
+  justify-content: center;
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 18px;
+}
+
+.wc-reply-images__remove:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.wc-reply-images__add {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1px dashed var(--agent-color-border-default);
+  border-radius: 8px;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 64px;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  width: 64px;
+}
+
+.wc-reply-images__add:hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
 }
 
 /* Form fields */
@@ -1363,25 +1475,13 @@ const removeFormField = (idx: number) => {
   align-items: center;
   border-bottom: 1px solid var(--agent-color-border-default);
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   padding: 14px var(--agent-space-24);
 }
 
-.wc-preview__title-row {
-  align-items: baseline;
-  display: flex;
-  gap: 8px;
-}
-
 .wc-preview__title {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-md);
-  font-weight: var(--agent-font-weight-semibold);
-}
-
-.wc-preview__sync {
-  color: var(--agent-color-text-tertiary);
-  font-size: var(--agent-font-size-xs);
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
 }
 
 .wc-preview-select {
@@ -1436,6 +1536,7 @@ const removeFormField = (idx: number) => {
 
 /* Widget */
 .wc-widget {
+  background: #fff;
   border-radius: 20px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.14);
   display: flex;
@@ -1447,13 +1548,13 @@ const removeFormField = (idx: number) => {
 
 .wc-widget--tall {
   max-height: calc(100% - 40px);
-  min-height: 520px;
+  min-height: 600px;
 }
 
 .wc-widget__header {
   align-items: center;
-  background: var(--agent-color-brand-primary);
-  color: #fff;
+  background: #fff;
+  color: var(--agent-color-text-primary);
   display: flex;
   flex-shrink: 0;
   justify-content: space-between;
@@ -1479,6 +1580,37 @@ const removeFormField = (idx: number) => {
   align-items: center;
   display: flex;
   gap: 6px;
+}
+
+.wc-widget__back-btn {
+  align-items: center;
+  color: var(--agent-color-text-secondary);
+  display: inline-flex;
+}
+
+.wc-widget__chat-avatar {
+  align-items: center;
+  background: #42b4f5;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  font-size: 12px;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.wc-widget__chat-title {
+  font-size: 13px;
+  font-weight: var(--agent-font-weight-semibold);
+}
+
+.wc-widget__online-indicator {
+  background: #f04438;
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 10px;
+  width: 10px;
 }
 
 .wc-widget__brand-name {
@@ -1610,67 +1742,31 @@ const removeFormField = (idx: number) => {
   padding: 0 5px;
 }
 
+/* Skeleton styles */
+.wc-session-item--skeleton {
+  pointer-events: none;
+}
+
+.wc-skeleton {
+  background: #e8e8e8;
+  border-radius: 4px;
+  display: block;
+}
+
+.wc-skeleton--avatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 36px;
+  width: 36px;
+}
+
+.wc-skeleton--text {
+  height: 12px;
+}
+
 /* Session delete button */
 .wc-session-item {
   position: relative;
-}
-
-.wc-session-item__delete-btn {
-  align-items: center;
-  background: rgba(0, 0, 0, 0.06);
-  border: 0;
-  border-radius: 50%;
-  color: var(--agent-color-text-tertiary);
-  cursor: pointer;
-  display: none;
-  flex-shrink: 0;
-  height: 22px;
-  justify-content: center;
-  transition: color 0.15s, background 0.15s;
-  width: 22px;
-}
-
-.wc-session-item--show-delete:hover .wc-session-item__delete-btn {
-  display: inline-flex;
-}
-
-.wc-session-item__delete-btn:hover {
-  background: rgba(240, 68, 56, 0.12);
-  color: var(--agent-color-status-error);
-}
-
-/* Delete confirmation popover */
-.wc-delete-popover {
-  background: #fff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
-  left: 30px;
-  overflow: hidden;
-  position: absolute;
-  top: 100%;
-  white-space: nowrap;
-  z-index: 10;
-}
-
-.wc-delete-popover__item {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-text-primary);
-  cursor: default;
-  font-size: 12px;
-  padding: 9px 16px;
-  text-align: left;
-}
-
-.wc-delete-popover__item:not(:last-child) {
-  border-bottom: 1px solid var(--agent-color-border-default);
-}
-
-.wc-delete-popover__item--danger {
-  color: var(--agent-color-status-error);
 }
 
 .wc-widget__new-session-btn {
@@ -1698,19 +1794,17 @@ const removeFormField = (idx: number) => {
 }
 
 .wc-widget__msg {
-  align-items: flex-start;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.wc-widget__msg--visitor { flex-direction: row-reverse; }
+.wc-widget__msg--visitor { align-items: flex-end; }
 
-.wc-widget__msg-avatar-img {
-  border-radius: 8px;
-  flex-shrink: 0;
-  height: 26px;
-  object-fit: cover;
-  width: 26px;
+.wc-widget__msg-time {
+  color: var(--agent-color-text-tertiary);
+  font-size: 10px;
+  line-height: 1;
 }
 
 .wc-widget__msg-bubble {
@@ -1721,6 +1815,14 @@ const removeFormField = (idx: number) => {
   line-height: 1.5;
   max-width: 200px;
   padding: 8px 12px;
+}
+
+.wc-widget__msg-img {
+  border-radius: 8px;
+  display: block;
+  height: 80px;
+  object-fit: cover;
+  width: 80px;
 }
 
 .wc-widget__msg-bubble--visitor {
@@ -1766,37 +1868,62 @@ const removeFormField = (idx: number) => {
 
 /* Input area */
 .wc-widget__input-area {
-  align-items: center;
   background: #fff;
-  border-top: 1px solid var(--agent-color-border-default);
+  border: 0.5px solid #e2e8ef;
+  border-radius: 16px;
   display: flex;
+  flex-direction: column;
   flex-shrink: 0;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 12px;
+  margin: 0 8px 8px;
+  padding: 12px 0 8px;
 }
 
-.wc-widget__emoji-btn {
-  color: var(--agent-color-text-tertiary);
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-.wc-widget__input-placeholder {
-  color: var(--agent-color-text-tertiary);
-  flex: 1;
+.wc-widget__input-box {
+  color: rgba(100, 116, 145, 0.5);
   font-size: 12px;
+  line-height: 1.4;
+  min-height: 1px;
+  padding: 0 14px;
+}
+
+.wc-widget__input-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.wc-widget__toolbar-icons {
+  align-items: center;
+  display: flex;
+}
+
+.wc-widget__toolbar-icon {
+  align-items: center;
+  border-radius: 10px;
+  color: #4a5568;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.wc-widget__toolbar-icon--bg {
+  background: #f5f7f9;
+  border-radius: 9px;
 }
 
 .wc-widget__send-btn {
   align-items: center;
-  background: var(--agent-color-brand-primary);
+  background: #f2f4f8;
   border-radius: 50%;
-  color: #fff;
+  color: #8c96a6;
   display: inline-flex;
   flex-shrink: 0;
-  height: 28px;
+  height: 32px;
   justify-content: center;
-  width: 28px;
+  width: 32px;
 }
 
 /* Footer */
@@ -1809,53 +1936,134 @@ const removeFormField = (idx: number) => {
   text-align: center;
 }
 
-/* Form preview */
-.wc-widget__form-body {
-  background: #fff;
+/* Feedback preview */
+.wc-widget__feedback-area {
+  background: linear-gradient(180deg, #e8f0fe 0%, #f5f8ff 100%);
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
   padding: 16px;
 }
 
-.wc-widget__form-title {
-  color: var(--agent-color-text-primary);
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 0;
+.wc-widget__feedback-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
 }
 
-.wc-widget__form-field {
+.wc-widget__feedback-title {
+  color: var(--agent-color-text-primary);
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+  text-align: center;
+}
+
+.wc-widget__feedback-options {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.wc-widget__feedback-option {
+  align-items: center;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.wc-widget__form-label {
+.wc-widget__feedback-emoji {
+  font-size: 26px;
+  line-height: 1;
+  filter: grayscale(0.8);
+  transition: filter 0.15s;
+}
+
+.wc-widget__feedback-option:hover .wc-widget__feedback-emoji {
+  filter: grayscale(0);
+}
+
+.wc-widget__feedback-label {
   color: var(--agent-color-text-secondary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
 }
 
-.wc-widget__required { color: var(--agent-color-status-error); }
-
-.wc-widget__form-input {
-  background: #f5f5f5;
-  border: 1px solid var(--agent-color-border-default);
+.wc-widget__session-ended-btn {
+  background: #e8f0fe;
   border-radius: 8px;
-  color: var(--agent-color-text-tertiary);
-  font-size: 11px;
-  padding: 7px 10px;
+  color: var(--agent-color-brand-primary);
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-medium);
+  margin: 0 12px 10px;
+  padding: 10px;
+  text-align: center;
 }
 
-.wc-widget__form-submit {
+/* Form card (inside chat message) */
+.wc-widget__form-card {
+  background: #fff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 20px;
+  width: 100%;
+}
+
+.wc-widget__form-card-title {
+  color: #222;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.wc-widget__form-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wc-widget__form-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wc-widget__form-card-label {
+  color: #222;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.wc-widget__form-card-required {
+  color: #ff382e;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.wc-widget__form-card-input {
+  background: #fff;
+  border: 1px solid #e2e8ef;
+  border-radius: 12px;
+  color: #222;
+  font-size: 11px;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 12px;
+}
+
+.wc-widget__form-card-submit {
   background: var(--agent-color-brand-primary);
-  border-radius: 10px;
+  border-radius: 12px;
   color: #fff;
   font-size: 12px;
   font-weight: 600;
-  margin-top: 4px;
   padding: 10px;
   text-align: center;
 }
