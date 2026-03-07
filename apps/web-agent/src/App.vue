@@ -27,6 +27,13 @@
         :groups="queueGroups"
         @select="handleQueueSelect"
       />
+      <ArchiveSubNav
+        v-else-if="isFilesRoute"
+        title="档案"
+        :active-key="activeFilesNavKey"
+        :items="filesNavItems"
+        @select="handleFilesNavSelect"
+      />
       <AiSettingsNav
         v-else-if="isAiAgentRoute"
         title="AI Agent"
@@ -141,6 +148,7 @@
     </section>
 
     <HomeRoutePage v-else-if="isHomeRoute" />
+    <FilesRoutePage v-else-if="isFilesRoute" :active-key="activeFilesNavKey" @toast="showTopToast" />
 
     <template v-else-if="isSettingsRoute">
       <WidgetCustomizePage
@@ -277,8 +285,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import ArchiveSubNav from "./components/ArchiveSubNav.vue";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
+import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
@@ -307,6 +317,7 @@ type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings";
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
+type FilesNavKey = "all-conversations" | "all-chats";
 
 type WidgetCustomizePageExpose = {
   requestNavigation: (action: () => void) => boolean;
@@ -480,6 +491,11 @@ const campaignNavGroups = [
       { key: "campaign-proactive", label: "主动营销", icon: "campaign" }
     ]
   }
+];
+
+const filesNavItems = [
+  { key: "all-conversations", label: "所有会话", icon: "book" },
+  { key: "all-chats", label: "所有聊天", icon: "conversation" }
 ];
 
 const aiNavGroups = [
@@ -765,6 +781,7 @@ const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
+const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
 const widgetCustomizePageRef = ref<WidgetCustomizePageExpose | null>(null);
 const customizeDirty = ref(false);
 const allowCustomizeRouteLeaveOnce = ref(false);
@@ -840,6 +857,7 @@ const mainNavItems = computed<NavItem[]>(() =>
 const currentRouteName = computed(() => (typeof route.name === "string" ? route.name : "conversation"));
 const isHomeRoute = computed(() => currentRouteName.value === "home");
 const isConversationRoute = computed(() => currentRouteName.value === "conversation");
+const isFilesRoute = computed(() => currentRouteName.value === "files");
 const isAiAgentRoute = computed(() => currentRouteName.value === "ai-agent");
 const isSettingsRoute = computed(() => currentRouteName.value === "settings");
 const isCampaignRoute = computed(() => currentRouteName.value === "campaign");
@@ -1084,6 +1102,12 @@ const handleCampaignNavSelect = (key: string) => {
 const handleQueueSelect = (key: string) => {
   activeQueueKey.value = key;
   searchKeyword.value = "";
+};
+
+const handleFilesNavSelect = (key: string) => {
+  if (key === "all-conversations" || key === "all-chats") {
+    activeFilesNavKey.value = key;
+  }
 };
 
 const getFilterCount = () => queueSessionList.value.length;

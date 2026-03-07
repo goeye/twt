@@ -116,6 +116,18 @@
       <path d="M10 17.4h4" />
     </g>
 
+    <g v-else-if="name === 'search'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.8" cy="10.8" r="5.8" />
+      <path d="M15.3 15.3L19.2 19.2" />
+    </g>
+
+    <g v-else-if="name === 'calendar'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.5" y="6.2" width="15" height="13.3" rx="2" />
+      <path d="M8 4.5v3.4" />
+      <path d="M16 4.5v3.4" />
+      <path d="M4.5 9.8h15" />
+    </g>
+
     <g v-else-if="name === 'edit'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4.7 19.3l3.4-.7L18.6 8.1a1.7 1.7 0 0 0 0-2.4l-.3-.3a1.7 1.7 0 0 0-2.4 0L5.4 15.9l-.7 3.4Z" />
       <path d="M13.8 7.5l2.7 2.7" />
