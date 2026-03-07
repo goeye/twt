@@ -1,6 +1,9 @@
 <template>
-  <section class="agent-content-page agent-content-page--hide-scrollbar settings-page">
-    <header class="agent-content-header">
+  <section
+    class="agent-content-page agent-content-page--hide-scrollbar settings-page"
+    :class="{ 'settings-page--agents': activeKey === 'agents' }"
+  >
+    <header v-if="activeKey !== 'agents'" class="agent-content-header">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
     </header>
 
@@ -96,31 +99,60 @@
       </article>
     </section>
 
-    <section v-else-if="activeKey === 'team'" class="settings-card agent-panel">
-      <div class="settings-card__title-row">
-        <h2 class="agent-settings-feature-title">团队成员</h2>
-        <button type="button" class="agent-btn agent-btn--primary" @click="emitToast('邀请功能开发中')">添加客服</button>
-      </div>
-      <table class="settings-table">
-        <thead>
-          <tr>
-            <th>成员</th>
-            <th>角色</th>
-            <th>状态</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="member in teamMembers" :key="member.email">
-            <td>{{ member.name }}（{{ member.email }}）</td>
-            <td>{{ member.role }}</td>
-            <td>
-              <span class="team-status-pill" :class="member.status === '在线' ? 'team-status-pill--online' : ''">
-                {{ member.status }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <SettingsAgentsPage v-else-if="activeKey === 'agents'" @toast="emitToast" />
+
+    <section v-else-if="activeKey === 'team'" class="settings-team-page">
+      <article class="settings-card agent-panel">
+        <div class="settings-card__title-row">
+          <h2 class="agent-settings-feature-title">客服不活跃</h2>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="agentIdleEnabled"
+            class="settings-toggle"
+            :class="{ 'settings-toggle--on': agentIdleEnabled }"
+            @click="agentIdleEnabled = !agentIdleEnabled"
+          >
+            <span class="settings-toggle__thumb" />
+          </button>
+        </div>
+        <p class="settings-card__inline-desc">
+          当客服超过
+          <input
+            v-model.number="agentIdleMinutes"
+            type="number"
+            min="1"
+            class="agent-input settings-inline-number"
+          />
+          分钟未进行操作，自动将其状态更改为离开
+        </p>
+      </article>
+
+      <article class="settings-card agent-panel">
+        <div class="settings-card__title-row">
+          <h2 class="agent-settings-feature-title">会话超时</h2>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="sessionTimeoutEnabled"
+            class="settings-toggle"
+            :class="{ 'settings-toggle--on': sessionTimeoutEnabled }"
+            @click="sessionTimeoutEnabled = !sessionTimeoutEnabled"
+          >
+            <span class="settings-toggle__thumb" />
+          </button>
+        </div>
+        <p class="settings-card__inline-desc">
+          当客服超过
+          <input
+            v-model.number="sessionTimeoutMinutes"
+            type="number"
+            min="1"
+            class="agent-input settings-inline-number"
+          />
+          分钟未回复访客消息时，会话将自动进入排队中（会话中所有服务客服将会自动释放）
+        </p>
+      </article>
     </section>
 
     <section v-else-if="activeKey === 'quick-reply' || activeKey === 'personal-reply'" class="settings-card agent-panel">
@@ -153,19 +185,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { DataTable, type TableColumn } from "@twt/ui-agent";
+import SettingsAgentsPage from "./SettingsAgentsPage.vue";
 
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
-interface ChatParameterRow {
+interface ChatParameterRow extends Record<string, unknown> {
   param: string;
   desc: string;
-}
-
-interface TeamMember {
-  name: string;
-  email: string;
-  role: "Owner" | "Admin" | "Agent";
-  status: "在线" | "离线";
 }
 
 const props = defineProps<{
@@ -209,11 +235,10 @@ const chatParamRows: ChatParameterRow[] = [
   { param: "ranstr", desc: "随机字符串（建议16位以上）" }
 ];
 
-const teamMembers = ref<TeamMember[]>([
-  { name: "客服主管", email: "manager@twt.com", role: "Owner", status: "在线" },
-  { name: "王珂", email: "wangke@twt.com", role: "Admin", status: "在线" },
-  { name: "李想", email: "lixiang@twt.com", role: "Agent", status: "离线" }
-]);
+const agentIdleEnabled = ref(false);
+const agentIdleMinutes = ref(10);
+const sessionTimeoutEnabled = ref(true);
+const sessionTimeoutMinutes = ref(9);
 
 const quickReplies = ref<string[]>([
   "你好，已收到你的问题，我马上为你处理。",
@@ -342,9 +367,20 @@ const removeQuickReply = (target: string) => {
   gap: var(--agent-space-16);
 }
 
+.settings-page--agents {
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
 .settings-page > * {
   max-width: 1080px;
   width: 100%;
+}
+
+.settings-page--agents > * {
+  max-width: none;
 }
 
 .settings-install {
@@ -523,35 +559,64 @@ const removeQuickReply = (target: string) => {
   margin: 0;
 }
 
-.settings-table {
-  border-collapse: collapse;
-  width: 100%;
+.settings-team-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
 }
 
-.settings-table th,
-.settings-table td {
-  border-bottom: 1px solid var(--agent-color-border-default);
-  font-size: var(--agent-font-size-sm);
-  padding: 10px 0;
-  text-align: left;
-}
-
-.settings-table th {
-  color: var(--agent-color-text-tertiary);
-  font-weight: var(--agent-font-weight-medium);
-}
-
-.team-status-pill {
-  background: var(--agent-color-bg-muted);
-  border-radius: 999px;
+.settings-card__inline-desc {
+  align-items: center;
   color: var(--agent-color-text-secondary);
-  font-size: 12px;
-  padding: 4px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--agent-font-size-sm);
+  gap: var(--agent-space-8);
+  line-height: 1.6;
+  margin: 0;
 }
 
-.team-status-pill--online {
-  background: rgba(0, 181, 120, 0.12);
-  color: var(--agent-color-status-success);
+.settings-inline-number {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  font-size: var(--agent-font-size-sm);
+  padding: 6px 10px;
+  text-align: center;
+  width: 64px;
+}
+
+.settings-toggle {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 2px;
+  transition: background var(--agent-motion-fast), border-color var(--agent-motion-fast);
+  width: 48px;
+}
+
+.settings-toggle--on {
+  background: var(--agent-color-brand-primary);
+  border-color: var(--agent-color-brand-primary);
+}
+
+.settings-toggle__thumb {
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  display: block;
+  height: 22px;
+  transition: transform var(--agent-motion-fast);
+  width: 22px;
+}
+
+.settings-toggle--on .settings-toggle__thumb {
+  transform: translateX(20px);
 }
 
 .quick-reply-editor {

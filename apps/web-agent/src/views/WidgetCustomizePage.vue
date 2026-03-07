@@ -95,25 +95,6 @@
           </div>
         </article>
 
-        <!-- Accordion: Display Settings -->
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'display' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('display')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">显示设置</h3>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'display'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">隐藏官方标识</span>
-                <span class="wc-switch-desc">开启后，访客端对话窗口底部将不显示 "Powered by Chat" 标识</span>
-              </div>
-              <AgentSwitch v-model="settings.hideBrandLogo" />
-            </div>
-          </div>
-        </article>
-
         <!-- Accordion: Quick Access -->
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'quickAccess' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('quickAccess')">
@@ -159,6 +140,24 @@
           </div>
         </article>
 
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'display' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('display')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">官方标识</h3>
+              <p class="wc-card__desc">控制聊天小部件底部 Powered by Chat 标识的展示</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'display'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">隐藏官方标识</span>
+              </div>
+              <AgentSwitch v-model="settings.hideBrandLogo" />
+            </div>
+          </div>
+        </article>
+
         <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
@@ -173,9 +172,9 @@
             <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop />
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body">
-            <div class="wc-reply-section">
-              <span class="wc-reply-section__label">{{ block.title }}</span>
+          <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body wc-content-row">
+            <span class="wc-content-row__label">{{ block.title }}</span>
+            <div class="wc-content-row__right">
               <div class="wc-lang-tabs">
                 <button
                   v-for="lang in contentLangTabs"
@@ -188,27 +187,27 @@
                   {{ lang.label }}
                 </button>
               </div>
-            </div>
-            <div class="wc-rich-editor">
-              <textarea
-                v-model="autoReplyTexts[block.key][activeContentLangs[block.key]]"
-                class="wc-rich-editor__textarea"
-                rows="4"
-                :placeholder="block.placeholder"
-              />
-              <div class="wc-rich-editor__images-area">
-                <div v-for="(img, idx) in autoReplyImages[block.key][activeContentLangs[block.key]]" :key="idx" class="wc-reply-images__item">
-                  <img :src="img" class="wc-reply-images__thumb" alt="" />
-                  <button type="button" class="wc-reply-images__remove" @click="removeReplyImage(block.key, activeContentLangs[block.key], idx)">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+              <div class="wc-rich-editor">
+                <textarea
+                  v-model="autoReplyTexts[block.key][activeContentLangs[block.key]]"
+                  class="wc-rich-editor__textarea"
+                  rows="4"
+                  :placeholder="block.placeholder"
+                />
+                <div class="wc-rich-editor__images-area">
+                  <div v-for="(img, idx) in autoReplyImages[block.key][activeContentLangs[block.key]]" :key="idx" class="wc-reply-images__item">
+                    <img :src="img" class="wc-reply-images__thumb" alt="" />
+                    <button type="button" class="wc-reply-images__remove" @click="removeReplyImage(block.key, activeContentLangs[block.key], idx)">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+                    </button>
+                  </div>
+                  <button v-if="autoReplyImages[block.key][activeContentLangs[block.key]].length < 10" type="button" class="wc-reply-images__add" @click="triggerReplyImageUpload(block.key)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
                   </button>
                 </div>
-                <button v-if="autoReplyImages[block.key][activeContentLangs[block.key]].length < 10" type="button" class="wc-reply-images__add" @click="triggerReplyImageUpload(block.key)">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-                </button>
               </div>
+              <p class="wc-upload-hint">支持png、jpg、jpeg格式图片，单张图片小于2MB，最多上传10张</p>
             </div>
-            <p class="wc-upload-hint">支持png、jpg、jpeg格式图片，单张图片小于2MB，最多上传10张</p>
           </div>
         </article>
 
@@ -222,9 +221,9 @@
             <AgentSwitch v-model="feedbackEnabled" @click.stop />
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
-            <div class="wc-reply-section">
-              <span class="wc-reply-section__label">评价标题</span>
+          <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body wc-content-row">
+            <span class="wc-content-row__label">评价标题</span>
+            <div class="wc-content-row__right">
               <div class="wc-lang-tabs">
                 <button
                   v-for="lang in contentLangTabs"
@@ -237,14 +236,14 @@
                   {{ lang.label }}
                 </button>
               </div>
-            </div>
-            <div class="wc-rich-editor">
-              <textarea
-                v-model="feedbackTitles[activeFeedbackLang]"
-                class="wc-rich-editor__textarea"
-                rows="3"
-                placeholder="请输入评价标题..."
-              />
+              <div class="wc-rich-editor">
+                <textarea
+                  v-model="feedbackTitles[activeFeedbackLang]"
+                  class="wc-rich-editor__textarea"
+                  rows="3"
+                  placeholder="请输入评价标题..."
+                />
+              </div>
             </div>
           </div>
         </article>
@@ -317,32 +316,6 @@
 
       <!-- General Tab -->
       <div v-else-if="activeTab === 'general'" class="wc-tab-content">
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'msgStatus' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('msgStatus')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">消息与状态</h3>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'msgStatus'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">已读回执</span>
-                <span class="wc-switch-desc">访客可在会话和聊天中看到客服是否已读其消息</span>
-              </div>
-              <AgentSwitch v-model="settings.enableReadReceipt" />
-            </div>
-            <div class="wc-divider" />
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">客服在线状态（聊天）</span>
-                <span class="wc-switch-desc">开启后，访客可在单聊中看到客服的在线状态</span>
-              </div>
-              <AgentSwitch v-model="settings.showAgentOnlineStatus" />
-            </div>
-          </div>
-        </article>
-
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'sessionFeatures' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('sessionFeatures')">
             <div class="wc-accordion__trigger-text">
@@ -371,17 +344,17 @@
                   <label class="wc-session-feature-limit__field">
                     <span class="wc-session-feature-limit__field-label">最大会话数</span>
                     <div class="wc-session-feature-limit__stepper">
-                      <input
-                        v-model.number="settings.maxStartSessionCount"
-                        type="number"
-                        min="1"
-                        max="99"
-                        class="agent-input wc-session-feature-limit__input"
-                        @blur="normalizeStartSessionCount"
-                      />
-                      <button type="button" class="wc-session-feature-limit__step-btn" @click="incrementStartSessionCount" aria-label="增加最大会话数">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 14l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                      </button>
+                      <div class="wc-session-feature-limit__input-wrap">
+                        <input
+                          v-model.number="settings.maxStartSessionCount"
+                          type="number"
+                          min="1"
+                          max="99"
+                          class="wc-session-feature-limit__input"
+                          @blur="normalizeStartSessionCount"
+                        />
+                      </div>
+                      <span class="wc-session-feature-limit__unit">个</span>
                     </div>
                   </label>
                 </div>
@@ -389,7 +362,7 @@
                   <span class="wc-session-feature-limit__notice-icon" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="currentColor" /><path d="M12 7v6" stroke="#fff" stroke-width="2" stroke-linecap="round" /><circle cx="12" cy="16.5" r="1" fill="#fff" /></svg>
                   </span>
-                  <span>注意：启用限制后，如果访客删除未结束的会话，该会话仍会占用额度，可能导致访客无法发起新的会话。建议关闭“删除会话”功能，禁止访客删除会话。</span>
+                  <span>注意：启用限制后，如果访客删除未结束的会话，该会话仍会占用额度，可能导致访客无法发起新的会话。建议关闭"删除会话"功能，禁止访客删除会话。</span>
                 </div>
               </div>
             </div>
@@ -412,10 +385,62 @@
           </div>
         </article>
 
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorInactive' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorInactive')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">访客不活跃</h3>
+            </div>
+            <AgentSwitch v-model="settings.enableVisitorInactive" @click.stop />
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'visitorInactive' && settings.enableVisitorInactive" class="wc-accordion__body">
+            <div class="wc-visitor-inactive-row">
+              <div class="wc-visitor-inactive-row__text">
+                <span>当访客超过</span>
+                <div class="wc-visitor-inactive-row__input-wrap">
+                  <input
+                    v-model.number="settings.visitorInactiveMinutes"
+                    type="number"
+                    min="1"
+                    class="wc-visitor-inactive-row__input"
+                  />
+                </div>
+                <span>分钟未回复客服消息时，会话将会自动关闭</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'msgStatus' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('msgStatus')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">消息与状态</h3>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'msgStatus'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">已读回执</span>
+                <span class="wc-switch-desc">访客可在会话和聊天中看到客服是否已读其消息</span>
+              </div>
+              <AgentSwitch v-model="settings.enableReadReceipt" />
+            </div>
+            <div class="wc-divider" />
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">客服在线状态（聊天）</span>
+                <span class="wc-switch-desc">开启后，访客可在单聊中看到客服的在线状态</span>
+              </div>
+              <AgentSwitch v-model="settings.showAgentOnlineStatus" />
+            </div>
+          </div>
+        </article>
+
         <div class="wc-general-setting-card">
           <div class="wc-general-setting-card__text">
             <span class="wc-switch-label">隐藏联系我们</span>
-            <span class="wc-switch-desc">开启后，App 端我的页面将不显示“联系我们”入口</span>
+            <span class="wc-switch-desc">开启后，App 端我的页面将不显示"联系我们"入口</span>
           </div>
           <AgentSwitch v-model="settings.hideContactUs" />
         </div>
@@ -451,23 +476,59 @@
               <img :src="settings.brandLogoUrl" class="wc-widget__avatar-img" alt="" />
               <span class="wc-widget__brand-name">{{ settings.brandName || 'TWT' }}</span>
             </div>
+            <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+            </button>
           </div>
           <div class="wc-widget__session-list">
-            <div v-for="i in 4" :key="i" class="wc-session-item wc-session-item--skeleton">
-              <div class="wc-skeleton wc-skeleton--avatar" />
+            <div
+              v-for="session in previewSessionItems"
+              :key="session.id"
+              class="wc-session-item"
+              :class="{ 'wc-session-item--deletable': settings.enableDeleteSession }"
+            >
+              <button
+                v-if="settings.enableDeleteSession"
+                type="button"
+                class="wc-session-item__delete"
+                :aria-label="`删除${session.name}会话`"
+                @click.stop="openDeleteSessionPreview(session.id)"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
+              </button>
+              <div class="wc-session-item__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
               <div class="wc-session-item__body">
                 <div class="wc-session-item__top">
-                  <span class="wc-skeleton wc-skeleton--text" :style="{ width: i % 2 === 0 ? '60%' : '45%' }" />
-                  <span class="wc-skeleton wc-skeleton--text" style="width: 30px" />
+                  <span class="wc-session-item__name">{{ session.name }}</span>
+                  <span class="wc-session-item__time">{{ session.time }}</span>
                 </div>
                 <div class="wc-session-item__bottom">
-                  <span class="wc-skeleton wc-skeleton--text" :style="{ width: i % 2 === 0 ? '80%' : '65%' }" />
+                  <span class="wc-session-item__msg">{{ session.message }}</span>
+                  <span v-if="session.unread > 0" class="wc-session-item__badge">{{ session.unread }}</span>
                 </div>
               </div>
             </div>
           </div>
           <div v-if="settings.enableStartSession" class="wc-widget__new-session-btn">新的会话</div>
           <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
+          <div v-if="deleteSessionPreviewModalOpen" class="wc-widget__dialog-mask" @click="closeDeleteSessionPreview">
+            <div class="wc-widget__dialog" @click.stop>
+              <div class="wc-widget__dialog-head">
+                <h4 class="wc-widget__dialog-title">删除会话</h4>
+                <button type="button" class="wc-widget__dialog-close" aria-label="关闭删除会话弹窗" @click="closeDeleteSessionPreview">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+                </button>
+              </div>
+              <label v-if="settings.enableEndSession" class="wc-widget__dialog-option">
+                <input v-model="deleteSessionPreviewEndChecked" type="checkbox" class="wc-widget__dialog-checkbox" />
+                <span>同时结束会话</span>
+              </label>
+              <div class="wc-widget__dialog-actions">
+                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--ghost" @click="closeDeleteSessionPreview">取消</button>
+                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--primary" @click="confirmDeleteSessionPreview">确认</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Chat Preview Widget -->
@@ -481,9 +542,10 @@
               <div v-else class="wc-widget__chat-avatar">?</div>
               <span class="wc-widget__chat-title">{{ chatPreviewHeaderTitle }}</span>
             </div>
+            <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+            </button>
           </div>
-
-          <!-- Feedback preview -->
           <template v-if="openSection === 'visitorFeedback' && feedbackEnabled">
             <div class="wc-widget__feedback-area">
               <div class="wc-widget__feedback-card">
@@ -557,6 +619,9 @@
               <div class="wc-widget__chat-avatar">?</div>
               <span class="wc-widget__chat-title">新的会话</span>
             </div>
+            <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
+            </button>
           </div>
           <div class="wc-widget__messages">
             <div class="wc-widget__msg wc-widget__msg--agent">
@@ -579,7 +644,7 @@
         </div>
 
         <!-- Minimized Preview -->
-        <div v-else class="wc-widget-fab" :style="widgetPositionStyle">
+        <div v-else class="wc-widget-fab" :style="widgetPositionStyle" @click="restoreWidget">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -639,6 +704,16 @@ interface FormField {
   required: boolean;
 }
 
+interface PreviewSessionItem {
+  id: string;
+  name: string;
+  message: string;
+  time: string;
+  unread: number;
+  avatarLabel: string;
+  avatarColor: string;
+}
+
 type TabKey = "appearance" | "content" | "form" | "general";
 type PreviewMode = "sessionList" | "chat" | "form" | "minimized";
 type SectionKey = "brand" | "position" | "display" | "quickAccess"
@@ -696,6 +771,7 @@ const activeTab = ref<TabKey>("appearance");
 const activeLangTab = ref("list");
 const activeFormLang = ref("en");
 const previewMode = ref<PreviewMode>("sessionList");
+const previewModeBeforeMinimize = ref<PreviewMode>("sessionList");
 const openSection = ref<SectionKey>("brand");
 
 const activeContentLangs = reactive<Record<AutoReplyKey, LangKey>>({
@@ -872,7 +948,22 @@ const settings = reactive({
   limitStartSessionCount: true,
   maxStartSessionCount: 3,
   enableDeleteSession: false,
-  enableEndSession: false
+  enableEndSession: false,
+  enableVisitorInactive: true,
+  visitorInactiveMinutes: 120
+});
+
+const previewSessionItems: PreviewSessionItem[] = [
+  { id: "preview-session-2", name: "Lily", message: "Can you help me check the order status?", time: "09:46", unread: 0, avatarLabel: "L", avatarColor: "#7C3AED" }
+];
+
+const deleteSessionPreviewTargetId = ref<string | null>(null);
+const deleteSessionPreviewEndChecked = ref(false);
+
+const deleteSessionPreviewModalOpen = computed(() => deleteSessionPreviewTargetId.value !== null);
+
+const deleteSessionPreviewTarget = computed(() => {
+  return previewSessionItems.find((item) => item.id === deleteSessionPreviewTargetId.value) ?? null;
 });
 
 const normalizeStartSessionCount = () => {
@@ -884,9 +975,30 @@ const normalizeStartSessionCount = () => {
   settings.maxStartSessionCount = Math.min(99, Math.max(1, Math.round(nextValue)));
 };
 
-const incrementStartSessionCount = () => {
-  normalizeStartSessionCount();
-  settings.maxStartSessionCount = Math.min(99, settings.maxStartSessionCount + 1);
+const openDeleteSessionPreview = (id: string) => {
+  if (!settings.enableDeleteSession) {
+    return;
+  }
+  deleteSessionPreviewTargetId.value = id;
+  deleteSessionPreviewEndChecked.value = false;
+};
+
+const closeDeleteSessionPreview = () => {
+  deleteSessionPreviewTargetId.value = null;
+  deleteSessionPreviewEndChecked.value = false;
+};
+
+const confirmDeleteSessionPreview = () => {
+  closeDeleteSessionPreview();
+};
+
+const minimizeWidget = () => {
+  previewModeBeforeMinimize.value = previewMode.value;
+  previewMode.value = "minimized";
+};
+
+const restoreWidget = () => {
+  previewMode.value = previewModeBeforeMinimize.value;
 };
 
 const widgetPositionStyle = computed(() => {
@@ -985,7 +1097,9 @@ const getConfigSnapshot = () => JSON.stringify({
     limitStartSessionCount: settings.limitStartSessionCount,
     maxStartSessionCount: settings.maxStartSessionCount,
     enableDeleteSession: settings.enableDeleteSession,
-    enableEndSession: settings.enableEndSession
+    enableEndSession: settings.enableEndSession,
+    enableVisitorInactive: settings.enableVisitorInactive,
+    visitorInactiveMinutes: settings.visitorInactiveMinutes
   },
   autoReplyToggles: { ...autoReplyToggles },
   autoReplyTexts: {
@@ -1046,6 +1160,8 @@ const restoreSavedSnapshot = () => {
       maxStartSessionCount: number;
       enableDeleteSession: boolean;
       enableEndSession: boolean;
+      enableVisitorInactive: boolean;
+      visitorInactiveMinutes: number;
     };
     autoReplyToggles: Record<AutoReplyKey, boolean>;
     autoReplyTexts: Record<AutoReplyKey, Record<LangKey, string>>;
@@ -1072,6 +1188,8 @@ const restoreSavedSnapshot = () => {
   settings.maxStartSessionCount = snapshot.settings.maxStartSessionCount;
   settings.enableDeleteSession = snapshot.settings.enableDeleteSession;
   settings.enableEndSession = snapshot.settings.enableEndSession;
+  settings.enableVisitorInactive = snapshot.settings.enableVisitorInactive;
+  settings.visitorInactiveMinutes = snapshot.settings.visitorInactiveMinutes;
 
   autoReplyKeys.forEach((key) => {
     autoReplyToggles[key] = snapshot.autoReplyToggles[key];
@@ -1133,6 +1251,33 @@ watch(
   },
   { immediate: true }
 );
+
+watch(
+  () => settings.enableDeleteSession,
+  (enabled) => {
+    if (!enabled) {
+      closeDeleteSessionPreview();
+    }
+  }
+);
+
+watch(
+  () => settings.enableEndSession,
+  (enabled) => {
+    if (!enabled) {
+      deleteSessionPreviewEndChecked.value = false;
+    }
+  }
+);
+
+watch(previewMode, (mode) => {
+  if (mode !== "sessionList") {
+    closeDeleteSessionPreview();
+  }
+  if (mode !== "minimized") {
+    previewModeBeforeMinimize.value = mode;
+  }
+});
 
 onMounted(() => {
   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -1445,6 +1590,40 @@ defineExpose({
   gap: 2px;
 }
 
+.wc-visitor-inactive-row {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-12);
+  justify-content: space-between;
+}
+
+.wc-visitor-inactive-row__text {
+  align-items: center;
+  color: var(--agent-color-text-primary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 8px;
+}
+
+.wc-visitor-inactive-row__input-wrap {
+  display: inline-flex;
+}
+
+.wc-visitor-inactive-row__input {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  font-size: 14px;
+  padding: 6px 10px;
+  text-align: center;
+  width: 72px;
+}
+
+.wc-visitor-inactive-row__input:focus {
+  border-color: var(--agent-color-brand-primary);
+  outline: none;
+}
+
 .wc-session-feature-card {
   border: 1px solid var(--agent-color-border-default);
   border-radius: 24px;
@@ -1545,13 +1724,33 @@ defineExpose({
   gap: 10px;
 }
 
+.wc-session-feature-limit__input-wrap {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 10px;
+  display: inline-flex;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  transition: border-color 0.2s;
+}
+
+.wc-session-feature-limit__input-wrap:focus-within {
+  border-color: var(--agent-color-brand-primary);
+}
+
 .wc-session-feature-limit__input {
   appearance: textfield;
-  border-radius: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
   font-size: 14px;
   height: 40px;
-  padding: 0 14px;
-  width: 88px;
+  outline: none;
+  padding: 0;
+  text-align: center;
+  width: 44px;
 }
 
 .wc-session-feature-limit__input::-webkit-outer-spin-button,
@@ -1560,17 +1759,9 @@ defineExpose({
   margin: 0;
 }
 
-.wc-session-feature-limit__step-btn {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: #475467;
-  cursor: pointer;
-  display: inline-flex;
-  height: 24px;
-  justify-content: center;
-  padding: 0;
-  width: 24px;
+.wc-session-feature-limit__unit {
+  color: var(--agent-color-text-secondary);
+  font-size: 14px;
 }
 
 .wc-session-feature-limit__notice {
@@ -1579,6 +1770,7 @@ defineExpose({
   border-radius: 14px;
   color: #f04438;
   display: flex;
+  font-size: 14px;
   gap: 10px;
   line-height: 1.75;
   margin-left: 30px;
@@ -1802,6 +1994,32 @@ defineExpose({
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-semibold);
+}
+
+/* Content row: label left, input right */
+.wc-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--agent-space-16);
+}
+
+.wc-content-row__label {
+  color: var(--agent-color-text-primary);
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.4;
+  padding-top: 6px;
+  width: 80px;
+}
+
+.wc-content-row__right {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+  min-width: 0;
 }
 
 /* Rich editor */
@@ -2089,6 +2307,26 @@ defineExpose({
   padding: 14px 16px;
 }
 
+.wc-widget__close-btn {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--agent-color-text-secondary, #666);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  width: 28px;
+}
+
+.wc-widget__close-btn:hover {
+  background: var(--agent-color-bg-hover, rgba(0, 0, 0, 0.06));
+  color: var(--agent-color-text-primary, #333);
+}
+
 .wc-widget__header-left {
   align-items: center;
   display: flex;
@@ -2200,7 +2438,8 @@ defineExpose({
   align-items: center;
   display: flex;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px 26px;
+  position: relative;
   transition: background 0.15s;
 }
 
@@ -2279,31 +2518,34 @@ defineExpose({
   padding: 0 5px;
 }
 
-/* Skeleton styles */
-.wc-session-item--skeleton {
+.wc-session-item__delete {
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: #98a2b3;
+  cursor: pointer;
+  display: inline-flex;
+  height: 20px;
+  justify-content: center;
+  left: 4px;
+  opacity: 0;
+  padding: 0;
   pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: opacity 0.15s, color 0.15s;
+  width: 20px;
 }
 
-.wc-skeleton {
-  background: #e8e8e8;
-  border-radius: 4px;
-  display: block;
+.wc-session-item--deletable:hover .wc-session-item__delete,
+.wc-session-item__delete--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.wc-skeleton--avatar {
-  border-radius: 50%;
-  flex-shrink: 0;
-  height: 36px;
-  width: 36px;
-}
-
-.wc-skeleton--text {
-  height: 12px;
-}
-
-/* Session delete button */
-.wc-session-item {
-  position: relative;
+.wc-session-item__delete:hover {
+  color: #f04438;
 }
 
 .wc-widget__new-session-btn {
@@ -2473,6 +2715,101 @@ defineExpose({
   text-align: center;
 }
 
+.wc-widget__dialog-mask {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.24);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: absolute;
+  z-index: 2;
+}
+
+.wc-widget__dialog {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 272px;
+  padding: 18px;
+  width: 100%;
+}
+
+.wc-widget__dialog-head {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.wc-widget__dialog-title {
+  color: var(--agent-color-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.wc-widget__dialog-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #98a2b3;
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  width: 24px;
+}
+
+.wc-widget__dialog-option {
+  align-items: center;
+  color: var(--agent-color-text-primary);
+  display: inline-flex;
+  font-size: 14px;
+  gap: 8px;
+}
+
+.wc-widget__dialog-checkbox {
+  accent-color: var(--agent-color-brand-primary);
+  height: 16px;
+  width: 16px;
+}
+
+.wc-widget__dialog-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.wc-widget__dialog-btn {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 0;
+}
+
+.wc-widget__dialog-btn--ghost {
+  background: #f2f4f7;
+  color: var(--agent-color-text-secondary);
+}
+
+.wc-widget__dialog-btn--primary {
+  background: #f04438;
+  color: #fff;
+}
+
 /* Feedback preview */
 .wc-widget__feedback-area {
   background: linear-gradient(180deg, #e8f0fe 0%, #f5f8ff 100%);
@@ -2612,11 +2949,17 @@ defineExpose({
   border-radius: 50%;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   color: #fff;
+  cursor: pointer;
   display: flex;
   height: 56px;
   justify-content: center;
   position: absolute;
+  transition: transform 0.2s;
   width: 56px;
+}
+
+.wc-widget-fab:hover {
+  transform: scale(1.08);
 }
 
 /* ── Crop Modal ── */

@@ -440,14 +440,6 @@ const settingsNavGroups = [
     ]
   },
   {
-    key: "conversation-settings-group",
-    title: "会话设置",
-    leadingEmoji: "💬",
-    items: [
-      { key: "idle-conversation", label: "闲置会话" }
-    ]
-  },
-  {
     key: "tags-group",
     title: "标签",
     leadingEmoji: "🏷️",
