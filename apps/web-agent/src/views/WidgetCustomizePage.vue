@@ -104,37 +104,40 @@
             </div>
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === 'quickAccess'" class="wc-accordion__body">
-            <div class="wc-lang-tabs wc-lang-tabs--quick-access">
-              <button
-                v-for="lang in langTabs"
-                :key="lang.key"
-                type="button"
-                class="wc-lang-tab"
-                :class="{ 'wc-lang-tab--active': activeLangTab === lang.key }"
-                @click="activeLangTab = lang.key"
-              >
-                {{ lang.label }}
-              </button>
-            </div>
-            <div class="wc-quick-tags">
-              <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="addQuickAccess">
-                <span class="wc-quick-tag__add-icon" aria-hidden="true">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-                </span>
-                <span class="wc-quick-tag__label">添加</span>
-              </button>
-              <div v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag">
-                <span class="wc-quick-tag__icon" aria-hidden="true">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M4 8l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
-                </span>
-                <span class="wc-quick-tag__label">{{ item.label }}</span>
-                <span class="wc-quick-tag__edit" aria-hidden="true">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-                </span>
-                <button type="button" class="wc-quick-tag__remove" @click="removeQuickAccess(item.id)">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+          <div v-if="openSection === 'quickAccess'" class="wc-accordion__body wc-content-row">
+            <span class="wc-content-row__label">访问列表</span>
+            <div class="wc-content-row__right">
+              <div class="wc-lang-tabs wc-lang-tabs--quick-access">
+                <button
+                  v-for="lang in contentLangTabs"
+                  :key="lang.key"
+                  type="button"
+                  class="wc-lang-tab"
+                  :class="{ 'wc-lang-tab--active': activeQuickAccessLang === lang.key }"
+                  @click="activeQuickAccessLang = lang.key as LangKey"
+                >
+                  {{ lang.label }}
                 </button>
+              </div>
+              <div class="wc-quick-tags">
+                <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="addQuickAccess">
+                  <span class="wc-quick-tag__add-icon" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                  </span>
+                  <span class="wc-quick-tag__label">添加</span>
+                </button>
+                <div v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag">
+                  <span class="wc-quick-tag__icon" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M4 8l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                  </span>
+                  <span class="wc-quick-tag__label">{{ item.label }}</span>
+                  <span class="wc-quick-tag__edit" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+                  </span>
+                  <button type="button" class="wc-quick-tag__remove" @click="removeQuickAccess(item.id)">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -192,7 +195,6 @@
                   v-model="autoReplyTexts[block.key][activeContentLangs[block.key]]"
                   class="wc-rich-editor__textarea"
                   rows="4"
-                  :placeholder="block.placeholder"
                 />
                 <div class="wc-rich-editor__images-area">
                   <div v-for="(img, idx) in autoReplyImages[block.key][activeContentLangs[block.key]]" :key="idx" class="wc-reply-images__item">
@@ -538,8 +540,11 @@
               <span class="wc-widget__back-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
               </span>
-              <img v-if="showChatPreviewDefaultAvatar" :src="DEFAULT_AVATAR" class="wc-widget__chat-avatar-img" alt="默认头像" />
-              <div v-else class="wc-widget__chat-avatar">?</div>
+              <div class="wc-widget__chat-avatar-wrap">
+                <img v-if="showChatPreviewAgentAvatar" :src="DEFAULT_AVATAR" class="wc-widget__chat-avatar-img" alt="默认头像" />
+                <div v-else class="wc-widget__chat-avatar">?</div>
+                <span v-if="showChatPreviewOnlineStatus" class="wc-widget__chat-avatar-status" />
+              </div>
               <span class="wc-widget__chat-title">{{ chatPreviewHeaderTitle }}</span>
             </div>
             <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
@@ -572,21 +577,33 @@
           <!-- Normal chat preview -->
           <template v-else>
             <div class="wc-widget__messages">
-              <div class="wc-widget__msg wc-widget__msg--agent">
-                <span class="wc-widget__msg-time">10:32</span>
-                <div class="wc-widget__msg-bubble">
-                  {{ chatPreviewAgentMsg }}
+              <template v-if="showChatPreviewMessage">
+                <div v-if="showChatPreviewTextBubble" class="wc-widget__msg" :class="isMsgStatusPreview ? 'wc-widget__msg--visitor' : 'wc-widget__msg--agent'">
+                  <span class="wc-widget__msg-time">10:32</span>
+                  <div class="wc-widget__msg-bubble">
+                    {{ chatPreviewMessageText }}
+                  </div>
+                  <span
+                    v-if="isMsgStatusPreview && settings.enableReadReceipt"
+                    class="wc-widget__read-receipt wc-widget__read-receipt--status"
+                    aria-label="已读回执"
+                  >
+                    <svg width="20" height="12" viewBox="0 0 20 12" fill="none" class="wc-widget__read-receipt-icon">
+                      <path d="M1.5 6.2L4.4 9l5-5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M8.2 6.2L11.1 9l5-5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
                 </div>
-              </div>
-              <div v-for="(src, idx) in chatPreviewImages" :key="idx" class="wc-widget__msg wc-widget__msg--agent">
-                <img :src="src" class="wc-widget__msg-img" alt="" />
-              </div>
+                <div v-if="!isMsgStatusPreview" v-for="(src, idx) in chatPreviewImages" :key="idx" class="wc-widget__msg wc-widget__msg--agent">
+                  <img :src="src" class="wc-widget__msg-img" alt="" />
+                </div>
+              </template>
             </div>
-            <div v-if="settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
+            <div v-if="showQuickAccessPreview && settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
               <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-widget__qa-tag">{{ item.label }}</span>
             </div>
             <div class="wc-widget__input-area">
-              <div class="wc-widget__input-box">输入信息…</div>
+              <div class="wc-widget__input-box" />
               <div class="wc-widget__input-toolbar">
                 <div class="wc-widget__toolbar-icons">
                   <span class="wc-widget__toolbar-icon">
@@ -655,15 +672,15 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
-    <BaseModal :open="unsavedChangesModalOpen" title="未保存的修改" @close="cancelPendingNavigation">
+    <BaseModal :open="unsavedChangesModalOpen" title="您有未保存的更改" @close="cancelPendingNavigation">
       <div class="wc-unsaved-modal">
-        <p class="wc-unsaved-modal__desc">当前内容已修改但尚未保存，切换后可能丢失本次修改。是否继续切换？</p>
+        <p class="wc-unsaved-modal__desc">如果继续，您确定要放弃这些更改吗？</p>
       </div>
       <template #footer>
         <span />
         <div class="wc-unsaved-modal__actions">
-          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在当前页</button>
-          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">继续切换</button>
+          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在这里</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">放弃更改</button>
         </div>
       </template>
     </BaseModal>
@@ -738,13 +755,6 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "general", label: "常规" }
 ];
 
-const langTabs = [
-  { key: "list", label: "访问列表" },
-  { key: "en", label: "英文" },
-  { key: "zh-cn", label: "简体中文" },
-  { key: "zh-tw", label: "繁体中文" }
-];
-
 const formLangTabs = [
   { key: "en", label: "英文" },
   { key: "zh-cn", label: "简体中文" },
@@ -768,7 +778,7 @@ const autoReplyBlocks: { key: AutoReplyKey; title: string; desc: string; placeho
 ];
 
 const activeTab = ref<TabKey>("appearance");
-const activeLangTab = ref("list");
+const activeQuickAccessLang = ref<LangKey>("en");
 const activeFormLang = ref("en");
 const previewMode = ref<PreviewMode>("sessionList");
 const previewModeBeforeMinimize = ref<PreviewMode>("sessionList");
@@ -857,7 +867,7 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   chatOffline: "chat",
   visitorFeedback: "chat",
   sessionForm: "form",
-  msgStatus: null,
+  msgStatus: "chat",
   sessionFeatures: "sessionList"
 };
 
@@ -905,18 +915,36 @@ const activeAutoReplyKey = computed<AutoReplyKey>(() => {
   return "welcome";
 });
 
+const showQuickAccessPreview = computed(() => openSection.value === "quickAccess");
+const isMsgStatusPreview = computed(() => openSection.value === "msgStatus");
+const showChatPreviewMessage = computed(() => !showQuickAccessPreview.value);
+
 const chatPreviewAgentMsg = computed(() => {
   const key = activeAutoReplyKey.value;
   const lang = activeContentLangs[key];
-  return autoReplyTexts[key][lang] || "Hello!";
+  return autoReplyTexts[key][lang];
 });
 
-const showChatPreviewDefaultAvatar = computed(() => {
-  return previewMode.value === "chat" && activeAutoReplyKey.value === "chatOffline";
+const showChatPreviewTextBubble = computed(() => {
+  if (isMsgStatusPreview.value) {
+    return true;
+  }
+  return chatPreviewAgentMsg.value.trim().length > 0;
+});
+
+const chatPreviewMessageText = computed(() => {
+  if (isMsgStatusPreview.value) {
+    return "您好，我想确认一下订单物流进度。";
+  }
+  return chatPreviewAgentMsg.value;
+});
+
+const showChatPreviewAgentAvatar = computed(() => {
+  return previewMode.value === "chat" && (activeAutoReplyKey.value === "chatOffline" || isMsgStatusPreview.value);
 });
 
 const chatPreviewHeaderTitle = computed(() => {
-  return showChatPreviewDefaultAvatar.value ? "聊天" : "新的会话";
+  return showChatPreviewAgentAvatar.value ? "聊天" : "新的会话";
 });
 
 const feedbackPreviewTitle = computed(() => {
@@ -951,6 +979,10 @@ const settings = reactive({
   enableEndSession: false,
   enableVisitorInactive: true,
   visitorInactiveMinutes: 120
+});
+
+const showChatPreviewOnlineStatus = computed(() => {
+  return isMsgStatusPreview.value && settings.showAgentOnlineStatus;
 });
 
 const previewSessionItems: PreviewSessionItem[] = [
@@ -2334,6 +2366,12 @@ defineExpose({
   min-width: 0;
 }
 
+.wc-widget__chat-avatar-wrap {
+  display: inline-flex;
+  flex-shrink: 0;
+  position: relative;
+}
+
 .wc-widget__avatar-img {
   border-radius: 50%;
   flex-shrink: 0;
@@ -2378,6 +2416,17 @@ defineExpose({
 .wc-widget__chat-title {
   font-size: 13px;
   font-weight: var(--agent-font-weight-semibold);
+}
+
+.wc-widget__chat-avatar-status {
+  background: #22c55e;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  bottom: -1px;
+  height: 10px;
+  position: absolute;
+  right: -1px;
+  width: 10px;
 }
 
 .wc-widget__online-indicator {
@@ -2627,6 +2676,17 @@ defineExpose({
   text-align: right;
 }
 
+.wc-widget__read-receipt--status {
+  color: #2f6bff;
+  display: inline-flex;
+  margin-top: 2px;
+  text-align: left;
+}
+
+.wc-widget__read-receipt-icon {
+  display: block;
+}
+
 /* Quick access in widget */
 .wc-widget__quick-access {
   background: #fff;
@@ -2647,8 +2707,8 @@ defineExpose({
 
 /* Input area */
 .wc-widget__input-area {
-  background: #fff;
-  border: 0.5px solid #e2e8ef;
+  background: transparent;
+  border: 0;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
