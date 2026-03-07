@@ -7,7 +7,7 @@ const EmptyRouteView = {
 };
 
 const routes: RouteRecordRaw[] = [
-  { path: "/", redirect: "/conversation" },
+  { path: "/", redirect: "/home" },
   { path: "/home", name: "home", component: EmptyRouteView },
   { path: "/conversation", name: "conversation", component: EmptyRouteView },
   { path: "/files", name: "files", component: EmptyRouteView },

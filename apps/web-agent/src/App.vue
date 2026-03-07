@@ -1,5 +1,5 @@
 <template>
-  <AgentAppShell :show-detail="isConversationRoute">
+  <AgentAppShell :show-detail="isConversationRoute" :hide-subnav="isHomeRoute">
     <template #nav-rail>
       <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
         <template #brand>
@@ -140,6 +140,8 @@
       </section>
     </section>
 
+    <HomeRoutePage v-else-if="isHomeRoute" />
+
     <template v-else-if="isSettingsRoute">
       <WidgetCustomizePage
         v-if="activeSettingsNavKey === 'customize'"
@@ -277,6 +279,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
+import HomeRoutePage from "./views/HomeRoutePage.vue";
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
@@ -835,6 +838,7 @@ const mainNavItems = computed<NavItem[]>(() =>
 );
 
 const currentRouteName = computed(() => (typeof route.name === "string" ? route.name : "conversation"));
+const isHomeRoute = computed(() => currentRouteName.value === "home");
 const isConversationRoute = computed(() => currentRouteName.value === "conversation");
 const isAiAgentRoute = computed(() => currentRouteName.value === "ai-agent");
 const isSettingsRoute = computed(() => currentRouteName.value === "settings");

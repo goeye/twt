@@ -1,9 +1,15 @@
 <template>
-  <div class="agent-shell agent-reset" :class="{ 'agent-shell--with-detail': showDetail }">
+  <div
+    class="agent-shell agent-reset"
+    :class="{
+      'agent-shell--with-detail': showDetail,
+      'agent-shell--without-subnav': hideSubnav
+    }"
+  >
     <aside class="agent-shell__rail">
       <slot name="nav-rail" />
     </aside>
-    <aside class="agent-shell__subnav">
+    <aside v-if="!hideSubnav" class="agent-shell__subnav">
       <slot name="sub-nav" />
     </aside>
     <main class="agent-shell__main">
@@ -18,6 +24,7 @@
 <script setup lang="ts">
 defineProps<{
   showDetail?: boolean;
+  hideSubnav?: boolean;
 }>();
 </script>
 
@@ -34,6 +41,14 @@ defineProps<{
   grid-template-columns: var(--agent-layout-nav-rail-width) var(--agent-layout-sub-nav-width) minmax(560px, 1fr) var(
       --agent-layout-detail-pane-width
     );
+}
+
+.agent-shell--without-subnav {
+  grid-template-columns: var(--agent-layout-nav-rail-width) minmax(560px, 1fr);
+}
+
+.agent-shell--without-subnav.agent-shell--with-detail {
+  grid-template-columns: var(--agent-layout-nav-rail-width) minmax(560px, 1fr) var(--agent-layout-detail-pane-width);
 }
 
 .agent-shell__rail,
@@ -79,6 +94,14 @@ defineProps<{
 
   .agent-shell--with-detail {
     grid-template-columns: var(--agent-layout-nav-rail-width) var(--agent-layout-sub-nav-width) minmax(420px, 1fr);
+  }
+
+  .agent-shell--without-subnav {
+    grid-template-columns: var(--agent-layout-nav-rail-width) minmax(420px, 1fr);
+  }
+
+  .agent-shell--without-subnav.agent-shell--with-detail {
+    grid-template-columns: var(--agent-layout-nav-rail-width) minmax(420px, 1fr);
   }
 }
 </style>
