@@ -672,9 +672,9 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
-    <BaseModal :open="unsavedChangesModalOpen" title="您有未保存的更改" @close="cancelPendingNavigation">
+    <BaseModal :open="unsavedChangesModalOpen" title="未保存的更改" @close="cancelPendingNavigation">
       <div class="wc-unsaved-modal">
-        <p class="wc-unsaved-modal__desc">如果继续，您确定要放弃这些更改吗？</p>
+        <p class="wc-unsaved-modal__desc">继续操作会放弃本次修改，确定吗？</p>
       </div>
       <template #footer>
         <span />
