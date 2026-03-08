@@ -174,6 +174,105 @@
       </ul>
     </section>
 
+    <section v-else-if="activeKey === 'webhooks'" class="settings-webhooks">
+      <p class="webhooks-subtitle">通过 Webhook 将 Chat 平台事件实时推送至外部服务</p>
+
+      <article class="settings-card agent-panel">
+        <h2 class="settings-card__title agent-settings-feature-title">Webhook URL</h2>
+        <p class="agent-settings-feature-description">输入接收事件通知的 URL 地址</p>
+        <div class="settings-link-row">
+          <input v-model="webhookUrl" class="agent-input settings-link-input" placeholder="请输入URL地址" />
+        </div>
+
+        <h2 class="settings-card__title agent-settings-feature-title" style="margin-top: var(--agent-space-8)">支持的事件</h2>
+        <p class="agent-settings-feature-description">当前系统支持的 Webhook 事件类型</p>
+
+        <div class="webhooks-event-card">
+          <div class="webhooks-event-card__header">
+            <span class="webhooks-event-card__name">访客消息未回复</span>
+            <button
+              type="button"
+              role="switch"
+              :aria-checked="unrepliedEventEnabled"
+              class="settings-toggle"
+              :class="{ 'settings-toggle--on': unrepliedEventEnabled }"
+              @click="unrepliedEventEnabled = !unrepliedEventEnabled"
+            >
+              <span class="settings-toggle__thumb" />
+            </button>
+          </div>
+          <p class="settings-card__inline-desc">
+            当访客发送消息后，若客服未回复：首次于
+            <input
+              v-model.number="unrepliedFirstMinutes"
+              type="number"
+              min="1"
+              class="agent-input settings-inline-number"
+            />
+            分钟后提醒，后续每
+            <input
+              v-model.number="unrepliedRepeatMinutes"
+              type="number"
+              min="1"
+              class="agent-input settings-inline-number"
+            />
+            分钟后再次提醒，最多提醒4次。
+          </p>
+        </div>
+
+      </article>
+
+      <article class="settings-card agent-panel">
+        <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
+        <p class="webhooks-link-text">如何正确配置和使用 Webhooks</p>
+
+        <div class="webhooks-steps">
+          <p class="webhooks-step">1. 签名校验：在开发设置中生成「AppSecret」，并通过 x-chat-signature 头部发送。X-Chat-Signature:HMAC-SHA256(secret, raw_body)</p>
+          <p class="webhooks-step">2. 填写 URL：在 Webhooks 页面输入你的接收地址，点击「保存」。（注意：需先进行签名校验，否则无法保存。）</p>
+          <p class="webhooks-step">3. 结构</p>
+        </div>
+
+        <h3 class="webhooks-section-title">请求头</h3>
+        <p class="webhooks-hint">每个 webhook 至少包含这二个请求头</p>
+        <div class="webhooks-code-block">
+          <pre><code>content-type: application/json
+x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70</code></pre>
+        </div>
+
+        <h3 class="webhooks-section-title">请求体</h3>
+        <p class="webhooks-hint">每个 webhook 正文都包含以下结构</p>
+        <DataTable :columns="webhookBodyColumns" :rows="webhookBodyRows" :bare="true" />
+
+        <h3 class="webhooks-section-title" style="margin-top: var(--agent-space-16)">事件数据：UNREPLIED（访客消息无回复）</h3>
+        <p class="webhooks-hint-warn">访客发出首条消息后1分钟首次触发；后续每10分钟后再次触发，直到被客服回复或提醒4次以上为止。</p>
+
+        <DataTable :columns="unrepliedContentColumns" :rows="unrepliedContentRows" :bare="true" />
+
+        <div class="webhooks-code-block" style="margin-top: var(--agent-space-16)">
+          <pre><code>{
+  "created_at": 1765439941,
+  "event": "UNREPLIED",
+  "webhook_id": "58946f5f583edd94f5cf87e3534d04fb",
+  "content": [
+    {
+      "subject": "New Conversation",
+      "visitor_name": "Visitor15",
+      "created_at": 1765439652,
+      "message_content": "1",
+      "property_name": "test",
+      "visitor_nickname": "visitor nickname",
+      "sbs": "",
+      "status": "1",
+      "push_times": 4,
+      "time_sec": 289,
+      "assigned_agent_nickname": "ctccccd"
+    }
+  ]
+}</code></pre>
+        </div>
+      </article>
+    </section>
+
     <section v-else class="settings-card agent-panel settings-placeholder">
       <div class="settings-placeholder__icon">🚧</div>
       <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
@@ -345,6 +444,52 @@ const downloadHtmlDeployment = () => {
     emitToast("下载失败，请检查浏览器下载权限后重试。");
   }
 };
+
+/* Webhooks */
+interface WebhookTableRow extends Record<string, unknown> {
+  param: string;
+  desc: string;
+  example: string;
+}
+
+const webhookUrl = ref("");
+const unrepliedEventEnabled = ref(true);
+const unrepliedFirstMinutes = ref(1);
+const unrepliedRepeatMinutes = ref(10);
+
+const webhookBodyColumns: TableColumn<WebhookTableRow>[] = [
+  { key: "param", title: "参数名", width: "25%" },
+  { key: "desc", title: "说明", width: "35%" },
+  { key: "example", title: "参数示例" }
+];
+
+const webhookBodyRows: WebhookTableRow[] = [
+  { param: "created_at", desc: "webhook 发送日期（时间戳）", example: "1765439941" },
+  { param: "event", desc: "事件名称", example: "UNREPLIED" },
+  { param: "webhook_id", desc: "唯一的 webhook ID", example: "58946f5f583edd94f5cf87e3534d04fb" },
+  { param: "content", desc: "包含特定事件数据的对象", example: "-" }
+];
+
+const unrepliedContentColumns: TableColumn<WebhookTableRow>[] = [
+  { key: "param", title: "参数名", width: "25%" },
+  { key: "desc", title: "说明", width: "35%" },
+  { key: "example", title: "参数示例" }
+];
+
+const unrepliedContentRows: WebhookTableRow[] = [
+  { param: "content", desc: "-", example: "-" },
+  { param: "subject", desc: "会话主题", example: "New Conversation" },
+  { param: "visitor_name", desc: "访客姓名", example: "Visitor15" },
+  { param: "created_at", desc: "消息创建时间", example: "1765439652" },
+  { param: "message_content", desc: "消息内容", example: "1" },
+  { param: "property_name", desc: "项目名称", example: "test" },
+  { param: "visitor_nickname", desc: "访客备注名", example: "VIP" },
+  { param: "sbs", desc: "客户标识", example: "234442313" },
+  { param: "status", desc: "状态", example: "1: 待回复 2: 排队中 3: 待处理 4: 已回复" },
+  { param: "push_times", desc: "推送次数", example: "4" },
+  { param: "time_sec", desc: "超时时间（秒）", example: "289" },
+  { param: "assigned_agent_nickname", desc: "服务客服名称", example: "ctccccd" }
+];
 
 const addQuickReply = () => {
   const next = quickReplyDraft.value.trim();
@@ -670,6 +815,100 @@ const removeQuickReply = (target: string) => {
 .settings-placeholder__icon {
   font-size: 48px;
   line-height: 1;
+}
+
+/* Webhooks page */
+.settings-webhooks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+}
+
+.webhooks-subtitle {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  margin: 0;
+}
+
+.webhooks-event-card {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-12);
+  padding: var(--agent-space-16) var(--agent-space-20);
+}
+
+.webhooks-event-card__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.webhooks-event-card__name {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+}
+
+.webhooks-link-text {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  margin: 0;
+}
+
+.webhooks-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+}
+
+.webhooks-step {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.webhooks-section-title {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: var(--agent-space-8) 0 0;
+}
+
+.webhooks-hint {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  margin: 0 0 var(--agent-space-8);
+}
+
+.webhooks-hint-warn {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--agent-space-8);
+  text-decoration: underline;
+}
+
+.webhooks-code-block {
+  background: var(--agent-color-bg-muted);
+  border-radius: var(--agent-radius-lg);
+  overflow-x: auto;
+  padding: var(--agent-space-16) var(--agent-space-20);
+}
+
+.webhooks-code-block pre {
+  margin: 0;
+}
+
+.webhooks-code-block code {
+  color: var(--agent-color-text-primary);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  white-space: pre;
 }
 
 /* Layout mode switcher */

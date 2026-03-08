@@ -50,6 +50,13 @@
         @select="handleSettingsNavSelect"
       />
       <AiSettingsNav
+        v-else-if="isReportRoute"
+        title="报表"
+        :active-key="activeReportNavKey"
+        :groups="reportNavGroups"
+        @select="handleReportNavSelect"
+      />
+      <AiSettingsNav
         v-else-if="isCampaignRoute"
         title="营销"
         :active-key="activeCampaignNavKey"
@@ -110,9 +117,9 @@
       <section class="chat-pane agent-panel">
         <ConversationHeader
           class="chat-pane__header"
-          :editable="true"
+          :editable="!isAiSession"
           :title="activeSessionTitle"
-          :can-collaborate="canCollaborate"
+          :can-collaborate="canCollaborate && !isAiSession"
           @close="showTopToast('会话已标记为结束')"
           @invite="handleOpenInvite"
           @transfer="handleOpenTransfer"
@@ -134,7 +141,13 @@
           />
         </div>
 
+        <div v-if="isAiSession" class="ai-takeover-bar">
+          <span class="ai-takeover-bar__text">🤖 当前由 AI 接待中</span>
+          <button type="button" class="agent-btn agent-btn--primary" @click="handleTakeoverAiSession">接管会话</button>
+        </div>
+
         <MessageComposer
+          v-else
           v-model="composerText"
           class="chat-pane__composer"
           :disabled="composerText.trim().length === 0"
@@ -160,6 +173,7 @@
       <SettingsRoutePage v-else :active-key="activeSettingsNavKey" @toast="showTopToast" />
     </template>
     <AiAgentRoutePage v-else-if="isAiAgentRoute" :active-key="activeAiNavKey" @toast="showTopToast" />
+    <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">
       <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
       <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" @toast="showTopToast" />
@@ -291,6 +305,7 @@ import CampaignRoutePage from "./views/CampaignRoutePage.vue";
 import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
+import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import {
@@ -314,9 +329,10 @@ import {
 } from "@twt/ui-agent";
 
 type DetailTabKey = "visitor" | "session";
-type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings";
+type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
+type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
 
 type WidgetCustomizePageExpose = {
@@ -349,7 +365,7 @@ const getAgentAvatarColor = (name: string) => agentPool.find((a) => a.name === n
 
 interface ConversationSession extends SessionItem {
   queueKey: string;
-  tag: "访客" | "VIP" | "客户";
+  tag: "访客" | "VIP" | "客户" | "AI" | "AI 转接";
   avatarText: string;
   avatarColor: string;
   channel: string;
@@ -510,7 +526,22 @@ const aiNavGroups = [
   {
     key: "ai-settings",
     title: "AI设置",
-    items: [{ key: "copilot-settings", label: "Copilot设置", leadingEmoji: "💡" }]
+    items: [
+      { key: "copilot-settings", label: "Copilot设置", leadingEmoji: "💡" },
+      { key: "ai-agent-config", label: "AI Agent", leadingEmoji: "🤖" }
+    ]
+  }
+];
+
+const reportNavGroups = [
+  {
+    key: "report-group",
+    title: "报表",
+    items: [
+      { key: "data-overview", label: "数据概览", leadingEmoji: "📊" },
+      { key: "ai-agent-report", label: "AI Agent", leadingEmoji: "🤖" },
+      { key: "evaluation-analysis", label: "会话评价分析", leadingEmoji: "⭐" }
+    ]
   }
 ];
 
@@ -529,6 +560,11 @@ const queueGroupSeed: SessionQueueGroup[] = [
     key: "online-chat",
     title: "在线聊天",
     items: [{ key: "chat-room", label: "聊天", leadingEmoji: "💬" }]
+  },
+  {
+    key: "ai-agent",
+    title: "AI Agent",
+    items: [{ key: "ai-agent-queue", label: "AI Agent", leadingEmoji: "🤖" }]
   }
 ];
 
@@ -687,6 +723,56 @@ const allSessions = ref<ConversationSession[]>([
     acceptedAt: "06:52",
     assignee: "李想",
     assistants: []
+  },
+  {
+    id: "s-7001",
+    queueKey: "ai-agent-queue",
+    customerName: "配送时间咨询",
+    preview: "下单后多久能收到？有加急选项吗？",
+    updatedAt: "20:15",
+    unreadCount: 0,
+    tag: "AI",
+    avatarText: "T",
+    avatarColor: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
+    channel: "官网入口",
+    visitorName: "Tom",
+    visitorId: "770201",
+    phone: "13512345678",
+    email: "tom@demo.com",
+    entryPage: "https://www.twt.com/shop/delivery",
+    visitStats: "1 会话，0 聊天",
+    deviceIp: "10.0.5.88",
+    os: "Windows 11",
+    browser: "Chrome 133",
+    startedAt: "20:10",
+    acceptedAt: "20:10",
+    assignee: "智能助手",
+    assistants: []
+  },
+  {
+    id: "s-7002",
+    queueKey: "ai-agent-queue",
+    customerName: "账户安全设置",
+    preview: "我想开启两步验证，在哪里设置？",
+    updatedAt: "20:02",
+    unreadCount: 0,
+    tag: "AI",
+    avatarText: "S",
+    avatarColor: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
+    channel: "帮助中心",
+    visitorName: "Sarah",
+    visitorId: "880334",
+    phone: "18900998877",
+    email: "sarah@demo.com",
+    entryPage: "https://www.twt.com/account/security",
+    visitStats: "2 会话，1 聊天",
+    deviceIp: "192.168.1.55",
+    os: "macOS 15",
+    browser: "Safari 19",
+    startedAt: "19:58",
+    acceptedAt: "19:58",
+    assignee: "智能助手",
+    assistants: []
   }
 ]);
 
@@ -765,6 +851,52 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       content: "今天直播回放几点能看？",
       time: "06:54"
     }
+  ],
+  "s-7001": [
+    {
+      id: "m-701",
+      role: "customer",
+      sender: "Tom",
+      content: "下单后多久能收到？有加急选项吗？",
+      time: "20:11"
+    },
+    {
+      id: "m-702",
+      role: "bot",
+      sender: "智能助手",
+      content: "您好！标准配送一般在下单后 3-5 个工作日内送达。如果您需要加急，可以在结算时选择「加急配送」选项，预计 1-2 个工作日送达，需额外支付 15 元运费。",
+      time: "20:11"
+    },
+    {
+      id: "m-703",
+      role: "customer",
+      sender: "Tom",
+      content: "加急配送支持哪些地区？",
+      time: "20:13"
+    },
+    {
+      id: "m-704",
+      role: "bot",
+      sender: "智能助手",
+      content: "加急配送目前覆盖全国主要城市（含直辖市、省会城市及大部分地级市）。偏远地区暂不支持加急，但标准配送仍可正常使用。您可以在下单页面输入收货地址后，系统会自动判断是否支持加急。",
+      time: "20:14"
+    }
+  ],
+  "s-7002": [
+    {
+      id: "m-801",
+      role: "customer",
+      sender: "Sarah",
+      content: "我想开启两步验证，在哪里设置？",
+      time: "19:59"
+    },
+    {
+      id: "m-802",
+      role: "bot",
+      sender: "智能助手",
+      content: "您好！开启两步验证的步骤如下：\n1. 登录后进入「账户设置」页面\n2. 点击「安全设置」\n3. 找到「两步验证」，点击「开启」\n4. 选择验证方式（短信或认证器应用）\n5. 按提示完成绑定即可\n\n如果遇到问题，可以随时联系我。",
+      time: "20:00"
+    }
   ]
 });
 
@@ -781,6 +913,7 @@ const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
+const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
 const widgetCustomizePageRef = ref<WidgetCustomizePageExpose | null>(null);
 const customizeDirty = ref(false);
@@ -861,6 +994,9 @@ const isFilesRoute = computed(() => currentRouteName.value === "files");
 const isAiAgentRoute = computed(() => currentRouteName.value === "ai-agent");
 const isSettingsRoute = computed(() => currentRouteName.value === "settings");
 const isCampaignRoute = computed(() => currentRouteName.value === "campaign");
+const isReportRoute = computed(() => currentRouteName.value === "report");
+
+const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
 
 const currentModuleLabel = computed(() => {
   if (isSettingsRoute.value) {
@@ -1088,14 +1224,22 @@ const handleSettingsNavSelect = (key: string) => {
 };
 
 const handleAiNavSelect = (key: string) => {
-  if (key === "doc-knowledge" || key === "faq" || key === "copilot-settings") {
-    activeAiNavKey.value = key;
+  const validKeys: AiAgentNavKey[] = ["doc-knowledge", "faq", "copilot-settings", "ai-agent-config"];
+  if (validKeys.includes(key as AiAgentNavKey)) {
+    activeAiNavKey.value = key as AiAgentNavKey;
   }
 };
 
 const handleCampaignNavSelect = (key: string) => {
   if (key === "campaign-chatting" || key === "campaign-proactive") {
     activeCampaignNavKey.value = key;
+  }
+};
+
+const handleReportNavSelect = (key: string) => {
+  const validKeys: ReportNavKey[] = ["data-overview", "ai-agent-report", "evaluation-analysis"];
+  if (validKeys.includes(key as ReportNavKey)) {
+    activeReportNavKey.value = key as ReportNavKey;
   }
 };
 
@@ -1119,6 +1263,9 @@ const getMessageAvatarLabel = (role: MessageItem["role"]) => {
   if (role === "agent") {
     return "客";
   }
+  if (role === "bot") {
+    return "AI";
+  }
   return activeSession.value?.avatarText ?? "?";
 };
 
@@ -1128,6 +1275,9 @@ const getMessageAvatarColor = (role: MessageItem["role"]) => {
   }
   if (role === "agent") {
     return "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)";
+  }
+  if (role === "bot") {
+    return "linear-gradient(135deg, #00b578, #00c2b8)";
   }
   return activeSession.value?.avatarColor ?? "#2f6bff";
 };
@@ -1256,6 +1406,33 @@ const handleConfirmInvite = (ids: string[]) => {
   inviteModalOpen.value = false;
   sendPushNotification(session.customerName, `${currentAgentName}邀请你加入会话`);
   showTopToast("邀请成功");
+};
+
+const handleTakeoverAiSession = () => {
+  const session = activeSession.value;
+  if (!session) return;
+
+  const now = new Date();
+  const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const sysMsg: MessageItem = {
+    id: `m-${session.id}-takeover-${now.getTime()}`,
+    role: "system",
+    sender: "系统",
+    content: "以上为 AI 接待记录",
+    time
+  };
+  messageMap.value = {
+    ...messageMap.value,
+    [session.id]: [...(messageMap.value[session.id] ?? []), sysMsg]
+  };
+
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== session.id) return s;
+    return { ...s, queueKey: "pending-reply", assignee: currentAgentName, tag: "AI 转接" as const };
+  });
+
+  activeQueueKey.value = "pending-reply";
+  showTopToast("已接管 AI 会话");
 };
 
 const handleSend = () => {
@@ -1585,6 +1762,22 @@ onBeforeUnmount(() => {
 .chat-pane__composer {
   min-height: 196px;
   padding: 0 var(--agent-space-16) var(--agent-space-16);
+}
+
+.ai-takeover-bar {
+  align-items: center;
+  background: #f0fdf4;
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: var(--agent-space-16);
+  justify-content: center;
+  padding: var(--agent-space-20) var(--agent-space-16);
+}
+
+.ai-takeover-bar__text {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
 }
 
 .detail-pane {

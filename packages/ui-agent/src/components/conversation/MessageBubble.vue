@@ -20,7 +20,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    role: "agent" | "customer" | "system";
+    role: "agent" | "customer" | "system" | "bot";
     sender: string;
     content: string;
     time: string;
@@ -107,6 +107,14 @@ withDefaults(
 
 .message--agent .message__bubble {
   background: #eef4ff;
+}
+
+.message--bot {
+  align-self: flex-start;
+}
+
+.message--bot .message__bubble {
+  background: #f0fdf4;
 }
 
 .message__system {

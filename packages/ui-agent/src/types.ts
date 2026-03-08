@@ -31,7 +31,7 @@ export interface SessionQueueGroup {
 
 export interface MessageItem {
   id: string;
-  role: "agent" | "customer" | "system";
+  role: "agent" | "customer" | "system" | "bot";
   sender: string;
   content: string;
   time: string;
