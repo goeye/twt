@@ -7,6 +7,10 @@
     "dev:web-agent": "pnpm --filter web-agent dev",
     "build:web-agent": "pnpm --filter web-agent build",
     "upload:web-agent": "cd apps && bash upcode.sh web-agent",
-    "deploy:web-agent": "pnpm build:web-agent && pnpm upload:web-agent"
+    "deploy:web-agent": "pnpm build:web-agent && pnpm upload:web-agent",
+    "dev:web-customer": "pnpm --filter web-customer dev",
+    "build:web-customer": "pnpm --filter web-customer build",
+    "upload:web-customer": "cd apps && bash upcode.sh web-customer",
+    "deploy:web-customer": "pnpm build:web-customer && pnpm upload:web-customer"
   }
 }
