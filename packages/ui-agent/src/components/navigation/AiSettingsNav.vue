@@ -1,12 +1,12 @@
 <template>
   <section class="ai-nav" :class="`ai-nav--${variant}`">
-    <header class="ai-nav__header">
+    <header v-if="title" class="ai-nav__header">
       <h2 class="ai-nav__title">{{ title }}</h2>
     </header>
 
     <div class="ai-nav__body agent-scroll">
       <section v-for="group in groups" :key="group.key" class="ai-nav__group">
-        <button class="ai-nav__group-title" type="button">
+        <button v-if="group.title" class="ai-nav__group-title" type="button">
           <span class="ai-nav__group-title-main">
             <span v-if="group.leadingEmoji" class="ai-nav__group-emoji" aria-hidden="true">{{ group.leadingEmoji }}</span>
             <span>{{ group.title }}</span>
@@ -57,7 +57,7 @@ interface AiSettingsNavGroup {
 
 withDefaults(
   defineProps<{
-    title: string;
+    title?: string;
     activeKey: string;
     groups: AiSettingsNavGroup[];
     variant?: "default" | "settings";

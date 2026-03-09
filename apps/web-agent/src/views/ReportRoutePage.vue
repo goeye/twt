@@ -1,15 +1,80 @@
 <template>
-  <section class="agent-content-page report-page agent-scroll">
+  <section class="agent-content-page agent-content-page--hide-scrollbar report-page">
     <!-- 数据概览 -->
     <template v-if="activeKey === 'data-overview'">
       <h1 class="report-page__title">数据概览</h1>
 
       <div class="report-filter-bar">
-        <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
-          <span class="report-date-picker__text">{{ dateRange.start }}</span>
-          <span class="report-date-picker__sep">&nbsp;&nbsp;</span>
-          <span class="report-date-picker__text">{{ dateRange.end }}</span>
-          <span class="report-date-picker__icon">📅</span>
+        <div class="report-date-picker-wrap">
+          <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
+            <span class="report-date-picker__text">{{ dateRange.start }}</span>
+            <span class="report-date-picker__sep">&nbsp;&nbsp;</span>
+            <span class="report-date-picker__text">{{ dateRange.end }}</span>
+            <span class="report-date-picker__icon">📅</span>
+          </div>
+          <div v-if="showDatePicker" class="report-datepicker-panel">
+            <div class="report-datepicker-panel__shortcuts">
+              <button
+                v-for="shortcut in dateShortcuts"
+                :key="shortcut.label"
+                type="button"
+                class="report-datepicker-panel__shortcut"
+                @click="applyDateShortcut(shortcut); showDatePicker = false"
+              >{{ shortcut.label }}</button>
+            </div>
+            <div class="report-datepicker-panel__calendars">
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">«</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">‹</button>
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(0) }}</span>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(0)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(1) }}</span>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">›</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">»</button>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(1)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="report-agent-select" @click="showAgentDropdown = !showAgentDropdown">
           <span class="report-agent-select__text">{{ selectedAgent }}</span>
@@ -23,71 +88,6 @@
             >
               <span v-if="agent !== '全部客服'" class="report-agent-select__avatar" />
               {{ agent }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Date Picker Panel -->
-      <div v-if="showDatePicker" class="report-datepicker-panel">
-        <div class="report-datepicker-panel__shortcuts">
-          <button
-            v-for="shortcut in dateShortcuts"
-            :key="shortcut.label"
-            type="button"
-            class="report-datepicker-panel__shortcut"
-            @click="applyDateShortcut(shortcut); showDatePicker = false"
-          >{{ shortcut.label }}</button>
-        </div>
-        <div class="report-datepicker-panel__calendars">
-          <div class="report-datepicker-panel__month">
-            <div class="report-datepicker-panel__month-header">
-              <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">«</button>
-              <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">‹</button>
-              <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(0) }}</span>
-            </div>
-            <div class="report-datepicker-panel__weekdays">
-              <span v-for="d in weekdays" :key="d">{{ d }}</span>
-            </div>
-            <div class="report-datepicker-panel__days">
-              <button
-                v-for="(day, i) in calendarDays(0)"
-                :key="i"
-                type="button"
-                class="report-datepicker-panel__day"
-                :class="{
-                  'report-datepicker-panel__day--other': !day.currentMonth,
-                  'report-datepicker-panel__day--start': day.isStart,
-                  'report-datepicker-panel__day--end': day.isEnd,
-                  'report-datepicker-panel__day--in-range': day.inRange
-                }"
-                @click="pickDate(day.date)"
-              >{{ day.day }}</button>
-            </div>
-          </div>
-          <div class="report-datepicker-panel__month">
-            <div class="report-datepicker-panel__month-header">
-              <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(1) }}</span>
-              <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">›</button>
-              <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">»</button>
-            </div>
-            <div class="report-datepicker-panel__weekdays">
-              <span v-for="d in weekdays" :key="d">{{ d }}</span>
-            </div>
-            <div class="report-datepicker-panel__days">
-              <button
-                v-for="(day, i) in calendarDays(1)"
-                :key="i"
-                type="button"
-                class="report-datepicker-panel__day"
-                :class="{
-                  'report-datepicker-panel__day--other': !day.currentMonth,
-                  'report-datepicker-panel__day--start': day.isStart,
-                  'report-datepicker-panel__day--end': day.isEnd,
-                  'report-datepicker-panel__day--in-range': day.inRange
-                }"
-                @click="pickDate(day.date)"
-              >{{ day.day }}</button>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@
                   />
                 </svg>
                 <div class="report-line-chart__x-axis">
-                  <span v-for="d in chartDateLabels" :key="d">{{ d }}</span>
+                  <span v-for="d in chartXAxisLabels" :key="d">{{ d }}</span>
                 </div>
               </div>
             </div>
@@ -179,15 +179,76 @@
 
       <!-- Filters -->
       <div class="report-filter-bar">
-        <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
-          <span class="report-date-picker__text">{{ dateRange.start }}</span>
-          <span class="report-date-picker__sep"> - </span>
-          <span class="report-date-picker__text">{{ dateRange.end }}</span>
-          <span class="report-date-picker__icon">📅</span>
-        </div>
-        <div class="report-agent-select" style="min-width: 80px;">
-          <span class="report-agent-select__text">按天</span>
-          <span class="report-agent-select__arrow">▾</span>
+        <div class="report-date-picker-wrap">
+          <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
+            <span class="report-date-picker__text">{{ dateRange.start }}</span>
+            <span class="report-date-picker__sep"> - </span>
+            <span class="report-date-picker__text">{{ dateRange.end }}</span>
+            <span class="report-date-picker__icon">📅</span>
+          </div>
+          <div v-if="showDatePicker" class="report-datepicker-panel">
+            <div class="report-datepicker-panel__shortcuts">
+              <button
+                v-for="shortcut in dateShortcuts"
+                :key="shortcut.label"
+                type="button"
+                class="report-datepicker-panel__shortcut"
+                @click="applyDateShortcut(shortcut); showDatePicker = false"
+              >{{ shortcut.label }}</button>
+            </div>
+            <div class="report-datepicker-panel__calendars">
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">«</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">‹</button>
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(0) }}</span>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(0)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(1) }}</span>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">›</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">»</button>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(1)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -271,7 +332,7 @@
       <!-- 解决率 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">解决率 <span class="report-stat-card__help">ⓘ</span></span>
+          <span class="report-chart-panel__title">解决率趋势 <span class="report-stat-card__help">ⓘ</span></span>
         </div>
         <div class="ai-report-avg">
           <span class="ai-report-avg__label">平均</span>
@@ -298,12 +359,10 @@
       <!-- 满意度 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">满意度 <span class="report-stat-card__help">ⓘ</span></span>
+          <span class="report-chart-panel__title">满意度趋势 <span class="report-stat-card__help">ⓘ</span></span>
         </div>
-        <div class="ai-report-empty-state">
-          <div class="ai-report-empty-state__icon">📋</div>
-          <p class="ai-report-empty-state__title">暂无评价数据</p>
-          <p class="ai-report-empty-state__desc">您的客户尚未对 AI 提供的服务进行评价反馈。</p>
+        <div class="report-chart-panel__body report-chart-panel__body--empty">
+          <span class="report-chart-panel__empty-text">暂无满意度数据</span>
         </div>
       </div>
     </template>
@@ -313,11 +372,76 @@
       <h1 class="report-page__title">会话评价分析</h1>
 
       <div class="report-filter-bar">
-        <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
-          <span class="report-date-picker__text">{{ dateRange.start }}</span>
-          <span class="report-date-picker__sep">&nbsp;&nbsp;</span>
-          <span class="report-date-picker__text">{{ dateRange.end }}</span>
-          <span class="report-date-picker__icon">📅</span>
+        <div class="report-date-picker-wrap">
+          <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
+            <span class="report-date-picker__text">{{ dateRange.start }}</span>
+            <span class="report-date-picker__sep">&nbsp;&nbsp;</span>
+            <span class="report-date-picker__text">{{ dateRange.end }}</span>
+            <span class="report-date-picker__icon">📅</span>
+          </div>
+          <div v-if="showDatePicker" class="report-datepicker-panel">
+            <div class="report-datepicker-panel__shortcuts">
+              <button
+                v-for="shortcut in dateShortcuts"
+                :key="shortcut.label"
+                type="button"
+                class="report-datepicker-panel__shortcut"
+                @click="applyDateShortcut(shortcut); showDatePicker = false"
+              >{{ shortcut.label }}</button>
+            </div>
+            <div class="report-datepicker-panel__calendars">
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">«</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="prevMonth">‹</button>
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(0) }}</span>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(0)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+              <div class="report-datepicker-panel__month">
+                <div class="report-datepicker-panel__month-header">
+                  <span class="report-datepicker-panel__month-title">{{ calendarMonthLabel(1) }}</span>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">›</button>
+                  <button type="button" class="report-datepicker-panel__nav" @click="nextMonth">»</button>
+                </div>
+                <div class="report-datepicker-panel__weekdays">
+                  <span v-for="d in weekdays" :key="d">{{ d }}</span>
+                </div>
+                <div class="report-datepicker-panel__days">
+                  <button
+                    v-for="(day, i) in calendarDays(1)"
+                    :key="i"
+                    type="button"
+                    class="report-datepicker-panel__day"
+                    :class="{
+                      'report-datepicker-panel__day--other': !day.currentMonth,
+                      'report-datepicker-panel__day--start': day.isStart,
+                      'report-datepicker-panel__day--end': day.isEnd,
+                      'report-datepicker-panel__day--in-range': day.inRange
+                    }"
+                    @click="pickDate(day.date)"
+                  >{{ day.day }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="report-agent-select" @click="showAgentDropdown = !showAgentDropdown">
           <span class="report-agent-select__text">{{ selectedAgent }}</span>
@@ -376,7 +500,7 @@
                 <line x1="0" y1="200" x2="700" y2="200" stroke="var(--agent-color-border-default)" stroke-width="1" />
               </svg>
               <div class="report-line-chart__x-axis">
-                <span v-for="d in evalChartDateLabels" :key="d">{{ d }}</span>
+                <span v-for="d in evalXAxisLabels" :key="d">{{ d }}</span>
               </div>
             </div>
           </div>
@@ -574,6 +698,18 @@ const overviewStatCards = [
   { label: "错过的会话", value: "0" }
 ];
 
+const MAX_X_LABELS = 8;
+const thinLabels = (labels: string[]) => {
+  const count = labels.length;
+  if (count <= MAX_X_LABELS) return labels;
+  const step = (count - 1) / (MAX_X_LABELS - 1);
+  const result: string[] = [];
+  for (let i = 0; i < MAX_X_LABELS; i++) {
+    result.push(labels[Math.round(i * step)]);
+  }
+  return result;
+};
+
 const chartDateLabels = computed(() => {
   const labels: string[] = [];
   const start = new Date(dateRange.value.start);
@@ -585,6 +721,8 @@ const chartDateLabels = computed(() => {
   }
   return labels;
 });
+
+const chartXAxisLabels = computed(() => thinLabels(chartDateLabels.value));
 
 const trendPoints = computed(() => {
   const count = chartDateLabels.value.length;
@@ -629,6 +767,8 @@ const evalChartDateLabels = computed(() => {
   return labels;
 });
 
+const evalXAxisLabels = computed(() => thinLabels(evalChartDateLabels.value));
+
 const agentDetailRows = [
   {
     name: "客服主管",
@@ -646,7 +786,6 @@ const agentDetailRows = [
 <style scoped>
 .report-page {
   gap: var(--agent-space-20);
-  overflow-y: auto;
   padding: var(--agent-space-24);
   padding-bottom: 48px;
 }
@@ -663,6 +802,10 @@ const agentDetailRows = [
   display: flex;
   align-items: center;
   gap: var(--agent-space-12);
+}
+
+.report-date-picker-wrap {
+  position: relative;
 }
 
 .report-date-picker {
@@ -748,6 +891,10 @@ const agentDetailRows = [
   border-radius: var(--agent-radius-lg);
   box-shadow: var(--agent-shadow-lg);
   overflow: hidden;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: var(--agent-z-dropdown);
 }
 
 .report-datepicker-panel__shortcuts {
@@ -933,8 +1080,10 @@ const agentDetailRows = [
 .report-chart-panel {
   display: flex;
   flex-direction: column;
-  padding: var(--agent-space-20);
   min-height: 280px;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: var(--agent-space-20);
 }
 
 .report-chart-panel--wide {
@@ -1022,10 +1171,11 @@ const agentDetailRows = [
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .report-line-chart__svg {
-  flex: 1;
+  height: 200px;
   width: 100%;
 }
 
@@ -1034,7 +1184,15 @@ const agentDetailRows = [
   justify-content: space-between;
   font-size: var(--agent-font-size-xs);
   color: var(--agent-color-text-tertiary);
+  min-width: 0;
+  overflow: hidden;
   padding-top: var(--agent-space-8);
+}
+
+.report-line-chart__x-axis > span {
+  flex-shrink: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* ── Bar Chart ── */
