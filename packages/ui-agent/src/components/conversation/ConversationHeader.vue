@@ -34,12 +34,14 @@
       </button>
       <div v-if="dropdownVisible" class="conversation-header__dropdown">
         <button
+          v-if="showCollaborateActions"
           class="conversation-header__dropdown-item"
           :class="{ 'conversation-header__dropdown-item--disabled': !canCollaborate }"
           type="button"
           @click="handleInvite"
         >添加客服</button>
         <button
+          v-if="showCollaborateActions"
           class="conversation-header__dropdown-item"
           :class="{ 'conversation-header__dropdown-item--disabled': !canCollaborate }"
           type="button"
@@ -61,10 +63,12 @@ const props = withDefaults(
     subtitle?: string;
     editable?: boolean;
     canCollaborate?: boolean;
+    showCollaborateActions?: boolean;
   }>(),
   {
     editable: false,
-    canCollaborate: true
+    canCollaborate: true,
+    showCollaborateActions: true
   }
 );
 

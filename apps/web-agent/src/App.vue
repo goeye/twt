@@ -105,7 +105,6 @@
             :avatar-text="item.avatarText"
             :customer-name="item.customerName"
             :preview="item.preview"
-            :tag="item.tag"
             :unread-count="item.unreadCount"
             :updated-at="item.updatedAt"
             @click="activeSessionId = item.id"
@@ -120,6 +119,7 @@
           :editable="!isAiSession"
           :title="activeSessionTitle"
           :can-collaborate="canCollaborate && !isAiSession"
+          :show-collaborate-actions="!isAiSession"
           @close="showTopToast('会话已标记为结束')"
           @invite="handleOpenInvite"
           @transfer="handleOpenTransfer"
@@ -132,11 +132,12 @@
           <MessageBubble
             v-for="message in activeMessages"
             :key="message.id"
-            :avatar-color="getMessageAvatarColor(message.role)"
-            :avatar-text="getMessageAvatarLabel(message.role)"
+            :avatar-color="message.avatarColor"
+            :avatar-text="message.avatarText"
+            :avatar-url="message.avatarUrl"
             :content="message.content"
-            :role="message.role"
-            :sender="message.sender"
+            :role="message.displayRole"
+            :sender="message.displaySender"
             :time="message.time"
           />
         </div>
@@ -172,7 +173,13 @@
       />
       <SettingsRoutePage v-else :active-key="activeSettingsNavKey" @toast="showTopToast" />
     </template>
-    <AiAgentRoutePage v-else-if="isAiAgentRoute" :active-key="activeAiNavKey" @toast="showTopToast" />
+    <AiAgentRoutePage
+      v-else-if="isAiAgentRoute"
+      ref="aiAgentPageRef"
+      :active-key="activeAiNavKey"
+      @toast="showTopToast"
+      @dirty-change="handleAiAgentDirtyChange"
+    />
     <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">
       <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
@@ -308,6 +315,7 @@ import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
+import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import {
   AgentAppShell,
   AiSettingsNav,
@@ -340,12 +348,25 @@ type WidgetCustomizePageExpose = {
   hasUnsavedChanges: () => boolean;
 };
 
+type AiAgentPageExpose = {
+  requestNavigation: (action: () => void) => boolean;
+  hasUnsavedChanges: () => boolean;
+};
+
 interface AgentEntry {
   id: string;
   name: string;
   online: boolean;
   avatarText: string;
   avatarColor: string;
+}
+
+interface DisplayMessage extends MessageItem {
+  displayRole: "agent" | "customer" | "system";
+  displaySender: string;
+  avatarText?: string;
+  avatarColor?: string;
+  avatarUrl?: string;
 }
 
 const agentPool: AgentEntry[] = [
@@ -916,8 +937,12 @@ const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
 const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
 const widgetCustomizePageRef = ref<WidgetCustomizePageExpose | null>(null);
+const aiAgentPageRef = ref<AiAgentPageExpose | null>(null);
+const aiAgentProfile = ref(resolveAiAgentProfile());
 const customizeDirty = ref(false);
+const aiAgentDirty = ref(false);
 const allowCustomizeRouteLeaveOnce = ref(false);
+const allowAiAgentRouteLeaveOnce = ref(false);
 const showToast = ref(false);
 const toastMessage = ref("");
 let toastTimer: number | undefined;
@@ -1031,11 +1056,50 @@ const activeSession = computed(() => {
   return visibleSessions.value[0] ?? queueSessionList.value[0] ?? allSessions.value[0];
 });
 
-const activeMessages = computed(() => {
-  if (!activeSession.value) {
+const activeMessages = computed<DisplayMessage[]>(() => {
+  const session = activeSession.value;
+  if (!session) {
     return [];
   }
-  return messageMap.value[activeSession.value.id] ?? [];
+
+  return (messageMap.value[session.id] ?? []).map((message) => {
+    if (message.role === "system") {
+      return {
+        ...message,
+        displayRole: "system",
+        displaySender: message.sender
+      };
+    }
+
+    if (message.role === "customer") {
+      return {
+        ...message,
+        displayRole: "customer",
+        displaySender: message.sender,
+        avatarText: session.avatarText,
+        avatarColor: session.avatarColor
+      };
+    }
+
+    if (message.role === "bot") {
+      return {
+        ...message,
+        displayRole: "agent",
+        displaySender: aiAgentProfile.value.name,
+        avatarText: aiAgentProfile.value.avatarText,
+        avatarColor: aiAgentProfile.value.avatarColor,
+        avatarUrl: aiAgentProfile.value.avatarUrl
+      };
+    }
+
+    return {
+      ...message,
+      displayRole: "agent",
+      displaySender: message.sender,
+      avatarText: getAgentAvatarText(message.sender),
+      avatarColor: getAgentAvatarColor(message.sender)
+    };
+  });
 });
 
 const activeSessionTitle = computed(() => activeSession.value?.customerName ?? "会话详情");
@@ -1080,19 +1144,19 @@ const activeInfoSections = computed<InfoSection[]>(() => {
         agents: [
           {
             key: "session-owner",
-            name: activeSession.value.assignee,
-            avatarText: getAgentAvatarText(activeSession.value.assignee),
-            avatarColor: getAgentAvatarColor(activeSession.value.assignee),
+            name: getConversationAgentName(activeSession.value, activeSession.value.assignee),
+            avatarText: getConversationAgentAvatarText(activeSession.value, activeSession.value.assignee),
+            avatarColor: getConversationAgentAvatarColor(activeSession.value, activeSession.value.assignee),
             role: "owner",
-            messageCount: (messageMap.value[activeSession.value.id] ?? []).filter((m) => m.sender === activeSession.value!.assignee).length
+            messageCount: getConversationAgentMessageCount(activeSession.value, activeSession.value.assignee)
           },
           ...activeSession.value.assistants.map((name, i) => ({
             key: `session-assistant-${i}`,
-            name,
-            avatarText: getAgentAvatarText(name),
-            avatarColor: getAgentAvatarColor(name),
+            name: getConversationAgentName(activeSession.value!, name),
+            avatarText: getConversationAgentAvatarText(activeSession.value!, name),
+            avatarColor: getConversationAgentAvatarColor(activeSession.value!, name),
             role: "assistant" as const,
-            messageCount: (messageMap.value[activeSession.value!.id] ?? []).filter((m) => m.sender === name).length
+            messageCount: getConversationAgentMessageCount(activeSession.value!, name)
           }))
         ]
       }
@@ -1193,8 +1257,21 @@ const requestCustomizeNavigation = (action: () => void) => {
   guard.requestNavigation(action);
 };
 
+const requestAiAgentNavigation = (action: () => void) => {
+  const guard = aiAgentPageRef.value;
+  if (!guard) {
+    action();
+    return;
+  }
+  guard.requestNavigation(action);
+};
+
 const handleCustomizeDirtyChange = (dirty: boolean) => {
   customizeDirty.value = dirty;
+};
+
+const handleAiAgentDirtyChange = (dirty: boolean) => {
+  aiAgentDirty.value = dirty;
 };
 
 const handleMainNavSelect = (key: string) => {
@@ -1225,9 +1302,23 @@ const handleSettingsNavSelect = (key: string) => {
 
 const handleAiNavSelect = (key: string) => {
   const validKeys: AiAgentNavKey[] = ["doc-knowledge", "faq", "copilot-settings", "ai-agent-config"];
-  if (validKeys.includes(key as AiAgentNavKey)) {
-    activeAiNavKey.value = key as AiAgentNavKey;
+  if (!validKeys.includes(key as AiAgentNavKey)) {
+    return;
   }
+
+  const nextKey = key as AiAgentNavKey;
+  if (activeAiNavKey.value === nextKey) {
+    return;
+  }
+
+  if (activeAiNavKey.value === "ai-agent-config") {
+    requestAiAgentNavigation(() => {
+      activeAiNavKey.value = nextKey;
+    });
+    return;
+  }
+
+  activeAiNavKey.value = nextKey;
 };
 
 const handleCampaignNavSelect = (key: string) => {
@@ -1256,30 +1347,42 @@ const handleFilesNavSelect = (key: string) => {
 
 const getFilterCount = () => queueSessionList.value.length;
 
-const getMessageAvatarLabel = (role: MessageItem["role"]) => {
-  if (role === "system") {
-    return "S";
-  }
-  if (role === "agent") {
-    return "客";
-  }
-  if (role === "bot") {
-    return "AI";
-  }
-  return activeSession.value?.avatarText ?? "?";
+const refreshAiAgentProfile = () => {
+  aiAgentProfile.value = resolveAiAgentProfile(loadStoredAiAgentSettings());
 };
 
-const getMessageAvatarColor = (role: MessageItem["role"]) => {
-  if (role === "system") {
-    return "#a7b0c0";
+const getConversationAgentName = (session: ConversationSession, name: string) => {
+  if (session.queueKey === "ai-agent-queue" && name === session.assignee) {
+    return aiAgentProfile.value.name;
   }
-  if (role === "agent") {
-    return "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)";
+
+  return name;
+};
+
+const getConversationAgentAvatarText = (session: ConversationSession, name: string) => {
+  if (session.queueKey === "ai-agent-queue" && name === session.assignee) {
+    return aiAgentProfile.value.avatarText;
   }
-  if (role === "bot") {
-    return "linear-gradient(135deg, #00b578, #00c2b8)";
+
+  return getAgentAvatarText(name);
+};
+
+const getConversationAgentAvatarColor = (session: ConversationSession, name: string) => {
+  if (session.queueKey === "ai-agent-queue" && name === session.assignee) {
+    return aiAgentProfile.value.avatarColor;
   }
-  return activeSession.value?.avatarColor ?? "#2f6bff";
+
+  return getAgentAvatarColor(name);
+};
+
+const getConversationAgentMessageCount = (session: ConversationSession, name: string) => {
+  const history = messageMap.value[session.id] ?? [];
+
+  if (session.queueKey === "ai-agent-queue" && name === session.assignee) {
+    return history.filter((message) => message.role === "bot").length;
+  }
+
+  return history.filter((message) => message.role === "agent" && message.sender === name).length;
 };
 
 const updateSessionTitle = (nextTitle: string) => {
@@ -1304,10 +1407,18 @@ const sendPushNotification = (title: string, body: string) => {
 };
 
 onMounted(() => {
+  refreshAiAgentProfile();
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
 });
+
+watch(
+  () => route.fullPath,
+  () => {
+    refreshAiAgentProfile();
+  }
+);
 
 const showTopToast = (message: string) => {
   toastMessage.value = message;
@@ -1418,7 +1529,7 @@ const handleTakeoverAiSession = () => {
     id: `m-${session.id}-takeover-${now.getTime()}`,
     role: "system",
     sender: "系统",
-    content: "以上为 AI 接待记录",
+    content: `${aiAgentProfile.value.name}已将会话转移给${currentAgentName}`,
     time
   };
   messageMap.value = {
@@ -1428,7 +1539,7 @@ const handleTakeoverAiSession = () => {
 
   allSessions.value = allSessions.value.map((s) => {
     if (s.id !== session.id) return s;
-    return { ...s, queueKey: "pending-reply", assignee: currentAgentName, tag: "AI 转接" as const };
+    return { ...s, queueKey: "pending-reply", assignee: currentAgentName };
   });
 
   activeQueueKey.value = "pending-reply";
@@ -1484,6 +1595,24 @@ const removeCustomizeRouteGuard = router.beforeEach((to, from) => {
   return false;
 });
 
+const removeAiAgentRouteGuard = router.beforeEach((to, from) => {
+  if (allowAiAgentRouteLeaveOnce.value) {
+    allowAiAgentRouteLeaveOnce.value = false;
+    return true;
+  }
+  if (to.fullPath === from.fullPath) {
+    return true;
+  }
+  if (from.name !== "ai-agent" || activeAiNavKey.value !== "ai-agent-config" || !aiAgentDirty.value) {
+    return true;
+  }
+  requestAiAgentNavigation(() => {
+    allowAiAgentRouteLeaveOnce.value = true;
+    router.push(to.fullPath);
+  });
+  return false;
+});
+
 watch(
   visibleSessions,
   (list) => {
@@ -1511,6 +1640,7 @@ watch(
 
 onBeforeUnmount(() => {
   removeCustomizeRouteGuard();
+  removeAiAgentRouteGuard();
   if (toastTimer) {
     window.clearTimeout(toastTimer);
   }

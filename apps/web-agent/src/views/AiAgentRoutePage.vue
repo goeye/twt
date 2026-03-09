@@ -108,8 +108,23 @@
               </div>
               <div class="form-row__control">
                 <div class="bot-avatar-upload">
-                  <span class="bot-avatar-upload__preview">🤖</span>
-                  <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('头像上传功能开发中')">上传头像</button>
+                  <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
+                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
+                    <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
+                  </div>
+                  <div class="bot-avatar-upload__actions">
+                    <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
+                      {{ botAvatarUrl ? '重新上传' : '上传头像' }}
+                    </button>
+                    <span class="bot-avatar-upload__hint">支持 PNG / JPG，上传后可拖动裁剪</span>
+                  </div>
+                  <input
+                    ref="avatarInputRef"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    class="bot-avatar-upload__input"
+                    @change="handleAvatarFileChange"
+                  />
                 </div>
               </div>
             </div>
@@ -231,50 +246,56 @@
         <section class="setting-card agent-panel">
           <header class="setting-card__header">
             <h2 class="setting-card__title">个性化回复</h2>
-            <p class="setting-card__desc">为以下场景设置 AI Agent 的回复语</p>
+            <p class="setting-card__desc">为关键场景配置访客可见文案，让回复更清晰、更自然。</p>
           </header>
           <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">客服离线</span>
-                <span class="form-row__desc">客服全部离线时的提示语</span>
-              </div>
-              <div class="form-row__control">
-                <textarea
-                  v-model="offlineMessage"
-                  class="agent-input form-row__textarea"
-                  rows="4"
-                  placeholder="请输入离线提示语"
-                />
+            <div class="setting-helper-stack">
+              <div class="setting-callout">
+                <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本。</p>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">转移人工客服</span>
-                <span class="form-row__desc">AI 转人工时的提示语</span>
+                <span class="form-row__name">转接人工客服</span>
+                <span class="form-row__desc">当 AI Agent 准备将会话转接给人工客服时，向访客展示的提示文案。</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="transferMessage"
                   class="agent-input form-row__textarea"
                   rows="4"
-                  placeholder="请输入转人工提示语"
+                  placeholder="请输入转接人工客服时展示的文案"
                 />
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">无法回答的问题</span>
-                <span class="form-row__desc">当访客发送图片、文件或超出 AI 能力范围的问题时使用的提示语</span>
+                <span class="form-row__name">客服离线</span>
+                <span class="form-row__desc">当客服团队暂时离线时，向访客展示的提示文案。</span>
+              </div>
+              <div class="form-row__control">
+                <textarea
+                  v-model="offlineMessage"
+                  class="agent-input form-row__textarea"
+                  rows="4"
+                  placeholder="请输入客服离线时展示的文案"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">暂时无法回答</span>
+                <span class="form-row__desc">当访客发送图片、文件，或问题超出 AI Agent 当前能力范围时展示的提示文案。</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="unsupportedQuestionMessage"
                   class="agent-input form-row__textarea"
                   rows="4"
-                  placeholder="请输入无法回答场景的提示语"
+                  placeholder="请输入暂时无法回答时展示的文案"
                 />
               </div>
             </div>
@@ -295,14 +316,56 @@
       </p>
       <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('功能开发中')">了解更多</button>
     </section>
+    <BaseModal :open="unsavedChangesModalOpen" title="未保存的更改" @close="cancelPendingNavigation">
+      <div class="ai-agent-unsaved-modal">
+        <p class="ai-agent-unsaved-modal__desc">继续操作会放弃本次修改，确定吗？</p>
+      </div>
+      <template #footer>
+        <span />
+        <div class="ai-agent-unsaved-modal__actions">
+          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在这里</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">放弃更改</button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <BaseModal :open="cropModalOpen" title="图片裁剪" max-width="580px" @close="closeCropModal">
+      <div v-if="cropState.imageSrc" class="avatar-crop-modal">
+        <p class="avatar-crop-modal__hint">拖动图片调整头像显示区域</p>
+        <div
+          class="avatar-crop-canvas"
+          :class="{ 'avatar-crop-canvas--dragging': cropDragging }"
+          @mousedown.prevent="startCropDrag"
+          @mousemove.prevent="handleCropDrag"
+          @mouseup="endCropDrag"
+          @mouseleave="endCropDrag"
+        >
+          <img :src="cropState.imageSrc" alt="头像裁剪预览" :style="cropImageStyle" draggable="false" />
+        </div>
+      </div>
+      <template #footer>
+        <span />
+        <div class="ai-agent-unsaved-modal__actions">
+          <button type="button" class="agent-btn agent-btn--ghost" @click="closeCropModal">取消</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="confirmCropImage">确定</button>
+        </div>
+      </template>
+    </BaseModal>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { BaseModal, CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
+import {
+  type StoredAiAgentSettings,
+  loadStoredAiAgentSettings,
+  persistStoredAiAgentSettings
+} from "../lib/aiAgentSettings";
 
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
+
+type AgentTabKey = "basic" | "conversation";
 
 interface CopilotSetting {
   key: string;
@@ -311,34 +374,36 @@ interface CopilotSetting {
   enabled: boolean;
 }
 
+interface CropState {
+  imageSrc: string;
+  naturalWidth: number;
+  naturalHeight: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 const props = defineProps<{
   activeKey: AiAgentNavKey;
 }>();
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "dirty-change", dirty: boolean): void;
 }>();
 
-const AI_AGENT_SETTINGS_STORAGE_KEY = "twt:ai-agent-settings";
+const AVATAR_CROP_SIZE = 240;
+const AVATAR_CROP_DRAG_SCALE = 1.1;
 
-interface StoredAiAgentSettings {
-  agentEnabled?: boolean;
-  agentResponseMode?: string;
-  showMessageAgentLabel?: boolean;
-  botName?: string;
-  botIntro?: string;
-  selectedTone?: string;
-  defaultLanguage?: string;
-  visitorInactiveMinutes?: number;
-  visitorInactiveHours?: number;
-  replyMode?: string;
-  offlineMessage?: string;
-  transferMessage?: string;
-  unsupportedQuestionMessage?: string;
-}
+const createEmptyCropState = (): CropState => ({
+  imageSrc: "",
+  naturalWidth: 0,
+  naturalHeight: 0,
+  offsetX: 0,
+  offsetY: 0
+});
 
 const showBanner = ref(true);
-const agentTab = ref<"basic" | "conversation">("basic");
+const agentTab = ref<AgentTabKey>("basic");
 const agentEnabled = ref(true);
 
 const copilotSettings = ref<CopilotSetting[]>([
@@ -353,8 +418,8 @@ const copilotSettings = ref<CopilotSetting[]>([
   }
 ]);
 
-// Bot persona config (基本设置)
-const botName = ref("智能助手");
+const botAvatarUrl = ref("");
+const botName = ref("AI Agent");
 const botIntro = ref("");
 const selectedTone = ref("friendly");
 const defaultLanguage = ref("en");
@@ -381,28 +446,62 @@ const languageOptions = [
   { value: "ms", label: "马利西亚语" }
 ];
 
-// Basic settings
 const agentResponseMode = ref("always");
 const showMessageAgentLabel = ref(true);
-
-// Conversation settings
 const visitorInactiveMinutes = ref(10);
-
-// Reply strategy
 const replyMode = ref("strict");
+const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
+const transferMessage = ref("正在为您转接人工客服，请稍候，马上为您接入。");
+const unsupportedQuestionMessage = ref("抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。");
 
-// Script config
-const offlineMessage = ref("很抱歉，当前所有客服均不在线。请留下您的联系方式，我们会尽快回复您。");
-const transferMessage = ref("正在为您转接人工客服，请稍候。");
-const unsupportedQuestionMessage = ref("抱歉，我暂时无法处理图片、文件或这个问题。您可以尝试换一种描述方式，或转接人工客服继续为您服务。");
+const avatarInputRef = ref<HTMLInputElement | null>(null);
+const cropModalOpen = ref(false);
+const cropDragging = ref(false);
+const cropDragStart = ref({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+const cropState = ref<CropState>(createEmptyCropState());
+const unsavedChangesModalOpen = ref(false);
+const pendingNavigationAction = ref<(() => void) | null>(null);
+const initializing = ref(true);
+
+const emitToast = (message: string) => {
+  emit("toast", message);
+};
+
+const activeSectionLabel = computed(() => {
+  if (props.activeKey === "doc-knowledge") return "文档知识";
+  if (props.activeKey === "faq") return "常见问题";
+  return "Copilot设置";
+});
+
+const avatarFallbackText = computed(() => "🤖");
+
+const getConfigSnapshot = () =>
+  JSON.stringify({
+    agentEnabled: agentEnabled.value,
+    agentResponseMode: agentResponseMode.value,
+    showMessageAgentLabel: showMessageAgentLabel.value,
+    botAvatarUrl: botAvatarUrl.value,
+    botName: botName.value,
+    botIntro: botIntro.value,
+    selectedTone: selectedTone.value,
+    defaultLanguage: defaultLanguage.value,
+    visitorInactiveMinutes: visitorInactiveMinutes.value,
+    replyMode: replyMode.value,
+    offlineMessage: offlineMessage.value,
+    transferMessage: transferMessage.value,
+    unsupportedQuestionMessage: unsupportedQuestionMessage.value
+  });
+
+const savedSnapshot = ref(getConfigSnapshot());
+
+const hasUnsavedChanges = computed(() => !initializing.value && getConfigSnapshot() !== savedSnapshot.value);
 
 const persistAgentSettings = () => {
-  if (typeof window === "undefined") return;
-
   const settings: StoredAiAgentSettings = {
     agentEnabled: agentEnabled.value,
     agentResponseMode: agentResponseMode.value,
     showMessageAgentLabel: showMessageAgentLabel.value,
+    botAvatarUrl: botAvatarUrl.value,
     botName: botName.value,
     botIntro: botIntro.value,
     selectedTone: selectedTone.value,
@@ -414,58 +513,70 @@ const persistAgentSettings = () => {
     unsupportedQuestionMessage: unsupportedQuestionMessage.value
   };
 
-  window.localStorage.setItem(AI_AGENT_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  persistStoredAiAgentSettings(settings);
 };
 
 const loadAgentSettings = () => {
-  if (typeof window === "undefined") return;
+  const settings = loadStoredAiAgentSettings();
 
+  if (typeof settings.agentEnabled === "boolean") agentEnabled.value = settings.agentEnabled;
+  if (typeof settings.agentResponseMode === "string") agentResponseMode.value = settings.agentResponseMode;
+  if (typeof settings.showMessageAgentLabel === "boolean") showMessageAgentLabel.value = settings.showMessageAgentLabel;
+  if (typeof settings.botAvatarUrl === "string") botAvatarUrl.value = settings.botAvatarUrl;
+  if (typeof settings.botName === "string") botName.value = settings.botName;
+  if (typeof settings.botIntro === "string") botIntro.value = settings.botIntro;
+  if (typeof settings.selectedTone === "string") selectedTone.value = settings.selectedTone;
+  if (typeof settings.defaultLanguage === "string") defaultLanguage.value = settings.defaultLanguage;
+  if (typeof settings.visitorInactiveMinutes === "number") {
+    visitorInactiveMinutes.value = settings.visitorInactiveMinutes;
+  } else if (typeof settings.visitorInactiveHours === "number") {
+    visitorInactiveMinutes.value = settings.visitorInactiveHours * 60;
+  }
+  if (typeof settings.replyMode === "string") replyMode.value = settings.replyMode;
+  if (typeof settings.offlineMessage === "string") offlineMessage.value = settings.offlineMessage;
+  if (typeof settings.transferMessage === "string") transferMessage.value = settings.transferMessage;
+  if (typeof settings.unsupportedQuestionMessage === "string") {
+    unsupportedQuestionMessage.value = settings.unsupportedQuestionMessage;
+  }
+};
+
+const restoreSavedSnapshot = () => {
   try {
-    const raw = window.localStorage.getItem(AI_AGENT_SETTINGS_STORAGE_KEY);
-    if (!raw) return;
+    const settings = JSON.parse(savedSnapshot.value) as StoredAiAgentSettings;
 
-    const settings = JSON.parse(raw) as StoredAiAgentSettings;
-
-    if (typeof settings.agentEnabled === "boolean") agentEnabled.value = settings.agentEnabled;
-    if (typeof settings.agentResponseMode === "string") agentResponseMode.value = settings.agentResponseMode;
-    if (typeof settings.showMessageAgentLabel === "boolean") showMessageAgentLabel.value = settings.showMessageAgentLabel;
-    if (typeof settings.botName === "string") botName.value = settings.botName;
-    if (typeof settings.botIntro === "string") botIntro.value = settings.botIntro;
-    if (typeof settings.selectedTone === "string") selectedTone.value = settings.selectedTone;
-    if (typeof settings.defaultLanguage === "string") defaultLanguage.value = settings.defaultLanguage;
-    if (typeof settings.visitorInactiveMinutes === "number") {
-      visitorInactiveMinutes.value = settings.visitorInactiveMinutes;
-    } else if (typeof settings.visitorInactiveHours === "number") {
-      visitorInactiveMinutes.value = settings.visitorInactiveHours * 60;
-    }
-    if (typeof settings.replyMode === "string") replyMode.value = settings.replyMode;
-    if (typeof settings.offlineMessage === "string") offlineMessage.value = settings.offlineMessage;
-    if (typeof settings.transferMessage === "string") transferMessage.value = settings.transferMessage;
-    if (typeof settings.unsupportedQuestionMessage === "string") {
-      unsupportedQuestionMessage.value = settings.unsupportedQuestionMessage;
-    }
+    agentEnabled.value = Boolean(settings.agentEnabled);
+    agentResponseMode.value = settings.agentResponseMode ?? "always";
+    showMessageAgentLabel.value = typeof settings.showMessageAgentLabel === "boolean" ? settings.showMessageAgentLabel : true;
+    botAvatarUrl.value = settings.botAvatarUrl ?? "";
+    botName.value = settings.botName ?? "AI Agent";
+    botIntro.value = settings.botIntro ?? "";
+    selectedTone.value = settings.selectedTone ?? "friendly";
+    defaultLanguage.value = settings.defaultLanguage ?? "en";
+    visitorInactiveMinutes.value = typeof settings.visitorInactiveMinutes === "number" ? settings.visitorInactiveMinutes : 10;
+    replyMode.value = settings.replyMode ?? "strict";
+    offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
+    transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
+    unsupportedQuestionMessage.value =
+      settings.unsupportedQuestionMessage ??
+      "抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。";
   } catch {}
 };
 
-const saveBasicSettings = () => {
+const markSnapshotSaved = () => {
   persistAgentSettings();
+  savedSnapshot.value = getConfigSnapshot();
+  emit("dirty-change", false);
+};
+
+const saveBasicSettings = () => {
+  markSnapshotSaved();
   emitToast("基本设置已保存");
 };
 
 const saveConversationSettings = () => {
-  persistAgentSettings();
+  markSnapshotSaved();
   emitToast("会话设置已保存");
 };
-
-onMounted(() => {
-  loadAgentSettings();
-});
-
-const activeSectionLabel = computed(() => {
-  if (props.activeKey === "doc-knowledge") return "文档知识";
-  if (props.activeKey === "faq") return "常见问题";
-  return "Copilot设置";
-});
 
 const updateCopilotSetting = (key: string, next: boolean) => {
   copilotSettings.value = copilotSettings.value.map((item) => {
@@ -475,9 +586,223 @@ const updateCopilotSetting = (key: string, next: boolean) => {
   emit("toast", next ? "设置已开启" : "设置已关闭");
 };
 
-const emitToast = (message: string) => {
-  emit("toast", message);
+const triggerBotAvatarSelect = () => {
+  avatarInputRef.value?.click();
 };
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("read-failed"));
+    reader.readAsDataURL(file);
+  });
+
+const loadImageMeta = (src: string) =>
+  new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => reject(new Error("image-load-failed"));
+    image.src = src;
+  });
+
+const loadImageElement = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image-load-failed"));
+    image.src = src;
+  });
+
+const getCropDrawMetrics = () => {
+  const { naturalWidth, naturalHeight, offsetX, offsetY } = cropState.value;
+  if (!naturalWidth || !naturalHeight) {
+    return {
+      drawWidth: 0,
+      drawHeight: 0,
+      left: 0,
+      top: 0,
+      maxOffsetX: 0,
+      maxOffsetY: 0
+    };
+  }
+
+  const baseScale = Math.max(AVATAR_CROP_SIZE / naturalWidth, AVATAR_CROP_SIZE / naturalHeight);
+  const drawWidth = naturalWidth * baseScale * AVATAR_CROP_DRAG_SCALE;
+  const drawHeight = naturalHeight * baseScale * AVATAR_CROP_DRAG_SCALE;
+  const maxOffsetX = Math.max(0, (drawWidth - AVATAR_CROP_SIZE) / 2);
+  const maxOffsetY = Math.max(0, (drawHeight - AVATAR_CROP_SIZE) / 2);
+  const clampedOffsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
+  const clampedOffsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
+  const left = AVATAR_CROP_SIZE / 2 - drawWidth / 2 + clampedOffsetX;
+  const top = AVATAR_CROP_SIZE / 2 - drawHeight / 2 + clampedOffsetY;
+
+  return {
+    drawWidth,
+    drawHeight,
+    left,
+    top,
+    maxOffsetX,
+    maxOffsetY
+  };
+};
+
+const cropImageStyle = computed(() => {
+  const { drawWidth, drawHeight, left, top } = getCropDrawMetrics();
+  return {
+    width: `${drawWidth}px`,
+    height: `${drawHeight}px`,
+    left: `${left}px`,
+    top: `${top}px`
+  };
+});
+
+const clampCropOffset = () => {
+  const { maxOffsetX, maxOffsetY } = getCropDrawMetrics();
+  cropState.value.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, cropState.value.offsetX));
+  cropState.value.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, cropState.value.offsetY));
+};
+
+const openCropModalWithSource = async (source: string) => {
+  try {
+    const meta = await loadImageMeta(source);
+    cropState.value = {
+      imageSrc: source,
+      naturalWidth: meta.width,
+      naturalHeight: meta.height,
+      offsetX: 0,
+      offsetY: 0
+    };
+    cropModalOpen.value = true;
+  } catch {
+    emitToast("图片解析失败，请重试");
+  }
+};
+
+const closeCropModal = () => {
+  cropModalOpen.value = false;
+  cropDragging.value = false;
+  cropState.value = createEmptyCropState();
+};
+
+const startCropDrag = (event: MouseEvent) => {
+  if (!cropState.value.imageSrc) return;
+  cropDragging.value = true;
+  cropDragStart.value = {
+    x: event.clientX,
+    y: event.clientY,
+    offsetX: cropState.value.offsetX,
+    offsetY: cropState.value.offsetY
+  };
+};
+
+const handleCropDrag = (event: MouseEvent) => {
+  if (!cropDragging.value) return;
+  cropState.value.offsetX = cropDragStart.value.offsetX + (event.clientX - cropDragStart.value.x);
+  cropState.value.offsetY = cropDragStart.value.offsetY + (event.clientY - cropDragStart.value.y);
+  clampCropOffset();
+};
+
+const endCropDrag = () => {
+  cropDragging.value = false;
+};
+
+const confirmCropImage = async () => {
+  if (!cropState.value.imageSrc) return;
+
+  try {
+    const image = await loadImageElement(cropState.value.imageSrc);
+    const canvas = document.createElement("canvas");
+    canvas.width = AVATAR_CROP_SIZE;
+    canvas.height = AVATAR_CROP_SIZE;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const { drawWidth, drawHeight, left, top } = getCropDrawMetrics();
+    context.drawImage(image, left, top, drawWidth, drawHeight);
+    botAvatarUrl.value = canvas.toDataURL("image/png");
+    closeCropModal();
+  } catch {
+    emitToast("头像裁剪失败，请重试");
+  }
+};
+
+const handleAvatarFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+
+  if (!file) {
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    emitToast("请上传图片文件");
+    return;
+  }
+
+  try {
+    const source = await readFileAsDataUrl(file);
+    await openCropModalWithSource(source);
+  } catch {
+    emitToast("头像读取失败，请重试");
+  }
+};
+
+const requestNavigation = (action: () => void) => {
+  if (!hasUnsavedChanges.value) {
+    action();
+    return true;
+  }
+
+  pendingNavigationAction.value = action;
+  unsavedChangesModalOpen.value = true;
+  return false;
+};
+
+const cancelPendingNavigation = () => {
+  pendingNavigationAction.value = null;
+  unsavedChangesModalOpen.value = false;
+};
+
+const confirmPendingNavigation = () => {
+  const action = pendingNavigationAction.value;
+  restoreSavedSnapshot();
+  cancelPendingNavigation();
+  action?.();
+};
+
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (!hasUnsavedChanges.value) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = "";
+};
+
+watch(
+  hasUnsavedChanges,
+  (dirty) => {
+    emit("dirty-change", dirty);
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  loadAgentSettings();
+  savedSnapshot.value = getConfigSnapshot();
+  initializing.value = false;
+  window.addEventListener("beforeunload", handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+});
+
+defineExpose({
+  requestNavigation,
+  hasUnsavedChanges: () => hasUnsavedChanges.value
+});
 </script>
 
 <style scoped>
@@ -580,6 +905,33 @@ const emitToast = (message: string) => {
 
 .setting-card__body--compact {
   padding-top: 8px;
+}
+
+.setting-helper-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-callout {
+  background: #f8e7a7;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.setting-callout__text {
+  color: #4f3a00;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.setting-translation-note {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* Horizontal form row: label left, control right */
@@ -704,10 +1056,45 @@ const emitToast = (message: string) => {
   background: linear-gradient(135deg, #00b578, #00c2b8);
   border-radius: 50%;
   display: inline-flex;
-  font-size: 24px;
-  height: 56px;
+  flex-shrink: 0;
+  height: 64px;
   justify-content: center;
-  width: 56px;
+  overflow: hidden;
+  position: relative;
+  width: 64px;
+}
+
+.bot-avatar-upload__preview--image {
+  background: #eef2f8;
+}
+
+.bot-avatar-upload__image {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bot-avatar-upload__fallback {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.bot-avatar-upload__actions {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bot-avatar-upload__hint {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.5;
+}
+
+.bot-avatar-upload__input {
+  display: none;
 }
 
 /* Bot chips */
@@ -740,6 +1127,65 @@ const emitToast = (message: string) => {
   font-weight: var(--agent-font-weight-medium);
 }
 
+.ai-agent-unsaved-modal {
+  padding: 6px 0;
+}
+
+.ai-agent-unsaved-modal__desc {
+  color: var(--agent-color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ai-agent-unsaved-modal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.avatar-crop-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.avatar-crop-modal__hint {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.avatar-crop-canvas {
+  background: #f4f6fa;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 50%;
+  cursor: grab;
+  height: 240px;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+  width: 240px;
+}
+
+.avatar-crop-canvas::after {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(17, 24, 39, 0.08);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.avatar-crop-canvas--dragging {
+  cursor: grabbing;
+}
+
+.avatar-crop-canvas img {
+  position: absolute;
+  user-select: none;
+}
+
 @media (max-width: 1280px) {
   .ai-agent-page__placeholder {
     padding: var(--agent-space-16);
@@ -757,6 +1203,16 @@ const emitToast = (message: string) => {
 
   .inactive-setting {
     align-items: flex-start;
+  }
+
+  .bot-avatar-upload {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .avatar-crop-canvas {
+    height: 220px;
+    width: 220px;
   }
 }
 </style>

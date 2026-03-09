@@ -147,7 +147,7 @@
               </tr>
               <tr v-for="row in visibleRows" v-else :key="row.id">
                 <td><button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button></td>
-                <td><button type="button" class="archive-link" @click="openConversation(row)">{{ row.visitorName }}</button></td>
+                <td>{{ row.visitorName }}</td>
                 <td>{{ row.customerIdentifier }}</td>
                 <td>{{ row.visitorAlias }}</td>
                 <td>
@@ -189,13 +189,33 @@
       <h1 class="files-page__title">所有聊天</h1>
       <p class="files-page__placeholder-text">该子页面暂未实现，当前已完成“所有会话”页面。</p>
     </section>
+
+    <ArchiveConversationDrawer
+      :open="Boolean(previewConversation)"
+      :title="previewConversation?.title ?? ''"
+      :messages="previewConversationMessages"
+      @assign="previewConversation && assignConversation(previewConversation)"
+      @close="closeConversationDrawer"
+    />
+
+    <ArchiveAssignModal
+      :open="assignModalOpen"
+      :keyword="assignKeyword"
+      :conversation-title="pendingAssignConversation?.title ?? ''"
+      :agents="assignableAgents"
+      @close="closeAssignModal"
+      @confirm="handleAssignConfirm"
+      @update:keyword="assignKeyword = $event"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
 import { AgentIcon } from "@twt/ui-agent";
+import ArchiveAssignModal from "../components/archive/ArchiveAssignModal.vue";
+import ArchiveConversationDrawer from "../components/archive/ArchiveConversationDrawer.vue";
+import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "../lib/aiAgentSettings";
 
 type FilesPageKey = "all-conversations" | "all-chats";
 type SearchField = "visitorName" | "title" | "customerIdentifier" | "visitorAlias";
@@ -241,6 +261,25 @@ interface ConversationSeed {
   rating?: ConversationRating;
 }
 
+interface ArchiveAgent {
+  id: string;
+  name: string;
+  online: boolean;
+  avatarText: string;
+  avatarColor: string;
+}
+
+interface ArchivePreviewMessage {
+  id: string;
+  role: "agent" | "customer" | "system";
+  sender: string;
+  content: string;
+  time: string;
+  avatarText?: string;
+  avatarColor?: string;
+  avatarUrl?: string;
+}
+
 interface FilterState {
   searchField: SearchField;
   keyword: string;
@@ -264,8 +303,6 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
 
-const router = useRouter();
-
 const statusLabelMap: Record<ConversationStatus, string> = {
   "pending-reply": "待回复",
   queueing: "排队中",
@@ -283,6 +320,17 @@ const statusOptions = [
 ] as const;
 
 const ownerPool = ["客服主管", "王珂", "刘昊", "陈悦", "李想"];
+const aiAgentProfile = resolveAiAgentProfile(loadStoredAiAgentSettings());
+const aiAgentArchiveName = aiAgentProfile.name;
+const archiveAgentPool: ArchiveAgent[] = [
+  { id: "ag-1", name: "客服主管", online: true, avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)" },
+  { id: "ag-2", name: "王珂", online: true, avatarText: "王", avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)" },
+  { id: "ag-3", name: "刘昊", online: true, avatarText: "刘", avatarColor: "linear-gradient(135deg, #ff7d00 0%, #ffb15d 100%)" },
+  { id: "ag-4", name: "陈悦", online: true, avatarText: "陈", avatarColor: "linear-gradient(135deg, #00c2b8 0%, #00a0cc 100%)" },
+  { id: "ag-5", name: "李想", online: true, avatarText: "李", avatarColor: "linear-gradient(135deg, #00b578 0%, #00a66f 100%)" },
+  { id: "ag-6", name: "张明", online: false, avatarText: "张", avatarColor: "#a7b0c0" },
+  { id: "ag-7", name: "林晓", online: false, avatarText: "林", avatarColor: "#a7b0c0" }
+];
 const titlePool = [
   "新的会话",
   "General Inquiry",
@@ -354,6 +402,10 @@ const appliedFilters = ref<FilterState>(createDefaultFilters());
 const sortKey = ref<SortKey>("startedAt");
 const sortOrder = ref<SortOrder>("desc");
 const openActionMenuId = ref<string | null>(null);
+const previewConversationId = ref<string | null>(null);
+const assignModalOpen = ref(false);
+const assignKeyword = ref("");
+const pendingAssignConversationId = ref<string | null>(null);
 
 const formatDateTime = (date: Date) => {
   const year = date.getFullYear();
@@ -444,6 +496,23 @@ const createRecord = (index: number, seed: ConversationSeed): ConversationRecord
 };
 
 const presetSeeds: ConversationSeed[] = [
+  {
+    title: "AI Agent - 配送时间咨询",
+    visitorName: "Tom",
+    customerIdentifier: "AI-7001",
+    visitorAlias: "AI 接待会话",
+    status: "replied",
+    messageCount: 4,
+    owner: aiAgentArchiveName,
+    staffCount: 1,
+    tag: "AI Agent",
+    startedAtLabel: "2026-02-24 20:10",
+    startedAtValue: new Date("2026-02-24T20:10:00").getTime(),
+    acceptedAtLabel: "2026-02-24 20:10",
+    acceptedAtValue: new Date("2026-02-24T20:10:00").getTime(),
+    serviceDuration: "4分",
+    rating: "none"
+  },
   {
     title: "新的会话",
     visitorName: "Visitor34",
@@ -649,7 +718,7 @@ const buildRemainingStatuses = () => {
   return items;
 };
 
-const allRows = [
+const allRows = ref<ConversationRecord[]>([
   ...presetSeeds.map((seed, index) => createRecord(index, seed)),
   ...buildRemainingStatuses().map((status, index) =>
     createRecord(index + presetSeeds.length, {
@@ -658,20 +727,20 @@ const allRows = [
       rating: status === "closed" && index % 2 === 0 ? "satisfied" : "none"
     })
   )
-];
+]);
 
-const tagOptions = computed(() => [...new Set(allRows.map((row) => row.tag).filter((value) => value !== "–"))]);
-const ownerOptions = computed(() => [...new Set(allRows.map((row) => row.owner).filter((value) => value !== "–"))]);
+const tagOptions = computed(() => [...new Set(allRows.value.map((row) => row.tag).filter((value) => value !== "–"))]);
+const ownerOptions = computed(() => [...new Set(allRows.value.map((row) => row.owner).filter((value) => value !== "–"))]);
 
 const summaryStats = computed(() => {
-  const uniqueVisitors = new Set(allRows.map((row) => row.visitorName)).size;
+  const uniqueVisitors = new Set(allRows.value.map((row) => row.visitorName)).size;
   return [
-    { key: "total", label: "总会话数", value: allRows.length },
-    { key: "pending-reply", label: "待回复", value: allRows.filter((row) => row.status === "pending-reply").length },
-    { key: "queueing", label: "排队中", value: allRows.filter((row) => row.status === "queueing").length },
-    { key: "processing", label: "待处理", value: allRows.filter((row) => row.status === "processing").length },
-    { key: "replied", label: "已回复", value: allRows.filter((row) => row.status === "replied").length },
-    { key: "closed", label: "已关闭", value: allRows.filter((row) => row.status === "closed").length },
+    { key: "total", label: "总会话数", value: allRows.value.length },
+    { key: "pending-reply", label: "待回复", value: allRows.value.filter((row) => row.status === "pending-reply").length },
+    { key: "queueing", label: "排队中", value: allRows.value.filter((row) => row.status === "queueing").length },
+    { key: "processing", label: "待处理", value: allRows.value.filter((row) => row.status === "processing").length },
+    { key: "replied", label: "已回复", value: allRows.value.filter((row) => row.status === "replied").length },
+    { key: "closed", label: "已关闭", value: allRows.value.filter((row) => row.status === "closed").length },
     { key: "visitor", label: "访客数量", value: uniqueVisitors }
   ];
 });
@@ -680,7 +749,7 @@ const visibleRows = computed(() => {
   const filters = appliedFilters.value;
   const keyword = filters.keyword.trim().toLowerCase();
 
-  const rows = allRows.filter((row) => {
+  const rows = allRows.value.filter((row) => {
     const fieldValue = String(row[filters.searchField]).toLowerCase();
     if (keyword && !fieldValue.includes(keyword)) {
       return false;
@@ -713,6 +782,200 @@ const visibleRows = computed(() => {
 
     return sortOrder.value === "asc" ? leftValue - rightValue : rightValue - leftValue;
   });
+});
+
+const previewConversation = computed(() => allRows.value.find((row) => row.id === previewConversationId.value) ?? null);
+const pendingAssignConversation = computed(() => allRows.value.find((row) => row.id === pendingAssignConversationId.value) ?? null);
+const assignableAgents = computed(() => {
+  const keyword = assignKeyword.value.trim().toLowerCase();
+  return archiveAgentPool
+    .filter((agent) => keyword.length === 0 || agent.name.toLowerCase().includes(keyword))
+    .sort((left, right) => (left.online === right.online ? 0 : left.online ? -1 : 1));
+});
+
+const getArchiveAgentProfile = (name: string) => {
+  if (name === aiAgentArchiveName) {
+    return {
+      avatarText: aiAgentProfile.avatarText,
+      avatarColor: aiAgentProfile.avatarColor,
+      avatarUrl: aiAgentProfile.avatarUrl
+    };
+  }
+
+  const agent = archiveAgentPool.find((item) => item.name === name);
+  const fallbackText = name.slice(0, 1) || "客";
+  return {
+    avatarText: agent?.avatarText ?? fallbackText,
+    avatarColor: agent?.avatarColor ?? "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
+    avatarUrl: ""
+  };
+};
+
+const getVisitorAvatarProfile = (name: string) => ({
+  avatarText: name.slice(0, 1).toUpperCase() || "访",
+  avatarColor: "linear-gradient(135deg, #64748b 0%, #94a3b8 100%)"
+});
+
+const toTime = (label: string) => {
+  if (!label || label === "–") {
+    return "--:--";
+  }
+
+  return label.includes(" ") ? label.split(" ").at(-1) ?? label : label;
+};
+
+const getVisitorQuestion = (row: ConversationRecord) => {
+  if (row.title.includes("配送") || row.title.includes("物流")) {
+    return "下单后多久能收到？有加急选项吗？";
+  }
+  if (row.title.includes("退款")) {
+    return "退款已经提交几天了，想确认一下目前进度。";
+  }
+  if (row.title.includes("发票")) {
+    return "发票抬头我改过了，但下载出来还是旧的。";
+  }
+  if (row.title.includes("活动") || row.title.includes("报名")) {
+    return "我想确认一下活动报名后的后续安排。";
+  }
+  if (row.title.includes("Inquiry")) {
+    return "Hi, I have a few questions about your service plan.";
+  }
+  return `我想咨询一下“${row.title}”这个问题。`;
+};
+
+const getAgentReply = (row: ConversationRecord) => {
+  if (row.owner === aiAgentArchiveName) {
+    return "您好，标准配送通常在 3-5 个工作日送达；若收货地址支持加急，结算页会显示加急配送选项。";
+  }
+  if (row.title.includes("退款")) {
+    return "您好，已为您核实，退款申请目前仍在财务审核中，预计 1-2 个工作日到账。";
+  }
+  if (row.title.includes("发票")) {
+    return "已收到，我先帮您核对发票配置和缓存状态，请稍等。";
+  }
+  return `您好，已收到您关于“${row.title}”的咨询，我先帮您核查一下。`;
+};
+
+const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {
+  const row = previewConversation.value;
+  if (!row) {
+    return [];
+  }
+
+  const visitor = getVisitorAvatarProfile(row.visitorName);
+  const owner = row.owner !== "–" ? getArchiveAgentProfile(row.owner) : null;
+  const startTime = toTime(row.startedAtLabel);
+  const acceptTime = row.acceptedAtLabel !== "–" ? toTime(row.acceptedAtLabel) : startTime;
+
+  if (row.owner === aiAgentArchiveName) {
+    return [
+      {
+        id: `${row.id}-c1`,
+        role: "customer",
+        sender: row.visitorName,
+        content: "下单后多久能收到？有加急选项吗？",
+        time: startTime,
+        avatarText: visitor.avatarText,
+        avatarColor: visitor.avatarColor
+      },
+      {
+        id: `${row.id}-a1`,
+        role: "agent",
+        sender: aiAgentArchiveName,
+        content: "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示“加急配送”选项。",
+        time: acceptTime,
+        avatarText: owner?.avatarText,
+        avatarColor: owner?.avatarColor,
+        avatarUrl: owner?.avatarUrl
+      },
+      {
+        id: `${row.id}-c2`,
+        role: "customer",
+        sender: row.visitorName,
+        content: "加急配送支持哪些地区？",
+        time: acceptTime,
+        avatarText: visitor.avatarText,
+        avatarColor: visitor.avatarColor
+      },
+      {
+        id: `${row.id}-a2`,
+        role: "agent",
+        sender: aiAgentArchiveName,
+        content: "目前覆盖大部分主要城市。您在下单页输入地址后，系统会自动判断是否支持加急配送。",
+        time: acceptTime,
+        avatarText: owner?.avatarText,
+        avatarColor: owner?.avatarColor,
+        avatarUrl: owner?.avatarUrl
+      }
+    ];
+  }
+
+  if (row.owner === "–") {
+    return [
+      {
+        id: `${row.id}-sys`,
+        role: "system",
+        sender: "系统",
+        content: "当前会话尚未分配客服",
+        time: startTime
+      },
+      {
+        id: `${row.id}-c1`,
+        role: "customer",
+        sender: row.visitorName,
+        content: getVisitorQuestion(row),
+        time: startTime,
+        avatarText: visitor.avatarText,
+        avatarColor: visitor.avatarColor
+      }
+    ];
+  }
+
+  const messages: ArchivePreviewMessage[] = [
+    {
+      id: `${row.id}-c1`,
+      role: "customer",
+      sender: row.visitorName,
+      content: getVisitorQuestion(row),
+      time: startTime,
+      avatarText: visitor.avatarText,
+      avatarColor: visitor.avatarColor
+    },
+    {
+      id: `${row.id}-a1`,
+      role: "agent",
+      sender: row.owner,
+      content: getAgentReply(row),
+      time: acceptTime,
+      avatarText: owner?.avatarText,
+      avatarColor: owner?.avatarColor,
+      avatarUrl: owner?.avatarUrl
+    }
+  ];
+
+  if (row.status === "replied") {
+    messages.push({
+      id: `${row.id}-c2`,
+      role: "customer",
+      sender: row.visitorName,
+      content: "好的，明白了，谢谢。",
+      time: acceptTime,
+      avatarText: visitor.avatarText,
+      avatarColor: visitor.avatarColor
+    });
+  }
+
+  if (row.status === "closed") {
+    messages.push({
+      id: `${row.id}-sys2`,
+      role: "system",
+      sender: "系统",
+      content: "会话已结束",
+      time: acceptTime
+    });
+  }
+
+  return messages;
 });
 
 const applyFilters = () => {
@@ -748,13 +1011,56 @@ const closeActionMenu = () => {
 
 const assignConversation = (row: ConversationRecord) => {
   closeActionMenu();
-  emit("toast", `已分配会话：${row.title}`);
+  pendingAssignConversationId.value = row.id;
+  assignKeyword.value = "";
+  assignModalOpen.value = true;
 };
 
 const openConversation = (row: ConversationRecord) => {
   closeActionMenu();
-  emit("toast", `正在查看会话：${row.title}`);
-  router.push("/conversation");
+  previewConversationId.value = row.id;
+};
+
+const closeConversationDrawer = () => {
+  previewConversationId.value = null;
+};
+
+const closeAssignModal = () => {
+  assignModalOpen.value = false;
+  assignKeyword.value = "";
+  pendingAssignConversationId.value = null;
+};
+
+const handleAssignConfirm = (agentId: string) => {
+  const rowId = pendingAssignConversationId.value;
+  const agent = archiveAgentPool.find((item) => item.id === agentId);
+  if (!rowId || !agent) {
+    return;
+  }
+
+  const conversationTitle = pendingAssignConversation.value?.title ?? "";
+
+  const now = new Date();
+  const acceptedAtLabel = formatDateTime(now);
+  const acceptedAtValue = now.getTime();
+
+  allRows.value = allRows.value.map((row) => {
+    if (row.id !== rowId) {
+      return row;
+    }
+
+    return {
+      ...row,
+      owner: agent.name,
+      staffCount: Math.max(row.staffCount, 1),
+      acceptedAtLabel: row.acceptedAtLabel === "–" ? acceptedAtLabel : row.acceptedAtLabel,
+      acceptedAtValue: row.acceptedAtValue ?? acceptedAtValue,
+      status: row.status === "queueing" ? "pending-reply" : row.status
+    };
+  });
+
+  closeAssignModal();
+  emit("toast", `已将会话“${conversationTitle}”分配给${agent.name}`);
 };
 
 onMounted(() => {

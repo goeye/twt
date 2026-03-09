@@ -9,7 +9,6 @@
         <button class="tool-icon" type="button" aria-label="机器人">🤖</button>
         <button class="tool-icon" type="button" aria-label="翻译">🌐</button>
       </div>
-      <button class="composer__reply-mode" type="button">回复 ▾</button>
     </div>
 
     <textarea
@@ -81,16 +80,6 @@ defineEmits<{
 
 .tool-icon:hover {
   background: var(--agent-color-bg-muted);
-}
-
-.composer__reply-mode {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-text-primary);
-  cursor: pointer;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-  padding: 4px 6px;
 }
 
 .composer__textarea {

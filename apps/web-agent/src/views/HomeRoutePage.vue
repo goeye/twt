@@ -9,8 +9,7 @@
         <div class="home-hero__eyebrow">体验访客端</div>
         <p class="home-hero__description">打开访客对话窗口，像真实客户一样发送消息，体验客户是如何找到你的。</p>
         <div class="home-hero__actions">
-          <button type="button" class="agent-btn agent-btn--primary home-hero__cta" @click="openRoute('/conversation')">聊天页面</button>
-          <span class="home-hero__badge">体验</span>
+          <button type="button" class="agent-btn agent-btn--primary home-hero__cta" @click="openCustomerPreview">聊天页面</button>
         </div>
       </div>
 
@@ -135,8 +134,16 @@
                   r="4.5"
                 />
               </svg>
-              <div class="home-chart__labels">
-                <span v-for="item in chartAxisLabels" :key="item.label" class="home-chart__label" :style="{ left: item.left }">
+              <div class="home-chart__labels" :style="{ gridTemplateColumns: `repeat(${chartAxisLabels.length}, minmax(0, 1fr))` }">
+                <span
+                  v-for="(item, index) in chartAxisLabels"
+                  :key="item.label"
+                  class="home-chart__label"
+                  :class="{
+                    'home-chart__label--start': index === 0,
+                    'home-chart__label--end': index === chartAxisLabels.length - 1
+                  }"
+                >
                   {{ item.label }}
                 </span>
               </div>
@@ -252,6 +259,41 @@ const openRoute = (path: string) => {
   router.push(path);
 };
 
+const resolveCustomerPreviewUrl = () => {
+  if (typeof window === "undefined") {
+    return "/web-customer/";
+  }
+
+  const currentUrl = new URL(window.location.href);
+  const isLocalHost = ["localhost", "127.0.0.1"].includes(currentUrl.hostname);
+
+  if (isLocalHost && currentUrl.port) {
+    const currentPort = Number(currentUrl.port);
+
+    if (!Number.isNaN(currentPort)) {
+      currentUrl.port = String(currentPort + 1);
+      currentUrl.pathname = "/";
+      currentUrl.search = "";
+      currentUrl.hash = "";
+      return currentUrl.toString();
+    }
+  }
+
+  currentUrl.pathname = currentUrl.pathname.replace(/^\/web-agent(?:\/.*)?$/, "/web-customer/");
+
+  if (!currentUrl.pathname.startsWith("/web-customer")) {
+    currentUrl.pathname = "/web-customer/";
+  }
+
+  currentUrl.search = "";
+  currentUrl.hash = "";
+  return currentUrl.toString();
+};
+
+const openCustomerPreview = () => {
+  window.open(resolveCustomerPreviewUrl(), "_blank", "noopener,noreferrer");
+};
+
 const serviceOverview: SummaryItem[] = [
   { key: "online", label: "在线", value: 1, dotColor: "#43c568" },
   { key: "away", label: "离开", value: 2, dotColor: "#ff5b57" },
@@ -323,10 +365,7 @@ const chartPoints = computed(() => {
 
 const chartPolyline = computed(() => chartPoints.value.map((point) => `${point.x},${point.y}`).join(" "));
 const chartLastPoint = computed(() => chartPoints.value[chartPoints.value.length - 1]);
-const chartAxisLabels = chartLabels.map((label, index) => ({
-  label,
-  left: `${(index / (chartLabels.length - 1)) * 100}%`
-}));
+const chartAxisLabels = chartLabels.map((label) => ({ label }));
 </script>
 
 <style scoped>
@@ -423,20 +462,6 @@ const chartAxisLabels = chartLabels.map((label, index) => ({
 .home-hero__cta {
   min-width: 78px;
   padding: 9px 14px;
-}
-
-.home-hero__badge {
-  align-items: center;
-  background: #ff4d4f;
-  border-radius: 999px;
-  color: #ffffff;
-  display: inline-flex;
-  font-size: 10px;
-  font-weight: 500;
-  height: 18px;
-  justify-content: center;
-  line-height: 1;
-  padding: 0 6px;
 }
 
 .home-hero__preview {
@@ -546,7 +571,7 @@ const chartAxisLabels = chartLabels.map((label, index) => ({
 .home-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(0, 1fr) 248px;
+  grid-template-columns: minmax(0, 1fr) 224px;
 }
 
 .home-main,
@@ -722,8 +747,8 @@ const chartAxisLabels = chartLabels.map((label, index) => ({
 }
 
 .home-chart {
-  min-height: 240px;
-  padding: 12px 18px 30px;
+  min-height: 248px;
+  padding: 12px 18px 36px;
   position: relative;
 }
 
@@ -757,6 +782,8 @@ const chartAxisLabels = chartLabels.map((label, index) => ({
 
 .home-chart__labels {
   bottom: 12px;
+  display: grid;
+  gap: 4px;
   left: 18px;
   position: absolute;
   right: 18px;
@@ -765,17 +792,18 @@ const chartAxisLabels = chartLabels.map((label, index) => ({
 .home-chart__label {
   color: #99a3b3;
   font-size: 11px;
-  position: absolute;
-  transform: translateX(-50%);
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.home-chart__label:first-child {
-  transform: translateX(0);
+.home-chart__label--start {
+  text-align: left;
 }
 
-.home-chart__label:last-child {
-  transform: translateX(-100%);
+.home-chart__label--end {
+  text-align: right;
 }
 
 .home-guide-card {

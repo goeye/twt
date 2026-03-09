@@ -5,7 +5,10 @@
     </template>
 
     <template v-else>
-      <span class="message__avatar" :style="{ background: avatarColor }">{{ avatarText }}</span>
+      <span class="message__avatar" :style="{ background: avatarUrl ? undefined : avatarColor }">
+        <img v-if="avatarUrl" :src="avatarUrl" alt="" class="message__avatar-image" />
+        <span v-else>{{ avatarText }}</span>
+      </span>
       <div class="message__main">
         <header class="message__meta">
           <span class="message__sender">{{ sender }}</span>
@@ -26,10 +29,12 @@ withDefaults(
     time: string;
     avatarText?: string;
     avatarColor?: string;
+    avatarUrl?: string;
   }>(),
   {
     avatarText: "?",
-    avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)"
+    avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
+    avatarUrl: ""
   }
 );
 </script>
@@ -66,7 +71,15 @@ withDefaults(
   height: 32px;
   justify-content: center;
   margin-top: 2px;
+  overflow: hidden;
   width: 32px;
+}
+
+.message__avatar-image {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .message__main {

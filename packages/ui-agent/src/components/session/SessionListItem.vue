@@ -5,7 +5,6 @@
       <div class="session-item__row">
         <span class="session-item__name-wrap">
           <strong>{{ customerName }}</strong>
-          <span v-if="tag" class="session-item__tag">{{ tag }}</span>
         </span>
         <span class="session-item__time">{{ updatedAt }}</span>
       </div>
@@ -104,15 +103,6 @@ withDefaults(
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
   flex-shrink: 0;
-}
-
-.session-item__tag {
-  background: rgba(0, 181, 120, 0.12);
-  border-radius: 999px;
-  color: var(--agent-color-status-success);
-  font-size: 10px;
-  line-height: 1;
-  padding: 3px 6px;
 }
 
 .session-item__preview {
