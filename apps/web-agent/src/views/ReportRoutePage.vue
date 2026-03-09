@@ -257,24 +257,24 @@
         <div v-for="card in aiTopStatCards" :key="card.label" class="report-stat-card agent-panel">
           <div class="report-stat-card__label">
             {{ card.label }}
-            <span class="report-stat-card__help">ⓘ</span>
+            <span class="report-stat-card__help" :data-tooltip="card.tooltip" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span>
           </div>
           <div class="report-stat-card__value">{{ card.value }}</div>
         </div>
       </div>
 
-      <!-- 会话解决 + 会话解决占比 -->
+      <!-- 会话趋势 + 会话解决占比 -->
       <div class="report-charts-grid">
         <div class="report-chart-panel agent-panel">
           <div class="report-chart-panel__header">
-            <span class="report-chart-panel__title">会话解决</span>
+            <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="AI Agent 处理的会话数量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
           </div>
           <div class="report-chart-panel__legend-bar">
             <span class="report-chart-panel__legend-item">
-              <span class="report-chart-panel__dot" style="background: var(--agent-color-brand-primary)" /> 已解决会话 <span class="report-stat-card__help">ⓘ</span>
+              <span class="report-chart-panel__dot" style="background: var(--agent-color-brand-primary)" /> 已解决会话 <span class="report-stat-card__help" data-tooltip="无需人工协助，由 AI Agent 独立解决的会话量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span>
             </span>
             <span class="report-chart-panel__legend-item">
-              <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 <span class="report-stat-card__help">ⓘ</span>
+              <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 <span class="report-stat-card__help" data-tooltip="AI Agent 未能独立解决的会话量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span>
             </span>
           </div>
           <div class="ai-report-inline-stats">
@@ -304,7 +304,7 @@
         <!-- 会话解决占比 -->
         <div class="report-chart-panel agent-panel">
           <div class="report-chart-panel__header">
-            <span class="report-chart-panel__title">会话解决占比</span>
+            <span class="report-chart-panel__title">会话解决占比 <span class="report-stat-card__help" data-tooltip="AI Agent 解决的会话占比" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
           </div>
           <div class="ai-report-donut-section">
             <div class="ai-report-donut-meta">
@@ -333,7 +333,7 @@
       <!-- 转人工趋势 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">转人工趋势 <span class="report-stat-card__help">ⓘ</span></span>
+          <span class="report-chart-panel__title">转人工趋势 <span class="report-stat-card__help" data-tooltip="各时间段 AI Agent 转人工会话分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
         </div>
         <div class="ai-report-avg">
           <span class="ai-report-avg__label">平均</span>
@@ -360,10 +360,45 @@
       <!-- 满意度 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">满意度趋势 <span class="report-stat-card__help">ⓘ</span></span>
+          <span class="report-chart-panel__title">满意度趋势 <span class="report-stat-card__help" data-tooltip="各时间段访客对 AI Agent 满意度评价分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
         </div>
-        <div class="report-chart-panel__body report-chart-panel__body--empty">
-          <span class="report-chart-panel__empty-text">暂无满意度数据</span>
+        <div class="report-chart-panel__legend-bar">
+          <span class="report-chart-panel__legend-item">
+            <span class="report-chart-panel__dot" style="background: var(--agent-color-brand-primary)" /> 满意
+          </span>
+          <span class="report-chart-panel__legend-item">
+            <span class="report-chart-panel__dot" style="background: var(--agent-color-status-warning)" /> 一般
+          </span>
+          <span class="report-chart-panel__legend-item">
+            <span class="report-chart-panel__dot" style="background: #36cfc9" /> 不满意
+          </span>
+        </div>
+        <div class="report-chart-panel__body">
+          <div class="report-line-chart">
+            <div class="report-line-chart__y-axis">
+              <span v-for="v in [1, 0.8, 0.6, 0.4, 0.2, 0]" :key="v">{{ v }}</span>
+            </div>
+            <div class="report-line-chart__area">
+              <div class="ai-satisfaction-chart" @mousemove="onSatisMove" @mouseleave="onSatisLeave">
+                <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="report-line-chart__svg">
+                  <line v-for="n in 6" :key="n" x1="0" :y1="(n-1)*40" x2="700" :y2="(n-1)*40" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
+                  <line x1="0" y1="200" x2="700" y2="200" stroke="var(--agent-color-border-default)" stroke-width="1" />
+                </svg>
+                <!-- hover vertical line -->
+                <div v-if="satisHover.visible" class="ai-satisfaction-chart__vline" :style="{ left: satisHover.pct + '%' }" />
+                <!-- hover card -->
+                <div v-if="satisHover.visible" class="ai-satisfaction-chart__card" :style="{ left: satisHover.pct + '%' }">
+                  <div class="ai-satisfaction-chart__card-date">{{ satisHover.date }}</div>
+                  <div>0 不满意</div>
+                  <div>0 一般</div>
+                  <div>0 满意</div>
+                </div>
+              </div>
+              <div class="report-line-chart__x-axis">
+                <span v-for="d in aiSatisXLabels" :key="d">{{ d }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -552,10 +587,18 @@
       </div>
     </template>
   </section>
+
+  <Teleport to="body">
+    <div
+      v-show="activeTooltip.visible"
+      class="report-tooltip"
+      :style="{ top: activeTooltip.y + 'px', left: activeTooltip.x + 'px' }"
+    >{{ activeTooltip.text }}</div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
 
 const props = defineProps<{
   activeKey: string;
@@ -564,6 +607,24 @@ const props = defineProps<{
 // ── Shared state ──
 const showDatePicker = ref(false);
 const showAgentDropdown = ref(false);
+
+// ── Tooltip ──
+const activeTooltip = reactive({ visible: false, text: "", x: 0, y: 0 });
+
+function showTooltip(e: MouseEvent) {
+  const el = e.currentTarget as HTMLElement;
+  const tip = el.getAttribute("data-tooltip");
+  if (!tip) return;
+  const rect = el.getBoundingClientRect();
+  activeTooltip.text = tip;
+  activeTooltip.x = rect.left + rect.width / 2;
+  activeTooltip.y = rect.top - 6;
+  activeTooltip.visible = true;
+}
+
+function hideTooltip() {
+  activeTooltip.visible = false;
+}
 const selectedAgent = ref("全部客服");
 const calendarBaseMonth = ref(new Date(2026, 2, 1)); // March 2026
 
@@ -740,13 +801,36 @@ const trendLinePoints = computed(() =>
 
 // ── AI Agent ──
 const aiTopStatCards = [
-  { label: "总会话数", value: "3" },
-  { label: "已解决会话", value: "1" },
-  { label: "未解决会话", value: "2" },
-  { label: "转人工", value: "3" }
+  { label: "总会话数", value: "3", tooltip: "AI Agent 处理的会话总数" },
+  { label: "已解决会话", value: "1", tooltip: "无需人工协助，由 AI Agent 独立解决的会话量" },
+  { label: "解决率", value: "33.3%", tooltip: "已关闭会话中，AI Agent 独立解决且无需人工介入的会话占比" },
+  { label: "转人工", value: "3", tooltip: "AI Agent 转接至人工客服的会话量" }
 ];
 
 const aiChartXLabels = ["02/07", "02/11", "02/15", "02/19", "02/23", "02/27", "03/03", "03/07"];
+
+// AI Agent 满意度趋势
+const aiSatisXLabels = computed(() => thinLabels(chartDateLabels.value));
+
+const satisHover = reactive({ visible: false, pct: 0, date: "" });
+
+function onSatisMove(e: MouseEvent) {
+  const el = e.currentTarget as HTMLElement;
+  const rect = el.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const pct = (x / rect.width) * 100;
+  const labels = chartDateLabels.value;
+  if (!labels.length) return;
+  const idx = Math.round((x / rect.width) * (labels.length - 1));
+  const clamped = Math.max(0, Math.min(labels.length - 1, idx));
+  satisHover.visible = true;
+  satisHover.pct = pct;
+  satisHover.date = labels[clamped];
+}
+
+function onSatisLeave() {
+  satisHover.visible = false;
+}
 
 // ── Evaluation Analysis ──
 const evalStatCards = [
@@ -1273,6 +1357,42 @@ const agentDetailRows = [
   text-decoration: underline;
 }
 
+/* ── AI Satisfaction Chart Hover ── */
+.ai-satisfaction-chart {
+  position: relative;
+}
+
+.ai-satisfaction-chart__vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-left: 1px dashed var(--agent-color-text-tertiary);
+  pointer-events: none;
+}
+
+.ai-satisfaction-chart__card {
+  position: absolute;
+  top: 50%;
+  transform: translate(8px, -50%);
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: var(--agent-shadow-md);
+  padding: 8px 12px;
+  font-size: var(--agent-font-size-xs);
+  color: var(--agent-color-text-primary);
+  line-height: 1.7;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.ai-satisfaction-chart__card-date {
+  font-weight: var(--agent-font-weight-semibold);
+  margin-bottom: 2px;
+}
+
 /* ── AI Report Average ── */
 .ai-report-avg {
   display: flex;
@@ -1471,5 +1591,22 @@ const agentDetailRows = [
   font-size: var(--agent-font-size-sm);
   color: var(--agent-color-text-secondary);
   white-space: nowrap;
+}
+</style>
+
+<style>
+.report-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 9999;
 }
 </style>
