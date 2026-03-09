@@ -102,7 +102,26 @@
             </div>
 
             <div class="home-chart">
+              <div class="home-chart__y-labels">
+                <span
+                  v-for="tick in chartYTicks"
+                  :key="tick.label"
+                  class="home-chart__y-label"
+                  :style="{ bottom: `${((chartHeight - chartPadding.bottom - tick.y) / (chartHeight - chartPadding.top - chartPadding.bottom)) * 100}%` }"
+                >
+                  {{ tick.label }}
+                </span>
+              </div>
               <svg class="home-chart__svg" :viewBox="`0 0 ${chartWidth} ${chartHeight}`" preserveAspectRatio="none" aria-hidden="true">
+                <line
+                  v-for="tick in chartYTicks"
+                  :key="'grid-' + tick.label"
+                  class="home-chart__grid"
+                  :x1="chartPadding.left"
+                  :y1="tick.y"
+                  :x2="chartWidth - chartPadding.right"
+                  :y2="tick.y"
+                />
                 <line
                   class="home-chart__axis"
                   :x1="chartPadding.left"
@@ -131,6 +150,101 @@
                   class="home-chart__point"
                   :cx="chartLastPoint.x"
                   :cy="chartLastPoint.y"
+                  r="4.5"
+                />
+              </svg>
+              <div class="home-chart__labels" :style="{ gridTemplateColumns: `repeat(${chartAxisLabels.length}, minmax(0, 1fr))` }">
+                <span
+                  v-for="(item, index) in chartAxisLabels"
+                  :key="item.label"
+                  class="home-chart__label"
+                  :class="{
+                    'home-chart__label--start': index === 0,
+                    'home-chart__label--end': index === chartAxisLabels.length - 1
+                  }"
+                >
+                  {{ item.label }}
+                </span>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="home-section">
+          <div class="home-section__title-row home-section__title-row--with-hint">
+            <div class="home-section__heading">
+              <h2 class="home-section__title">AI Agent 概览</h2>
+              <span class="home-section__hint">i</span>
+            </div>
+          </div>
+
+          <section class="home-chart-card agent-panel">
+            <div class="home-chart-card__stats">
+              <button
+                v-for="(item, index) in aiAgentOverview"
+                :key="item.key"
+                type="button"
+                class="home-chart-card__stat home-chart-card__stat--clickable"
+                :class="{ 'home-chart-card__stat--active': activeAiTab === index }"
+                @click="activeAiTab = index"
+              >
+                <p class="home-chart-card__stat-label">{{ item.label }}</p>
+                <p class="home-chart-card__stat-value">
+                  <span>{{ item.value }}</span>
+                  <small v-if="item.unit">{{ item.unit }}</small>
+                </p>
+              </button>
+            </div>
+
+            <div class="home-chart">
+              <div class="home-chart__y-labels">
+                <span
+                  v-for="tick in aiChartYTicks"
+                  :key="tick.label"
+                  class="home-chart__y-label"
+                  :style="{ bottom: `${((chartHeight - chartPadding.bottom - tick.y) / (chartHeight - chartPadding.top - chartPadding.bottom)) * 100}%` }"
+                >
+                  {{ tick.label }}
+                </span>
+              </div>
+              <svg class="home-chart__svg" :viewBox="`0 0 ${chartWidth} ${chartHeight}`" preserveAspectRatio="none" aria-hidden="true">
+                <line
+                  v-for="tick in aiChartYTicks"
+                  :key="'ai-grid-' + tick.label"
+                  class="home-chart__grid"
+                  :x1="chartPadding.left"
+                  :y1="tick.y"
+                  :x2="chartWidth - chartPadding.right"
+                  :y2="tick.y"
+                />
+                <line
+                  class="home-chart__axis"
+                  :x1="chartPadding.left"
+                  :y1="chartPadding.top"
+                  :x2="chartPadding.left"
+                  :y2="chartHeight - chartPadding.bottom"
+                />
+                <line
+                  class="home-chart__axis"
+                  :x1="chartPadding.left"
+                  :y1="chartHeight - chartPadding.bottom"
+                  :x2="chartWidth - chartPadding.right"
+                  :y2="chartHeight - chartPadding.bottom"
+                />
+                <line
+                  v-if="aiChartLastPoint"
+                  class="home-chart__guide"
+                  :x1="aiChartLastPoint.x"
+                  :y1="chartPadding.top + 18"
+                  :x2="aiChartLastPoint.x"
+                  :y2="chartHeight - chartPadding.bottom"
+                />
+                <polyline class="home-chart__line home-chart__line--ai" :points="aiChartPolyline" />
+                <circle
+                  v-if="aiChartLastPoint"
+                  class="home-chart__point home-chart__point--ai"
+                  :cx="aiChartLastPoint.x"
+                  :cy="aiChartLastPoint.y"
                   r="4.5"
                 />
               </svg>
@@ -216,7 +330,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { AgentIcon } from "@twt/ui-agent";
 
@@ -348,8 +462,24 @@ const chartPadding = {
   top: 10,
   right: 18,
   bottom: 30,
-  left: 18
+  left: 44
 };
+
+const yTickCount = 4;
+
+function generateYTicks(values: number[]) {
+  const maxValue = Math.max(...values, 1);
+  const usableHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+  const ticks: { label: string; y: number }[] = [];
+  for (let i = 0; i <= yTickCount; i++) {
+    const value = Math.round((maxValue / yTickCount) * i);
+    const y = chartPadding.top + usableHeight - (i / yTickCount) * usableHeight;
+    ticks.push({ label: String(value), y });
+  }
+  return ticks;
+}
+
+const chartYTicks = computed(() => generateYTicks(chartValues));
 
 const chartPoints = computed(() => {
   const maxValue = Math.max(...chartValues, 1);
@@ -366,6 +496,37 @@ const chartPoints = computed(() => {
 const chartPolyline = computed(() => chartPoints.value.map((point) => `${point.x},${point.y}`).join(" "));
 const chartLastPoint = computed(() => chartPoints.value[chartPoints.value.length - 1]);
 const chartAxisLabels = chartLabels.map((label) => ({ label }));
+
+const activeAiTab = ref(0);
+
+const aiAgentOverview: ChartStatItem[] = [
+  { key: "total", label: "总会话数", value: 126 },
+  { key: "resolved", label: "已解决会话", value: 98 },
+  { key: "transfer", label: "转人工", value: 28 }
+];
+
+const aiChartDataSets = [
+  [12, 18, 22, 15, 28, 35, 126],
+  [8, 14, 17, 11, 22, 28, 98],
+  [4, 4, 5, 4, 6, 7, 28]
+];
+
+const aiChartPoints = computed(() => {
+  const values = aiChartDataSets[activeAiTab.value];
+  const maxValue = Math.max(...values, 1);
+  const usableWidth = chartWidth - chartPadding.left - chartPadding.right;
+  const usableHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+
+  return values.map((value, index) => {
+    const x = chartPadding.left + (usableWidth / (values.length - 1)) * index;
+    const y = chartPadding.top + usableHeight - (value / maxValue) * usableHeight;
+    return { x, y };
+  });
+});
+
+const aiChartPolyline = computed(() => aiChartPoints.value.map((point) => `${point.x},${point.y}`).join(" "));
+const aiChartLastPoint = computed(() => aiChartPoints.value[aiChartPoints.value.length - 1]);
+const aiChartYTicks = computed(() => generateYTicks(aiChartDataSets[activeAiTab.value]));
 </script>
 
 <style scoped>
@@ -708,6 +869,19 @@ const chartAxisLabels = chartLabels.map((label) => ({ label }));
   position: relative;
 }
 
+.home-chart-card__stat--clickable {
+  background: #ffffff;
+  border: 0;
+  border-bottom: 1px solid var(--agent-color-border-default);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--agent-motion-fast);
+}
+
+.home-chart-card__stat--clickable:hover {
+  background: var(--agent-color-bg-muted);
+}
+
 .home-chart-card__stat:not(:last-child) {
   border-right: 1px solid var(--agent-color-border-default);
 }
@@ -748,14 +922,42 @@ const chartAxisLabels = chartLabels.map((label) => ({ label }));
 
 .home-chart {
   min-height: 248px;
-  padding: 12px 18px 36px;
+  padding: 12px 18px 36px 0;
   position: relative;
+}
+
+.home-chart__y-labels {
+  bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  position: absolute;
+  top: 12px;
+  width: 44px;
+}
+
+.home-chart__y-label {
+  color: #99a3b3;
+  font-size: 11px;
+  left: 0;
+  line-height: 1;
+  position: absolute;
+  text-align: right;
+  transform: translateY(50%);
+  width: 38px;
 }
 
 .home-chart__svg {
   display: block;
   height: 212px;
-  width: 100%;
+  margin-left: 44px;
+  width: calc(100% - 44px);
+}
+
+.home-chart__grid {
+  stroke: #f0f2f5;
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
 }
 
 .home-chart__axis {
@@ -780,11 +982,19 @@ const chartAxisLabels = chartLabels.map((label) => ({ label }));
   fill: #2f6bff;
 }
 
+.home-chart__line--ai {
+  stroke: #00b578;
+}
+
+.home-chart__point--ai {
+  fill: #00b578;
+}
+
 .home-chart__labels {
   bottom: 12px;
   display: grid;
   gap: 4px;
-  left: 18px;
+  left: 44px;
   position: absolute;
   right: 18px;
 }

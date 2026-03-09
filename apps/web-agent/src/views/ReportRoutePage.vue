@@ -279,18 +279,18 @@
           </div>
           <div class="ai-report-inline-stats">
             <span class="ai-report-inline-stat"><strong>1</strong></span>
-            <span class="ai-report-inline-stat" style="margin-left: 64px;"><strong>0</strong></span>
+            <span class="ai-report-inline-stat" style="margin-left: 64px;"><strong>2</strong></span>
           </div>
           <div class="report-chart-panel__body">
             <div class="report-line-chart">
               <div class="report-line-chart__y-axis">
-                <span>2</span><span>1</span><span>0</span>
+                <span>3</span><span>2</span><span>1</span><span>0</span>
               </div>
               <div class="report-line-chart__area">
                 <svg viewBox="0 0 500 150" preserveAspectRatio="none" class="report-line-chart__svg">
-                  <line v-for="n in 3" :key="n" x1="0" :y1="(n-1)*75" x2="500" :y2="(n-1)*75" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
-                  <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,150 380,150 420,75 500,75" />
-                  <polyline fill="none" stroke="#f5222d" stroke-width="2" points="0,150 500,150" stroke-dasharray="6" />
+                  <line v-for="n in 4" :key="n" x1="0" :y1="(n-1)*50" x2="500" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
+                  <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,150 380,150 420,100 500,100" />
+                  <polyline fill="none" stroke="#f5222d" stroke-width="2" points="0,150 300,150 360,100 420,50 480,50 500,100" />
                 </svg>
                 <div class="report-line-chart__x-axis">
                   <span v-for="d in aiChartXLabels" :key="d">{{ d }}</span>
@@ -309,44 +309,45 @@
           <div class="ai-report-donut-section">
             <div class="ai-report-donut-meta">
               <span class="ai-report-donut-meta__label">总计</span>
-              <span class="ai-report-donut-meta__value">1</span>
+              <span class="ai-report-donut-meta__value">3</span>
             </div>
             <div class="ai-report-donut">
               <svg viewBox="0 0 120 120" class="ai-report-donut__svg">
                 <circle cx="60" cy="60" r="50" fill="none" stroke="var(--agent-color-bg-muted)" stroke-width="16" />
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--agent-color-status-success)" stroke-width="16" stroke-dasharray="314 314" stroke-dashoffset="0" transform="rotate(-90 60 60)" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--agent-color-status-success)" stroke-width="16" stroke-dasharray="105 314" stroke-dashoffset="0" transform="rotate(-90 60 60)" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#f5222d" stroke-width="16" stroke-dasharray="209 314" stroke-dashoffset="-105" transform="rotate(-90 60 60)" />
               </svg>
             </div>
             <div class="ai-report-donut-legend">
               <span class="report-chart-panel__legend-item">
-                <span class="report-chart-panel__dot" style="background: var(--agent-color-status-success)" /> 已解决会话 100% (1)
+                <span class="report-chart-panel__dot" style="background: var(--agent-color-status-success)" /> 已解决会话 33.3% (1)
               </span>
               <span class="report-chart-panel__legend-item">
-                <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 0% (0)
+                <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 66.7% (2)
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 解决率 -->
+      <!-- 转人工趋势 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">解决率趋势 <span class="report-stat-card__help">ⓘ</span></span>
+          <span class="report-chart-panel__title">转人工趋势 <span class="report-stat-card__help">ⓘ</span></span>
         </div>
         <div class="ai-report-avg">
           <span class="ai-report-avg__label">平均</span>
-          <span class="ai-report-avg__value">100%</span>
+          <span class="ai-report-avg__value">3</span>
         </div>
         <div class="report-chart-panel__body">
           <div class="report-line-chart">
             <div class="report-line-chart__y-axis">
-              <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+              <span>8</span><span>6</span><span>4</span><span>2</span><span>0</span>
             </div>
             <div class="report-line-chart__area">
               <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="report-line-chart__svg">
                 <line v-for="n in 5" :key="n" x1="0" :y1="(n-1)*50" x2="700" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
-                <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,200 560,200 600,160 640,80 680,0 700,0" />
+                <polyline fill="none" stroke="#ff7d00" stroke-width="2" points="0,175 100,150 200,125 300,175 400,100 500,75 600,50 700,100" />
               </svg>
               <div class="report-line-chart__x-axis">
                 <span v-for="d in aiChartXLabels" :key="d">{{ d }}</span>
@@ -739,10 +740,10 @@ const trendLinePoints = computed(() =>
 
 // ── AI Agent ──
 const aiTopStatCards = [
-  { label: "总会话数", value: "1" },
+  { label: "总会话数", value: "3" },
   { label: "已解决会话", value: "1" },
-  { label: "解决率", value: "100%" },
-  { label: "转人工", value: "0" }
+  { label: "未解决会话", value: "2" },
+  { label: "转人工", value: "3" }
 ];
 
 const aiChartXLabels = ["02/07", "02/11", "02/15", "02/19", "02/23", "02/27", "03/03", "03/07"];

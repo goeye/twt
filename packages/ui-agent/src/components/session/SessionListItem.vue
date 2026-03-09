@@ -10,7 +10,7 @@
       </div>
       <div class="session-item__row">
         <span class="session-item__preview">{{ preview }}</span>
-        <span v-if="unreadCount && unreadCount > 0" class="session-item__unread">{{ unreadCount }}</span>
+        <span v-if="unreadCount && unreadCount > 0" class="session-item__unread-dot"></span>
       </div>
     </div>
   </button>
@@ -114,14 +114,11 @@ withDefaults(
   white-space: nowrap;
 }
 
-.session-item__unread {
+.session-item__unread-dot {
   background: var(--agent-color-status-error);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 10px;
-  line-height: 16px;
-  min-width: 16px;
-  padding: 0 5px;
-  text-align: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
 }
 </style>

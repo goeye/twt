@@ -74,7 +74,7 @@
         <header class="inbox-pane__header">
           <div class="inbox-pane__title-row">
             <button type="button" class="inbox-pane__back" aria-label="返回">‹</button>
-            <h1 class="inbox-pane__title">👋 {{ activeQueueLabel }}</h1>
+            <h1 class="inbox-pane__title">{{ activeQueueEmoji }} {{ activeQueueLabel }}</h1>
           </div>
 
           <div class="inbox-pane__search-row">
@@ -143,7 +143,6 @@
         </div>
 
         <div v-if="isAiSession" class="ai-takeover-bar">
-          <span class="ai-takeover-bar__text">🤖 当前由 AI 接待中</span>
           <button type="button" class="agent-btn agent-btn--primary" @click="handleTakeoverAiSession">接管会话</button>
         </div>
 
@@ -1120,6 +1119,16 @@ const activeQueueLabel = computed(() => {
     }
   }
   return "会话";
+});
+
+const activeQueueEmoji = computed(() => {
+  for (const group of queueGroups.value) {
+    const item = group.items.find((entry) => entry.key === activeQueueKey.value);
+    if (item) {
+      return item.leadingEmoji ?? "👋";
+    }
+  }
+  return "👋";
 });
 
 const activeInfoSections = computed<InfoSection[]>(() => {

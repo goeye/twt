@@ -185,9 +185,251 @@
       </section>
     </section>
 
-    <section v-else class="files-page__placeholder agent-panel">
-      <h1 class="files-page__title">所有聊天</h1>
-      <p class="files-page__placeholder-text">该子页面暂未实现，当前已完成“所有会话”页面。</p>
+    <section v-else-if="activeKey === 'all-chats'" class="files-page__card agent-panel">
+      <header class="files-page__header">
+        <h1 class="files-page__title">所有聊天</h1>
+      </header>
+
+      <section class="files-page__summary summary-banner">
+        <div class="summary-banner__stats summary-banner__stats--chat">
+          <article v-for="item in chatSummaryStats" :key="item.key" class="summary-banner__item">
+            <p class="summary-banner__value">{{ item.value }}</p>
+            <p class="summary-banner__label">{{ item.label }}</p>
+          </article>
+        </div>
+
+        <div class="summary-banner__visual" aria-hidden="true">
+          <div class="summary-banner__ring summary-banner__ring--outer" />
+          <div class="summary-banner__ring summary-banner__ring--inner" />
+          <div class="summary-banner__planet" />
+          <div class="summary-banner__bubble summary-banner__bubble--left" />
+          <div class="summary-banner__bubble summary-banner__bubble--right" />
+          <div class="summary-banner__spark summary-banner__spark--one" />
+          <div class="summary-banner__spark summary-banner__spark--two" />
+        </div>
+      </section>
+
+      <section class="files-page__filters archive-filters">
+        <div class="archive-filters__row archive-filters__row--chat-primary">
+          <label class="archive-field archive-field--compact">
+            <select v-model="chatDraftFilters.searchField" class="archive-field__control archive-field__control--select">
+              <option value="title">聊天标题</option>
+              <option value="owner">群主</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+
+          <label class="archive-field archive-field--search">
+            <AgentIcon class="archive-field__prefix" name="search" :size="16" />
+            <input v-model.trim="chatDraftFilters.keyword" class="archive-field__control" placeholder="请输入" />
+          </label>
+
+          <label class="archive-field">
+            <select v-model="chatDraftFilters.messageCount" class="archive-field__control archive-field__control--select">
+              <option value="all">消息数量</option>
+              <option value="0">0 条</option>
+              <option value="1-10">1-10 条</option>
+              <option value="10+">10 条以上</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+
+          <label class="archive-field">
+            <select v-model="chatDraftFilters.owner" class="archive-field__control archive-field__control--select">
+              <option value="all">群主</option>
+              <option v-for="opt in chatOwnerOptions" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+
+          <label class="archive-field">
+            <select v-model="chatDraftFilters.chatType" class="archive-field__control archive-field__control--select">
+              <option value="all">类型</option>
+              <option value="single">单聊</option>
+              <option value="group">群聊</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+        </div>
+
+        <div class="archive-filters__row archive-filters__row--chat-secondary">
+          <label class="archive-field">
+            <select v-model="chatDraftFilters.status" class="archive-field__control archive-field__control--select">
+              <option value="all">状态</option>
+              <option value="active">活跃</option>
+              <option value="dissolved">解散</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+
+          <label class="archive-field">
+            <select v-model="chatDraftFilters.category" class="archive-field__control archive-field__control--select">
+              <option value="all">分类</option>
+              <option value="external">外部</option>
+              <option value="internal">内部</option>
+            </select>
+            <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+          </label>
+
+          <label class="archive-field archive-field--date">
+            <input v-model="chatDraftFilters.startedDate" class="archive-field__native-date" type="date" />
+            <span
+              class="archive-field__control archive-field__date-display"
+              :class="{ 'archive-field__date-display--placeholder': !chatDraftFilters.startedDate }"
+            >
+              {{ chatDraftFilters.startedDate || '发起时间' }}
+            </span>
+            <AgentIcon class="archive-field__suffix" name="calendar" :size="16" />
+          </label>
+
+          <label class="archive-field archive-field--date">
+            <input v-model="chatDraftFilters.updatedDate" class="archive-field__native-date" type="date" />
+            <span
+              class="archive-field__control archive-field__date-display"
+              :class="{ 'archive-field__date-display--placeholder': !chatDraftFilters.updatedDate }"
+            >
+              {{ chatDraftFilters.updatedDate || '最后更新时间' }}
+            </span>
+            <AgentIcon class="archive-field__suffix" name="calendar" :size="16" />
+          </label>
+
+          <button type="button" class="agent-btn agent-btn--primary files-page__search-btn" @click="applyChatFilters">搜索</button>
+          <button type="button" class="agent-btn agent-btn--ghost files-page__reset-btn" @click="resetChatFilters">重置</button>
+        </div>
+      </section>
+
+      <section class="files-page__table-wrap">
+        <div class="files-page__table-scroll agent-scroll">
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>聊天标题</th>
+                <th>类型</th>
+                <th>状态</th>
+                <th>分类</th>
+                <th>
+                  <button type="button" class="archive-sort" @click="toggleChatSort('messageCount')">
+                    <span>消息数量</span>
+                    <span class="archive-sort__arrows">
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--up"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'messageCount' && chatSortOrder === 'asc' }"
+                      />
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--down"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'messageCount' && chatSortOrder === 'desc' }"
+                      />
+                    </span>
+                  </button>
+                </th>
+                <th>群主</th>
+                <th>访客数量</th>
+                <th>客服数量</th>
+                <th>
+                  <button type="button" class="archive-sort" @click="toggleChatSort('startedAt')">
+                    <span>发起时间</span>
+                    <span class="archive-sort__arrows">
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--up"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'startedAt' && chatSortOrder === 'asc' }"
+                      />
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--down"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'startedAt' && chatSortOrder === 'desc' }"
+                      />
+                    </span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="archive-sort" @click="toggleChatSort('updatedAt')">
+                    <span>最后更新时间</span>
+                    <span class="archive-sort__arrows">
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--up"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'updatedAt' && chatSortOrder === 'asc' }"
+                      />
+                      <span
+                        class="archive-sort__arrow archive-sort__arrow--down"
+                        :class="{ 'archive-sort__arrow--active': chatSortKey === 'updatedAt' && chatSortOrder === 'desc' }"
+                      />
+                    </span>
+                  </button>
+                </th>
+                <th class="archive-table__actions-head">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="visibleChatRows.length === 0">
+                <td colspan="11" class="archive-table__empty">暂无符合条件的聊天</td>
+              </tr>
+              <tr v-for="row in paginatedChatRows" v-else :key="row.id">
+                <td><button type="button" class="archive-link" @click="openChat(row)">{{ row.title }}</button></td>
+                <td>{{ row.chatType === 'single' ? '单聊' : '群聊' }}</td>
+                <td>
+                  <span class="chat-status" :class="'chat-status--' + row.status">{{ row.status === 'active' ? '活跃' : '解散' }}</span>
+                </td>
+                <td>{{ row.category === 'external' ? '外部' : '内部' }}</td>
+                <td class="archive-table__number">{{ row.messageCount === 0 ? '\u2013' : row.messageCount }}</td>
+                <td>{{ row.owner }}</td>
+                <td class="archive-table__number">{{ row.visitorCount === 0 ? '\u2013' : row.visitorCount }}</td>
+                <td class="archive-table__number">{{ row.staffCount }}</td>
+                <td>{{ row.startedAtLabel }}</td>
+                <td>{{ row.updatedAtLabel }}</td>
+                <td class="archive-table__actions-cell">
+                  <button
+                    type="button"
+                    class="archive-action-btn"
+                    aria-label="更多操作"
+                    @click.stop="toggleChatActionMenu(row.id)"
+                  >
+                    <span />
+                    <span />
+                    <span />
+                  </button>
+
+                  <div v-if="openChatActionMenuId === row.id" class="archive-action-menu" @click.stop>
+                    <button type="button" class="archive-action-menu__item" @click="openChat(row)">查看聊天</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="chat-pagination">
+        <span class="chat-pagination__total">总条数：{{ visibleChatRows.length }}</span>
+        <div class="chat-pagination__controls">
+          <button
+            type="button"
+            class="chat-pagination__arrow"
+            :disabled="chatCurrentPage <= 1"
+            @click="chatCurrentPage = Math.max(1, chatCurrentPage - 1)"
+          >&lt;</button>
+          <button
+            v-for="pg in chatTotalPages"
+            :key="pg"
+            type="button"
+            class="chat-pagination__page"
+            :class="{ 'chat-pagination__page--active': pg === chatCurrentPage }"
+            @click="chatCurrentPage = pg"
+          >{{ pg }}</button>
+          <button
+            type="button"
+            class="chat-pagination__arrow"
+            :disabled="chatCurrentPage >= chatTotalPages"
+            @click="chatCurrentPage = Math.min(chatTotalPages, chatCurrentPage + 1)"
+          >&gt;</button>
+        </div>
+        <label class="chat-pagination__size">
+          <select v-model="chatPageSize" class="chat-pagination__size-select">
+            <option :value="20">20 条/页</option>
+            <option :value="50">50 条/页</option>
+            <option :value="100">100 条/页</option>
+          </select>
+          <AgentIcon class="chat-pagination__size-icon" name="chevron-down" :size="12" />
+        </label>
+      </footer>
     </section>
 
     <ArchiveConversationDrawer
@@ -1063,12 +1305,221 @@ const handleAssignConfirm = (agentId: string) => {
   emit("toast", `已将会话“${conversationTitle}”分配给${agent.name}`);
 };
 
-onMounted(() => {
-  window.addEventListener("click", closeActionMenu);
+// --- All Chats (所有聊天) ---
+
+type ChatSearchField = "title" | "owner";
+type ChatType = "single" | "group";
+type ChatStatus = "active" | "dissolved";
+type ChatCategory = "external" | "internal";
+type ChatSortKey = "messageCount" | "startedAt" | "updatedAt";
+
+interface ChatRecord {
+  id: string;
+  title: string;
+  chatType: ChatType;
+  status: ChatStatus;
+  category: ChatCategory;
+  messageCount: number;
+  owner: string;
+  visitorCount: number;
+  staffCount: number;
+  startedAtLabel: string;
+  startedAtValue: number;
+  updatedAtLabel: string;
+  updatedAtValue: number;
+}
+
+interface ChatFilterState {
+  searchField: ChatSearchField;
+  keyword: string;
+  messageCount: string;
+  owner: string;
+  chatType: string;
+  status: string;
+  category: string;
+  startedDate: string;
+  updatedDate: string;
+}
+
+const createDefaultChatFilters = (): ChatFilterState => ({
+  searchField: "title",
+  keyword: "",
+  messageCount: "all",
+  owner: "all",
+  chatType: "all",
+  status: "all",
+  category: "all",
+  startedDate: "",
+  updatedDate: ""
 });
 
-onBeforeUnmount(() => {
-  window.removeEventListener("click", closeActionMenu);
+const chatDraftFilters = reactive<ChatFilterState>(createDefaultChatFilters());
+const appliedChatFilters = ref<ChatFilterState>(createDefaultChatFilters());
+const chatSortKey = ref<ChatSortKey>("startedAt");
+const chatSortOrder = ref<SortOrder>("desc");
+const openChatActionMenuId = ref<string | null>(null);
+const chatCurrentPage = ref(1);
+const chatPageSize = ref(20);
+
+const allChatRows = ref<ChatRecord[]>([
+  {
+    id: "chat-1",
+    title: "\u771F\u9F99\u4E0EVisitor19\u7684\u804A\u5929",
+    chatType: "single",
+    status: "active",
+    category: "external",
+    messageCount: 0,
+    owner: "\u771F\u9F99",
+    visitorCount: 1,
+    staffCount: 1,
+    startedAtLabel: "2026-03-09 17:20:45",
+    startedAtValue: new Date("2026-03-09T17:20:45").getTime(),
+    updatedAtLabel: "2026-03-09 17:20:45",
+    updatedAtValue: new Date("2026-03-09T17:20:45").getTime()
+  },
+  {
+    id: "chat-2",
+    title: "1\u597D\u70E6\u597D\u70E6\u597D\u70E6\u662F\u4E39\u6C5F\u53E3\u5E02\u7684...",
+    chatType: "single",
+    status: "active",
+    category: "internal",
+    messageCount: 0,
+    owner: "1\u597D\u70E6\u597D\u70E6\u597D...",
+    visitorCount: 0,
+    staffCount: 2,
+    startedAtLabel: "2026-03-09 14:18:24",
+    startedAtValue: new Date("2026-03-09T14:18:24").getTime(),
+    updatedAtLabel: "2026-03-09 14:18:24",
+    updatedAtValue: new Date("2026-03-09T14:18:24").getTime()
+  },
+  {
+    id: "chat-3",
+    title: "\u771F\u9F99\u4E0EVisitor3\u7684\u804A\u5929",
+    chatType: "single",
+    status: "active",
+    category: "external",
+    messageCount: 0,
+    owner: "\u771F\u9F99",
+    visitorCount: 1,
+    staffCount: 1,
+    startedAtLabel: "2026-03-06 10:25:15",
+    startedAtValue: new Date("2026-03-06T10:25:15").getTime(),
+    updatedAtLabel: "2026-03-06 10:25:15",
+    updatedAtValue: new Date("2026-03-06T10:25:15").getTime()
+  }
+]);
+
+const chatOwnerOptions = computed(() => [...new Set(allChatRows.value.map((r) => r.owner))]);
+
+const chatSummaryStats = computed(() => {
+  const total = allChatRows.value.length;
+  const single = allChatRows.value.filter((r) => r.chatType === "single").length;
+  const group = allChatRows.value.filter((r) => r.chatType === "group").length;
+  const active = allChatRows.value.filter((r) => r.status === "active").length;
+  const dissolved = allChatRows.value.filter((r) => r.status === "dissolved").length;
+  return [
+    { key: "total", label: "\u603B\u804A\u5929\u6570", value: total },
+    { key: "single", label: "\u5355\u804A\u6570", value: single },
+    { key: "group", label: "\u7FA4\u804A\u6570", value: group },
+    { key: "active", label: "\u6D3B\u8DC3", value: active },
+    { key: "dissolved", label: "\u89E3\u6563", value: dissolved }
+  ];
+});
+
+const visibleChatRows = computed(() => {
+  const filters = appliedChatFilters.value;
+  const keyword = filters.keyword.trim().toLowerCase();
+
+  const rows = allChatRows.value.filter((row) => {
+    if (keyword) {
+      const fieldValue = String(row[filters.searchField]).toLowerCase();
+      if (!fieldValue.includes(keyword)) return false;
+    }
+    if (filters.chatType !== "all" && row.chatType !== filters.chatType) return false;
+    if (filters.status !== "all" && row.status !== filters.status) return false;
+    if (filters.category !== "all" && row.category !== filters.category) return false;
+    if (filters.owner !== "all" && row.owner !== filters.owner) return false;
+    if (filters.messageCount !== "all") {
+      if (filters.messageCount === "0" && row.messageCount !== 0) return false;
+      if (filters.messageCount === "1-10" && (row.messageCount < 1 || row.messageCount > 10)) return false;
+      if (filters.messageCount === "10+" && row.messageCount <= 10) return false;
+    }
+    if (filters.startedDate && !row.startedAtLabel.startsWith(filters.startedDate)) return false;
+    if (filters.updatedDate && !row.updatedAtLabel.startsWith(filters.updatedDate)) return false;
+    return true;
+  });
+
+  return [...rows].sort((a, b) => {
+    let aVal: number;
+    let bVal: number;
+    if (chatSortKey.value === "messageCount") {
+      aVal = a.messageCount;
+      bVal = b.messageCount;
+    } else if (chatSortKey.value === "updatedAt") {
+      aVal = a.updatedAtValue;
+      bVal = b.updatedAtValue;
+    } else {
+      aVal = a.startedAtValue;
+      bVal = b.startedAtValue;
+    }
+    return chatSortOrder.value === "asc" ? aVal - bVal : bVal - aVal;
+  });
+});
+
+const chatTotalPages = computed(() => Math.max(1, Math.ceil(visibleChatRows.value.length / chatPageSize.value)));
+
+const paginatedChatRows = computed(() => {
+  const start = (chatCurrentPage.value - 1) * chatPageSize.value;
+  return visibleChatRows.value.slice(start, start + chatPageSize.value);
+});
+
+const applyChatFilters = () => {
+  appliedChatFilters.value = { ...chatDraftFilters };
+  chatCurrentPage.value = 1;
+  openChatActionMenuId.value = null;
+};
+
+const resetChatFilters = () => {
+  const next = createDefaultChatFilters();
+  Object.assign(chatDraftFilters, next);
+  appliedChatFilters.value = next;
+  chatSortKey.value = "startedAt";
+  chatSortOrder.value = "desc";
+  chatCurrentPage.value = 1;
+  openChatActionMenuId.value = null;
+};
+
+const toggleChatSort = (key: ChatSortKey) => {
+  if (chatSortKey.value === key) {
+    chatSortOrder.value = chatSortOrder.value === "desc" ? "asc" : "desc";
+    return;
+  }
+  chatSortKey.value = key;
+  chatSortOrder.value = "desc";
+};
+
+const toggleChatActionMenu = (rowId: string) => {
+  openChatActionMenuId.value = openChatActionMenuId.value === rowId ? null : rowId;
+};
+
+const closeChatActionMenu = () => {
+  openChatActionMenuId.value = null;
+};
+
+const openChat = (row: ChatRecord) => {
+  closeChatActionMenu();
+  emit("toast", "\u67E5\u770B\u804A\u5929\u201C" + row.title + "\u201D");
+};
+
+onMounted(() => {
+  const handleGlobalClick = () => {
+    closeActionMenu();
+    closeChatActionMenu();
+  };
+  window.addEventListener("click", handleGlobalClick);
+  onBeforeUnmount(() => {
+    window.removeEventListener("click", handleGlobalClick);
+  });
 });
 </script>
 
@@ -1566,6 +2017,129 @@ onBeforeUnmount(() => {
 
   .archive-filters__row--primary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.summary-banner__stats--chat {
+  grid-template-columns: repeat(5, minmax(80px, 1fr));
+}
+
+.archive-filters__row--chat-primary {
+  grid-template-columns: 140px minmax(220px, 1fr) repeat(3, minmax(160px, 1fr));
+}
+
+.archive-filters__row--chat-secondary {
+  align-items: center;
+  grid-template-columns: minmax(160px, 200px) minmax(160px, 200px) minmax(200px, 260px) minmax(200px, 260px) 92px 92px;
+}
+
+.chat-status {
+  display: inline-flex;
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.chat-status--active {
+  color: #27c35a;
+}
+
+.chat-status--dissolved {
+  color: #8e9cb1;
+}
+
+.chat-pagination {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.chat-pagination__total {
+  color: #4c5563;
+  font-size: 14px;
+  margin-right: auto;
+}
+
+.chat-pagination__controls {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.chat-pagination__arrow {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  color: #4c5563;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.chat-pagination__arrow:disabled {
+  color: #c7cdd6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chat-pagination__page {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  color: #4c5563;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  height: 32px;
+  justify-content: center;
+  min-width: 32px;
+  padding: 0 8px;
+}
+
+.chat-pagination__page--active {
+  background: var(--agent-color-brand-primary);
+  border-color: var(--agent-color-brand-primary);
+  color: #ffffff;
+}
+
+.chat-pagination__size {
+  position: relative;
+}
+
+.chat-pagination__size-select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  color: #4c5563;
+  cursor: pointer;
+  font-size: 14px;
+  height: 32px;
+  outline: none;
+  padding: 0 28px 0 12px;
+}
+
+.chat-pagination__size-icon {
+  color: #97a3b4;
+  pointer-events: none;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 1440px) {
+  .archive-filters__row--chat-primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .archive-filters__row--chat-secondary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
