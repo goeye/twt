@@ -52,7 +52,7 @@
       <div v-if="agentTab === 'basic'" class="ai-tab-content">
         <section class="setting-card agent-panel">
           <header class="setting-card__header">
-            <h2 class="setting-card__title">基本信息</h2>
+            <h2 class="setting-card__title">启用与展示</h2>
           </header>
           <div class="setting-card__body">
             <div class="form-row">
@@ -68,6 +68,39 @@
               </div>
             </div>
 
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">AI Agent 回复</span>
+                <span class="form-row__desc">设置 AI Agent 何时参与会话回复</span>
+              </div>
+              <div class="form-row__control">
+                <select v-model="agentResponseMode" class="agent-input">
+                  <option value="always">始终</option>
+                  <option value="offline-only">仅客服离线时</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">在消息中显示 AI Agent 标签</span>
+                <span class="form-row__desc">开启后，访客端会在 AI Agent 回复消息中看到标签，用于识别。</span>
+              </div>
+              <div class="form-row__control">
+                <label class="agent-switch">
+                  <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
+                  <span class="agent-switch__track" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="setting-card agent-panel">
+          <header class="setting-card__header">
+            <h2 class="setting-card__title">AI Agent 信息</h2>
+          </header>
+          <div class="setting-card__body">
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">头像</span>
@@ -124,32 +157,25 @@
                     :key="tone.value"
                     type="button"
                     class="bot-chip"
-                    :class="{ 'bot-chip--active': selectedTones.includes(tone.value) }"
-                    @click="toggleTone(tone.value)"
+                    :class="{ 'bot-chip--active': selectedTone === tone.value }"
+                    @click="selectedTone = tone.value"
                   >{{ tone.label }}</button>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">语言</h2>
-            <p class="setting-card__desc">AI Agent 可自动识别访客语言并对应回复；若无法识别则切换至默认语言</p>
-          </header>
-          <div class="setting-card__body">
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">默认语言</span>
+                <span class="form-row__desc">无法识别访客语言时，将使用该语言回复。</span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input">
-                  <option value="zh-CN">简体中文</option>
-                  <option value="en">English</option>
-                  <option value="ja">日本語</option>
-                  <option value="ko">한국어</option>
-                  <option value="auto">自动检测</option>
+                  <option
+                    v-for="language in languageOptions"
+                    :key="language.value"
+                    :value="language.value"
+                  >{{ language.label }}</option>
                 </select>
               </div>
             </div>
@@ -157,7 +183,7 @@
         </section>
 
         <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" @click="emitToast('基本设置已保存')">保存</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="saveBasicSettings">保存</button>
         </div>
       </div>
 
@@ -165,41 +191,19 @@
       <div v-else-if="agentTab === 'conversation'" class="ai-tab-content">
         <section class="setting-card agent-panel">
           <header class="setting-card__header">
-            <h2 class="setting-card__title">会话自动结束</h2>
-            <p class="setting-card__desc">访客超过设定时间未回复时自动结束会话</p>
+            <h2 class="setting-card__title">访客不活跃</h2>
           </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">超时时长</span>
-              </div>
-              <div class="form-row__control">
-                <div class="form-row__inline">
-                  <span class="form-row__inline-text">超过</span>
-                  <input v-model.number="sessionTimeout" type="number" class="agent-input form-row__inline-input" min="1" max="72" />
-                  <span class="form-row__inline-text">小时访客未回复，会话自动结束。</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">介入策略</h2>
-            <p class="setting-card__desc">设置 AI Agent 在会话中的介入方式</p>
-          </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">介入模式</span>
-              </div>
-              <div class="form-row__control">
-                <select v-model="interventionMode" class="agent-input">
-                  <option value="pre-intercept">前置拦截 — AI 优先接待，无法解决时转人工</option>
-                  <option value="post-fallback">后置兜底 — 人工优先，非工作时间由 AI 接管</option>
-                </select>
-              </div>
+          <div class="setting-card__body setting-card__body--compact">
+            <div class="inactive-setting">
+              <span class="inactive-setting__text">当访客超过</span>
+              <input
+                v-model.number="visitorInactiveMinutes"
+                type="number"
+                class="agent-input inactive-setting__input"
+                min="1"
+                max="1440"
+              />
+              <span class="inactive-setting__text">分钟未进行操作，自动关闭会话</span>
             </div>
           </div>
         </section>
@@ -218,40 +222,6 @@
                 <select v-model="replyMode" class="agent-input">
                   <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
                   <option value="creative">发散模式 — 允许 AI 结合上下文推理补充</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">转人工设置</h2>
-            <p class="setting-card__desc">访客主动要求转人工时的处理方案</p>
-          </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">转人工方式</span>
-              </div>
-              <div class="form-row__control">
-                <select v-model="transferMode" class="agent-input">
-                  <option value="immediate">立即转接 — 直接分配给在线客服</option>
-                  <option value="confirm">确认转接 — 先确认是否继续 AI 对话</option>
-                  <option value="queue">排队转接 — 进入人工排队队列</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">无客服在线</span>
-                <span class="form-row__desc">所有客服离线时的处理方式</span>
-              </div>
-              <div class="form-row__control">
-                <select v-model="offlineTransferMode" class="agent-input">
-                  <option value="leave-message">留言 — 引导访客留下联系方式</option>
-                  <option value="continue-ai">继续 AI — 提示暂无人工并继续 AI 对话</option>
                 </select>
               </div>
             </div>
@@ -293,11 +263,26 @@
                 />
               </div>
             </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">无法回答的问题</span>
+                <span class="form-row__desc">当访客发送图片、文件或超出 AI 能力范围的问题时使用的提示语</span>
+              </div>
+              <div class="form-row__control">
+                <textarea
+                  v-model="unsupportedQuestionMessage"
+                  class="agent-input form-row__textarea"
+                  rows="4"
+                  placeholder="请输入无法回答场景的提示语"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
         <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" @click="emitToast('会话设置已保存')">保存</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="saveConversationSettings">保存</button>
         </div>
       </div>
     </template>
@@ -314,7 +299,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
 
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
@@ -334,6 +319,24 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
 
+const AI_AGENT_SETTINGS_STORAGE_KEY = "twt:ai-agent-settings";
+
+interface StoredAiAgentSettings {
+  agentEnabled?: boolean;
+  agentResponseMode?: string;
+  showMessageAgentLabel?: boolean;
+  botName?: string;
+  botIntro?: string;
+  selectedTone?: string;
+  defaultLanguage?: string;
+  visitorInactiveMinutes?: number;
+  visitorInactiveHours?: number;
+  replyMode?: string;
+  offlineMessage?: string;
+  transferMessage?: string;
+  unsupportedQuestionMessage?: string;
+}
+
 const showBanner = ref(true);
 const agentTab = ref<"basic" | "conversation">("basic");
 const agentEnabled = ref(true);
@@ -352,40 +355,111 @@ const copilotSettings = ref<CopilotSetting[]>([
 
 // Bot persona config (基本设置)
 const botName = ref("智能助手");
-const botIntro = ref("我是您的智能客服助手，可以帮您快速解答常见问题。");
-const selectedTones = ref<string[]>(["friendly", "professional"]);
-const defaultLanguage = ref("zh-CN");
+const botIntro = ref("");
+const selectedTone = ref("friendly");
+const defaultLanguage = ref("en");
 const toneOptions = [
   { value: "friendly", label: "友好亲切" },
   { value: "professional", label: "专业严谨" },
   { value: "humorous", label: "幽默活泼" },
   { value: "concise", label: "简洁高效" }
 ];
+const languageOptions = [
+  { value: "en", label: "英语" },
+  { value: "es", label: "西班牙语" },
+  { value: "fr", label: "法语" },
+  { value: "de", label: "德语" },
+  { value: "pt", label: "葡萄牙语" },
+  { value: "ru", label: "俄语" },
+  { value: "zh-CN", label: "简体中文" },
+  { value: "zh-TW", label: "繁体中文" },
+  { value: "ja", label: "日语" },
+  { value: "ko", label: "韩语" },
+  { value: "vi", label: "越南语" },
+  { value: "th", label: "泰语" },
+  { value: "id", label: "印尼语" },
+  { value: "ms", label: "马利西亚语" }
+];
 
-// Intervention strategy (会话设置)
-const interventionMode = ref("pre-intercept");
-const sessionTimeout = ref(1);
+// Basic settings
+const agentResponseMode = ref("always");
+const showMessageAgentLabel = ref(true);
+
+// Conversation settings
+const visitorInactiveMinutes = ref(10);
 
 // Reply strategy
 const replyMode = ref("strict");
 
-// Transfer settings
-const transferMode = ref("immediate");
-const offlineTransferMode = ref("leave-message");
-
 // Script config
 const offlineMessage = ref("很抱歉，当前所有客服均不在线。请留下您的联系方式，我们会尽快回复您。");
 const transferMessage = ref("正在为您转接人工客服，请稍候。");
+const unsupportedQuestionMessage = ref("抱歉，我暂时无法处理图片、文件或这个问题。您可以尝试换一种描述方式，或转接人工客服继续为您服务。");
 
-const toggleTone = (value: string) => {
-  if (selectedTones.value.includes(value)) {
-    if (selectedTones.value.length > 1) {
-      selectedTones.value = selectedTones.value.filter((t) => t !== value);
-    }
-  } else {
-    selectedTones.value = [...selectedTones.value, value];
-  }
+const persistAgentSettings = () => {
+  if (typeof window === "undefined") return;
+
+  const settings: StoredAiAgentSettings = {
+    agentEnabled: agentEnabled.value,
+    agentResponseMode: agentResponseMode.value,
+    showMessageAgentLabel: showMessageAgentLabel.value,
+    botName: botName.value,
+    botIntro: botIntro.value,
+    selectedTone: selectedTone.value,
+    defaultLanguage: defaultLanguage.value,
+    visitorInactiveMinutes: visitorInactiveMinutes.value,
+    replyMode: replyMode.value,
+    offlineMessage: offlineMessage.value,
+    transferMessage: transferMessage.value,
+    unsupportedQuestionMessage: unsupportedQuestionMessage.value
+  };
+
+  window.localStorage.setItem(AI_AGENT_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 };
+
+const loadAgentSettings = () => {
+  if (typeof window === "undefined") return;
+
+  try {
+    const raw = window.localStorage.getItem(AI_AGENT_SETTINGS_STORAGE_KEY);
+    if (!raw) return;
+
+    const settings = JSON.parse(raw) as StoredAiAgentSettings;
+
+    if (typeof settings.agentEnabled === "boolean") agentEnabled.value = settings.agentEnabled;
+    if (typeof settings.agentResponseMode === "string") agentResponseMode.value = settings.agentResponseMode;
+    if (typeof settings.showMessageAgentLabel === "boolean") showMessageAgentLabel.value = settings.showMessageAgentLabel;
+    if (typeof settings.botName === "string") botName.value = settings.botName;
+    if (typeof settings.botIntro === "string") botIntro.value = settings.botIntro;
+    if (typeof settings.selectedTone === "string") selectedTone.value = settings.selectedTone;
+    if (typeof settings.defaultLanguage === "string") defaultLanguage.value = settings.defaultLanguage;
+    if (typeof settings.visitorInactiveMinutes === "number") {
+      visitorInactiveMinutes.value = settings.visitorInactiveMinutes;
+    } else if (typeof settings.visitorInactiveHours === "number") {
+      visitorInactiveMinutes.value = settings.visitorInactiveHours * 60;
+    }
+    if (typeof settings.replyMode === "string") replyMode.value = settings.replyMode;
+    if (typeof settings.offlineMessage === "string") offlineMessage.value = settings.offlineMessage;
+    if (typeof settings.transferMessage === "string") transferMessage.value = settings.transferMessage;
+    if (typeof settings.unsupportedQuestionMessage === "string") {
+      unsupportedQuestionMessage.value = settings.unsupportedQuestionMessage;
+    }
+  } catch {}
+};
+
+const saveBasicSettings = () => {
+  persistAgentSettings();
+  emitToast("基本设置已保存");
+};
+
+const saveConversationSettings = () => {
+  persistAgentSettings();
+  emitToast("会话设置已保存");
+};
+
+onMounted(() => {
+  loadAgentSettings();
+});
 
 const activeSectionLabel = computed(() => {
   if (props.activeKey === "doc-knowledge") return "文档知识";
@@ -477,7 +551,6 @@ const emitToast = (message: string) => {
 }
 
 .setting-card__header {
-  border-bottom: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -503,6 +576,10 @@ const emitToast = (message: string) => {
   flex-direction: column;
   gap: var(--agent-space-24);
   padding: var(--agent-space-24);
+}
+
+.setting-card__body--compact {
+  padding-top: 8px;
 }
 
 /* Horizontal form row: label left, control right */
@@ -549,22 +626,26 @@ const emitToast = (message: string) => {
   width: 100%;
 }
 
-/* Inline input (e.g. "超过 [1] 小时...") */
-.form-row__inline {
+.inactive-setting {
   align-items: center;
+  color: var(--agent-color-text-primary);
   display: flex;
-  gap: var(--agent-space-8);
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.form-row__inline-input {
+.inactive-setting__input {
+  max-width: 88px;
+  min-height: 38px;
+  padding-left: 12px;
+  padding-right: 12px;
   text-align: center;
-  width: 72px;
 }
 
-.form-row__inline-text {
+.inactive-setting__text {
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-sm);
-  white-space: nowrap;
+  line-height: 1.6;
 }
 
 /* Switch */
@@ -672,6 +753,10 @@ const emitToast = (message: string) => {
   .form-row__label {
     padding-top: 0;
     width: auto;
+  }
+
+  .inactive-setting {
+    align-items: flex-start;
   }
 }
 </style>
