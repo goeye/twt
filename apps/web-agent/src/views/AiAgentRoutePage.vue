@@ -30,7 +30,7 @@
     <template v-else-if="activeKey === 'ai-agent-config'">
       <header class="agent-content-header">
         <h1 class="agent-content-title">AI Agent</h1>
-        <p class="agent-content-subtitle">配置 AI 机器人的基本信息与会话策略。</p>
+        <p class="agent-content-subtitle">配置 AI 机器人的基本信息与会话策略</p>
       </header>
 
       <nav class="ai-tabs">
@@ -84,7 +84,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">在消息中显示 AI Agent 标签</span>
-                <span class="form-row__desc">开启后，访客端会在 AI Agent 回复消息中看到标签，用于识别。</span>
+                <span class="form-row__desc">开启后，访客端会在 AI Agent 回复消息中看到标签，用于识别</span>
               </div>
               <div class="form-row__control">
                 <label class="agent-switch">
@@ -116,7 +116,7 @@
                     <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
                       {{ botAvatarUrl ? '重新上传' : '上传头像' }}
                     </button>
-                    <span class="bot-avatar-upload__hint">支持 PNG / JPG，上传后可拖动裁剪</span>
+                    <span class="bot-avatar-upload__hint"></span>
                   </div>
                   <input
                     ref="avatarInputRef"
@@ -132,7 +132,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">名称</span>
-                <span class="form-row__desc">AI Agent 在被询问身份相关问题时，将使用该名称进行回复。</span>
+                <span class="form-row__desc">AI Agent 在被询问身份相关问题时，将使用该名称进行回复</span>
               </div>
               <div class="form-row__control">
                 <input
@@ -147,7 +147,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">简介</span>
-                <span class="form-row__desc">描述你的业务，AI Agent 将为你的客户定制专属回复</span>
+                <span class="form-row__desc">描述你的业务，AI Agent 将为你的访客定制专属回复</span>
               </div>
               <div class="form-row__control">
                 <textarea
@@ -182,7 +182,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">默认语言</span>
-                <span class="form-row__desc">无法识别访客语言时，将使用该语言回复。</span>
+                <span class="form-row__desc">无法识别访客语言时，将使用该语言回复</span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input">
@@ -246,26 +246,26 @@
         <section class="setting-card agent-panel">
           <header class="setting-card__header">
             <h2 class="setting-card__title">个性化回复</h2>
-            <p class="setting-card__desc">为关键场景配置访客可见文案，让回复更清晰、更自然。</p>
+            <p class="setting-card__desc">为以下场景设置 AI Agent 的回复语</p>
           </header>
           <div class="setting-card__body">
             <div class="setting-helper-stack">
               <div class="setting-callout">
-                <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本。</p>
+                <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">转接人工客服</span>
-                <span class="form-row__desc">当 AI Agent 准备将会话转接给人工客服时，向访客展示的提示文案。</span>
+                <span class="form-row__desc">当 AI Agent 准备将会话转接给人工客服时，向访客展示的提示文案</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="transferMessage"
                   class="agent-input form-row__textarea"
                   rows="4"
-                  placeholder="请输入转接人工客服时展示的文案"
+                  placeholder="请输入"
                 />
               </div>
             </div>
@@ -273,14 +273,14 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">客服离线</span>
-                <span class="form-row__desc">当客服团队暂时离线时，向访客展示的提示文案。</span>
+                <span class="form-row__desc">当客服团队暂时离线时，向访客展示的提示文案</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="offlineMessage"
                   class="agent-input form-row__textarea"
                   rows="4"
-                  placeholder="请输入客服离线时展示的文案"
+                  placeholder="请输入"
                 />
               </div>
             </div>
@@ -288,14 +288,14 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">暂时无法回答</span>
-                <span class="form-row__desc">当访客发送图片、文件，或问题超出 AI Agent 当前能力范围时展示的提示文案。</span>
+                <span class="form-row__desc">当访客发送图片、文件，或问题超出 AI Agent 当前能力范围时展示的提示文案</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="unsupportedQuestionMessage"
                   class="agent-input form-row__textarea"
                   rows="4"
-                  placeholder="请输入暂时无法回答时展示的文案"
+                  placeholder="请输入"
                 />
               </div>
             </div>
