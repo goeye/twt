@@ -9,10 +9,10 @@
 
           <div class="archive-drawer__actions">
             <button type="button" class="archive-drawer__icon-btn" aria-label="滚动到顶部" @click="scrollToTop">
-              <AgentIcon name="chevron-down" :size="22" class="archive-drawer__icon archive-drawer__icon--up" />
+              <AgentIcon name="chevron-down" :size="18" class="archive-drawer__icon archive-drawer__icon--up" />
             </button>
             <button type="button" class="archive-drawer__icon-btn" aria-label="滚动到底部" @click="scrollToBottom">
-              <AgentIcon name="chevron-down" :size="22" class="archive-drawer__icon" />
+              <AgentIcon name="chevron-down" :size="18" class="archive-drawer__icon" />
             </button>
             <button type="button" class="archive-drawer__icon-btn" aria-label="关闭抽屉" @click="$emit('close')">
               <span class="archive-drawer__close">×</span>
@@ -124,20 +124,20 @@ watch(
 }
 
 .archive-drawer {
-  background: #f3f4f6;
+  background: #f5f6f8;
   border: 1px solid #cdd9f1;
-  border-radius: 26px 0 0 26px;
-  box-shadow: -10px 0 30px rgba(15, 23, 42, 0.08);
+  border-radius: 16px 0 0 16px;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.10);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   height: 100%;
-  max-width: min(860px, 100vw);
-  padding: 26px 28px 28px;
+  max-width: min(520px, 100vw);
+  padding: 18px 20px 20px;
   position: absolute;
   right: 0;
   top: 0;
-  width: 860px;
+  width: 520px;
 }
 
 .archive-drawer__header {
@@ -149,7 +149,7 @@ watch(
 
 .archive-drawer__title {
   color: #222222;
-  font-size: 24px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.3;
   margin: 0;
@@ -169,9 +169,9 @@ watch(
   color: #111111;
   cursor: pointer;
   display: inline-flex;
-  height: 36px;
+  height: 30px;
   justify-content: center;
-  width: 36px;
+  width: 30px;
 }
 
 .archive-drawer__icon-btn:hover {
@@ -187,7 +187,7 @@ watch(
 }
 
 .archive-drawer__close {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 500;
   line-height: 1;
   transform: translateY(-1px);
@@ -197,7 +197,7 @@ watch(
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 34px;
+  gap: 22px;
   min-height: 0;
   padding: 4px 0 8px;
 }
@@ -205,7 +205,7 @@ watch(
 .archive-message {
   align-items: flex-start;
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .archive-message--agent {
@@ -222,13 +222,13 @@ watch(
   color: #ffffff;
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
-  height: 58px;
+  height: 40px;
   justify-content: center;
   margin-top: 2px;
   overflow: hidden;
-  width: 58px;
+  width: 40px;
 }
 
 .archive-message__avatar-image {
@@ -241,8 +241,8 @@ watch(
 .archive-message__content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-width: min(620px, calc(100% - 80px));
+  gap: 5px;
+  max-width: min(380px, calc(100% - 56px));
 }
 
 .archive-message--agent .archive-message__content {
@@ -253,8 +253,8 @@ watch(
   color: #8792a7;
   display: flex;
   flex-wrap: wrap;
-  font-size: 16px;
-  gap: 10px;
+  font-size: 13px;
+  gap: 8px;
   line-height: 1.4;
 }
 
@@ -264,13 +264,13 @@ watch(
 
 .archive-message__bubble {
   background: #fafafa;
-  border-radius: 22px;
+  border-radius: 16px;
   color: #222222;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1.5;
   max-width: 100%;
-  min-height: 52px;
-  padding: 14px 22px;
+  min-height: 40px;
+  padding: 10px 16px;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -281,23 +281,23 @@ watch(
 
 .archive-message__system {
   color: #98a2b3;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
 .archive-drawer__footer {
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .archive-drawer__assign-btn {
   background: #f7f7f7;
   border: 1px solid #d4dbe6;
-  border-radius: 28px;
+  border-radius: 22px;
   color: #185dff;
   cursor: pointer;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 600;
-  height: 82px;
+  height: 52px;
   width: 100%;
 }
 
@@ -325,30 +325,30 @@ watch(
   transform: translateX(100%);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .archive-drawer {
     border-radius: 0;
-    padding: 22px 18px 18px;
+    padding: 16px 14px 14px;
     width: 100vw;
   }
 
   .archive-drawer__title {
-    font-size: 22px;
+    font-size: 16px;
   }
 
   .archive-message__avatar {
-    height: 48px;
-    width: 48px;
+    height: 34px;
+    width: 34px;
   }
 
   .archive-message__meta,
   .archive-message__bubble {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .archive-drawer__assign-btn {
-    font-size: 20px;
-    height: 72px;
+    font-size: 15px;
+    height: 46px;
   }
 }
 </style>

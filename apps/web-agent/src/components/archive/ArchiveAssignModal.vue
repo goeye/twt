@@ -1,87 +1,70 @@
 <template>
-  <BaseModal :open="open" title="分配会话" @close="handleClose">
-    <div class="assign-modal">
-      <div class="assign-modal__left-pane">
-        <div class="assign-modal__search-wrap">
-          <svg class="assign-modal__search-icon" viewBox="0 0 16 16" fill="none">
-            <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3" />
-            <path d="M9.5 9.5L13 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-          </svg>
+  <teleport to="body">
+    <div v-if="open" class="assign-mask" @click.self="$emit('close')">
+      <section class="assign-card" role="dialog" aria-modal="true" @click.stop>
+        <header class="assign-card__header">
+          <h3 class="assign-card__title">分配会话</h3>
+          <button class="assign-card__close" type="button" aria-label="关闭" @click="$emit('close')">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="assign-card__search">
           <input
-            class="assign-modal__search-input"
+            class="assign-card__search-input"
             :value="keyword"
-            placeholder="搜索客服"
+            placeholder="搜索"
             @input="$emit('update:keyword', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="assign-modal__list agent-scroll">
-          <div v-if="agents.length === 0" class="assign-modal__empty">暂无可分配的客服</div>
-          <label
-            v-for="agent in agents"
-            :key="agent.id"
-            class="assign-modal__row"
-            :class="{ 'assign-modal__row--checked': selectedId === agent.id }"
-          >
-            <input
-              class="assign-modal__radio"
-              type="radio"
-              name="assign-agent"
-              :value="agent.id"
-              :checked="selectedId === agent.id"
-              @change="selectAgent(agent.id)"
-            />
-            <div class="assign-modal__agent">
-              <span class="assign-modal__avatar-wrap">
-                <span class="assign-modal__avatar" :style="{ background: agent.avatarColor }">
-                  {{ agent.avatarText }}
-                </span>
-                <span
-                  class="assign-modal__status-dot"
-                  :class="agent.online ? 'assign-modal__status-dot--online' : 'assign-modal__status-dot--offline'"
-                />
-              </span>
-              <span class="assign-modal__name">{{ agent.name }}</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <aside class="assign-modal__right-pane">
-        <p class="assign-modal__selected-title">会话</p>
-        <div class="assign-modal__conversation-card">
-          <p class="assign-modal__conversation-label">当前选择</p>
-          <p class="assign-modal__conversation-name">{{ conversationTitle || '未选择会话' }}</p>
-        </div>
-
-        <p class="assign-modal__selected-title">已选择（{{ selectedAgent ? 1 : 0 }}）</p>
-        <div class="assign-modal__selected-list agent-scroll">
-          <div v-if="selectedAgent" class="assign-modal__selected-item">
-            <span class="assign-modal__avatar" :style="{ background: selectedAgent.avatarColor }">
-              {{ selectedAgent.avatarText }}
-            </span>
-            <span class="assign-modal__selected-name">{{ selectedAgent.name }}</span>
+        <div class="assign-card__list agent-scroll">
+          <div v-if="sortedAgents.length === 0" class="assign-card__empty">
+            <svg class="assign-card__empty-icon" viewBox="0 0 64 48" fill="none">
+              <rect x="6" y="8" width="52" height="32" rx="4" fill="#e8eaed" />
+              <rect x="12" y="14" width="20" height="3" rx="1.5" fill="#c4c9d1" />
+              <rect x="12" y="21" width="32" height="3" rx="1.5" fill="#c4c9d1" />
+              <rect x="12" y="28" width="26" height="3" rx="1.5" fill="#c4c9d1" />
+              <rect x="40" y="2" width="18" height="18" rx="9" fill="#d5d8dd" />
+              <path d="M46 8v6M49 11h-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <span class="assign-card__empty-text">暂无数据</span>
           </div>
-          <div v-else class="assign-modal__selected-empty">请选择一个客服进行分配</div>
-        </div>
-      </aside>
-    </div>
 
-    <template #footer>
-      <span />
-      <div class="assign-modal__footer-actions">
-        <button class="agent-btn agent-btn--ghost" type="button" @click="handleClose">取消</button>
-        <button class="agent-btn agent-btn--primary" type="button" :disabled="!selectedId" @click="handleConfirm">
-          确认分配
-        </button>
-      </div>
-    </template>
-  </BaseModal>
+          <button
+            v-for="agent in sortedAgents"
+            :key="agent.id"
+            type="button"
+            class="assign-card__agent-row"
+            @click="handleSelect(agent.id)"
+          >
+            <span class="assign-card__avatar-wrap">
+              <span class="assign-card__avatar" :style="{ background: agent.avatarColor }">
+                {{ agent.avatarText }}
+              </span>
+              <span
+                class="assign-card__status-dot"
+                :class="agent.online ? 'assign-card__status-dot--online' : 'assign-card__status-dot--offline'"
+              />
+            </span>
+            <span class="assign-card__agent-name">{{ agent.name }}</span>
+            <span
+              class="assign-card__online-tag"
+              :class="agent.online ? 'assign-card__online-tag--on' : 'assign-card__online-tag--off'"
+            >
+              {{ agent.online ? '在线' : '离线' }}
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { BaseModal } from "@twt/ui-agent";
+import { computed } from "vue";
 
 interface AssignAgent {
   id: string;
@@ -104,264 +87,212 @@ const emit = defineEmits<{
   (e: "update:keyword", value: string): void;
 }>();
 
-const selectedId = ref<string | null>(null);
-const selectedSnapshot = ref<AssignAgent | null>(null);
-
-const selectedAgent = computed(() => {
-  if (!selectedId.value) {
-    return null;
-  }
-
-  return props.agents.find((agent) => agent.id === selectedId.value) ?? selectedSnapshot.value;
+const sortedAgents = computed(() => {
+  return [...props.agents].sort((a, b) => {
+    if (a.online === b.online) return 0;
+    return a.online ? -1 : 1;
+  });
 });
 
-watch(
-  () => props.open,
-  (value) => {
-    if (value) {
-      selectedId.value = null;
-      selectedSnapshot.value = null;
-    }
-  }
-);
-
-const selectAgent = (id: string) => {
-  selectedId.value = id;
-  selectedSnapshot.value = props.agents.find((agent) => agent.id === id) ?? null;
-};
-
-const handleConfirm = () => {
-  if (!selectedId.value) {
-    return;
-  }
-
-  emit("confirm", selectedId.value);
-};
-
-const handleClose = () => {
-  selectedId.value = null;
-  selectedSnapshot.value = null;
-  emit("close");
+const handleSelect = (id: string) => {
+  emit("confirm", id);
 };
 </script>
 
 <style scoped>
-:deep(.modal-card) {
-  max-width: 1080px;
-}
-
-:deep(.modal-card__header) {
-  padding: var(--agent-space-20) var(--agent-space-20) var(--agent-space-12);
-}
-
-:deep(.modal-card__body) {
-  padding: 0 var(--agent-space-20) var(--agent-space-16);
-}
-
-:deep(.modal-card__footer) {
-  padding: 0 var(--agent-space-20) var(--agent-space-20);
-}
-
-.assign-modal {
-  display: grid;
-  gap: var(--agent-space-24);
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
-  min-height: 460px;
-}
-
-.assign-modal__left-pane {
-  border-right: 1px solid var(--agent-color-border-default);
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-16);
-  min-width: 0;
-  padding-right: var(--agent-space-24);
-}
-
-.assign-modal__right-pane {
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-12);
-  min-width: 0;
-}
-
-.assign-modal__search-wrap {
+.assign-mask {
   align-items: center;
-  background: #ffffff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
   display: flex;
-  gap: var(--agent-space-8);
-  padding: 0 var(--agent-space-12);
-}
-
-.assign-modal__search-icon {
-  color: var(--agent-color-text-secondary);
-  flex-shrink: 0;
-  height: 14px;
-  width: 14px;
-}
-
-.assign-modal__search-input {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-text-primary);
-  flex: 1;
-  font-size: var(--agent-font-size-sm);
-  height: 40px;
-  outline: none;
-}
-
-.assign-modal__list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-}
-
-.assign-modal__empty,
-.assign-modal__selected-empty {
-  align-items: center;
-  color: var(--agent-color-text-secondary);
-  display: flex;
-  font-size: var(--agent-font-size-sm);
+  inset: 0;
   justify-content: center;
-  min-height: 96px;
+  padding: 24px;
+  position: fixed;
+  z-index: var(--agent-z-modal);
 }
 
-.assign-modal__row {
-  align-items: center;
-  border: 1px solid transparent;
-  border-radius: 16px;
-  cursor: pointer;
+.assign-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
   display: flex;
-  gap: var(--agent-space-12);
-  padding: 12px 14px;
-  transition: border-color var(--agent-motion-fast) ease, background-color var(--agent-motion-fast) ease;
+  flex-direction: column;
+  max-height: 520px;
+  max-width: 420px;
+  width: 100%;
 }
 
-.assign-modal__row:hover {
-  background: var(--agent-color-bg-muted);
+.assign-card__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 22px 0;
 }
 
-.assign-modal__row--checked {
-  background: #eef4ff;
-  border-color: rgba(47, 107, 255, 0.22);
-}
-
-.assign-modal__radio {
-  accent-color: var(--agent-color-brand-primary);
+.assign-card__title {
+  color: #1a1a1a;
+  font-size: 17px;
+  font-weight: 700;
   margin: 0;
 }
 
-.assign-modal__agent {
+.assign-card__close {
   align-items: center;
-  display: flex;
-  gap: var(--agent-space-12);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: #555;
+  cursor: pointer;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
 }
 
-.assign-modal__avatar-wrap {
+.assign-card__close:hover {
+  background: #f0f1f3;
+  color: #222;
+}
+
+.assign-card__search {
+  padding: 16px 22px 8px;
+}
+
+.assign-card__search-input {
+  background: #ffffff;
+  border: 1px solid #dde1e8;
+  border-radius: 10px;
+  color: #1a1a1a;
+  font-size: 14px;
+  height: 40px;
+  outline: none;
+  padding: 0 14px;
+  width: 100%;
+}
+
+.assign-card__search-input::placeholder {
+  color: #b0b6c2;
+}
+
+.assign-card__search-input:focus {
+  border-color: #a0b4e0;
+}
+
+.assign-card__list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 14px 18px;
+}
+
+.assign-card__empty {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  padding: 36px 0;
+}
+
+.assign-card__empty-icon {
+  height: 48px;
+  width: 64px;
+}
+
+.assign-card__empty-text {
+  color: #8792a7;
+  font-size: 14px;
+}
+
+.assign-card__agent-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  padding: 10px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.assign-card__agent-row:hover {
+  background: #f3f5f8;
+}
+
+.assign-card__avatar-wrap {
   display: inline-flex;
+  flex-shrink: 0;
   position: relative;
 }
 
-.assign-modal__avatar {
+.assign-card__avatar {
   align-items: center;
   border-radius: 50%;
   color: #ffffff;
   display: inline-flex;
-  flex-shrink: 0;
   font-size: 13px;
-  font-weight: var(--agent-font-weight-semibold);
-  height: 38px;
+  font-weight: 600;
+  height: 36px;
   justify-content: center;
-  width: 38px;
+  width: 36px;
 }
 
-.assign-modal__status-dot {
+.assign-card__status-dot {
   border: 2px solid #ffffff;
   border-radius: 50%;
-  bottom: 0;
+  bottom: -1px;
   height: 10px;
   position: absolute;
-  right: 0;
+  right: -1px;
   width: 10px;
 }
 
-.assign-modal__status-dot--online {
+.assign-card__status-dot--online {
   background: #22c55e;
 }
 
-.assign-modal__status-dot--offline {
+.assign-card__status-dot--offline {
   background: #9ca3af;
 }
 
-.assign-modal__name,
-.assign-modal__selected-name,
-.assign-modal__conversation-name {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-}
-
-.assign-modal__selected-title,
-.assign-modal__conversation-label {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  margin: 0;
-}
-
-.assign-modal__conversation-card,
-.assign-modal__selected-list {
-  background: #f8fafc;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 18px;
-  padding: 14px;
-}
-
-.assign-modal__conversation-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.assign-modal__conversation-name {
-  margin: 0;
-}
-
-.assign-modal__selected-list {
-  display: flex;
+.assign-card__agent-name {
+  color: #1a1a1a;
   flex: 1;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.assign-modal__selected-item {
-  align-items: center;
-  background: #ffffff;
-  border-radius: 14px;
-  display: flex;
-  gap: 12px;
-  padding: 12px;
+.assign-card__online-tag {
+  border-radius: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
 }
 
-.assign-modal__footer-actions {
-  display: flex;
-  gap: 8px;
+.assign-card__online-tag--on {
+  background: #ecfdf5;
+  color: #16a34a;
 }
 
-@media (max-width: 900px) {
-  .assign-modal {
-    grid-template-columns: 1fr;
-  }
+.assign-card__online-tag--off {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
 
-  .assign-modal__left-pane {
-    border-right: 0;
-    border-bottom: 1px solid var(--agent-color-border-default);
-    padding-bottom: var(--agent-space-16);
-    padding-right: 0;
+@media (max-width: 480px) {
+  .assign-card {
+    border-radius: 14px;
+    max-height: 80vh;
   }
 }
 </style>
