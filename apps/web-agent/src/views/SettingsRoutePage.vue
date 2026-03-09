@@ -118,13 +118,8 @@
         </div>
         <p class="settings-card__inline-desc">
           当客服超过
-          <input
-            v-model.number="agentIdleMinutes"
-            type="number"
-            min="1"
-            class="agent-input settings-inline-number"
-          />
-          分钟未进行操作，自动将其状态更改为离开
+          <TimeDurationInput v-model="agentIdleSeconds" />
+          未进行操作，自动将其状态更改为离开
         </p>
       </article>
 
@@ -144,13 +139,8 @@
         </div>
         <p class="settings-card__inline-desc">
           当客服超过
-          <input
-            v-model.number="sessionTimeoutMinutes"
-            type="number"
-            min="1"
-            class="agent-input settings-inline-number"
-          />
-          分钟未回复访客消息时，会话将自动进入排队中（会话中所有服务客服将会自动释放）
+          <TimeDurationInput v-model="sessionTimeoutSeconds" />
+          未回复访客消息时，会话将自动进入排队中（会话中所有服务客服将会自动释放）
         </p>
       </article>
     </section>
@@ -203,20 +193,10 @@
           </div>
           <p class="settings-card__inline-desc">
             当访客发送消息后，若客服未回复：首次于
-            <input
-              v-model.number="unrepliedFirstMinutes"
-              type="number"
-              min="1"
-              class="agent-input settings-inline-number"
-            />
-            分钟后提醒，后续每
-            <input
-              v-model.number="unrepliedRepeatMinutes"
-              type="number"
-              min="1"
-              class="agent-input settings-inline-number"
-            />
-            分钟后再次提醒，最多提醒4次。
+            <TimeDurationInput v-model="unrepliedFirstSeconds" />
+            后提醒，后续每
+            <TimeDurationInput v-model="unrepliedRepeatSeconds" />
+            后再次提醒，最多提醒4次。
           </p>
         </div>
 
@@ -283,7 +263,7 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { DataTable, type TableColumn } from "@twt/ui-agent";
+import { DataTable, TimeDurationInput, type TableColumn } from "@twt/ui-agent";
 import SettingsAgentsPage from "./SettingsAgentsPage.vue";
 
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
@@ -335,9 +315,9 @@ const chatParamRows: ChatParameterRow[] = [
 ];
 
 const agentIdleEnabled = ref(false);
-const agentIdleMinutes = ref(10);
+const agentIdleSeconds = ref(600);
 const sessionTimeoutEnabled = ref(true);
-const sessionTimeoutMinutes = ref(9);
+const sessionTimeoutSeconds = ref(540);
 
 const quickReplies = ref<string[]>([
   "你好，已收到你的问题，我马上为你处理。",
@@ -454,8 +434,8 @@ interface WebhookTableRow extends Record<string, unknown> {
 
 const webhookUrl = ref("");
 const unrepliedEventEnabled = ref(true);
-const unrepliedFirstMinutes = ref(1);
-const unrepliedRepeatMinutes = ref(10);
+const unrepliedFirstSeconds = ref(60);
+const unrepliedRepeatSeconds = ref(600);
 
 const webhookBodyColumns: TableColumn<WebhookTableRow>[] = [
   { key: "param", title: "参数名", width: "25%" },
@@ -719,16 +699,6 @@ const removeQuickReply = (target: string) => {
   gap: var(--agent-space-8);
   line-height: 1.6;
   margin: 0;
-}
-
-.settings-inline-number {
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
-  font-size: var(--agent-font-size-sm);
-  padding: 6px 10px;
-  text-align: center;
-  width: 64px;
 }
 
 .settings-toggle {

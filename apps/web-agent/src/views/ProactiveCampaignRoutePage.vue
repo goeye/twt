@@ -6,9 +6,11 @@
           <h1 class="agent-content-title">主动营销</h1>
         </div>
         <div class="proactive-list-header__actions">
-          <button type="button" class="agent-btn agent-btn--ghost" @click.stop="openVisitorPerspectiveModal">
-            访客端视角
-          </button>
+          <div class="proactive-lang-switch">
+            <select v-model="globalLang" class="proactive-lang-switch__select">
+              <option v-for="lang in contentLangTabs" :key="lang.key" :value="lang.key">{{ lang.label }}</option>
+            </select>
+          </div>
           <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">+ 新建</button>
         </div>
       </header>
@@ -40,6 +42,14 @@
           </div>
         </template>
       </DataTable>
+
+      <button type="button" class="visitor-perspective-fab" @click.stop="openVisitorPerspectiveModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>访客端视角</span>
+      </button>
     </section>
 
     <section v-else class="campaign-editor">
@@ -544,6 +554,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { AgentSwitch, BaseModal, DataTable, UnsavedChangesModal, type TableColumn } from "@twt/ui-agent";
 
+type LangKey = "en" | "zh-cn" | "zh-tw";
 type ViewMode = "list" | "editor";
 type VisitorPreviewMode = "image-title-desc-buttons" | "image-desc-buttons" | "overflow-scroll";
 type AudienceType = "all" | "first" | "returning";
@@ -634,6 +645,12 @@ const buttonStyleOptions: Array<{ label: string; value: ButtonStyleType }> = [
   { label: "实心按钮", value: "solid" },
   { label: "半透明按钮", value: "translucent" },
   { label: "描边按钮", value: "outline" }
+];
+
+const contentLangTabs: Array<{ key: LangKey; label: string }> = [
+  { key: "en", label: "英文" },
+  { key: "zh-cn", label: "简体中文" },
+  { key: "zh-tw", label: "繁体中文" }
 ];
 
 const audienceLabelMap: Record<AudienceType, string> = {
@@ -752,103 +769,290 @@ const createTemplatePreviewImage = (id: string): string => {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
-const templateLibrary: TemplateItem[] = [
-  {
-    id: "welcome-visitor",
-    name: "欢迎访客",
-    description: "用友好的问候语给访客留下良好的第一印象",
-    tags: ["全部访客", "每访客一次", "客服在线"],
-    previewImage: createTemplatePreviewImage("welcome-visitor"),
-    defaults: createDraft({
+const templateLibraryByLang: Record<LangKey, TemplateItem[]> = {
+  "en": [
+    {
+      id: "welcome-visitor",
+      name: "Welcome Visitor",
+      description: "Greet visitors with a friendly welcome message",
+      tags: ["All Visitors", "Once Per User", "Agent Online"],
+      previewImage: createTemplatePreviewImage("welcome-visitor"),
+      defaults: createDraft({
+        name: "Welcome Visitor",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "Welcome",
+        description: "Looking for something specific? Let us help you",
+        buttons: [createButton({ label: "Contact Us", actionType: "send_message", value: "I need help" })]
+      })
+    },
+    {
+      id: "social-follow",
+      name: "Follow Us",
+      description: "Encourage visitors to follow your social media accounts",
+      tags: ["All Visitors", "Once Per User", "All Day"],
+      previewImage: createTemplatePreviewImage("social-follow"),
+      defaults: createDraft({
+        name: "Follow Social Media",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "Follow Us",
+        description: "Stay updated with our latest content",
+        buttons: [
+          createButton({ label: "Twitter", actionType: "open_link", value: "https://example.com" }),
+          createButton({ label: "Tiktok", actionType: "open_link", value: "https://example.com" })
+        ]
+      })
+    },
+    {
+      id: "newsletter",
+      name: "Important Announcement",
+      description: "Share important announcements and updates with visitors",
+      tags: ["First Visitor", "Once Per User", "Agent Online"],
+      previewImage: createTemplatePreviewImage("newsletter"),
+      defaults: createDraft({
+        name: "Important Announcement",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "Important Notice",
+        description: "Due to weather conditions, deliveries may be delayed by 1-2 days",
+        buttons: [createButton({ label: "Contact Us", actionType: "send_message", value: "I need help" })]
+      })
+    },
+    {
+      id: "flash-sale",
+      name: "Flash Sale",
+      description: "Promote limited-time discount offers to boost conversions",
+      tags: ["First Visitor", "Once Per User", "All Day"],
+      previewImage: createTemplatePreviewImage("flash-sale"),
+      defaults: createDraft({
+        name: "Flash Sale",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "Save on Your Order Today",
+        description: "Copy the promo code to enjoy a limited-time discount. Prices will return to normal after the event",
+        buttons: [createButton({ label: "Get Discount", actionType: "paste_text", value: "20%OFF" })]
+      })
+    },
+    {
+      id: "customer-service",
+      name: "Customer Service",
+      description: "Proactively invite visitors to engage, improving service experience",
+      tags: ["All Visitors", "Every Visit", "Agent Online"],
+      previewImage: createTemplatePreviewImage("customer-service"),
+      defaults: createDraft({
+        name: "Customer Service",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "Need Help?",
+        description: "Our support team is standing by to answer your questions",
+        buttons: [
+          createButton({ label: "Chat Now", actionType: "send_message", value: "I need help" }),
+        ]
+      })
+    },
+    {
+      id: "custom",
+      name: "Custom",
+      description: "Create your own marketing template from scratch",
+      tags: ["Flexible"],
+      previewImage: createTemplatePreviewImage("custom"),
+      defaults: createDraft({
+        name: "Custom",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "Custom",
+        description: "Custom",
+        buttons: [createButton({ label: "Chat Now", actionType: "send_message", value: "I need help" })]
+      })
+    }
+  ],
+  "zh-cn": [
+    {
+      id: "welcome-visitor",
       name: "欢迎访客",
-      trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
-      title: "欢迎",
-      description: "想找特定内容？让我们来帮你",
-      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
-    })
-  },
-  {
-    id: "social-follow",
-    name: "关注我们",
-    description: "引导访客关注你的社交媒体账号，保持互动",
-    tags: ["全部访客", "每访客一次", "全时段"],
-    previewImage: createTemplatePreviewImage("social-follow"),
-    defaults: createDraft({
-      name: "关注社交媒体",
-      trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
-      title: "关注我们",
-      description: "每天更新内容，点击下方渠道即可查看",
-      buttons: [
-        createButton({ label: "Twitter", actionType: "open_link", value: "https://example.com" }),
-        createButton({ label: "Tiktok", actionType: "open_link", value: "https://example.com" })
-      ]
-    })
-  },
-  {
-    id: "newsletter",
-    name: "分享重要通知",
-    description: "告诉访客重要通知及其他相关信息",
-    tags: ["首次访客", "每访客一次", "客服在线"],
-    previewImage: createTemplatePreviewImage("newsletter"),
-    defaults: createDraft({
+      description: "用友好的问候语给访客留下良好的第一印象",
+      tags: ["全部访客", "每访客一次", "客服在线"],
+      previewImage: createTemplatePreviewImage("welcome-visitor"),
+      defaults: createDraft({
+        name: "欢迎访客",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "欢迎",
+        description: "想找特定内容？让我们来帮你",
+        buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
+      })
+    },
+    {
+      id: "social-follow",
+      name: "关注我们",
+      description: "引导访客关注你的社交媒体账号，保持互动",
+      tags: ["全部访客", "每访客一次", "全时段"],
+      previewImage: createTemplatePreviewImage("social-follow"),
+      defaults: createDraft({
+        name: "关注社交媒体",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "关注我们",
+        description: "每天更新内容，点击下方渠道即可查看",
+        buttons: [
+          createButton({ label: "Twitter", actionType: "open_link", value: "https://example.com" }),
+          createButton({ label: "Tiktok", actionType: "open_link", value: "https://example.com" })
+        ]
+      })
+    },
+    {
+      id: "newsletter",
       name: "分享重要通知",
-      trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
-      title: "重要通知",
-      description: "由于天气原因，配送可能延迟 1-2 天",
-      buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
-    })
-  },
-  {
-    id: "flash-sale",
-    name: "限时优惠",
-    description: "推送限时折扣活动，提升转化率",
-    tags: ["首次访客", "每访客一次", "全时段"],
-    previewImage: createTemplatePreviewImage("flash-sale"),
-    defaults: createDraft({
+      description: "告诉访客重要通知及其他相关信息",
+      tags: ["首次访客", "每访客一次", "客服在线"],
+      previewImage: createTemplatePreviewImage("newsletter"),
+      defaults: createDraft({
+        name: "分享重要通知",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "重要通知",
+        description: "由于天气原因，配送可能延迟 1-2 天",
+        buttons: [createButton({ label: "联系我们", actionType: "send_message", value: "我要咨询" })]
+      })
+    },
+    {
+      id: "flash-sale",
       name: "限时优惠",
-      trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
-      title: "今日下单立减",
-      description: "复制优惠码即享限时折扣，活动结束后将恢复原价",
-      buttons: [createButton({ label: "获取折扣", actionType: "paste_text", value: "20%OFF" })]
-    })
-  },
-  {
-    id: "customer-service",
-    name: "客服引导",
-    description: "主动邀请访客进行互动，提升服务体验",
-    tags: ["全部访客", "每次访问", "客服在线"],
-    previewImage: createTemplatePreviewImage("customer-service"),
-    defaults: createDraft({
+      description: "推送限时折扣活动，提升转化率",
+      tags: ["首次访客", "每访客一次", "全时段"],
+      previewImage: createTemplatePreviewImage("flash-sale"),
+      defaults: createDraft({
+        name: "限时优惠",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "今日下单立减",
+        description: "复制优惠码即享限时折扣，活动结束后将恢复原价",
+        buttons: [createButton({ label: "获取折扣", actionType: "paste_text", value: "20%OFF" })]
+      })
+    },
+    {
+      id: "customer-service",
       name: "客服引导",
-      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
-      title: "需要帮助吗？",
-      description: "我们的客服团队在线等候，随时为你解答疑问",
-      buttons: [
-        createButton({ label: "立即咨询", actionType: "send_message", value: "我需要帮助" }),
-      ]
-    })
-  },
-  {
-    id: "custom",
-    name: "自定义",
-    description: "从零开始创建你自己的营销模板",
-    tags: ["自由配置"],
-    previewImage: createTemplatePreviewImage("custom"),
-    defaults: createDraft({
+      description: "主动邀请访客进行互动，提升服务体验",
+      tags: ["全部访客", "每次访问", "客服在线"],
+      previewImage: createTemplatePreviewImage("customer-service"),
+      defaults: createDraft({
+        name: "客服引导",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "需要帮助吗？",
+        description: "我们的客服团队在线等候，随时为你解答疑问",
+        buttons: [
+          createButton({ label: "立即咨询", actionType: "send_message", value: "我需要帮助" }),
+        ]
+      })
+    },
+    {
+      id: "custom",
       name: "自定义",
-      trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
-      title: "自定义",
-      description: "自定义",
-      buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "我要咨询" })]
-    })
-  }
-];
+      description: "从零开始创建你自己的营销模板",
+      tags: ["自由配置"],
+      previewImage: createTemplatePreviewImage("custom"),
+      defaults: createDraft({
+        name: "自定义",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "自定义",
+        description: "自定义",
+        buttons: [createButton({ label: "立即咨询", actionType: "send_message", value: "我要咨询" })]
+      })
+    }
+  ],
+  "zh-tw": [
+    {
+      id: "welcome-visitor",
+      name: "歡迎訪客",
+      description: "用友好的問候語給訪客留下良好的第一印象",
+      tags: ["全部訪客", "每訪客一次", "客服在線"],
+      previewImage: createTemplatePreviewImage("welcome-visitor"),
+      defaults: createDraft({
+        name: "歡迎訪客",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "歡迎",
+        description: "想找特定內容？讓我們來幫你",
+        buttons: [createButton({ label: "聯繫我們", actionType: "send_message", value: "我要諮詢" })]
+      })
+    },
+    {
+      id: "social-follow",
+      name: "關注我們",
+      description: "引導訪客關注你的社交媒體帳號，保持互動",
+      tags: ["全部訪客", "每訪客一次", "全時段"],
+      previewImage: createTemplatePreviewImage("social-follow"),
+      defaults: createDraft({
+        name: "關注社交媒體",
+        trigger: { audience: "all", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "關注我們",
+        description: "每天更新內容，點擊下方渠道即可查看",
+        buttons: [
+          createButton({ label: "Twitter", actionType: "open_link", value: "https://example.com" }),
+          createButton({ label: "Tiktok", actionType: "open_link", value: "https://example.com" })
+        ]
+      })
+    },
+    {
+      id: "newsletter",
+      name: "分享重要通知",
+      description: "告訴訪客重要通知及其他相關資訊",
+      tags: ["首次訪客", "每訪客一次", "客服在線"],
+      previewImage: createTemplatePreviewImage("newsletter"),
+      defaults: createDraft({
+        name: "分享重要通知",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "online_only", delaySeconds: 5 },
+        title: "重要通知",
+        description: "由於天氣原因，配送可能延遲 1-2 天",
+        buttons: [createButton({ label: "聯繫我們", actionType: "send_message", value: "我要諮詢" })]
+      })
+    },
+    {
+      id: "flash-sale",
+      name: "限時優惠",
+      description: "推送限時折扣活動，提升轉化率",
+      tags: ["首次訪客", "每訪客一次", "全時段"],
+      previewImage: createTemplatePreviewImage("flash-sale"),
+      defaults: createDraft({
+        name: "限時優惠",
+        trigger: { audience: "first", frequency: "once_per_user", timing: "all_day", delaySeconds: 5 },
+        title: "今日下單立減",
+        description: "複製優惠碼即享限時折扣，活動結束後將恢復原價",
+        buttons: [createButton({ label: "獲取折扣", actionType: "paste_text", value: "20%OFF" })]
+      })
+    },
+    {
+      id: "customer-service",
+      name: "客服引導",
+      description: "主動邀請訪客進行互動，提升服務體驗",
+      tags: ["全部訪客", "每次訪問", "客服在線"],
+      previewImage: createTemplatePreviewImage("customer-service"),
+      defaults: createDraft({
+        name: "客服引導",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "需要幫助嗎？",
+        description: "我們的客服團隊在線等候，隨時為你解答疑問",
+        buttons: [
+          createButton({ label: "立即諮詢", actionType: "send_message", value: "我需要幫助" }),
+        ]
+      })
+    },
+    {
+      id: "custom",
+      name: "自訂",
+      description: "從零開始建立你自己的行銷範本",
+      tags: ["自由配置"],
+      previewImage: createTemplatePreviewImage("custom"),
+      defaults: createDraft({
+        name: "自訂",
+        trigger: { audience: "all", frequency: "every_visit", timing: "online_only", delaySeconds: 5 },
+        title: "自訂",
+        description: "自訂",
+        buttons: [createButton({ label: "立即諮詢", actionType: "send_message", value: "我要諮詢" })]
+      })
+    }
+  ]
+};
+
+const templateLibrary = computed(() => templateLibraryByLang[globalLang.value]);
 
 const makeInitialTask = (
   templateId: string,
   options: { taskName: string; creator: string; createdAt: string; status?: boolean; displayCount?: number }
 ): ProactiveTask => {
-  const template = templateLibrary.find((item) => item.id === templateId);
+  const allTemplates = templateLibraryByLang["zh-cn"];
+  const template = allTemplates.find((item) => item.id === templateId);
   const draft = cloneDraft(template?.defaults ?? createDraft(), true);
   return {
     id: createId(),
@@ -883,6 +1087,7 @@ const tasks = ref<ProactiveTask[]>([
 ]);
 
 const viewMode = ref<ViewMode>("list");
+const globalLang = ref<LangKey>("en");
 const templateModalOpen = ref(false);
 const triggerModalOpen = ref(false);
 const triggerModalDraft = ref<TriggerCondition | null>(null);
@@ -1006,7 +1211,7 @@ const visitorPreviewPlaceholderImage = (() => {
 
 const visitorPreviewSource = computed(() => {
   const task = tasks.value.find((item) => item.status) ?? tasks.value[0] ?? null;
-  const fallback = templateLibrary[0]?.defaults ?? createDraft();
+  const fallback = templateLibrary.value[0]?.defaults ?? createDraft();
   const buttons = (task?.buttons ?? fallback.buttons)
     .filter((button) => button.label.trim().length > 0)
     .map((button) => ({ label: button.label.trim(), style: button.style ?? ("solid" as ButtonStyleType) }));
@@ -1339,7 +1544,7 @@ const openTemplateSelector = () => {
 };
 
 const createFromTemplate = (templateId: string) => {
-  const template = templateLibrary.find((item) => item.id === templateId);
+  const template = templateLibrary.value.find((item) => item.id === templateId);
   if (!template) {
     emit("toast", "未找到对应模板");
     return;
@@ -1684,6 +1889,7 @@ defineExpose({
   flex-direction: column;
   min-height: 0;
   overflow: visible;
+  position: relative;
 }
 
 .proactive-list-header {
@@ -1700,8 +1906,31 @@ defineExpose({
 }
 
 .proactive-list-header__actions {
+  align-items: center;
   display: inline-flex;
   gap: 8px;
+}
+
+.proactive-lang-switch__select {
+  appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  height: 34px;
+  padding: 0 28px 0 10px;
+  transition: border-color var(--agent-motion-fast) ease;
+}
+
+.proactive-lang-switch__select:hover {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.proactive-lang-switch__select:focus {
+  border-color: var(--agent-color-brand-primary);
+  outline: none;
 }
 
 .proactive-list-card :deep(.agent-table) {
@@ -1726,6 +1955,31 @@ defineExpose({
   overflow: visible;
   padding: 12px 20px;
   position: relative;
+}
+
+.visitor-perspective-fab {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 6px;
+  padding: 10px 18px;
+  position: absolute;
+  right: 20px;
+  transition: border-color var(--agent-motion-fast) ease, box-shadow var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
+  z-index: 5;
+}
+
+.visitor-perspective-fab:hover {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 6px 20px rgba(47, 107, 255, 0.14);
+  color: var(--agent-color-brand-primary);
 }
 
 .proactive-list-card :deep(.agent-table tbody tr:hover td) {

@@ -3,8 +3,17 @@
     <!-- Left: Settings Panel -->
     <div class="wc-settings agent-scroll">
       <header class="wc-settings__header">
-        <h1 class="wc-settings__title">自定义</h1>
-        <p class="wc-settings__subtitle">设置你的聊天小部件功能和显示</p>
+        <div class="wc-settings__header-top">
+          <div>
+            <h1 class="wc-settings__title">自定义</h1>
+            <p class="wc-settings__subtitle">设置你的聊天小部件功能和显示</p>
+          </div>
+          <div class="wc-global-lang">
+            <select v-model="globalLang" class="wc-global-lang__select">
+              <option v-for="lang in contentLangTabs" :key="lang.key" :value="lang.key">{{ lang.label }}</option>
+            </select>
+          </div>
+        </div>
       </header>
 
       <!-- Tab Bar -->
@@ -104,21 +113,7 @@
             </div>
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === 'quickAccess'" class="wc-accordion__body wc-content-row">
-            <span class="wc-content-row__label">访问列表</span>
-            <div class="wc-content-row__right">
-              <div class="wc-lang-tabs wc-lang-tabs--quick-access">
-                <button
-                  v-for="lang in contentLangTabs"
-                  :key="lang.key"
-                  type="button"
-                  class="wc-lang-tab"
-                  :class="{ 'wc-lang-tab--active': activeQuickAccessLang === lang.key }"
-                  @click="activeQuickAccessLang = lang.key as LangKey"
-                >
-                  {{ lang.label }}
-                </button>
-              </div>
+          <div v-if="openSection === 'quickAccess'" class="wc-accordion__body">
               <div class="wc-quick-tags">
                 <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="addQuickAccess">
                   <span class="wc-quick-tag__add-icon" aria-hidden="true">
@@ -139,7 +134,6 @@
                   </button>
                 </div>
               </div>
-            </div>
           </div>
         </article>
 
@@ -175,41 +169,26 @@
             <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop />
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body wc-content-row">
-            <span class="wc-content-row__label">{{ block.title }}</span>
-            <div class="wc-content-row__right">
-              <div class="wc-lang-tabs">
-                <button
-                  v-for="lang in contentLangTabs"
-                  :key="lang.key"
-                  type="button"
-                  class="wc-lang-tab"
-                  :class="{ 'wc-lang-tab--active': activeContentLangs[block.key] === lang.key }"
-                  @click="activeContentLangs[block.key] = lang.key"
-                >
-                  {{ lang.label }}
-                </button>
-              </div>
+          <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body">
               <div class="wc-rich-editor">
                 <textarea
-                  v-model="autoReplyTexts[block.key][activeContentLangs[block.key]]"
+                  v-model="autoReplyTexts[block.key][globalLang]"
                   class="wc-rich-editor__textarea"
                   rows="4"
                 />
                 <div class="wc-rich-editor__images-area">
-                  <div v-for="(img, idx) in autoReplyImages[block.key][activeContentLangs[block.key]]" :key="idx" class="wc-reply-images__item">
+                  <div v-for="(img, idx) in autoReplyImages[block.key][globalLang]" :key="idx" class="wc-reply-images__item">
                     <img :src="img" class="wc-reply-images__thumb" alt="" />
-                    <button type="button" class="wc-reply-images__remove" @click="removeReplyImage(block.key, activeContentLangs[block.key], idx)">
+                    <button type="button" class="wc-reply-images__remove" @click="removeReplyImage(block.key, globalLang, idx)">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
                     </button>
                   </div>
-                  <button v-if="autoReplyImages[block.key][activeContentLangs[block.key]].length < 10" type="button" class="wc-reply-images__add" @click="triggerReplyImageUpload(block.key)">
+                  <button v-if="autoReplyImages[block.key][globalLang].length < 10" type="button" class="wc-reply-images__add" @click="triggerReplyImageUpload(block.key)">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
                   </button>
                 </div>
               </div>
               <p class="wc-upload-hint">支持png、jpg、jpeg格式图片，单张图片小于2MB，最多上传10张</p>
-            </div>
           </div>
         </article>
 
@@ -223,30 +202,15 @@
             <AgentSwitch v-model="feedbackEnabled" @click.stop />
             <span class="wc-accordion__chevron" />
           </button>
-          <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body wc-content-row">
-            <span class="wc-content-row__label">评价标题</span>
-            <div class="wc-content-row__right">
-              <div class="wc-lang-tabs">
-                <button
-                  v-for="lang in contentLangTabs"
-                  :key="lang.key"
-                  type="button"
-                  class="wc-lang-tab"
-                  :class="{ 'wc-lang-tab--active': activeFeedbackLang === lang.key }"
-                  @click="activeFeedbackLang = lang.key as LangKey"
-                >
-                  {{ lang.label }}
-                </button>
-              </div>
+          <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
               <div class="wc-rich-editor">
                 <textarea
-                  v-model="feedbackTitles[activeFeedbackLang]"
+                  v-model="feedbackTitles[globalLang]"
                   class="wc-rich-editor__textarea"
                   rows="3"
                   placeholder="请输入评价标题..."
                 />
               </div>
-            </div>
           </div>
         </article>
 
@@ -265,21 +229,9 @@
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
-            <div class="wc-lang-tabs">
-              <button
-                v-for="lang in formLangTabs"
-                :key="lang.key"
-                type="button"
-                class="wc-lang-tab"
-                :class="{ 'wc-lang-tab--active': activeFormLang === lang.key }"
-                @click="activeFormLang = lang.key"
-              >
-                {{ lang.label }}
-              </button>
-            </div>
             <div class="wc-form-title-row">
               <label class="wc-label">表单标题</label>
-              <input v-model="settings.formTitle" class="agent-input wc-input" placeholder="Welcome! Please fill in the information..." />
+              <input v-model="settings.formTitle[globalLang]" class="agent-input wc-input" placeholder="Welcome! Please fill in the information..." />
             </div>
             <div class="wc-form-fields-section">
               <label class="wc-label">表单字段</label>
@@ -292,8 +244,8 @@
                       <circle cx="8" cy="19" r="1.5" fill="currentColor" /><circle cx="16" cy="19" r="1.5" fill="currentColor" />
                     </svg>
                   </span>
-                  <span class="wc-form-field-label">{{ field.label }}</span>
-                  <input v-model="field.placeholder" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." />
+                  <span class="wc-form-field-label">{{ field.label[globalLang] }}</span>
+                  <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." />
                   <label class="wc-checkbox-label">
                     <input type="checkbox" v-model="field.required" class="wc-checkbox" />
                     必填
@@ -399,15 +351,8 @@
             <div class="wc-visitor-inactive-row">
               <div class="wc-visitor-inactive-row__text">
                 <span>当访客超过</span>
-                <div class="wc-visitor-inactive-row__input-wrap">
-                  <input
-                    v-model.number="settings.visitorInactiveMinutes"
-                    type="number"
-                    min="1"
-                    class="wc-visitor-inactive-row__input"
-                  />
-                </div>
-                <span>分钟未回复客服消息时，会话将会自动关闭</span>
+                <TimeDurationInput v-model="settings.visitorInactiveSeconds" />
+                <span>未回复客服消息时，会话将会自动关闭</span>
               </div>
             </div>
           </div>
@@ -644,13 +589,13 @@
             <div class="wc-widget__msg wc-widget__msg--agent">
               <span class="wc-widget__msg-time">10:32</span>
               <div class="wc-widget__form-card">
-                <p class="wc-widget__form-card-title">{{ settings.formTitle || '请留下您的联系方式，以便我们与您联系：' }}</p>
+                <p class="wc-widget__form-card-title">{{ settings.formTitle[globalLang] || '请留下您的联系方式，以便我们与您联系：' }}</p>
                 <div class="wc-widget__form-card-fields">
                   <div v-for="field in settings.formFields" :key="field.id" class="wc-widget__form-card-field">
                     <label class="wc-widget__form-card-label">
-                      <span v-if="field.required" class="wc-widget__form-card-required">*</span>{{ field.label }}
+                      <span v-if="field.required" class="wc-widget__form-card-required">*</span>{{ field.label[globalLang] }}
                     </label>
-                    <div class="wc-widget__form-card-input">{{ field.placeholder }}</div>
+                    <div class="wc-widget__form-card-input">{{ field.placeholder[globalLang] }}</div>
                   </div>
                 </div>
                 <div class="wc-widget__form-card-submit">提交</div>
@@ -694,7 +639,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { AgentSwitch, BaseModal, UnsavedChangesModal } from "@twt/ui-agent";
+import { AgentSwitch, BaseModal, UnsavedChangesModal, TimeDurationInput } from "@twt/ui-agent";
 
 interface QuickAccessItem {
   id: string;
@@ -702,11 +647,13 @@ interface QuickAccessItem {
   url: string;
 }
 
+type LangKey = "en" | "zh-cn" | "zh-tw";
+
 interface FormField {
   id: string;
   type: "name" | "phone" | "email" | "text" | "select";
-  label: string;
-  placeholder: string;
+  label: Record<LangKey, string>;
+  placeholder: Record<LangKey, string>;
   required: boolean;
 }
 
@@ -744,12 +691,6 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "general", label: "常规" }
 ];
 
-const formLangTabs = [
-  { key: "en", label: "英文" },
-  { key: "zh-cn", label: "简体中文" },
-  { key: "zh-tw", label: "繁体中文" }
-];
-
 const contentLangTabs = [
   { key: "en", label: "英文" },
   { key: "zh-cn", label: "简体中文" },
@@ -757,7 +698,6 @@ const contentLangTabs = [
 ];
 
 type AutoReplyKey = "welcome" | "end" | "sessionOffline" | "chatOffline";
-type LangKey = "en" | "zh-cn" | "zh-tw";
 
 const autoReplyBlocks: { key: AutoReplyKey; title: string; desc: string; placeholder: string }[] = [
   { key: "welcome", title: "欢迎语", desc: "当访客发起会话时，系统自动发送一条欢迎语消息", placeholder: "Hello, is there anything I can help you with?" },
@@ -767,15 +707,10 @@ const autoReplyBlocks: { key: AutoReplyKey; title: string; desc: string; placeho
 ];
 
 const activeTab = ref<TabKey>("appearance");
-const activeQuickAccessLang = ref<LangKey>("en");
-const activeFormLang = ref("en");
+const globalLang = ref<LangKey>("en");
 const previewMode = ref<PreviewMode>("sessionList");
 const previewModeBeforeMinimize = ref<PreviewMode>("sessionList");
 const openSection = ref<SectionKey>("brand");
-
-const activeContentLangs = reactive<Record<AutoReplyKey, LangKey>>({
-  welcome: "en", end: "en", sessionOffline: "en", chatOffline: "en"
-});
 
 const autoReplyToggles = reactive<Record<AutoReplyKey, boolean>>({
   welcome: true, end: true, sessionOffline: true, chatOffline: true
@@ -789,7 +724,6 @@ const autoReplyTexts = reactive<Record<AutoReplyKey, Record<LangKey, string>>>({
 });
 
 const feedbackEnabled = ref(true);
-const activeFeedbackLang = ref<LangKey>("en");
 const feedbackTitles = reactive<Record<LangKey, string>>({
   en: "Please evaluate our service",
   "zh-cn": "请对我们的服务进行评价",
@@ -820,7 +754,7 @@ const handleReplyImageChange = (e: Event) => {
     return;
   }
   const key = uploadingReplyKey.value;
-  const lang = activeContentLangs[key];
+  const lang = globalLang.value;
   if (autoReplyImages[key][lang].length >= 10) {
     emitToast("最多上传10张图片");
     (e.target as HTMLInputElement).value = "";
@@ -840,7 +774,7 @@ const removeReplyImage = (key: AutoReplyKey, lang: LangKey, idx: number) => {
 
 const chatPreviewImages = computed(() => {
   const key = activeAutoReplyKey.value;
-  const lang = activeContentLangs[key];
+  const lang = globalLang.value;
   return autoReplyImages[key][lang];
 });
 
@@ -874,7 +808,7 @@ const defaultSections: Record<TabKey, SectionKey> = {
   appearance: "brand",
   content: "welcome",
   form: "sessionForm",
-  general: "msgStatus"
+  general: "sessionFeatures"
 };
 
 const applyTabSwitch = (key: TabKey) => {
@@ -910,7 +844,7 @@ const showChatPreviewMessage = computed(() => !showQuickAccessPreview.value);
 
 const chatPreviewAgentMsg = computed(() => {
   const key = activeAutoReplyKey.value;
-  const lang = activeContentLangs[key];
+  const lang = globalLang.value;
   return autoReplyTexts[key][lang];
 });
 
@@ -937,7 +871,7 @@ const chatPreviewHeaderTitle = computed(() => {
 });
 
 const feedbackPreviewTitle = computed(() => {
-  return feedbackTitles[activeFeedbackLang.value] || feedbackTitles.en;
+  return feedbackTitles[globalLang.value] || feedbackTitles.en;
 });
 
 const settings = reactive({
@@ -952,11 +886,15 @@ const settings = reactive({
     { id: "qa-2", label: "常见问题", url: "#" }
   ] as QuickAccessItem[],
   enableSessionForm: true,
-  formTitle: "Welcome! Please fill in the information.",
+  formTitle: {
+    en: "Welcome! Please fill in the information.",
+    "zh-cn": "欢迎！请填写以下信息。",
+    "zh-tw": "歡迎！請填寫以下資訊。"
+  } as Record<LangKey, string>,
   formFields: [
-    { id: "f-1", type: "name", label: "姓名", placeholder: "Enter your name", required: true },
-    { id: "f-2", type: "email", label: "邮箱", placeholder: "Enter your email", required: true },
-    { id: "f-3", type: "phone", label: "电话", placeholder: "Enter your phone", required: false }
+    { id: "f-1", type: "name", label: { en: "Name", "zh-cn": "姓名", "zh-tw": "姓名" }, placeholder: { en: "Enter your name", "zh-cn": "请输入姓名", "zh-tw": "請輸入姓名" }, required: true },
+    { id: "f-2", type: "email", label: { en: "Email", "zh-cn": "邮箱", "zh-tw": "郵箱" }, placeholder: { en: "Enter your email", "zh-cn": "请输入邮箱", "zh-tw": "請輸入郵箱" }, required: true },
+    { id: "f-3", type: "phone", label: { en: "Phone", "zh-cn": "电话", "zh-tw": "電話" }, placeholder: { en: "Enter your phone", "zh-cn": "请输入电话", "zh-tw": "請輸入電話" }, required: false }
   ] as FormField[],
   enableReadReceipt: true,
   showAgentOnlineStatus: true,
@@ -967,7 +905,7 @@ const settings = reactive({
   enableDeleteSession: false,
   enableEndSession: false,
   enableVisitorInactive: true,
-  visitorInactiveMinutes: 120
+  visitorInactiveSeconds: 7200
 });
 
 const showChatPreviewOnlineStatus = computed(() => {
@@ -1089,7 +1027,7 @@ const removeQuickAccess = (id: string) => {
 let fieldCounter = 4;
 const addFormField = () => {
   const id = `f-${fieldCounter++}`;
-  settings.formFields.push({ id, type: "text", label: "自定义字段", placeholder: "请输入...", required: false });
+  settings.formFields.push({ id, type: "text", label: { en: "Custom Field", "zh-cn": "自定义字段", "zh-tw": "自定義欄位" }, placeholder: { en: "Please enter...", "zh-cn": "请输入...", "zh-tw": "請輸入..." }, required: false });
 };
 
 const removeFormField = (idx: number) => {
@@ -1109,8 +1047,8 @@ const getConfigSnapshot = () => JSON.stringify({
     hideBrandLogo: settings.hideBrandLogo,
     quickAccessItems: settings.quickAccessItems.map((item) => ({ ...item })),
     enableSessionForm: settings.enableSessionForm,
-    formTitle: settings.formTitle,
-    formFields: settings.formFields.map((field) => ({ ...field })),
+    formTitle: { ...settings.formTitle },
+    formFields: settings.formFields.map((field) => ({ ...field, label: { ...field.label }, placeholder: { ...field.placeholder } })),
     enableReadReceipt: settings.enableReadReceipt,
     showAgentOnlineStatus: settings.showAgentOnlineStatus,
     hideContactUs: settings.hideContactUs,
@@ -1120,7 +1058,7 @@ const getConfigSnapshot = () => JSON.stringify({
     enableDeleteSession: settings.enableDeleteSession,
     enableEndSession: settings.enableEndSession,
     enableVisitorInactive: settings.enableVisitorInactive,
-    visitorInactiveMinutes: settings.visitorInactiveMinutes
+    visitorInactiveSeconds: settings.visitorInactiveSeconds
   },
   autoReplyToggles: { ...autoReplyToggles },
   autoReplyTexts: {
@@ -1171,7 +1109,7 @@ const restoreSavedSnapshot = () => {
       hideBrandLogo: boolean;
       quickAccessItems: QuickAccessItem[];
       enableSessionForm: boolean;
-      formTitle: string;
+      formTitle: Record<LangKey, string>;
       formFields: FormField[];
       enableReadReceipt: boolean;
       showAgentOnlineStatus: boolean;
@@ -1182,7 +1120,7 @@ const restoreSavedSnapshot = () => {
       enableDeleteSession: boolean;
       enableEndSession: boolean;
       enableVisitorInactive: boolean;
-      visitorInactiveMinutes: number;
+      visitorInactiveSeconds: number;
     };
     autoReplyToggles: Record<AutoReplyKey, boolean>;
     autoReplyTexts: Record<AutoReplyKey, Record<LangKey, string>>;
@@ -1199,8 +1137,8 @@ const restoreSavedSnapshot = () => {
   settings.hideBrandLogo = snapshot.settings.hideBrandLogo;
   settings.quickAccessItems = snapshot.settings.quickAccessItems.map((item) => ({ ...item }));
   settings.enableSessionForm = snapshot.settings.enableSessionForm;
-  settings.formTitle = snapshot.settings.formTitle;
-  settings.formFields = snapshot.settings.formFields.map((field) => ({ ...field }));
+  settings.formTitle = { ...snapshot.settings.formTitle };
+  settings.formFields = snapshot.settings.formFields.map((field) => ({ ...field, label: { ...field.label }, placeholder: { ...field.placeholder } }));
   settings.enableReadReceipt = snapshot.settings.enableReadReceipt;
   settings.showAgentOnlineStatus = snapshot.settings.showAgentOnlineStatus;
   settings.hideContactUs = snapshot.settings.hideContactUs;
@@ -1210,7 +1148,7 @@ const restoreSavedSnapshot = () => {
   settings.enableDeleteSession = snapshot.settings.enableDeleteSession;
   settings.enableEndSession = snapshot.settings.enableEndSession;
   settings.enableVisitorInactive = snapshot.settings.enableVisitorInactive;
-  settings.visitorInactiveMinutes = snapshot.settings.visitorInactiveMinutes;
+  settings.visitorInactiveSeconds = snapshot.settings.visitorInactiveSeconds;
 
   autoReplyKeys.forEach((key) => {
     autoReplyToggles[key] = snapshot.autoReplyToggles[key];
@@ -1338,6 +1276,13 @@ defineExpose({
   gap: 4px;
 }
 
+.wc-settings__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--agent-space-12);
+}
+
 .wc-settings__title {
   color: var(--agent-color-text-primary);
   font-size: 20px;
@@ -1349,6 +1294,37 @@ defineExpose({
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   margin: 0;
+}
+
+/* Global Language Switch */
+.wc-global-lang {
+  flex-shrink: 0;
+}
+
+.wc-global-lang__select {
+  appearance: none;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  outline: none;
+  padding: 8px 28px 8px 12px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.wc-global-lang__select:hover {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-global-lang__select:focus {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
 
 /* Tabs */
@@ -1627,24 +1603,6 @@ defineExpose({
   gap: 8px;
 }
 
-.wc-visitor-inactive-row__input-wrap {
-  display: inline-flex;
-}
-
-.wc-visitor-inactive-row__input {
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
-  font-size: 14px;
-  padding: 6px 10px;
-  text-align: center;
-  width: 72px;
-}
-
-.wc-visitor-inactive-row__input:focus {
-  border-color: var(--agent-color-brand-primary);
-  outline: none;
-}
-
 .wc-session-feature-card {
   border: 1px solid var(--agent-color-border-default);
   border-radius: 24px;
@@ -1844,66 +1802,6 @@ defineExpose({
   height: 1px;
 }
 
-/* Language tabs */
-.wc-lang-tabs {
-  border-bottom: 1px solid var(--agent-color-border-default);
-  display: flex;
-  gap: 0;
-}
-
-.wc-lang-tab {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-text-tertiary);
-  cursor: pointer;
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  padding: 8px 12px;
-  position: relative;
-  transition: color 0.15s;
-}
-
-.wc-lang-tab:hover { color: var(--agent-color-text-primary); }
-
-.wc-lang-tab--active { color: var(--agent-color-brand-primary); }
-
-.wc-lang-tab--active::after {
-  background: var(--agent-color-brand-primary);
-  border-radius: 2px 2px 0 0;
-  bottom: 0;
-  content: "";
-  height: 2px;
-  left: 8px;
-  position: absolute;
-  right: 8px;
-}
-
-.wc-lang-tabs--quick-access {
-  margin-bottom: 16px;
-}
-
-.wc-lang-tabs--quick-access .wc-lang-tab {
-  color: #111827;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 12px 0 14px;
-}
-
-.wc-lang-tabs--quick-access .wc-lang-tab + .wc-lang-tab {
-  margin-left: 32px;
-}
-
-.wc-lang-tabs--quick-access .wc-lang-tab--active {
-  color: #111827;
-}
-
-.wc-lang-tabs--quick-access .wc-lang-tab--active::after {
-  border-radius: 999px;
-  height: 2px;
-  left: 0;
-  right: 0;
-}
-
 /* Quick access tags */
 .wc-quick-tags {
   align-items: center;
@@ -2015,32 +1913,6 @@ defineExpose({
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-semibold);
-}
-
-/* Content row: label left, input right */
-.wc-content-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: var(--agent-space-16);
-}
-
-.wc-content-row__label {
-  color: var(--agent-color-text-primary);
-  flex-shrink: 0;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-semibold);
-  line-height: 1.4;
-  padding-top: 6px;
-  width: 80px;
-}
-
-.wc-content-row__right {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--agent-space-8);
-  min-width: 0;
 }
 
 /* Rich editor */
