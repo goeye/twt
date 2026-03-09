@@ -672,18 +672,7 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
-    <BaseModal :open="unsavedChangesModalOpen" title="未保存的更改" @close="cancelPendingNavigation">
-      <div class="wc-unsaved-modal">
-        <p class="wc-unsaved-modal__desc">继续操作会放弃本次修改，确定吗？</p>
-      </div>
-      <template #footer>
-        <span />
-        <div class="wc-unsaved-modal__actions">
-          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在这里</button>
-          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">放弃更改</button>
-        </div>
-      </template>
-    </BaseModal>
+    <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
 
     <!-- Image Crop Modal -->
     <teleport to="body">
@@ -705,7 +694,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { AgentSwitch, BaseModal } from "@twt/ui-agent";
+import { AgentSwitch, BaseModal, UnsavedChangesModal } from "@twt/ui-agent";
 
 interface QuickAccessItem {
   id: string;
@@ -3073,23 +3062,6 @@ defineExpose({
 .wc-crop-modal__actions {
   display: flex;
   gap: var(--agent-space-12);
-  justify-content: flex-end;
-}
-
-.wc-unsaved-modal {
-  padding-top: 8px;
-}
-
-.wc-unsaved-modal__desc {
-  color: var(--agent-color-text-secondary);
-  font-size: 14px;
-  line-height: 1.7;
-  margin: 0;
-}
-
-.wc-unsaved-modal__actions {
-  display: flex;
-  gap: 12px;
   justify-content: flex-end;
 }
 

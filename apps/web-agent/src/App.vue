@@ -183,7 +183,7 @@
     <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">
       <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
-      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" @toast="showTopToast" />
+      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
     </template>
 
     <section v-else class="agent-content-page module-page">
@@ -349,6 +349,11 @@ type WidgetCustomizePageExpose = {
 };
 
 type AiAgentPageExpose = {
+  requestNavigation: (action: () => void) => boolean;
+  hasUnsavedChanges: () => boolean;
+};
+
+type ProactiveCampaignPageExpose = {
   requestNavigation: (action: () => void) => boolean;
   hasUnsavedChanges: () => boolean;
 };
@@ -938,11 +943,14 @@ const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
 const widgetCustomizePageRef = ref<WidgetCustomizePageExpose | null>(null);
 const aiAgentPageRef = ref<AiAgentPageExpose | null>(null);
+const proactiveCampaignPageRef = ref<ProactiveCampaignPageExpose | null>(null);
 const aiAgentProfile = ref(resolveAiAgentProfile());
 const customizeDirty = ref(false);
 const aiAgentDirty = ref(false);
+const proactiveCampaignDirty = ref(false);
 const allowCustomizeRouteLeaveOnce = ref(false);
 const allowAiAgentRouteLeaveOnce = ref(false);
+const allowProactiveCampaignRouteLeaveOnce = ref(false);
 const showToast = ref(false);
 const toastMessage = ref("");
 let toastTimer: number | undefined;
@@ -1274,6 +1282,19 @@ const handleAiAgentDirtyChange = (dirty: boolean) => {
   aiAgentDirty.value = dirty;
 };
 
+const handleProactiveCampaignDirtyChange = (dirty: boolean) => {
+  proactiveCampaignDirty.value = dirty;
+};
+
+const requestProactiveCampaignNavigation = (action: () => void) => {
+  const guard = proactiveCampaignPageRef.value;
+  if (!guard) {
+    action();
+    return;
+  }
+  guard.requestNavigation(action);
+};
+
 const handleMainNavSelect = (key: string) => {
   const nextPath = navRoutePathMap[key];
   if (!nextPath) {
@@ -1323,6 +1344,13 @@ const handleAiNavSelect = (key: string) => {
 
 const handleCampaignNavSelect = (key: string) => {
   if (key === "campaign-chatting" || key === "campaign-proactive") {
+    if (activeCampaignNavKey.value === key) return;
+    if (activeCampaignNavKey.value === "campaign-proactive") {
+      requestProactiveCampaignNavigation(() => {
+        activeCampaignNavKey.value = key;
+      });
+      return;
+    }
     activeCampaignNavKey.value = key;
   }
 };
@@ -1613,6 +1641,24 @@ const removeAiAgentRouteGuard = router.beforeEach((to, from) => {
   return false;
 });
 
+const removeProactiveCampaignRouteGuard = router.beforeEach((to, from) => {
+  if (allowProactiveCampaignRouteLeaveOnce.value) {
+    allowProactiveCampaignRouteLeaveOnce.value = false;
+    return true;
+  }
+  if (to.fullPath === from.fullPath) {
+    return true;
+  }
+  if (from.name !== "campaign" || activeCampaignNavKey.value !== "campaign-proactive" || !proactiveCampaignDirty.value) {
+    return true;
+  }
+  requestProactiveCampaignNavigation(() => {
+    allowProactiveCampaignRouteLeaveOnce.value = true;
+    router.push(to.fullPath);
+  });
+  return false;
+});
+
 watch(
   visibleSessions,
   (list) => {
@@ -1641,6 +1687,7 @@ watch(
 onBeforeUnmount(() => {
   removeCustomizeRouteGuard();
   removeAiAgentRouteGuard();
+  removeProactiveCampaignRouteGuard();
   if (toastTimer) {
     window.clearTimeout(toastTimer);
   }

@@ -316,18 +316,7 @@
       </p>
       <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('功能开发中')">了解更多</button>
     </section>
-    <BaseModal :open="unsavedChangesModalOpen" title="未保存的更改" @close="cancelPendingNavigation">
-      <div class="ai-agent-unsaved-modal">
-        <p class="ai-agent-unsaved-modal__desc">继续操作会放弃本次修改，确定吗？</p>
-      </div>
-      <template #footer>
-        <span />
-        <div class="ai-agent-unsaved-modal__actions">
-          <button type="button" class="agent-btn agent-btn--ghost" @click="cancelPendingNavigation">留在这里</button>
-          <button type="button" class="agent-btn agent-btn--primary" @click="confirmPendingNavigation">放弃更改</button>
-        </div>
-      </template>
-    </BaseModal>
+    <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
 
     <BaseModal :open="cropModalOpen" title="图片裁剪" max-width="580px" @close="closeCropModal">
       <div v-if="cropState.imageSrc" class="avatar-crop-modal">
@@ -345,7 +334,7 @@
       </div>
       <template #footer>
         <span />
-        <div class="ai-agent-unsaved-modal__actions">
+        <div class="modal-footer-actions">
           <button type="button" class="agent-btn agent-btn--ghost" @click="closeCropModal">取消</button>
           <button type="button" class="agent-btn agent-btn--primary" @click="confirmCropImage">确定</button>
         </div>
@@ -356,7 +345,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { BaseModal, CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
+import { BaseModal, CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
 import {
   type StoredAiAgentSettings,
   loadStoredAiAgentSettings,
@@ -1127,17 +1116,7 @@ defineExpose({
   font-weight: var(--agent-font-weight-medium);
 }
 
-.ai-agent-unsaved-modal {
-  padding: 6px 0;
-}
-
-.ai-agent-unsaved-modal__desc {
-  color: var(--agent-color-text-secondary);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.ai-agent-unsaved-modal__actions {
+.modal-footer-actions {
   display: flex;
   gap: 8px;
 }

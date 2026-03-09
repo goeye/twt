@@ -21,6 +21,7 @@ export { default as MessageComposer } from "./components/composer/MessageCompose
 export { default as DetailPanel } from "./components/detail/DetailPanel.vue";
 
 export { default as BaseModal } from "./components/overlay/BaseModal.vue";
+export { default as UnsavedChangesModal } from "./components/overlay/UnsavedChangesModal.vue";
 export { default as TransferModal } from "./components/overlay/TransferModal.vue";
 export { default as InviteModal } from "./components/overlay/InviteModal.vue";
 

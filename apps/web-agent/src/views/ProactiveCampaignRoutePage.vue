@@ -45,7 +45,7 @@
     <section v-else class="campaign-editor">
       <header class="campaign-editor__header">
         <div class="campaign-editor__title-row">
-          <button type="button" class="campaign-editor__back-btn" aria-label="返回主动营销列表" @click="cancelEditor">
+          <button type="button" class="campaign-editor__back-btn" aria-label="返回主动营销列表" @click="guardedCancelEditor">
             <span aria-hidden="true">←</span>
           </button>
           <h1 class="agent-content-title">{{ editingTaskId ? "编辑主动营销" : "新建主动营销" }}</h1>
@@ -164,17 +164,27 @@
                   </button>
                 </header>
 
-                <div class="editor-field">
-                  <label class="editor-field__label">按钮文案</label>
-                  <input
-                    v-model="button.label"
-                    class="agent-input"
-                    :class="{ 'agent-input--error': shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button)) }"
-                    maxlength="20"
-                    placeholder="请输入按钮文案"
-                    @blur="markEditorFieldTouched(`button-label-${button.id}`)"
-                  />
-                  <p v-if="shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button))" class="editor-field__error">请输入按钮文案</p>
+                <div class="button-editor-item__fields-row">
+                  <div class="editor-field">
+                    <label class="editor-field__label">按钮样式</label>
+                    <select v-model="button.style" class="agent-input button-action-select">
+                      <option v-for="option in buttonStyleOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="editor-field">
+                    <label class="editor-field__label">按钮文案</label>
+                    <input
+                      v-model="button.label"
+                      class="agent-input"
+                      :class="{ 'agent-input--error': shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button)) }"
+                      maxlength="20"
+                      placeholder="请输入按钮文案"
+                      @blur="markEditorFieldTouched(`button-label-${button.id}`)"
+                    />
+                    <p v-if="shouldShowEditorFieldError(`button-label-${button.id}`, isButtonLabelEmpty(button))" class="editor-field__error">请输入按钮文案</p>
+                  </div>
                 </div>
 
                 <div class="editor-field">
@@ -219,11 +229,15 @@
                     <p class="preview-bubble__desc">{{ editorDraft.description || "请输入" }}</p>
                     <div class="preview-bubble__actions">
                       <button
-                        v-for="(button, index) in editorDraft.buttons"
+                        v-for="button in editorDraft.buttons"
                         :key="button.id"
                         type="button"
                         class="preview-bubble__btn"
-                        :class="{ 'preview-bubble__btn--primary': index === 0 }"
+                        :class="{
+                          'preview-bubble__btn--primary': button.style === 'solid',
+                          'preview-bubble__btn--translucent': button.style === 'translucent',
+                          'preview-bubble__btn--outline': button.style === 'outline'
+                        }"
                       >
                         {{ button.label || "请输入" }}
                       </button>
@@ -238,7 +252,7 @@
       </div>
 
       <footer class="campaign-editor__footer agent-panel">
-        <button type="button" class="agent-btn agent-btn--ghost" @click="cancelEditor">取消</button>
+        <button type="button" class="agent-btn agent-btn--ghost" @click="guardedCancelEditor">取消</button>
         <button type="button" class="agent-btn agent-btn--primary" @click="saveEditor">保存并开启</button>
       </footer>
     </section>
@@ -437,14 +451,18 @@
                 </p>
                 <div class="preview-bubble__actions">
                   <button
-                    v-for="(buttonLabel, index) in visitorPreviewContent.buttonLabels"
-                    :key="`${visitorPreviewMode}-${buttonLabel}-${index}`"
+                    v-for="(btn, index) in visitorPreviewContent.buttons"
+                    :key="`${visitorPreviewMode}-${btn.label}-${index}`"
                     type="button"
                     class="preview-bubble__btn"
-                    :class="{ 'preview-bubble__btn--primary': index === 0 }"
-                    @click="handleVisitorBubbleAction(buttonLabel)"
+                    :class="{
+                      'preview-bubble__btn--primary': btn.style === 'solid',
+                      'preview-bubble__btn--translucent': btn.style === 'translucent',
+                      'preview-bubble__btn--outline': btn.style === 'outline'
+                    }"
+                    @click="handleVisitorBubbleAction(btn.label)"
                   >
-                    {{ buttonLabel }}
+                    {{ btn.label }}
                   </button>
                 </div>
               </section>
@@ -517,12 +535,14 @@
         </div>
       </template>
     </BaseModal>
+
+    <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { AgentSwitch, BaseModal, DataTable, type TableColumn } from "@twt/ui-agent";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { AgentSwitch, BaseModal, DataTable, UnsavedChangesModal, type TableColumn } from "@twt/ui-agent";
 
 type ViewMode = "list" | "editor";
 type VisitorPreviewMode = "image-title-desc-buttons" | "image-desc-buttons" | "overflow-scroll";
@@ -530,6 +550,7 @@ type AudienceType = "all" | "first" | "returning";
 type DisplayFrequency = "every_visit" | "once_per_user";
 type DisplayTiming = "online_only" | "all_day";
 type ButtonActionType = "open_link" | "send_message" | "paste_text";
+type ButtonStyleType = "solid" | "translucent" | "outline";
 
 interface TriggerCondition {
   audience: AudienceType;
@@ -541,6 +562,7 @@ interface TriggerCondition {
 interface ActionButtonConfig {
   id: string;
   label: string;
+  style: ButtonStyleType;
   actionType: ButtonActionType;
   value: string;
 }
@@ -583,6 +605,7 @@ interface ProactiveTaskRow extends Record<string, unknown> {
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "dirty-change", dirty: boolean): void;
 }>();
 
 const audienceOptions: Array<{ label: string; value: AudienceType }> = [
@@ -605,6 +628,12 @@ const actionTypeOptions: Array<{ label: string; value: ButtonActionType }> = [
   { label: "打开链接", value: "open_link" },
   { label: "发送消息", value: "send_message" },
   { label: "复制文本", value: "paste_text" }
+];
+
+const buttonStyleOptions: Array<{ label: string; value: ButtonStyleType }> = [
+  { label: "实心按钮", value: "solid" },
+  { label: "半透明按钮", value: "translucent" },
+  { label: "描边按钮", value: "outline" }
 ];
 
 const audienceLabelMap: Record<AudienceType, string> = {
@@ -645,6 +674,7 @@ const defaultTrigger = (): TriggerCondition => ({
 const createButton = (overrides: Partial<Omit<ActionButtonConfig, "id">> = {}): ActionButtonConfig => ({
   id: createId(),
   label: "联系我们",
+  style: "solid",
   actionType: "send_message",
   value: "我要咨询",
   ...overrides
@@ -865,6 +895,9 @@ const editorFieldTouched = ref<Record<string, boolean>>({});
 const triggerDelayTouched = ref(false);
 const draggingButtonIndex = ref<number | null>(null);
 const dragOverButtonIndex = ref<number | null>(null);
+const editorSnapshot = ref<string | null>(null);
+const unsavedChangesModalOpen = ref(false);
+const pendingNavigationAction = ref<(() => void) | null>(null);
 const headerImageInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
 const cropDragging = ref(false);
@@ -974,15 +1007,15 @@ const visitorPreviewPlaceholderImage = (() => {
 const visitorPreviewSource = computed(() => {
   const task = tasks.value.find((item) => item.status) ?? tasks.value[0] ?? null;
   const fallback = templateLibrary[0]?.defaults ?? createDraft();
-  const buttonLabels = (task?.buttons ?? fallback.buttons)
-    .map((button) => button.label.trim())
-    .filter((label) => label.length > 0);
+  const buttons = (task?.buttons ?? fallback.buttons)
+    .filter((button) => button.label.trim().length > 0)
+    .map((button) => ({ label: button.label.trim(), style: button.style ?? ("solid" as ButtonStyleType) }));
 
   return {
     headerImage: task?.headerImage || fallback.headerImage || visitorPreviewPlaceholderImage,
     title: task?.title || fallback.title || "欢迎",
     description: task?.description || fallback.description || "想找特定内容？让我们来帮你。",
-    buttonLabels: buttonLabels.length > 0 ? buttonLabels : ["立即咨询"]
+    buttons: buttons.length > 0 ? buttons : [{ label: "立即咨询", style: "solid" as ButtonStyleType }]
   };
 });
 
@@ -994,7 +1027,7 @@ const visitorPreviewContent = computed(() => {
       title: source.title,
       showTitle: false,
       description: source.description,
-      buttonLabels: source.buttonLabels.slice(0, 5),
+      buttons: source.buttons.slice(0, 5),
       overflowScroll: false
     };
   }
@@ -1005,7 +1038,13 @@ const visitorPreviewContent = computed(() => {
       title: overflowTitleText,
       showTitle: true,
       description: overflowDescriptionText,
-      buttonLabels: ["立即咨询", "领取折扣", "查看活动", "获取报价", "联系顾问"],
+      buttons: [
+        { label: "立即咨询", style: "solid" as ButtonStyleType },
+        { label: "领取折扣", style: "translucent" as ButtonStyleType },
+        { label: "查看活动", style: "outline" as ButtonStyleType },
+        { label: "获取报价", style: "translucent" as ButtonStyleType },
+        { label: "联系顾问", style: "solid" as ButtonStyleType }
+      ],
       overflowScroll: true
     };
   }
@@ -1015,7 +1054,7 @@ const visitorPreviewContent = computed(() => {
     title: source.title,
     showTitle: true,
     description: source.description,
-    buttonLabels: source.buttonLabels.slice(0, 5),
+    buttons: source.buttons.slice(0, 5),
     overflowScroll: false
   };
 });
@@ -1308,6 +1347,7 @@ const createFromTemplate = (templateId: string) => {
 
   editingTaskId.value = null;
   editorDraft.value = cloneDraft(template.defaults, true);
+  editorSnapshot.value = JSON.stringify(editorDraft.value);
   resetEditorValidationState();
   templateModalOpen.value = false;
   viewMode.value = "editor";
@@ -1334,6 +1374,7 @@ const startEdit = (taskId: string) => {
 
   editingTaskId.value = task.id;
   editorDraft.value = cloneDraft(task);
+  editorSnapshot.value = JSON.stringify(editorDraft.value);
   resetEditorValidationState();
   viewMode.value = "editor";
   closeActionMenu();
@@ -1359,8 +1400,18 @@ const cancelEditor = () => {
   viewMode.value = "list";
   editingTaskId.value = null;
   editorDraft.value = null;
+  editorSnapshot.value = null;
   triggerModalOpen.value = false;
   triggerModalDraft.value = null;
+};
+
+const guardedCancelEditor = () => {
+  if (hasUnsavedChanges.value) {
+    pendingNavigationAction.value = cancelEditor;
+    unsavedChangesModalOpen.value = true;
+    return;
+  }
+  cancelEditor();
 };
 
 const saveEditor = () => {
@@ -1557,6 +1608,65 @@ const removeHeaderImage = () => {
   if (!editorDraft.value) return;
   editorDraft.value.headerImage = "";
 };
+
+const getEditorDraftSnapshot = () => {
+  if (!editorDraft.value) return null;
+  return JSON.stringify(editorDraft.value);
+};
+
+const hasUnsavedChanges = computed(() => {
+  if (viewMode.value !== "editor" || !editorDraft.value || !editorSnapshot.value) return false;
+  return getEditorDraftSnapshot() !== editorSnapshot.value;
+});
+
+const requestNavigation = (action: () => void) => {
+  if (!hasUnsavedChanges.value) {
+    action();
+    return true;
+  }
+  pendingNavigationAction.value = action;
+  unsavedChangesModalOpen.value = true;
+  return false;
+};
+
+const cancelPendingNavigation = () => {
+  pendingNavigationAction.value = null;
+  unsavedChangesModalOpen.value = false;
+};
+
+const confirmPendingNavigation = () => {
+  const action = pendingNavigationAction.value;
+  cancelPendingNavigation();
+  cancelEditor();
+  action?.();
+};
+
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (!hasUnsavedChanges.value) return;
+  event.preventDefault();
+  event.returnValue = "";
+};
+
+watch(
+  hasUnsavedChanges,
+  (dirty) => {
+    emit("dirty-change", dirty);
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  window.addEventListener("beforeunload", handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+});
+
+defineExpose({
+  requestNavigation,
+  hasUnsavedChanges: () => hasUnsavedChanges.value
+});
 </script>
 
 <style scoped>
@@ -1992,6 +2102,12 @@ const removeHeaderImage = () => {
   cursor: grabbing;
 }
 
+.button-editor-item__fields-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
 .button-editor-item__drag-handle:hover {
   color: #64748b;
 }
@@ -2176,10 +2292,10 @@ const removeHeaderImage = () => {
 }
 
 .preview-bubble__btn {
-  background: #f3f6ff;
-  border: 1px solid #d5e1ff;
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-brand-primary);
   border-radius: 9px;
-  color: #355a9b;
+  color: #fff;
   cursor: default;
   font-size: 13px;
   padding: 8px 10px;
@@ -2191,6 +2307,18 @@ const removeHeaderImage = () => {
   background: var(--agent-color-brand-primary);
   border-color: var(--agent-color-brand-primary);
   color: #fff;
+}
+
+.preview-bubble__btn--translucent {
+  background: #f3f6ff;
+  border-color: #d5e1ff;
+  color: #355a9b;
+}
+
+.preview-bubble__btn--outline {
+  background: transparent;
+  border: 1px solid #8ba5d6;
+  color: #355a9b;
 }
 
 .preview-fab {
@@ -2523,13 +2651,23 @@ const removeHeaderImage = () => {
 }
 
 .preview-bubble--visitor-modal .preview-bubble__btn:hover {
-  background: #e6edff;
-  border-color: #b8ccff;
+  background: var(--agent-color-brand-primary-hover);
+  border-color: var(--agent-color-brand-primary-hover);
 }
 
 .preview-bubble--visitor-modal .preview-bubble__btn--primary:hover {
   background: var(--agent-color-brand-primary-hover);
   border-color: var(--agent-color-brand-primary-hover);
+}
+
+.preview-bubble--visitor-modal .preview-bubble__btn--translucent:hover {
+  background: #e6edff;
+  border-color: #b8ccff;
+}
+
+.preview-bubble--visitor-modal .preview-bubble__btn--outline:hover {
+  background: #f3f6ff;
+  border-color: #6b8fd4;
 }
 
 .preview-bubble--overflow {
