@@ -116,7 +116,6 @@
                     <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
                       {{ botAvatarUrl ? '重新上传' : '上传头像' }}
                     </button>
-                    <span class="bot-avatar-upload__hint"></span>
                   </div>
                   <input
                     ref="avatarInputRef"
@@ -131,16 +130,19 @@
 
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">名称</span>
-                <span class="form-row__desc">AI Agent 在被询问身份相关问题时，将使用该名称进行回复</span>
+                <span class="form-row__name">昵称</span>
+                <span class="form-row__desc">AI Agent 在被询问身份相关问题时，将使用该昵称进行回复</span>
               </div>
               <div class="form-row__control">
                 <input
                   v-model="botName"
                   class="agent-input"
-                  maxlength="20"
-                  placeholder="请输入名称"
+                  :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
+                  maxlength="64"
+                  placeholder="请输入昵称"
+                  @blur="botNameTouched = true"
                 />
+                <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
               </div>
             </div>
 
@@ -198,7 +200,7 @@
         </section>
 
         <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" @click="saveBasicSettings">保存</button>
+          <button type="button" class="agent-btn agent-btn--primary" :disabled="!basicFormValid" @click="saveBasicSettings">保存</button>
         </div>
       </div>
 
@@ -264,9 +266,13 @@
                 <textarea
                   v-model="transferMessage"
                   class="agent-input form-row__textarea"
+                  :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
                   rows="4"
+                  maxlength="2000"
                   placeholder="请输入"
+                  @blur="transferMessageTouched = true"
                 />
+                <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
               </div>
             </div>
 
@@ -279,9 +285,13 @@
                 <textarea
                   v-model="offlineMessage"
                   class="agent-input form-row__textarea"
+                  :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
                   rows="4"
+                  maxlength="2000"
                   placeholder="请输入"
+                  @blur="offlineMessageTouched = true"
                 />
+                <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
               </div>
             </div>
 
@@ -294,16 +304,20 @@
                 <textarea
                   v-model="unsupportedQuestionMessage"
                   class="agent-input form-row__textarea"
+                  :class="{ 'agent-input--error': unsupportedMessageTouched && !unsupportedQuestionMessage.trim() }"
                   rows="4"
+                  maxlength="2000"
                   placeholder="请输入"
+                  @blur="unsupportedMessageTouched = true"
                 />
+                <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
               </div>
             </div>
           </div>
         </section>
 
         <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" @click="saveConversationSettings">保存</button>
+          <button type="button" class="agent-btn agent-btn--primary" :disabled="!conversationFormValid" @click="saveConversationSettings">保存</button>
         </div>
       </div>
     </template>
@@ -382,6 +396,7 @@ const emit = defineEmits<{
 
 const AVATAR_CROP_SIZE = 240;
 const AVATAR_CROP_DRAG_SCALE = 1.1;
+const AVATAR_MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 const createEmptyCropState = (): CropState => ({
   imageSrc: "",
@@ -451,6 +466,10 @@ const cropState = ref<CropState>(createEmptyCropState());
 const unsavedChangesModalOpen = ref(false);
 const pendingNavigationAction = ref<(() => void) | null>(null);
 const initializing = ref(true);
+const botNameTouched = ref(false);
+const transferMessageTouched = ref(false);
+const offlineMessageTouched = ref(false);
+const unsupportedMessageTouched = ref(false);
 
 const emitToast = (message: string) => {
   emit("toast", message);
@@ -556,6 +575,12 @@ const markSnapshotSaved = () => {
   savedSnapshot.value = getConfigSnapshot();
   emit("dirty-change", false);
 };
+
+const basicFormValid = computed(() => botName.value.trim().length > 0);
+
+const conversationFormValid = computed(
+  () => transferMessage.value.trim().length > 0 && offlineMessage.value.trim().length > 0 && unsupportedQuestionMessage.value.trim().length > 0
+);
 
 const saveBasicSettings = () => {
   markSnapshotSaved();
@@ -727,6 +752,17 @@ const handleAvatarFileChange = async (event: Event) => {
 
   if (!file.type.startsWith("image/")) {
     emitToast("请上传图片文件");
+    return;
+  }
+
+  const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+  if (!allowedTypes.includes(file.type)) {
+    emitToast("仅支持 JPG、JPEG、PNG 格式的图片");
+    return;
+  }
+
+  if (file.size > AVATAR_MAX_SIZE) {
+    emitToast("图片大小不能超过 10MB");
     return;
   }
 
@@ -967,6 +1003,17 @@ defineExpose({
   width: 100%;
 }
 
+.form-row__error {
+  color: #e53e3e;
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.5;
+  margin: 4px 0 0;
+}
+
+.agent-input--error {
+  border-color: #e53e3e;
+}
+
 .inactive-setting {
   align-items: center;
   color: var(--agent-color-text-primary);
@@ -1137,7 +1184,7 @@ defineExpose({
 .avatar-crop-canvas {
   background: #f4f6fa;
   border: 1px solid var(--agent-color-border-default);
-  border-radius: 50%;
+  border-radius: var(--agent-radius-lg);
   cursor: grab;
   height: 240px;
   margin: 0 auto;
@@ -1148,7 +1195,7 @@ defineExpose({
 
 .avatar-crop-canvas::after {
   border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
+  border-radius: var(--agent-radius-lg);
   box-shadow: 0 0 0 999px rgba(17, 24, 39, 0.08);
   content: "";
   inset: 0;
