@@ -253,7 +253,7 @@
       </div>
 
       <!-- Stat Cards -->
-      <div class="report-stat-row">
+      <div class="report-stat-row ai-report-stat-row">
         <div v-for="card in aiTopStatCards" :key="card.label" class="report-stat-card agent-panel">
           <div class="report-stat-card__label">
             {{ card.label }}
@@ -263,34 +263,22 @@
         </div>
       </div>
 
-      <!-- 会话趋势 + 会话解决占比 -->
+      <!-- 会话趋势 -->
       <div class="report-charts-grid">
-        <div class="report-chart-panel agent-panel">
+        <div class="report-chart-panel report-chart-panel--wide agent-panel">
           <div class="report-chart-panel__header">
-            <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="AI Agent 处理的会话数量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
-          </div>
-          <div class="report-chart-panel__legend-bar">
-            <span class="report-chart-panel__legend-item">
-              <span class="report-chart-panel__dot" style="background: var(--agent-color-brand-primary)" /> 已解决会话 <span class="report-stat-card__help" data-tooltip="无需人工协助，由 AI Agent 独立解决的会话量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span>
-            </span>
-            <span class="report-chart-panel__legend-item">
-              <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 <span class="report-stat-card__help" data-tooltip="AI Agent 未能独立解决的会话量" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span>
-            </span>
-          </div>
-          <div class="ai-report-inline-stats">
-            <span class="ai-report-inline-stat"><strong>1</strong></span>
-            <span class="ai-report-inline-stat" style="margin-left: 64px;"><strong>2</strong></span>
+            <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="AI Agent 接管的会话数量趋势" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
+            <span class="report-chart-panel__avg">平均数量 <strong>3</strong></span>
           </div>
           <div class="report-chart-panel__body">
             <div class="report-line-chart">
               <div class="report-line-chart__y-axis">
-                <span>3</span><span>2</span><span>1</span><span>0</span>
+                <span>8</span><span>6</span><span>4</span><span>2</span><span>0</span>
               </div>
               <div class="report-line-chart__area">
-                <svg viewBox="0 0 500 150" preserveAspectRatio="none" class="report-line-chart__svg">
-                  <line v-for="n in 4" :key="n" x1="0" :y1="(n-1)*50" x2="500" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
-                  <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,150 380,150 420,100 500,100" />
-                  <polyline fill="none" stroke="#f5222d" stroke-width="2" points="0,150 300,150 360,100 420,50 480,50 500,100" />
+                <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="report-line-chart__svg">
+                  <line v-for="n in 5" :key="n" x1="0" :y1="(n-1)*50" x2="700" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
+                  <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,175 100,150 200,125 300,175 400,100 500,75 600,50 700,100" />
                 </svg>
                 <div class="report-line-chart__x-axis">
                   <span v-for="d in aiChartXLabels" :key="d">{{ d }}</span>
@@ -300,44 +288,13 @@
           </div>
           <a class="ai-report-link" href="javascript:void(0)">查看会话</a>
         </div>
-
-        <!-- 会话解决占比 -->
-        <div class="report-chart-panel agent-panel">
-          <div class="report-chart-panel__header">
-            <span class="report-chart-panel__title">会话解决占比 <span class="report-stat-card__help" data-tooltip="AI Agent 解决的会话占比" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
-          </div>
-          <div class="ai-report-donut-section">
-            <div class="ai-report-donut-meta">
-              <span class="ai-report-donut-meta__label">总计</span>
-              <span class="ai-report-donut-meta__value">3</span>
-            </div>
-            <div class="ai-report-donut">
-              <svg viewBox="0 0 120 120" class="ai-report-donut__svg">
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--agent-color-bg-muted)" stroke-width="16" />
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--agent-color-status-success)" stroke-width="16" stroke-dasharray="105 314" stroke-dashoffset="0" transform="rotate(-90 60 60)" />
-                <circle cx="60" cy="60" r="50" fill="none" stroke="#f5222d" stroke-width="16" stroke-dasharray="209 314" stroke-dashoffset="-105" transform="rotate(-90 60 60)" />
-              </svg>
-            </div>
-            <div class="ai-report-donut-legend">
-              <span class="report-chart-panel__legend-item">
-                <span class="report-chart-panel__dot" style="background: var(--agent-color-status-success)" /> 已解决会话 33.3% (1)
-              </span>
-              <span class="report-chart-panel__legend-item">
-                <span class="report-chart-panel__dot" style="background: #f5222d" /> 未解决会话 66.7% (2)
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- 转人工趋势 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
           <span class="report-chart-panel__title">转人工趋势 <span class="report-stat-card__help" data-tooltip="各时间段 AI Agent 转人工会话分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
-        </div>
-        <div class="ai-report-avg">
-          <span class="ai-report-avg__label">平均</span>
-          <span class="ai-report-avg__value">3</span>
+          <span class="report-chart-panel__avg">平均数量 <strong>3</strong></span>
         </div>
         <div class="report-chart-panel__body">
           <div class="report-line-chart">
@@ -802,7 +759,6 @@ const trendLinePoints = computed(() =>
 // ── AI Agent ──
 const aiTopStatCards = [
   { label: "总会话数", value: "3", tooltip: "AI Agent 处理的会话总数" },
-  { label: "已解决会话", value: "1", tooltip: "无需人工协助，由 AI Agent 独立解决的会话量" },
   { label: "解决率", value: "33.3%", tooltip: "已关闭会话中，AI Agent 独立解决且无需人工介入的会话占比" },
   { label: "转人工", value: "3", tooltip: "AI Agent 转接至人工客服的会话量" }
 ];
@@ -1393,24 +1349,21 @@ const agentDetailRows = [
   margin-bottom: 2px;
 }
 
-/* ── AI Report Average ── */
-.ai-report-avg {
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-4);
-  margin-bottom: var(--agent-space-12);
+/* ── AI Report Stat Row (3 cards) ── */
+.ai-report-stat-row {
+  grid-template-columns: repeat(3, 1fr);
 }
 
-.ai-report-avg__label {
-  color: var(--agent-color-brand-primary);
+/* ── Chart Panel Average (inline in header) ── */
+.report-chart-panel__avg {
   font-size: var(--agent-font-size-sm);
+  color: var(--agent-color-text-secondary);
 }
 
-.ai-report-avg__value {
-  font-size: 28px;
-  font-weight: var(--agent-font-weight-semibold);
+.report-chart-panel__avg strong {
   color: var(--agent-color-text-primary);
-  line-height: 1.2;
+  font-weight: var(--agent-font-weight-semibold);
+  margin-left: var(--agent-space-4);
 }
 
 /* ── Donut Chart ── */
