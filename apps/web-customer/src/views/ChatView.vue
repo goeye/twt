@@ -29,6 +29,11 @@
         <button
           type="button"
           class="cw-chat-float-tools__chip"
+          @click="simulateNormalMessage"
+        >模拟正常消息</button>
+        <button
+          type="button"
+          class="cw-chat-float-tools__chip"
           :class="{ 'cw-chat-float-tools__chip--active': floatingToggles.transfer }"
           @click="toggleFloatingAction('transfer')"
         >模拟转人工</button>
@@ -65,30 +70,26 @@
           </div>
         </div>
       </div>
-      <div class="cw-session-ended" @click="resetConversation">{{ endedText }}</div>
+      <div class="cw-session-ended">{{ endedText }}</div>
     </template>
 
     <template v-else>
       <div class="cw-messages">
         <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="msg.role === 'visitor' ? 'cw-msg--visitor' : 'cw-msg--agent'">
-          <div v-if="msg.role === 'ai' && showAgentLabel" class="cw-msg__meta">
-            <span class="cw-msg__badge">AI Agent</span>
-            <span class="cw-msg__time">{{ msg.time }}</span>
+          <span class="cw-msg__time">{{ msg.time }}</span>
+          <div class="cw-msg__bubble" :class="[{ 'cw-msg__bubble--visitor': msg.role === 'visitor' }, { 'cw-msg__bubble--typing': msg.pending }]">
+            <template v-if="msg.pending">
+              <span class="cw-msg__typing" aria-label="AI Agent 发送中">
+                <span class="cw-msg__typing-dot"></span>
+                <span class="cw-msg__typing-dot"></span>
+                <span class="cw-msg__typing-dot"></span>
+              </span>
+            </template>
+            <template v-else>
+              {{ msg.text }}
+              <span v-if="msg.role === 'ai' && showAgentLabel" class="cw-msg__bubble-label">AI Agent</span>
+            </template>
           </div>
-          <div v-else-if="msg.role === 'human'" class="cw-msg__meta">
-            <span class="cw-msg__badge cw-msg__badge--human">人工客服</span>
-            <span class="cw-msg__time">{{ msg.time }}</span>
-          </div>
-          <span v-else class="cw-msg__time">{{ msg.time }}</span>
-          <div class="cw-msg__bubble" :class="msg.role === 'visitor' ? 'cw-msg__bubble--visitor' : ''">
-            {{ msg.text }}
-          </div>
-          <span v-if="msg.role === 'visitor' && msg.readReceipt" class="cw-msg__receipt">
-            <svg width="20" height="12" viewBox="0 0 20 12" fill="none" class="cw-msg__receipt-icon">
-              <path d="M1.5 6.2L4.4 9l5-5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M8.2 6.2L11.1 9l5-5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
         </div>
       </div>
 
@@ -118,12 +119,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, reactive, ref } from "vue";
 import {
   buildAiReply,
   buildHumanReply,
   buildTransferConnectedReply,
-  getAgentIntro,
   getAvatarGradient,
   getAvatarText,
   isTransferRequest,
@@ -139,6 +139,7 @@ interface Message {
   text: string;
   time: string;
   role: MessageRole;
+  pending?: boolean;
   readReceipt?: boolean;
 }
 
@@ -163,45 +164,68 @@ const floatingToggles = reactive({
 
 const avatarText = computed(() => getAvatarText(agentSettings.value.botName));
 const avatarGradient = computed(() => getAvatarGradient(agentSettings.value.botName));
-const introText = computed(() => getAgentIntro(agentSettings.value));
 const showAgentLabel = computed(() => agentSettings.value.agentEnabled && agentSettings.value.showMessageAgentLabel);
 
 let msgCounter = 1;
 const messages = ref<Message[]>([]);
+const aiReplyTimers: number[] = [];
 
 const getTime = () => {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-const pushMessage = (role: MessageRole, text: string, readReceipt = false) => {
+const createMessageId = () => `m-${msgCounter++}`;
+
+const pushMessage = (role: MessageRole, text: string, readReceipt = false, pending = false) => {
+  const id = createMessageId();
   messages.value.push({
-    id: `m-${msgCounter++}`,
+    id,
     text,
     time: getTime(),
     role,
+    pending,
     readReceipt: role === "visitor" ? readReceipt : undefined
   });
+
+  return id;
+};
+
+const clearAiReplyTimers = () => {
+  aiReplyTimers.forEach((timer) => window.clearTimeout(timer));
+  aiReplyTimers.length = 0;
+};
+
+const scheduleAiMessage = (text: string, afterDeliver?: () => void, delay = 900) => {
+  const pendingId = pushMessage("ai", "", false, true);
+  const timerId = window.setTimeout(() => {
+    const timerIndex = aiReplyTimers.indexOf(timerId);
+    if (timerIndex >= 0) {
+      aiReplyTimers.splice(timerIndex, 1);
+    }
+
+    const pendingMessage = messages.value.find((message) => message.id === pendingId);
+    if (pendingMessage) {
+      pendingMessage.text = text;
+      pendingMessage.time = getTime();
+      pendingMessage.pending = false;
+    } else {
+      pushMessage("ai", text);
+    }
+
+    afterDeliver?.();
+  }, delay);
+
+  aiReplyTimers.push(timerId);
 };
 
 const resetConversation = () => {
+  clearAiReplyTimers();
   sessionEnded.value = false;
   selectedFeedback.value = null;
   endedText.value = "会话已结束，请重新咨询";
   msgCounter = 1;
   messages.value = [];
-
-  if (!agentSettings.value.agentEnabled) {
-    pushMessage("human", buildHumanReply(agentSettings.value));
-    return;
-  }
-
-  if (agentSettings.value.agentResponseMode === "offline-only" && humanOnline.value) {
-    pushMessage("human", buildHumanReply(agentSettings.value));
-    return;
-  }
-
-  pushMessage("ai", introText.value);
 };
 
 const shouldUseHumanReply = () => {
@@ -217,12 +241,13 @@ const handleTransferFlow = () => {
 
   const humanAvailable = humanOnline.value || agentSettings.value.agentResponseMode === "always";
   if (humanAvailable) {
-    pushMessage("ai", agentSettings.value.transferMessage);
-    pushMessage("human", buildTransferConnectedReply(agentSettings.value));
+    scheduleAiMessage(agentSettings.value.transferMessage, () => {
+      pushMessage("human", buildTransferConnectedReply(agentSettings.value));
+    });
     return;
   }
 
-  pushMessage("ai", agentSettings.value.offlineMessage);
+  scheduleAiMessage(agentSettings.value.offlineMessage);
 };
 
 const handleAgentOrHumanReply = (text: string) => {
@@ -237,11 +262,11 @@ const handleAgentOrHumanReply = (text: string) => {
   }
 
   if (isUnsupportedRequest(text)) {
-    pushMessage("ai", agentSettings.value.unsupportedQuestionMessage);
+    scheduleAiMessage(agentSettings.value.unsupportedQuestionMessage);
     return;
   }
 
-  pushMessage("ai", buildAiReply(agentSettings.value));
+  scheduleAiMessage(buildAiReply(agentSettings.value));
 };
 
 const onInput = (event: Event) => {
@@ -263,6 +288,14 @@ const sendMessage = () => {
   handleAgentOrHumanReply(text);
 };
 
+const simulateNormalMessage = () => {
+  if (sessionEnded.value) return;
+
+  const text = "你好，我想了解一下产品价格和发货时间。";
+  pushMessage("visitor", text, true);
+  handleAgentOrHumanReply(text);
+};
+
 const simulateTransfer = () => {
   if (sessionEnded.value) return;
   pushMessage("visitor", "我想转人工客服", true);
@@ -276,8 +309,9 @@ const simulateUnsupported = () => {
 };
 
 const simulateInactivity = () => {
+  clearAiReplyTimers();
   sessionEnded.value = true;
-  endedText.value = `访客超过 ${agentSettings.value.visitorInactiveMinutes} 分钟未操作，会话已自动关闭，点击可重新开始演示`;
+  endedText.value = "会话已结束，请重新咨询";
 };
 
 const toggleHumanAvailability = () => {
@@ -303,6 +337,10 @@ const toggleFloatingAction = (actionId: keyof typeof floatingToggles) => {
 
   simulateInactivity();
 };
+
+onBeforeUnmount(() => {
+  clearAiReplyTimers();
+});
 
 resetConversation();
 </script>
@@ -458,11 +496,6 @@ resetConversation();
   align-items: flex-end;
 }
 
-.cw-msg__meta {
-  align-items: center;
-  display: flex;
-  gap: 6px;
-}
 
 .cw-msg__time {
   color: var(--agent-color-text-tertiary);
@@ -470,28 +503,14 @@ resetConversation();
   line-height: 1;
 }
 
-.cw-msg__badge {
-  background: rgba(47, 107, 255, 0.08);
-  border: 1px solid rgba(47, 107, 255, 0.18);
-  border-radius: 999px;
-  color: var(--agent-color-brand-primary);
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  padding: 4px 8px;
-}
 
-.cw-msg__badge--human {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: rgba(15, 23, 42, 0.08);
-  color: var(--agent-color-text-secondary);
-}
 
 .cw-msg__bubble {
   background: #fff;
   border-radius: 12px;
   color: var(--agent-color-text-primary);
   font-size: 12px;
+  min-height: 18px;
   line-height: 1.6;
   max-width: 280px;
   padding: 8px 12px;
@@ -502,15 +521,57 @@ resetConversation();
   color: #fff;
 }
 
-.cw-msg__receipt {
-  color: #2f6bff;
-  display: inline-flex;
-  margin-top: 2px;
+.cw-msg__bubble-label {
+  color: #8c96a6;
+  display: block;
+  font-size: 10px;
+  line-height: 1.4;
+  margin-top: 6px;
 }
 
-.cw-msg__receipt-icon {
-  display: block;
+.cw-msg__bubble--typing {
+  min-width: 48px;
 }
+
+.cw-msg__typing {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  height: 18px;
+}
+
+.cw-msg__typing-dot {
+  animation: cw-msg-typing 1.2s infinite ease-in-out;
+  background: #9aa4b2;
+  border-radius: 50%;
+  display: inline-block;
+  height: 6px;
+  opacity: 0.4;
+  width: 6px;
+}
+
+.cw-msg__typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.cw-msg__typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes cw-msg-typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
 
 .cw-input-area {
   background: transparent;
@@ -649,7 +710,6 @@ resetConversation();
   background: #e8f0fe;
   border-radius: 8px;
   color: var(--agent-color-brand-primary);
-  cursor: pointer;
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 500;

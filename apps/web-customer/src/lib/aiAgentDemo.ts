@@ -194,7 +194,7 @@ export const getAgentIntro = (settings: AiAgentDemoSettings) => {
 
 export const buildAiReply = (settings: AiAgentDemoSettings) => {
   const baseReply = aiReplyTemplates[settings.defaultLanguage] ?? aiReplyTemplates.en;
-  return `${baseReply}（${getToneLabel(settings.selectedTone)} · ${getReplyModeLabel(settings.replyMode)}）`;
+  return baseReply;
 };
 
 export const buildHumanReply = (settings: AiAgentDemoSettings) => {

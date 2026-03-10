@@ -75,7 +75,7 @@
               </div>
               <div class="form-row__control">
                 <select v-model="agentResponseMode" class="agent-input">
-                  <option value="always">始终</option>
+                  <option value="always">始终开启</option>
                   <option value="offline-only">仅客服离线时</option>
                 </select>
               </div>
@@ -238,7 +238,7 @@
               <div class="form-row__control">
                 <select v-model="replyMode" class="agent-input">
                   <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
-                  <option value="creative">发散模式 — 允许 AI 结合上下文推理补充</option>
+                  <option value="creative">发散模式 — 允许 AI 自主推理</option>
                 </select>
               </div>
             </div>
