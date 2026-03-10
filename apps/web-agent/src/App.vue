@@ -143,7 +143,7 @@
         </div>
 
         <div v-if="isAiSession" class="ai-takeover-bar">
-          <button type="button" class="agent-btn agent-btn--primary" @click="handleTakeoverAiSession">接管会话</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="handleOpenTakeoverAiSession">接管会话</button>
         </div>
 
         <MessageComposer
@@ -285,6 +285,26 @@
           >
             确认
           </button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="confirmTakeoverModalOpen"
+      title="确认分配"
+      max-width="500px"
+      :show-close="false"
+      @close="handleCloseTakeoverAiSession"
+    >
+      <div class="confirm-takeover-modal">
+        <p class="confirm-takeover-modal__description">确定把该会话分配给我吗？</p>
+      </div>
+
+      <template #footer>
+        <span />
+        <div class="confirm-takeover-modal__footer-actions">
+          <button class="agent-btn agent-btn--ghost" type="button" @click="handleCloseTakeoverAiSession">取消</button>
+          <button class="agent-btn agent-btn--primary" type="button" @click="handleConfirmTakeoverAiSession">确认</button>
         </div>
       </template>
     </BaseModal>
@@ -957,6 +977,7 @@ let toastTimer: number | undefined;
 const transferModalOpen = ref(false);
 const transferKeyword = ref("");
 const confirmTransferModalOpen = ref(false);
+const confirmTakeoverModalOpen = ref(false);
 const pendingTransferAgentId = ref<string | null>(null);
 
 const inviteModalOpen = ref(false);
@@ -1556,7 +1577,16 @@ const handleConfirmInvite = (ids: string[]) => {
   showTopToast("邀请成功");
 };
 
-const handleTakeoverAiSession = () => {
+const handleOpenTakeoverAiSession = () => {
+  if (!activeSession.value) return;
+  confirmTakeoverModalOpen.value = true;
+};
+
+const handleCloseTakeoverAiSession = () => {
+  confirmTakeoverModalOpen.value = false;
+};
+
+const handleConfirmTakeoverAiSession = () => {
   const session = activeSession.value;
   if (!session) return;
 
@@ -1579,8 +1609,9 @@ const handleTakeoverAiSession = () => {
     return { ...s, queueKey: "pending-reply", assignee: currentAgentName };
   });
 
+  confirmTakeoverModalOpen.value = false;
   activeQueueKey.value = "pending-reply";
-  showTopToast("已接管 AI 会话");
+  showTopToast("接管成功");
 };
 
 const handleSend = () => {
@@ -2274,6 +2305,24 @@ onBeforeUnmount(() => {
 }
 
 .confirm-transfer-modal__footer-actions {
+  display: flex;
+  gap: var(--agent-space-8);
+}
+
+.confirm-takeover-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+}
+
+.confirm-takeover-modal__description {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.confirm-takeover-modal__footer-actions {
   display: flex;
   gap: var(--agent-space-8);
 }

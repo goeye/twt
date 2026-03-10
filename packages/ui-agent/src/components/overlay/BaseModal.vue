@@ -4,7 +4,7 @@
       <section class="modal-card agent-panel" role="dialog" aria-modal="true" :style="{ maxWidth }">
         <header class="modal-card__header">
           <h3 class="agent-title">{{ title }}</h3>
-          <button class="close-btn" type="button" aria-label="Close" @click="$emit('close')">x</button>
+          <button v-if="showClose" class="close-btn" type="button" aria-label="Close" @click="$emit('close')">x</button>
         </header>
         <div class="modal-card__body">
           <slot />
@@ -23,8 +23,12 @@ withDefaults(
     open: boolean;
     title: string;
     maxWidth?: string;
+    showClose?: boolean;
   }>(),
-  { maxWidth: "560px" }
+  {
+    maxWidth: "560px",
+    showClose: true
+  }
 );
 
 defineEmits<{
