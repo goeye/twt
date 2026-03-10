@@ -17,6 +17,6 @@
   background: #fff;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 </style>

@@ -7,11 +7,9 @@
         </button>
         <div class="cw-chat-header__avatar-wrap">
           <span class="cw-chat-header__avatar" :style="{ background: avatarGradient }">{{ avatarText }}</span>
-          <span class="cw-chat-header__status-dot" :class="headerStatusClass" />
         </div>
         <div class="cw-chat-header__title-block">
-          <span class="cw-chat-header__title">{{ displayName }}</span>
-          <span class="cw-chat-header__subtitle">{{ headerSubtitle }}</span>
+          <span class="cw-chat-header__title">新的会话</span>
         </div>
       </div>
       <button type="button" class="cw-chat-header__close" aria-label="最小化" @click="$router.push('/minimized')">
@@ -19,29 +17,35 @@
       </button>
     </header>
 
-    <section class="cw-chat-demo">
-      <div class="cw-chat-demo__chips">
-        <span class="cw-chat-demo__chip">{{ agentEnabledLabel }}</span>
-        <span class="cw-chat-demo__chip">{{ responseModeLabel }}</span>
-        <span class="cw-chat-demo__chip">{{ languageLabel }}</span>
-        <span class="cw-chat-demo__chip">{{ toneLabel }}</span>
-        <span class="cw-chat-demo__chip">{{ replyModeLabel }}</span>
-        <span class="cw-chat-demo__chip">{{ `不活跃 ${agentSettings.visitorInactiveMinutes} 分钟` }}</span>
-      </div>
-      <p class="cw-chat-demo__intro">{{ introText }}</p>
-      <p class="cw-chat-demo__status">{{ statusText }}</p>
-      <div class="cw-chat-demo__actions">
+    <div class="cw-chat-float-tools">
+      <button
+        v-if="agentSettings.agentResponseMode === 'offline-only'"
+        type="button"
+        class="cw-chat-float-tools__btn"
+        :class="{ 'cw-chat-float-tools__btn--active': humanOnline }"
+        @click="toggleHumanAvailability"
+      >{{ humanOnline ? '模拟客服在线' : '模拟客服离线' }}</button>
+      <div class="cw-chat-float-tools__group">
         <button
-          v-if="agentSettings.agentResponseMode === 'offline-only'"
           type="button"
-          class="cw-chat-demo__btn"
-          @click="toggleHumanAvailability"
-        >{{ humanOnline ? '模拟客服离线' : '模拟客服在线' }}</button>
-        <button type="button" class="cw-chat-demo__btn" @click="simulateTransfer">模拟转人工</button>
-        <button type="button" class="cw-chat-demo__btn" @click="simulateUnsupported">模拟图片/文件</button>
-        <button type="button" class="cw-chat-demo__btn" @click="simulateInactivity">模拟不活跃关闭</button>
+          class="cw-chat-float-tools__chip"
+          :class="{ 'cw-chat-float-tools__chip--active': floatingToggles.transfer }"
+          @click="toggleFloatingAction('transfer')"
+        >模拟转人工</button>
+        <button
+          type="button"
+          class="cw-chat-float-tools__chip"
+          :class="{ 'cw-chat-float-tools__chip--active': floatingToggles.file }"
+          @click="toggleFloatingAction('file')"
+        >模拟图片/文件</button>
+        <button
+          type="button"
+          class="cw-chat-float-tools__chip"
+          :class="{ 'cw-chat-float-tools__chip--active': floatingToggles.inactivity }"
+          @click="toggleFloatingAction('inactivity')"
+        >模拟不活跃关闭</button>
       </div>
-    </section>
+    </div>
 
     <template v-if="sessionEnded">
       <div class="cw-feedback-area">
@@ -88,12 +92,6 @@
         </div>
       </div>
 
-      <div v-if="quickAccessItems.length > 0" class="cw-quick-access">
-        <button v-for="item in quickAccessItems" :key="item.id" type="button" class="cw-quick-access__tag" @click="handleQuickAction(item.id)">
-          {{ item.label }}
-        </button>
-      </div>
-
       <div class="cw-input-area">
         <div class="cw-input-box" contenteditable="true" @input="onInput" @keydown.enter.prevent="sendMessage" />
         <div class="cw-input-toolbar">
@@ -128,10 +126,6 @@ import {
   getAgentIntro,
   getAvatarGradient,
   getAvatarText,
-  getLanguageLabel,
-  getReplyModeLabel,
-  getResponseModeLabel,
-  getToneLabel,
   isTransferRequest,
   isUnsupportedRequest,
   loadAiAgentDemoSettings,
@@ -161,45 +155,16 @@ const feedbackOptions = [
   { value: "bad", emoji: "\u{1F61E}", label: "不满意" }
 ];
 
-const quickAccessItems = reactive([
-  { id: "help", label: "帮助中心" },
-  { id: "transfer", label: "转人工" },
-  { id: "file", label: "发送图片/文件" }
-]);
+const floatingToggles = reactive({
+  transfer: false,
+  file: false,
+  inactivity: false
+});
 
-const displayName = computed(() => agentSettings.value.botName);
 const avatarText = computed(() => getAvatarText(agentSettings.value.botName));
 const avatarGradient = computed(() => getAvatarGradient(agentSettings.value.botName));
 const introText = computed(() => getAgentIntro(agentSettings.value));
-const languageLabel = computed(() => getLanguageLabel(agentSettings.value.defaultLanguage));
-const toneLabel = computed(() => getToneLabel(agentSettings.value.selectedTone));
-const responseModeLabel = computed(() => getResponseModeLabel(agentSettings.value.agentResponseMode));
-const replyModeLabel = computed(() => getReplyModeLabel(agentSettings.value.replyMode));
-const agentEnabledLabel = computed(() => (agentSettings.value.agentEnabled ? "AI Agent 已开启" : "AI Agent 已关闭"));
-const headerSubtitle = computed(() => {
-  if (!agentSettings.value.agentEnabled) return "当前由人工客服接待";
-  if (agentSettings.value.agentResponseMode === "offline-only") {
-    return humanOnline.value ? "客服在线" : "客服离线，AI 接待中";
-  }
-  return "AI Agent 接待中";
-});
-const statusText = computed(() => {
-  if (!agentSettings.value.agentEnabled) return "当前 AI Agent 已关闭，发送消息后将展示人工客服接待效果。";
-  if (agentSettings.value.agentResponseMode === "offline-only") {
-    return humanOnline.value
-      ? "当前演示为客服在线状态，AI Agent 不主动回复；可点击上方按钮切换为离线。"
-      : "当前演示为客服离线状态，由 AI Agent 自动接待并回复消息。";
-  }
-  return "当前演示为 AI Agent 始终回复模式，所有消息会按已配置语气和语言进行示例回复。";
-});
 const showAgentLabel = computed(() => agentSettings.value.agentEnabled && agentSettings.value.showMessageAgentLabel);
-const headerStatusClass = computed(() => {
-  if (!agentSettings.value.agentEnabled) return "cw-chat-header__status-dot--disabled";
-  if (agentSettings.value.agentResponseMode === "offline-only" && humanOnline.value) {
-    return "cw-chat-header__status-dot--human";
-  }
-  return "cw-chat-header__status-dot--ai";
-});
 
 let msgCounter = 1;
 const messages = ref<Message[]>([]);
@@ -320,20 +285,23 @@ const toggleHumanAvailability = () => {
   resetConversation();
 };
 
-const handleQuickAction = (actionId: string) => {
+const toggleFloatingAction = (actionId: keyof typeof floatingToggles) => {
+  const nextActive = !floatingToggles[actionId];
+  floatingToggles[actionId] = nextActive;
+
+  if (!nextActive) return;
+
   if (actionId === "transfer") {
     simulateTransfer();
     return;
   }
+
   if (actionId === "file") {
     simulateUnsupported();
     return;
   }
-  if (actionId === "help") {
-    if (sessionEnded.value) return;
-    pushMessage("visitor", "我想了解帮助中心的内容", true);
-    handleAgentOrHumanReply("help center");
-  }
+
+  simulateInactivity();
 };
 
 resetConversation();
@@ -377,7 +345,6 @@ resetConversation();
 .cw-chat-header__avatar-wrap {
   display: inline-flex;
   flex-shrink: 0;
-  position: relative;
 }
 
 .cw-chat-header__avatar {
@@ -392,28 +359,6 @@ resetConversation();
   width: 28px;
 }
 
-.cw-chat-header__status-dot {
-  border: 2px solid #fff;
-  border-radius: 50%;
-  bottom: -1px;
-  height: 10px;
-  position: absolute;
-  right: -1px;
-  width: 10px;
-}
-
-.cw-chat-header__status-dot--ai {
-  background: #2f6bff;
-}
-
-.cw-chat-header__status-dot--human {
-  background: #22c55e;
-}
-
-.cw-chat-header__status-dot--disabled {
-  background: #c3cad7;
-}
-
 .cw-chat-header__title-block {
   display: flex;
   flex-direction: column;
@@ -424,12 +369,6 @@ resetConversation();
   color: var(--agent-color-text-primary);
   font-size: 13px;
   font-weight: 600;
-}
-
-.cw-chat-header__subtitle {
-  color: var(--agent-color-text-tertiary);
-  font-size: 10px;
-  line-height: 1.4;
 }
 
 .cw-chat-header__close {
@@ -452,50 +391,32 @@ resetConversation();
   color: var(--agent-color-text-primary);
 }
 
-.cw-chat-demo {
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+.cw-chat-float-tools {
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  left: -12px;
+  padding: 10px;
+  position: absolute;
+  top: 60px;
+  transform: translateX(-100%);
+  z-index: 3;
 }
 
-.cw-chat-demo__chips {
+.cw-chat-float-tools__group {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  max-width: 240px;
 }
 
-.cw-chat-demo__chip {
-  background: rgba(47, 107, 255, 0.08);
-  border: 1px solid rgba(47, 107, 255, 0.12);
-  border-radius: 999px;
-  color: var(--agent-color-brand-primary);
-  font-size: 10px;
-  font-weight: 600;
-  padding: 4px 8px;
-}
-
-.cw-chat-demo__intro,
-.cw-chat-demo__status {
-  color: var(--agent-color-text-secondary);
-  font-size: 11px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.cw-chat-demo__intro {
-  color: var(--agent-color-text-primary);
-}
-
-.cw-chat-demo__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.cw-chat-demo__btn {
+.cw-chat-float-tools__btn,
+.cw-chat-float-tools__chip {
   background: #fff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 999px;
@@ -504,10 +425,15 @@ resetConversation();
   font-size: 10px;
   font-weight: 600;
   padding: 6px 10px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
-.cw-chat-demo__btn:hover {
-  border-color: var(--agent-color-brand-primary);
+.cw-chat-float-tools__btn:hover,
+.cw-chat-float-tools__chip:hover,
+.cw-chat-float-tools__btn--active,
+.cw-chat-float-tools__chip--active {
+  background: rgba(47, 107, 255, 0.08);
+  border-color: rgba(47, 107, 255, 0.24);
   color: var(--agent-color-brand-primary);
 }
 
@@ -584,30 +510,6 @@ resetConversation();
 
 .cw-msg__receipt-icon {
   display: block;
-}
-
-.cw-quick-access {
-  background: #fff;
-  border-top: 1px solid var(--agent-color-border-default);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 14px;
-}
-
-.cw-quick-access__tag {
-  background: #f0f2f5;
-  border: none;
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
-  cursor: pointer;
-  font-size: 10px;
-  padding: 3px 10px;
-  transition: background 0.15s;
-}
-
-.cw-quick-access__tag:hover {
-  background: #e5e7eb;
 }
 
 .cw-input-area {
