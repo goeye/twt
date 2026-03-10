@@ -3,7 +3,7 @@
     <div v-if="open" class="assign-mask" @click.self="$emit('close')">
       <section class="assign-card" role="dialog" aria-modal="true" @click.stop>
         <header class="assign-card__header">
-          <h3 class="assign-card__title">分配会话</h3>
+          <h3 class="assign-card__title">{{ modalTitle }}</h3>
           <button class="assign-card__close" type="button" aria-label="关闭" @click="$emit('close')">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -74,12 +74,18 @@ interface AssignAgent {
   avatarColor: string;
 }
 
-const props = defineProps<{
-  open: boolean;
-  keyword?: string;
-  conversationTitle?: string;
-  agents: AssignAgent[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    keyword?: string;
+    conversationTitle?: string;
+    agents: AssignAgent[];
+    modalTitle?: string;
+  }>(),
+  {
+    modalTitle: "分配会话"
+  }
+);
 
 const emit = defineEmits<{
   (e: "close"): void;

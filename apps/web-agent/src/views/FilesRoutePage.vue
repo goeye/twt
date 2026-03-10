@@ -146,7 +146,22 @@
                 <td colspan="14" class="archive-table__empty">暂无符合条件的会话</td>
               </tr>
               <tr v-for="row in visibleRows" v-else :key="row.id">
-                <td><button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button></td>
+                <td>
+                  <span class="archive-title-cell">
+                    <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
+                    <span v-if="row.aiAgentHandled" class="archive-ai-badge" title="AI Agent 接待过">
+                      <svg class="archive-ai-badge__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="10" height="8" rx="2" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.2" />
+                        <circle cx="6" cy="8" r="1" fill="currentColor" />
+                        <circle cx="10" cy="8" r="1" fill="currentColor" />
+                        <path d="M5 2.5V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        <path d="M11 2.5V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        <path d="M1.5 7v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        <path d="M14.5 7v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                  </span>
+                </td>
                 <td>{{ row.visitorName }}</td>
                 <td>{{ row.customerIdentifier }}</td>
                 <td>{{ row.visitorAlias }}</td>
@@ -174,7 +189,7 @@
                   </button>
 
                   <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
-                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">{{ row.owner === aiAgentArchiveName ? '接管会话' : '分配会话' }}</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </div>
                 </td>
@@ -436,6 +451,7 @@
       :open="Boolean(previewConversation)"
       :title="previewConversation?.title ?? ''"
       :messages="previewConversationMessages"
+      :assign-label="previewConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
       @assign="previewConversation && assignConversation(previewConversation)"
       @close="closeConversationDrawer"
     />
@@ -445,6 +461,7 @@
       :keyword="assignKeyword"
       :conversation-title="pendingAssignConversation?.title ?? ''"
       :agents="assignableAgents"
+      :modal-title="pendingAssignConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
       @close="closeAssignModal"
       @confirm="handleAssignConfirm"
       @update:keyword="assignKeyword = $event"
@@ -483,6 +500,7 @@ interface ConversationRecord {
   acceptedAtValue: number | null;
   serviceDuration: string;
   rating: ConversationRating;
+  aiAgentHandled: boolean;
 }
 
 interface ConversationSeed {
@@ -501,6 +519,7 @@ interface ConversationSeed {
   acceptedAtValue?: number | null;
   serviceDuration?: string;
   rating?: ConversationRating;
+  aiAgentHandled?: boolean;
 }
 
 interface ArchiveAgent {
@@ -733,7 +752,8 @@ const createRecord = (index: number, seed: ConversationSeed): ConversationRecord
       (seed.status === "pending-reply" || seed.status === "queueing" || seed.status === "processing"
         ? "–"
         : formatDuration(duration.minutes, duration.seconds)),
-    rating: seed.rating ?? (index % 8 === 0 ? "satisfied" : "none")
+    rating: seed.rating ?? (index % 8 === 0 ? "satisfied" : "none"),
+    aiAgentHandled: seed.aiAgentHandled ?? false
   };
 };
 
@@ -753,7 +773,44 @@ const presetSeeds: ConversationSeed[] = [
     acceptedAtLabel: "2026-02-24 20:10",
     acceptedAtValue: new Date("2026-02-24T20:10:00").getTime(),
     serviceDuration: "4分",
-    rating: "none"
+    rating: "none",
+    aiAgentHandled: true
+  },
+  {
+    title: "AI Agent - 退货流程咨询",
+    visitorName: "Visitor96",
+    customerIdentifier: "AI-7002",
+    visitorAlias: "AI 转人工客户",
+    status: "replied",
+    messageCount: 6,
+    owner: "王珂",
+    staffCount: 1,
+    tag: "AI Agent",
+    startedAtLabel: "2026-02-24 19:50",
+    startedAtValue: new Date("2026-02-24T19:50:00").getTime(),
+    acceptedAtLabel: "2026-02-24 19:55",
+    acceptedAtValue: new Date("2026-02-24T19:55:00").getTime(),
+    serviceDuration: "5分",
+    rating: "satisfied",
+    aiAgentHandled: true
+  },
+  {
+    title: "AI Agent - 会员权益咨询",
+    visitorName: "Visitor40",
+    customerIdentifier: "AI-7003",
+    visitorAlias: "VIP 客户",
+    status: "replied",
+    messageCount: 3,
+    owner: aiAgentArchiveName,
+    staffCount: 1,
+    tag: "VIP",
+    startedAtLabel: "2026-02-24 20:05",
+    startedAtValue: new Date("2026-02-24T20:05:00").getTime(),
+    acceptedAtLabel: "2026-02-24 20:05",
+    acceptedAtValue: new Date("2026-02-24T20:05:00").getTime(),
+    serviceDuration: "3分",
+    rating: "none",
+    aiAgentHandled: true
   },
   {
     title: "新的会话",
@@ -1063,7 +1120,8 @@ const toTime = (label: string) => {
     return "--:--";
   }
 
-  return label.includes(" ") ? label.split(" ").at(-1) ?? label : label;
+  const parts = label.split(" ");
+  return label.includes(" ") ? parts[parts.length - 1] ?? label : label;
 };
 
 const getVisitorQuestion = (row: ConversationRecord) => {
@@ -1286,6 +1344,8 @@ const handleAssignConfirm = (agentId: string) => {
   const acceptedAtLabel = formatDateTime(now);
   const acceptedAtValue = now.getTime();
 
+  const wasAiAgent = pendingAssignConversation.value?.owner === aiAgentArchiveName;
+
   allRows.value = allRows.value.map((row) => {
     if (row.id !== rowId) {
       return row;
@@ -1302,7 +1362,9 @@ const handleAssignConfirm = (agentId: string) => {
   });
 
   closeAssignModal();
-  emit("toast", `已将会话“${conversationTitle}”分配给${agent.name}`);
+  emit("toast", wasAiAgent
+    ? `已将会话“${conversationTitle}”从 AI Agent 接管给${agent.name}`
+    : `已将会话“${conversationTitle}”分配给${agent.name}`);
 };
 
 // --- All Chats (所有聊天) ---
@@ -1984,6 +2046,33 @@ onMounted(() => {
 
 .archive-action-menu__item:hover {
   background: #f7f9fc;
+}
+
+/* AI Agent badge in title cell */
+.archive-title-cell {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.archive-ai-badge {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.10) 0%, rgba(139, 92, 246, 0.10) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.20);
+  border-radius: 6px;
+  color: #6366f1;
+  cursor: default;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.archive-ai-badge__icon {
+  display: block;
+  height: 14px;
+  width: 14px;
 }
 
 .files-page__placeholder {

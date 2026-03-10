@@ -26,300 +26,327 @@
       </div>
     </template>
 
-    <!-- AI Agent 配置 (tab-based) -->
     <template v-else-if="activeKey === 'ai-agent-config'">
       <header class="agent-content-header">
         <h1 class="agent-content-title">AI Agent</h1>
-        <p class="agent-content-subtitle">配置 AI 机器人的基本信息与会话策略</p>
+        <p class="agent-content-subtitle">按会话生命周期依次配置 AI Agent 的接待对象、回复策略与兜底行为。</p>
       </header>
 
-      <nav class="ai-tabs">
-        <button
-          type="button"
-          class="ai-tabs__item"
-          :class="{ 'ai-tabs__item--active': agentTab === 'basic' }"
-          @click="agentTab = 'basic'"
-        >基本设置</button>
-        <button
-          type="button"
-          class="ai-tabs__item"
-          :class="{ 'ai-tabs__item--active': agentTab === 'conversation' }"
-          @click="agentTab = 'conversation'"
-        >会话设置</button>
-      </nav>
+      <div class="lifecycle-flow">
+        <article
+          v-for="section in lifecycleSections"
+          :key="section.key"
+          class="lifecycle-card agent-panel"
+          :class="{ 'lifecycle-card--open': openLifecycleSection === section.key }"
+        >
+          <button type="button" class="lifecycle-card__trigger" @click="toggleLifecycleSection(section.key)">
+            <span class="lifecycle-card__badge" :class="`lifecycle-card__badge--${section.key}`">
+              <AgentIcon :name="section.icon" :size="16" />
+            </span>
 
-      <!-- 基本设置 tab -->
-      <div v-if="agentTab === 'basic'" class="ai-tab-content">
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">启用与展示</h2>
-          </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">启用 AI Agent</span>
-                <span class="form-row__desc">开启后 AI Agent 将自动接管访客会话</span>
-              </div>
-              <div class="form-row__control">
-                <label class="agent-switch">
-                  <input v-model="agentEnabled" type="checkbox" class="agent-switch__input" />
-                  <span class="agent-switch__track" />
-                </label>
+            <div class="lifecycle-card__meta">
+              <p class="lifecycle-card__event">{{ section.event }}</p>
+              <div class="lifecycle-card__heading">
+                <h2 class="lifecycle-card__title">{{ section.title }}</h2>
+                <p class="lifecycle-card__summary">{{ section.summary }}</p>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">AI Agent 回复</span>
-                <span class="form-row__desc">设置 AI Agent 何时参与会话回复</span>
-              </div>
-              <div class="form-row__control">
-                <select v-model="agentResponseMode" class="agent-input">
-                  <option value="always">始终开启</option>
-                  <option value="offline-only">仅客服离线时</option>
-                </select>
-              </div>
-            </div>
+            <AgentIcon
+              class="lifecycle-card__chevron"
+              :name="openLifecycleSection === section.key ? 'chevron-down' : 'chevron-right'"
+              :size="18"
+            />
+          </button>
 
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">在消息中显示 AI Agent 标签</span>
-                <span class="form-row__desc">开启后，访客端会在 AI Agent 回复消息中看到标签，用于识别</span>
+          <div v-if="openLifecycleSection === section.key" class="lifecycle-card__body">
+            <template v-if="section.key === 'entry'">
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">启用 AI Agent</span>
+                  <span class="form-row__desc">开启后，AI Agent 会根据下方规则自动参与会话接待。</span>
+                </div>
+                <div class="form-row__control">
+                  <label class="agent-switch">
+                    <input v-model="agentEnabled" type="checkbox" class="agent-switch__input" />
+                    <span class="agent-switch__track" />
+                  </label>
+                </div>
               </div>
-              <div class="form-row__control">
-                <label class="agent-switch">
-                  <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
-                  <span class="agent-switch__track" />
-                </label>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">AI Agent 信息</h2>
-          </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">头像</span>
-                <span class="form-row__desc">自定义 AI Agent 的头像形象</span>
-              </div>
-              <div class="form-row__control">
-                <div class="bot-avatar-upload">
-                  <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
-                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
-                    <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">接待访客</span>
+                  <span class="form-row__desc">参考营销卡片中的受众条件，限定哪些访客会进入 AI 接待流程。</span>
+                </div>
+                <div class="form-row__control">
+                  <div class="pill-group">
+                    <button
+                      v-for="option in audienceOptions"
+                      :key="option.value"
+                      type="button"
+                      class="pill-option"
+                      :class="{ 'pill-option--active': visitorAudience === option.value }"
+                      @click="visitorAudience = option.value"
+                    >{{ option.label }}</button>
                   </div>
-                  <div class="bot-avatar-upload__actions">
-                    <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
-                      {{ botAvatarUrl ? '重新上传' : '上传头像' }}
-                    </button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">AI 参与时机</span>
+                  <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复。</span>
+                </div>
+                <div class="form-row__control">
+                  <select v-model="agentResponseMode" class="agent-input">
+                    <option value="always">始终由 AI Agent 回复</option>
+                    <option value="offline-only">仅客服离线时由 AI 回复</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">显示 AI 标签</span>
+                  <span class="form-row__desc">开启后，访客会在消息气泡中明确看到当前回复来自 AI Agent。</span>
+                </div>
+                <div class="form-row__control">
+                  <label class="agent-switch">
+                    <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
+                    <span class="agent-switch__track" />
+                  </label>
+                </div>
+              </div>
+            </template>
+
+            <template v-else-if="section.key === 'identity'">
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">头像</span>
+                  <span class="form-row__desc">设置 AI Agent 的头像形象，用于会话列表和消息头像展示。</span>
+                </div>
+                <div class="form-row__control form-row__control--stack">
+                  <div class="bot-avatar-upload">
+                    <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
+                      <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
+                      <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
+                    </div>
+                    <div class="bot-avatar-upload__actions">
+                      <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
+                        {{ botAvatarUrl ? '重新上传' : '上传头像' }}
+                      </button>
+                      <p class="bot-avatar-upload__hint">支持 JPG、JPEG、PNG，建议使用 1:1 图片。</p>
+                    </div>
+                    <input
+                      ref="avatarInputRef"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      class="bot-avatar-upload__input"
+                      @change="handleAvatarFileChange"
+                    />
                   </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">昵称</span>
+                  <span class="form-row__desc">当访客询问“你是谁”时，AI Agent 会优先使用这个身份名称。</span>
+                </div>
+                <div class="form-row__control">
                   <input
-                    ref="avatarInputRef"
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    class="bot-avatar-upload__input"
-                    @change="handleAvatarFileChange"
+                    v-model="botName"
+                    class="agent-input"
+                    :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
+                    maxlength="64"
+                    placeholder="请输入昵称"
+                    @blur="botNameTouched = true"
+                  />
+                  <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">业务简介</span>
+                  <span class="form-row__desc">描述你的业务和服务范围，AI 会据此生成更贴合场景的回答。</span>
+                </div>
+                <div class="form-row__control">
+                  <textarea
+                    v-model="botIntro"
+                    class="agent-input form-row__textarea"
+                    rows="5"
+                    maxlength="200"
+                    placeholder="请输入"
                   />
                 </div>
               </div>
-            </div>
 
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">昵称</span>
-                <span class="form-row__desc">AI Agent 在被询问身份相关问题时，将使用该昵称进行回复</span>
-              </div>
-              <div class="form-row__control">
-                <input
-                  v-model="botName"
-                  class="agent-input"
-                  :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
-                  maxlength="64"
-                  placeholder="请输入昵称"
-                  @blur="botNameTouched = true"
-                />
-                <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">简介</span>
-                <span class="form-row__desc">描述你的业务，AI Agent 将为你的访客定制专属回复</span>
-              </div>
-              <div class="form-row__control">
-                <textarea
-                  v-model="botIntro"
-                  class="agent-input form-row__textarea"
-                  rows="5"
-                  maxlength="200"
-                  placeholder="请输入"
-                />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">回复语气</span>
-                <span class="form-row__desc">设置 AI Agent 回复时的语言风格</span>
-              </div>
-              <div class="form-row__control">
-                <div class="bot-chips-group">
-                  <button
-                    v-for="tone in toneOptions"
-                    :key="tone.value"
-                    type="button"
-                    class="bot-chip"
-                    :class="{ 'bot-chip--active': selectedTone === tone.value }"
-                    @click="selectedTone = tone.value"
-                  >{{ tone.label }}</button>
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">回复语气</span>
+                  <span class="form-row__desc">统一 AI Agent 的表达风格，保证对外沟通体验一致。</span>
+                </div>
+                <div class="form-row__control">
+                  <div class="bot-chips-group">
+                    <button
+                      v-for="tone in toneOptions"
+                      :key="tone.value"
+                      type="button"
+                      class="bot-chip"
+                      :class="{ 'bot-chip--active': selectedTone === tone.value }"
+                      @click="selectedTone = tone.value"
+                    >{{ tone.label }}</button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">默认语言</span>
-                <span class="form-row__desc">无法识别访客语言时，将使用该语言回复</span>
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">默认语言</span>
+                  <span class="form-row__desc">当系统无法判断访客语言时，将优先使用该语言回复。</span>
+                </div>
+                <div class="form-row__control">
+                  <select v-model="defaultLanguage" class="agent-input">
+                    <option
+                      v-for="language in languageOptions"
+                      :key="language.value"
+                      :value="language.value"
+                    >{{ language.label }}</option>
+                  </select>
+                </div>
               </div>
-              <div class="form-row__control">
-                <select v-model="defaultLanguage" class="agent-input">
-                  <option
-                    v-for="language in languageOptions"
-                    :key="language.value"
-                    :value="language.value"
-                  >{{ language.label }}</option>
-                </select>
+            </template>
+
+            <template v-else-if="section.key === 'answering'">
+              <div class="setting-helper-stack">
+                <div class="setting-callout">
+                  <p class="setting-callout__text">AI 会结合知识库、业务简介、语气和语言设置来组织回复。</p>
+                </div>
               </div>
-            </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">回复模式</span>
+                  <span class="form-row__desc">定义 AI 是严格依赖知识库回答，还是允许更主动地推理生成内容。</span>
+                </div>
+                <div class="form-row__control">
+                  <select v-model="replyMode" class="agent-input">
+                    <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
+                    <option value="creative">发散模式 — 允许 AI 在知识边界内适度推理</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">暂时无法回答</span>
+                  <span class="form-row__desc">当访客发送图片、文件，或问题超出当前能力范围时展示的提示文案。</span>
+                </div>
+                <div class="form-row__control">
+                  <textarea
+                    v-model="unsupportedQuestionMessage"
+                    class="agent-input form-row__textarea"
+                    :class="{ 'agent-input--error': unsupportedMessageTouched && !unsupportedQuestionMessage.trim() }"
+                    rows="4"
+                    maxlength="2000"
+                    placeholder="请输入"
+                    @blur="unsupportedMessageTouched = true"
+                  />
+                  <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
+                </div>
+              </div>
+            </template>
+
+            <template v-else-if="section.key === 'fallback'">
+              <div class="setting-helper-stack">
+                <div class="setting-callout setting-callout--soft">
+                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本。</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">转接人工客服</span>
+                  <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案。</span>
+                </div>
+                <div class="form-row__control">
+                  <textarea
+                    v-model="transferMessage"
+                    class="agent-input form-row__textarea"
+                    :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
+                    rows="4"
+                    maxlength="2000"
+                    placeholder="请输入"
+                    @blur="transferMessageTouched = true"
+                  />
+                  <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">客服离线</span>
+                  <span class="form-row__desc">当人工客服团队暂时离线时，向访客说明当前服务状态。</span>
+                </div>
+                <div class="form-row__control">
+                  <textarea
+                    v-model="offlineMessage"
+                    class="agent-input form-row__textarea"
+                    :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
+                    rows="4"
+                    maxlength="2000"
+                    placeholder="请输入"
+                    @blur="offlineMessageTouched = true"
+                  />
+                  <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+                </div>
+              </div>
+            </template>
+
+            <template v-else-if="section.key === 'idle'">
+              <div class="form-row">
+                <div class="form-row__label">
+                  <span class="form-row__name">自动关闭空闲会话</span>
+                  <span class="form-row__desc">避免访客长时间未响应时持续占用会话，让客服台保持清晰。</span>
+                </div>
+                <div class="form-row__control">
+                  <div class="inactive-setting">
+                    <span class="inactive-setting__text">当访客超过</span>
+                    <input
+                      v-model.number="visitorInactiveMinutes"
+                      type="number"
+                      class="agent-input inactive-setting__input"
+                      min="1"
+                      max="1440"
+                      @blur="handleInactiveMinutesBlur"
+                    />
+                    <span class="inactive-setting__text">分钟未操作时，自动关闭会话</span>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
-        </section>
-
-        <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" :disabled="!basicFormValid" @click="saveBasicSettings">保存</button>
-        </div>
+        </article>
       </div>
 
-      <!-- 会话设置 tab -->
-      <div v-else-if="agentTab === 'conversation'" class="ai-tab-content">
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">访客不活跃</h2>
-          </header>
-          <div class="setting-card__body setting-card__body--compact">
-            <div class="inactive-setting">
-              <span class="inactive-setting__text">当访客超过</span>
-              <input
-                v-model.number="visitorInactiveMinutes"
-                type="number"
-                class="agent-input inactive-setting__input"
-                min="1"
-                max="1440"
-              />
-              <span class="inactive-setting__text">分钟未进行操作，自动关闭会话</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">回复策略</h2>
-            <p class="setting-card__desc">配置 AI Agent 的回复生成方式</p>
-          </header>
-          <div class="setting-card__body">
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">回复模式</span>
-              </div>
-              <div class="form-row__control">
-                <select v-model="replyMode" class="agent-input">
-                  <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
-                  <option value="creative">发散模式 — 允许 AI 自主推理</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="setting-card agent-panel">
-          <header class="setting-card__header">
-            <h2 class="setting-card__title">个性化回复</h2>
-            <p class="setting-card__desc">为以下场景设置 AI Agent 的回复语</p>
-          </header>
-          <div class="setting-card__body">
-            <div class="setting-helper-stack">
-              <div class="setting-callout">
-                <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">转接人工客服</span>
-                <span class="form-row__desc">当 AI Agent 准备将会话转接给人工客服时，向访客展示的提示文案</span>
-              </div>
-              <div class="form-row__control">
-                <textarea
-                  v-model="transferMessage"
-                  class="agent-input form-row__textarea"
-                  :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
-                  rows="4"
-                  maxlength="2000"
-                  placeholder="请输入"
-                  @blur="transferMessageTouched = true"
-                />
-                <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">客服离线</span>
-                <span class="form-row__desc">当客服团队暂时离线时，向访客展示的提示文案</span>
-              </div>
-              <div class="form-row__control">
-                <textarea
-                  v-model="offlineMessage"
-                  class="agent-input form-row__textarea"
-                  :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                  rows="4"
-                  maxlength="2000"
-                  placeholder="请输入"
-                  @blur="offlineMessageTouched = true"
-                />
-                <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-row__label">
-                <span class="form-row__name">暂时无法回答</span>
-                <span class="form-row__desc">当访客发送图片、文件，或问题超出 AI Agent 当前能力范围时展示的提示文案</span>
-              </div>
-              <div class="form-row__control">
-                <textarea
-                  v-model="unsupportedQuestionMessage"
-                  class="agent-input form-row__textarea"
-                  :class="{ 'agent-input--error': unsupportedMessageTouched && !unsupportedQuestionMessage.trim() }"
-                  rows="4"
-                  maxlength="2000"
-                  placeholder="请输入"
-                  @blur="unsupportedMessageTouched = true"
-                />
-                <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div class="ai-tab-content__actions">
-          <button type="button" class="agent-btn agent-btn--primary" :disabled="!conversationFormValid" @click="saveConversationSettings">保存</button>
+      <section class="launch-panel agent-panel">
+        <div class="launch-panel__content">
+          <p class="launch-panel__eyebrow">发布前检查</p>
+          <h2 class="launch-panel__title">保存这条 AI 接待配置流</h2>
+          <p class="launch-panel__desc">{{ savePanelDescription }}</p>
         </div>
-      </div>
+
+        <div class="launch-panel__actions">
+          <button type="button" class="agent-btn agent-btn--ghost" :disabled="!hasUnsavedChanges" @click="resetAgentSettings">
+            恢复已保存
+          </button>
+          <button type="button" class="agent-btn agent-btn--primary" :disabled="!hasUnsavedChanges" @click="saveAgentSettings">
+            保存配置
+          </button>
+        </div>
+      </section>
     </template>
 
     <!-- 原有的占位页面 -->
@@ -359,7 +386,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { BaseModal, CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
+import { AgentIcon, BaseModal, CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
 import {
   type StoredAiAgentSettings,
   loadStoredAiAgentSettings,
@@ -368,7 +395,8 @@ import {
 
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
 
-type AgentTabKey = "basic" | "conversation";
+type AudienceType = "all" | "first" | "returning";
+type LifecycleSectionKey = "entry" | "identity" | "answering" | "fallback" | "idle";
 
 interface CopilotSetting {
   key: string;
@@ -383,6 +411,14 @@ interface CropState {
   naturalHeight: number;
   offsetX: number;
   offsetY: number;
+}
+
+interface LifecycleSection {
+  key: LifecycleSectionKey;
+  event: string;
+  title: string;
+  summary: string;
+  icon: "customer" | "ai-agent" | "book" | "service" | "calendar";
 }
 
 const props = defineProps<{
@@ -407,7 +443,7 @@ const createEmptyCropState = (): CropState => ({
 });
 
 const showBanner = ref(true);
-const agentTab = ref<AgentTabKey>("basic");
+const openLifecycleSection = ref<LifecycleSectionKey | null>("entry");
 const agentEnabled = ref(true);
 
 const copilotSettings = ref<CopilotSetting[]>([
@@ -450,7 +486,30 @@ const languageOptions = [
   { value: "ms", label: "马利西亚语" }
 ];
 
+const audienceOptions: Array<{ label: string; value: AudienceType }> = [
+  { label: "全部访客", value: "all" },
+  { label: "首次访客", value: "first" },
+  { label: "回访访客", value: "returning" }
+];
+
+const audienceLabelMap: Record<AudienceType, string> = {
+  all: "全部访客",
+  first: "首次访客",
+  returning: "回访访客"
+};
+
+const responseModeLabelMap: Record<string, string> = {
+  always: "始终由 AI Agent 回复",
+  "offline-only": "仅客服离线时由 AI 回复"
+};
+
+const replyModeLabelMap: Record<string, string> = {
+  strict: "严格模式",
+  creative: "发散模式"
+};
+
 const agentResponseMode = ref("always");
+const visitorAudience = ref<AudienceType>("all");
 const showMessageAgentLabel = ref(true);
 const visitorInactiveMinutes = ref(10);
 const replyMode = ref("strict");
@@ -483,10 +542,81 @@ const activeSectionLabel = computed(() => {
 
 const avatarFallbackText = computed(() => "🤖");
 
+const getToneLabel = (tone: string) => toneOptions.find((item) => item.value === tone)?.label ?? toneOptions[0].label;
+
+const getLanguageLabel = (languageCode: string) => languageOptions.find((item) => item.value === languageCode)?.label ?? languageCode;
+
+const resolveAudienceType = (value: unknown): AudienceType => {
+  if (value === "first" || value === "returning") {
+    return value;
+  }
+
+  return "all";
+};
+
+const normalizeInactiveMinutes = (value: unknown) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return 10;
+  }
+
+  return Math.min(1440, Math.max(1, Math.round(numericValue)));
+};
+
+const lifecycleSections = computed<LifecycleSection[]>(() => {
+  const identitySummary = [botName.value.trim() || "未设置昵称", getToneLabel(selectedTone.value), getLanguageLabel(defaultLanguage.value)];
+  const entrySummary = !agentEnabled.value
+    ? "AI Agent 已关闭，不会自动参与新会话。"
+    : [
+      audienceLabelMap[visitorAudience.value],
+      responseModeLabelMap[agentResponseMode.value] ?? responseModeLabelMap.always,
+      showMessageAgentLabel.value ? "显示 AI 标签" : "隐藏 AI 标签"
+    ].join(" · ");
+
+  return [
+    {
+      key: "entry",
+      event: "会话开始时",
+      title: "当访客发送第一条消息",
+      summary: entrySummary,
+      icon: "customer"
+    },
+    {
+      key: "identity",
+      event: "AI 开始接待时",
+      title: "AI 如何介绍自己",
+      summary: identitySummary.join(" · "),
+      icon: "ai-agent"
+    },
+    {
+      key: "answering",
+      event: "AI 回复访客时",
+      title: "AI 如何组织回答",
+      summary: `${replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict} · ${unsupportedQuestionMessage.value.trim() ? "已设置兜底回复" : "待设置兜底回复"}`,
+      icon: "book"
+    },
+    {
+      key: "fallback",
+      event: "AI 无法解决时",
+      title: "转人工与离线兜底",
+      summary: `${transferMessage.value.trim() ? "已设置转人工提示" : "待设置转人工提示"} · ${offlineMessage.value.trim() ? "已设置离线提示" : "待设置离线提示"}`,
+      icon: "service"
+    },
+    {
+      key: "idle",
+      event: "访客长时间无响应时",
+      title: "自动结束空闲会话",
+      summary: `超过 ${normalizeInactiveMinutes(visitorInactiveMinutes.value)} 分钟自动关闭会话`,
+      icon: "calendar"
+    }
+  ];
+});
+
 const getConfigSnapshot = () =>
   JSON.stringify({
     agentEnabled: agentEnabled.value,
     agentResponseMode: agentResponseMode.value,
+    visitorAudience: visitorAudience.value,
     showMessageAgentLabel: showMessageAgentLabel.value,
     botAvatarUrl: botAvatarUrl.value,
     botName: botName.value,
@@ -508,6 +638,7 @@ const persistAgentSettings = () => {
   const settings: StoredAiAgentSettings = {
     agentEnabled: agentEnabled.value,
     agentResponseMode: agentResponseMode.value,
+    visitorAudience: visitorAudience.value,
     showMessageAgentLabel: showMessageAgentLabel.value,
     botAvatarUrl: botAvatarUrl.value,
     botName: botName.value,
@@ -529,6 +660,7 @@ const loadAgentSettings = () => {
 
   if (typeof settings.agentEnabled === "boolean") agentEnabled.value = settings.agentEnabled;
   if (typeof settings.agentResponseMode === "string") agentResponseMode.value = settings.agentResponseMode;
+  if (typeof settings.visitorAudience === "string") visitorAudience.value = resolveAudienceType(settings.visitorAudience);
   if (typeof settings.showMessageAgentLabel === "boolean") showMessageAgentLabel.value = settings.showMessageAgentLabel;
   if (typeof settings.botAvatarUrl === "string") botAvatarUrl.value = settings.botAvatarUrl;
   if (typeof settings.botName === "string") botName.value = settings.botName;
@@ -554,6 +686,7 @@ const restoreSavedSnapshot = () => {
 
     agentEnabled.value = Boolean(settings.agentEnabled);
     agentResponseMode.value = settings.agentResponseMode ?? "always";
+    visitorAudience.value = resolveAudienceType(settings.visitorAudience);
     showMessageAgentLabel.value = typeof settings.showMessageAgentLabel === "boolean" ? settings.showMessageAgentLabel : true;
     botAvatarUrl.value = settings.botAvatarUrl ?? "";
     botName.value = settings.botName ?? "AI Agent";
@@ -576,20 +709,76 @@ const markSnapshotSaved = () => {
   emit("dirty-change", false);
 };
 
-const basicFormValid = computed(() => botName.value.trim().length > 0);
+const requiredMissingCount = computed(() => {
+  let count = 0;
 
-const conversationFormValid = computed(
-  () => transferMessage.value.trim().length > 0 && offlineMessage.value.trim().length > 0 && unsupportedQuestionMessage.value.trim().length > 0
-);
+  if (!botName.value.trim()) count += 1;
+  if (!unsupportedQuestionMessage.value.trim()) count += 1;
+  if (!transferMessage.value.trim()) count += 1;
+  if (!offlineMessage.value.trim()) count += 1;
 
-const saveBasicSettings = () => {
-  markSnapshotSaved();
-  emitToast("基本设置已保存");
+  return count;
+});
+
+const savePanelDescription = computed(() => {
+  if (requiredMissingCount.value > 0) {
+    return `还有 ${requiredMissingCount.value} 项关键配置待完善，保存后会同步到访客端演示环境。`;
+  }
+
+  if (hasUnsavedChanges.value) {
+    return "你有未保存的调整，保存后会同步到访客端演示环境，后续仍可随时修改。";
+  }
+
+  return "当前配置已保存，后续仍可按业务变化继续微调。";
+});
+
+const markRequiredFieldsTouched = () => {
+  botNameTouched.value = true;
+  transferMessageTouched.value = true;
+  offlineMessageTouched.value = true;
+  unsupportedMessageTouched.value = true;
 };
 
-const saveConversationSettings = () => {
+const resetTouchedFields = () => {
+  botNameTouched.value = false;
+  transferMessageTouched.value = false;
+  offlineMessageTouched.value = false;
+  unsupportedMessageTouched.value = false;
+};
+
+const firstInvalidSection = computed<LifecycleSectionKey | null>(() => {
+  if (!botName.value.trim()) return "identity";
+  if (!unsupportedQuestionMessage.value.trim()) return "answering";
+  if (!transferMessage.value.trim() || !offlineMessage.value.trim()) return "fallback";
+  return null;
+});
+
+const toggleLifecycleSection = (key: LifecycleSectionKey) => {
+  openLifecycleSection.value = openLifecycleSection.value === key ? null : key;
+};
+
+const handleInactiveMinutesBlur = () => {
+  visitorInactiveMinutes.value = normalizeInactiveMinutes(visitorInactiveMinutes.value);
+};
+
+const saveAgentSettings = () => {
+  markRequiredFieldsTouched();
+  visitorInactiveMinutes.value = normalizeInactiveMinutes(visitorInactiveMinutes.value);
+
+  if (firstInvalidSection.value) {
+    openLifecycleSection.value = firstInvalidSection.value;
+    emitToast("请先完善必填配置");
+    return;
+  }
+
   markSnapshotSaved();
-  emitToast("会话设置已保存");
+  emitToast("AI Agent 配置已保存");
+};
+
+const resetAgentSettings = () => {
+  restoreSavedSnapshot();
+  resetTouchedFields();
+  emitToast("已恢复到上次保存的配置");
 };
 
 const updateCopilotSetting = (key: string, next: boolean) => {
@@ -851,85 +1040,118 @@ defineExpose({
   padding: var(--agent-space-24);
 }
 
-/* Tabs */
-.ai-tabs {
-  border-bottom: 1px solid var(--agent-color-border-default);
-  display: flex;
-  gap: 0;
-}
-
-.ai-tabs__item {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--agent-color-text-secondary);
-  cursor: pointer;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-  padding: var(--agent-space-12) var(--agent-space-20);
-  transition: all var(--agent-motion-fast);
-}
-
-.ai-tabs__item:hover {
-  color: var(--agent-color-text-primary);
-}
-
-.ai-tabs__item--active {
-  border-bottom-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
-  font-weight: var(--agent-font-weight-semibold);
-}
-
-/* Tab content */
-.ai-tab-content {
+.lifecycle-flow {
   display: flex;
   flex-direction: column;
-  gap: var(--agent-space-20);
+  gap: var(--agent-space-16);
 }
 
-.ai-tab-content__actions {
-  display: flex;
-  gap: var(--agent-space-8);
-}
-
-/* Setting card */
-.setting-card {
+.lifecycle-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  transition: border-color var(--agent-motion-fast) ease, box-shadow var(--agent-motion-fast) ease;
 }
 
-.setting-card__header {
+.lifecycle-card--open {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 12px 28px rgba(47, 107, 255, 0.08);
+}
+
+.lifecycle-card__trigger {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  gap: var(--agent-space-16);
+  padding: 20px var(--agent-space-24);
+  text-align: left;
+  width: 100%;
+}
+
+.lifecycle-card__badge {
+  align-items: center;
+  border-radius: 12px;
+  color: #18212f;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.lifecycle-card__badge--entry {
+  background: #fee7a1;
+}
+
+.lifecycle-card__badge--identity {
+  background: #dbe9ff;
+}
+
+.lifecycle-card__badge--answering {
+  background: #e5ddff;
+}
+
+.lifecycle-card__badge--fallback {
+  background: #cef0df;
+}
+
+.lifecycle-card__badge--idle {
+  background: #d9f2ec;
+}
+
+.lifecycle-card__meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lifecycle-card__event {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-medium);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.lifecycle-card__heading {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: var(--agent-space-20) var(--agent-space-24);
+  gap: 6px;
+  min-width: 0;
 }
 
-.setting-card__title {
+.lifecycle-card__title {
   color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-base);
+  font-size: var(--agent-font-size-md);
   font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.4;
   margin: 0;
 }
 
-.setting-card__desc {
+.lifecycle-card__summary {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lifecycle-card__chevron {
   color: var(--agent-color-text-tertiary);
-  font-size: var(--agent-font-size-xs);
-  line-height: 1.5;
-  margin: 0;
+  margin-top: 10px;
 }
 
-.setting-card__body {
+.lifecycle-card__body {
+  border-top: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-24);
-  padding: var(--agent-space-24);
-}
-
-.setting-card__body--compact {
-  padding-top: 8px;
+  padding: 0 var(--agent-space-24) var(--agent-space-24) 80px;
 }
 
 .setting-helper-stack {
@@ -940,8 +1162,12 @@ defineExpose({
 
 .setting-callout {
   background: #f8e7a7;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 14px;
+}
+
+.setting-callout--soft {
+  background: #eef4ff;
 }
 
 .setting-callout__text {
@@ -952,18 +1178,19 @@ defineExpose({
   margin: 0;
 }
 
-.setting-translation-note {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.7;
-  margin: 0;
+.setting-callout--soft .setting-callout__text {
+  color: #20478a;
 }
 
-/* Horizontal form row: label left, control right */
 .form-row {
   align-items: flex-start;
   display: flex;
   gap: var(--agent-space-24);
+}
+
+.lifecycle-card__body .form-row + .form-row {
+  border-top: 1px solid var(--agent-color-border-default);
+  padding-top: var(--agent-space-24);
 }
 
 .form-row__label {
@@ -972,7 +1199,7 @@ defineExpose({
   flex-shrink: 0;
   gap: 4px;
   padding-top: 8px;
-  width: 200px;
+  width: 220px;
 }
 
 .form-row__name {
@@ -989,8 +1216,14 @@ defineExpose({
 
 .form-row__control {
   flex: 1;
-  max-width: 560px;
+  max-width: 620px;
   min-width: 0;
+}
+
+.form-row__control--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .form-row__control .agent-input {
@@ -1012,6 +1245,29 @@ defineExpose({
 
 .agent-input--error {
   border-color: #e53e3e;
+}
+
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill-option {
+  background: #f4f6fa;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+  transition: all var(--agent-motion-fast) ease;
+}
+
+.pill-option--active {
+  background: #e9f1ff;
+  border-color: #b7ccff;
+  color: var(--agent-color-brand-primary);
 }
 
 .inactive-setting {
@@ -1036,7 +1292,51 @@ defineExpose({
   line-height: 1.6;
 }
 
-/* Switch */
+.launch-panel {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-24);
+  justify-content: space-between;
+  padding: var(--agent-space-24);
+}
+
+.launch-panel__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.launch-panel__eyebrow {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-medium);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.launch-panel__title {
+  color: var(--agent-color-text-primary);
+  font-size: 18px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.launch-panel__desc {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.launch-panel__actions {
+  display: flex;
+  gap: var(--agent-space-8);
+}
+
 .agent-switch {
   cursor: pointer;
   display: inline-flex;
@@ -1080,7 +1380,6 @@ defineExpose({
   transform: translateX(20px);
 }
 
-/* Bot avatar upload */
 .bot-avatar-upload {
   align-items: center;
   display: flex;
@@ -1127,13 +1426,13 @@ defineExpose({
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
   line-height: 1.5;
+  margin: 0;
 }
 
 .bot-avatar-upload__input {
   display: none;
 }
 
-/* Bot chips */
 .bot-chips-group {
   display: flex;
   flex-wrap: wrap;
@@ -1217,6 +1516,14 @@ defineExpose({
     padding: var(--agent-space-16);
   }
 
+  .lifecycle-card__trigger {
+    padding: 18px;
+  }
+
+  .lifecycle-card__body {
+    padding: 0 18px 18px;
+  }
+
   .form-row {
     flex-direction: column;
     gap: var(--agent-space-8);
@@ -1234,6 +1541,19 @@ defineExpose({
   .bot-avatar-upload {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .launch-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .launch-panel__actions {
+    width: 100%;
+  }
+
+  .launch-panel__actions .agent-btn {
+    flex: 1;
   }
 
   .avatar-crop-canvas {

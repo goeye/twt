@@ -49,7 +49,7 @@
         </div>
 
         <footer class="archive-drawer__footer">
-          <button type="button" class="archive-drawer__assign-btn" @click="$emit('assign')">分配会话</button>
+          <button type="button" class="archive-drawer__assign-btn" @click="$emit('assign')">{{ assignLabel }}</button>
         </footer>
       </aside>
     </div>
@@ -71,11 +71,17 @@ interface DrawerMessage {
   avatarUrl?: string;
 }
 
-const props = defineProps<{
-  open: boolean;
-  title: string;
-  messages: DrawerMessage[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    title: string;
+    messages: DrawerMessage[];
+    assignLabel?: string;
+  }>(),
+  {
+    assignLabel: "分配会话"
+  }
+);
 
 const emit = defineEmits<{
   (e: "close"): void;

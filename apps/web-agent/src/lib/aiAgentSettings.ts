@@ -4,6 +4,7 @@ export const DEFAULT_AI_AGENT_NAME = "AI Agent";
 export interface StoredAiAgentSettings {
   agentEnabled?: boolean;
   agentResponseMode?: string;
+  visitorAudience?: string;
   showMessageAgentLabel?: boolean;
   botAvatarUrl?: string;
   botName?: string;
