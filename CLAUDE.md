@@ -61,6 +61,24 @@ Components use BEM-style CSS classes prefixed with `agent-` (e.g., `agent-btn`, 
 
 The `AgentAppShell` component provides the top-level layout with named slots: `#nav-rail`, `#sub-nav`, `#session-list`, `#detail`, and a default slot for main content.
 
+## Commit 规范
+
+- Commit message 使用**中文**
+- 第一行：简洁概括本次改动（不超过 50 字）
+- 空一行后用 `- ` 按文件/模块列出主要改动点
+- 风格参考：`优化归档页面交互体验`、`重构 AI Agent 设置页面`、`增强聊天归档页面功能`
+
+## 常用命令速查
+
+```bash
+pnpm dev:web-agent          # 启动开发服务器
+pnpm build:web-agent        # 生产构建
+pnpm deploy:web-agent       # 构建 + 部署到预览服务器
+pnpm install                # 安装所有依赖
+```
+
+部署成功后预览地址：`https://pm.pro.jishu666.com/web-agent/index.html`
+
 ## Deployment
 
 `apps/upcode.sh` rsyncs a built app's `dist/` to a remote server and triggers a webhook. Credentials file (`chanpin6.p`) sits in the `apps/` directory. Preview URL pattern: `https://pm.pro.jishu666.com/<app-name>/index.html`.
