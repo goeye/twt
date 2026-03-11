@@ -97,7 +97,7 @@
       </section>
 
       <section class="files-page__table-wrap">
-        <div class="files-page__table-scroll agent-scroll">
+        <div class="files-page__table-scroll agent-scroll" @scroll="closeStaffPanel">
           <table class="archive-table">
             <thead>
               <tr>
@@ -154,6 +154,7 @@
                 <td>
                   <div v-if="editingRowId === row.id" class="archive-title-edit">
                     <input
+                      ref="editTitleInputRef"
                       v-model="editDraftTitle"
                       class="agent-input archive-title-edit__input"
                       @blur="confirmEditTitle"
@@ -190,8 +191,8 @@
                   <span v-else>–</span>
                 </td>
                 <!-- 2c. 服务客服列: avatar stacking -->
-                <td>
-                  <div v-if="row.staffAgents.length > 0" class="archive-staff-avatars" @click.stop="openStaffDrawer(row.id)">
+                <td class="archive-staff-cell">
+                  <div v-if="row.staffAgents.length > 0" class="archive-staff-avatars" @click.stop="toggleStaffPanel(row.id)">
                     <span
                       v-for="(agent, idx) in row.staffAgents.slice(0, 4)"
                       :key="agent.name"
@@ -205,6 +206,22 @@
                     <span v-if="row.staffAgents.length > 4" class="archive-staff-avatars__overflow">+{{ row.staffAgents.length - 4 }}</span>
                   </div>
                   <span v-else>–</span>
+                  <!-- Staff panel (inline below cell) -->
+                  <div v-if="staffPanelRowId === row.id" class="archive-staff-panel" @click.stop>
+                    <div class="archive-staff-panel__header">
+                      <span class="archive-staff-panel__title">服务客服列表</span>
+                    </div>
+                    <ul class="archive-staff-panel__list">
+                      <li v-for="agent in row.staffAgents" :key="agent.name" class="archive-staff-panel__item">
+                        <span class="archive-staff-panel__avatar" :style="{ background: agent.avatarColor }">
+                          <img v-if="agent.avatarUrl" :src="agent.avatarUrl" class="archive-staff-panel__avatar-img" />
+                          <span v-else>{{ agent.avatarText }}</span>
+                        </span>
+                        <span class="archive-staff-panel__name">{{ agent.name }}</span>
+                        <span v-if="agent.name === row.owner" class="archive-staff-panel__owner-tag">会话负责人</span>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
                 <!-- 2b. 标签列: tag chips + popover -->
                 <td class="archive-tag-cell">
@@ -376,7 +393,7 @@
       </section>
 
       <section class="files-page__table-wrap">
-        <div class="files-page__table-scroll agent-scroll">
+        <div class="files-page__table-scroll agent-scroll" @scroll="closeChatMemberPanel">
           <table class="archive-table">
             <thead>
               <tr>
@@ -400,8 +417,8 @@
                   </button>
                 </th>
                 <th>群主</th>
-                <th>访客数量</th>
-                <th>客服数量</th>
+                <th>访客成员</th>
+                <th>客服成员</th>
                 <th>
                   <button type="button" class="archive-sort" @click="toggleChatSort('startedAt')">
                     <span>发起时间</span>
@@ -461,9 +478,9 @@
                   </span>
                   <span v-else>{{ row.owner }}</span>
                 </td>
-                <!-- 访客数量: avatar stacking -->
-                <td>
-                  <div v-if="row.visitorMembers.length > 0" class="archive-staff-avatars" @click.stop="openChatMemberDrawer(row.id)">
+                <!-- 访客成员: avatar stacking + inline panel (shared) -->
+                <td class="archive-staff-cell">
+                  <div v-if="row.visitorMembers.length > 0" class="archive-staff-avatars" @click.stop="toggleChatMemberPanel(row.id)">
                     <span
                       v-for="(member, idx) in row.visitorMembers.slice(0, 4)"
                       :key="member.name"
@@ -477,10 +494,40 @@
                     <span v-if="row.visitorMembers.length > 4" class="archive-staff-avatars__overflow">+{{ row.visitorMembers.length - 4 }}</span>
                   </div>
                   <span v-else class="archive-table__number">–</span>
+                  <div v-if="chatMemberPanelRowId === row.id" class="archive-staff-panel" @click.stop>
+                    <div class="archive-staff-panel__header">
+                      <span class="archive-staff-panel__title">成员列表</span>
+                    </div>
+                    <ul class="archive-staff-panel__list">
+                      <li v-if="row.ownerMember" class="archive-staff-panel__item">
+                        <span class="archive-staff-panel__avatar" :style="{ background: row.ownerMember.avatarColor }">
+                          <img v-if="row.ownerMember.avatarUrl" :src="row.ownerMember.avatarUrl" class="archive-staff-panel__avatar-img" />
+                          <span v-else>{{ row.ownerMember.avatarText }}</span>
+                        </span>
+                        <span class="archive-staff-panel__name">{{ row.ownerMember.name }}</span>
+                        <span class="archive-staff-panel__owner-tag">群主</span>
+                      </li>
+                      <li v-for="member in row.staffMembers" :key="'s-' + member.name" class="archive-staff-panel__item">
+                        <span class="archive-staff-panel__avatar" :style="{ background: member.avatarColor }">
+                          <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-panel__avatar-img" />
+                          <span v-else>{{ member.avatarText }}</span>
+                        </span>
+                        <span class="archive-staff-panel__name">{{ member.name }}</span>
+                        <span class="archive-staff-panel__staff-tag">客服</span>
+                      </li>
+                      <li v-for="member in row.visitorMembers" :key="'v-' + member.name" class="archive-staff-panel__item">
+                        <span class="archive-staff-panel__avatar" :style="{ background: member.avatarColor }">
+                          <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-panel__avatar-img" />
+                          <span v-else>{{ member.avatarText }}</span>
+                        </span>
+                        <span class="archive-staff-panel__name">{{ member.name }}</span>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
-                <!-- 客服数量: avatar stacking -->
-                <td>
-                  <div v-if="row.staffMembers.length > 0" class="archive-staff-avatars" @click.stop="openChatMemberDrawer(row.id)">
+                <!-- 客服成员: avatar stacking (opens same panel) -->
+                <td class="archive-staff-cell">
+                  <div v-if="row.staffMembers.length > 0" class="archive-staff-avatars" @click.stop="toggleChatMemberPanel(row.id)">
                     <span
                       v-for="(member, idx) in row.staffMembers.slice(0, 4)"
                       :key="member.name"
@@ -554,249 +601,6 @@
       </footer>
     </section>
 
-    <!-- Staff drawer overlay -->
-    <Teleport to="body">
-      <div v-if="staffDrawerRow" class="archive-staff-drawer-overlay" @click="closeStaffDrawer">
-        <aside class="archive-staff-drawer" @click.stop>
-          <header class="archive-staff-drawer__header">
-            <h3 class="archive-staff-drawer__title">服务客服列表</h3>
-            <button type="button" class="archive-staff-drawer__close" @click="closeStaffDrawer">&times;</button>
-          </header>
-          <ul class="archive-staff-drawer__list">
-            <li v-for="agent in staffDrawerRow.staffAgents" :key="agent.name" class="archive-staff-drawer__item">
-              <span class="archive-staff-drawer__avatar" :style="{ background: agent.avatarColor }">
-                <img v-if="agent.avatarUrl" :src="agent.avatarUrl" class="archive-staff-drawer__avatar-img" />
-                <span v-else>{{ agent.avatarText }}</span>
-              </span>
-              <span class="archive-staff-drawer__info">
-                <span class="archive-staff-drawer__name">{{ agent.name }}</span>
-              </span>
-              <span v-if="agent.name === staffDrawerRow.owner" class="archive-staff-drawer__owner-tag">会话负责人</span>
-            </li>
-          </ul>
-        </aside>
-      </div>
-    </Teleport>
-
-    <!-- Chat member drawer overlay -->
-    <Teleport to="body">
-      <div v-if="chatMemberDrawerRow" class="archive-staff-drawer-overlay" @click="closeChatMemberDrawer">
-        <aside class="archive-staff-drawer" @click.stop>
-          <!-- Detail view: 客服信息 / 访客信息 -->
-          <template v-if="selectedChatMember">
-            <header class="archive-staff-drawer__header chat-member-detail-header">
-              <button type="button" class="chat-member-back" @click="backToMemberList">
-                <AgentIcon name="chevron-down" :size="16" class="chat-member-back__icon" />
-              </button>
-              <h3 class="archive-staff-drawer__title">{{ selectedChatMember.role === 'visitor' ? '访客信息' : '客服信息' }}</h3>
-              <button type="button" class="archive-staff-drawer__close" @click="closeChatMemberDrawer">&times;</button>
-            </header>
-
-            <!-- 客服信息 detail -->
-            <div v-if="selectedChatMember.role !== 'visitor'" class="chat-member-detail">
-              <div class="chat-member-detail__profile">
-                <div class="chat-member-detail__avatar-wrap">
-                  <span class="chat-member-detail__avatar" :style="{ background: selectedChatMember.avatarColor }">
-                    <img v-if="selectedChatMember.avatarUrl" :src="selectedChatMember.avatarUrl" class="chat-member-detail__avatar-img" />
-                    <span v-else>{{ selectedChatMember.avatarText }}</span>
-                  </span>
-                  <span class="chat-member-detail__online-dot" :class="selectedChatMember.online ? 'chat-member-detail__online-dot--on' : 'chat-member-detail__online-dot--off'" />
-                </div>
-                <span class="chat-member-detail__name">{{ selectedChatMember.name }}</span>
-              </div>
-
-              <div class="chat-member-detail__section">
-                <h4 class="chat-member-detail__section-title">
-                  <span class="chat-member-detail__section-icon">&#9632;</span>
-                  基本信息
-                </h4>
-                <div class="chat-member-detail__fields">
-                  <div class="chat-member-detail__field">
-                    <span class="chat-member-detail__label">姓名</span>
-                    <span class="chat-member-detail__value">{{ selectedChatMember.name }}</span>
-                  </div>
-                  <div class="chat-member-detail__field">
-                    <span class="chat-member-detail__label">昵称</span>
-                    <span class="chat-member-detail__value">{{ selectedChatMember.nickname || selectedChatMember.name }}</span>
-                  </div>
-                  <div class="chat-member-detail__field">
-                    <span class="chat-member-detail__label">邮箱</span>
-                    <span class="chat-member-detail__value">{{ selectedChatMember.email || '–' }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 访客信息 detail -->
-            <div v-else class="chat-member-detail chat-member-detail--visitor">
-              <div class="chat-member-detail__scroll agent-scroll">
-                <!-- 基础信息 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">基础信息</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">备注名</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.alias || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">姓名</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.nickname || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">电话</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.phone || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">邮箱</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.email || '–' }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 访客标签 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">访客标签</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <span class="chat-visitor-tag-add">+</span>
-                  </div>
-                </div>
-
-                <!-- 客户信息 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">客户信息</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">关联客户</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.relatedCustomer || '–' }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 附加信息 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">附加信息</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">起始页面</span>
-                      <span class="chat-visitor-field__value chat-visitor-field__value--link">{{ selectedChatMember.landingPage || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">会话总数</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.sessionCount ?? 0 }} 个会话</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 访问轨迹 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">访问轨迹</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <div v-for="(visit, vi) in (selectedChatMember.visitHistory || [])" :key="vi" class="chat-visitor-visit">
-                      <div class="chat-visitor-visit__row">
-                        <span class="chat-visitor-visit__dot" :class="visit.online ? 'chat-visitor-visit__dot--on' : 'chat-visitor-visit__dot--off'" />
-                        <span class="chat-visitor-visit__title">{{ visit.title }}</span>
-                        <span class="chat-visitor-visit__url">{{ visit.url }}</span>
-                      </div>
-                      <div class="chat-visitor-visit__meta">{{ visit.time }}&ensp;{{ visit.duration }}</div>
-                    </div>
-                    <button type="button" class="chat-visitor-visit__more">查看更多</button>
-                  </div>
-                </div>
-
-                <!-- 设备信息 -->
-                <div class="chat-visitor-section">
-                  <button type="button" class="chat-visitor-section__header">
-                    <span class="chat-visitor-section__title">设备信息</span>
-                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
-                  </button>
-                  <div class="chat-visitor-section__body">
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">IP 地址</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.ip || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">操作系统</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.os || '–' }}</span>
-                    </div>
-                    <div class="chat-visitor-field">
-                      <span class="chat-visitor-field__label">浏览器</span>
-                      <span class="chat-visitor-field__value">{{ selectedChatMember.browser || '–' }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- List view: 成员列表 -->
-          <template v-else>
-            <header class="archive-staff-drawer__header">
-              <h3 class="archive-staff-drawer__title">成员列表</h3>
-              <button type="button" class="archive-staff-drawer__close" @click="closeChatMemberDrawer">&times;</button>
-            </header>
-            <ul class="archive-staff-drawer__list">
-              <!-- 群主 -->
-              <li v-if="chatMemberDrawerRow.ownerMember" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(chatMemberDrawerRow.ownerMember!)">
-                <span class="archive-staff-drawer__avatar-wrap">
-                  <span class="archive-staff-drawer__avatar" :style="{ background: chatMemberDrawerRow.ownerMember.avatarColor }">
-                    <img v-if="chatMemberDrawerRow.ownerMember.avatarUrl" :src="chatMemberDrawerRow.ownerMember.avatarUrl" class="archive-staff-drawer__avatar-img" />
-                    <span v-else>{{ chatMemberDrawerRow.ownerMember.avatarText }}</span>
-                  </span>
-                  <span class="archive-staff-drawer__online-dot" :class="chatMemberDrawerRow.ownerMember.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
-                </span>
-                <span class="archive-staff-drawer__info">
-                  <span class="archive-staff-drawer__name">{{ chatMemberDrawerRow.ownerMember.name }}</span>
-                </span>
-                <span class="archive-staff-drawer__owner-tag">群主</span>
-              </li>
-              <!-- 客服 -->
-              <li v-for="member in chatMemberDrawerRow.staffMembers" :key="'staff-' + member.name" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(member)">
-                <span class="archive-staff-drawer__avatar-wrap">
-                  <span class="archive-staff-drawer__avatar" :style="{ background: member.avatarColor }">
-                    <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-drawer__avatar-img" />
-                    <span v-else>{{ member.avatarText }}</span>
-                  </span>
-                  <span class="archive-staff-drawer__online-dot" :class="member.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
-                </span>
-                <span class="archive-staff-drawer__info">
-                  <span class="archive-staff-drawer__name">{{ member.name }}</span>
-                </span>
-                <span class="archive-staff-drawer__staff-tag">客服</span>
-              </li>
-              <!-- 访客 -->
-              <li v-for="member in chatMemberDrawerRow.visitorMembers" :key="'visitor-' + member.name" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(member)">
-                <span class="archive-staff-drawer__avatar-wrap">
-                  <span class="archive-staff-drawer__avatar" :style="{ background: member.avatarColor }">
-                    <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-drawer__avatar-img" />
-                    <span v-else>{{ member.avatarText }}</span>
-                  </span>
-                  <span class="archive-staff-drawer__online-dot" :class="member.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
-                </span>
-                <span class="archive-staff-drawer__info">
-                  <span class="archive-staff-drawer__name">{{ member.name }}</span>
-                </span>
-              </li>
-            </ul>
-          </template>
-        </aside>
-      </div>
-    </Teleport>
-
     <!-- Chat record drawer -->
     <ArchiveConversationDrawer
       :open="Boolean(chatDrawerRow)"
@@ -849,7 +653,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveAssignModal from "../components/archive/ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "../components/archive/ArchiveConversationDrawer.vue";
@@ -1063,13 +867,22 @@ const pendingAssignConversationId = ref<string | null>(null);
 // Title inline editing
 const editingRowId = ref<string | null>(null);
 const editDraftTitle = ref("");
+const editTitleInputRef = ref<HTMLInputElement | null>(null);
 
 // Tag popover
 const tagPopoverRowId = ref<string | null>(null);
 const tagSearchKeyword = ref("");
 
-// Staff drawer
-const staffDrawerRowId = ref<string | null>(null);
+// Staff panel (inline)
+const staffPanelRowId = ref<string | null>(null);
+
+const toggleStaffPanel = (rowId: string) => {
+  staffPanelRowId.value = staffPanelRowId.value === rowId ? null : rowId;
+};
+
+const closeStaffPanel = () => {
+  staffPanelRowId.value = null;
+};
 
 // Admin mode
 const isAdmin = ref(true);
@@ -1780,6 +1593,9 @@ const openConversation = (row: ConversationRecord) => {
 const startEditTitle = (row: ConversationRecord) => {
   editingRowId.value = row.id;
   editDraftTitle.value = row.title;
+  nextTick(() => {
+    editTitleInputRef.value?.focus();
+  });
 };
 
 const confirmEditTitle = () => {
@@ -1844,17 +1660,6 @@ const createAndAddTag = (rowId: string) => {
   toggleRowTag(rowId, tagName);
   tagSearchKeyword.value = "";
 };
-
-// Staff drawer methods
-const openStaffDrawer = (rowId: string) => {
-  staffDrawerRowId.value = rowId;
-};
-
-const closeStaffDrawer = () => {
-  staffDrawerRowId.value = null;
-};
-
-const staffDrawerRow = computed(() => allRows.value.find(r => r.id === staffDrawerRowId.value) ?? null);
 
 // Assign to self
 const assignToSelf = (row: ConversationRecord) => {
@@ -2053,8 +1858,8 @@ const chatPageSize = ref(20);
 // Chat drawer (聊天记录面板)
 const chatDrawerRowId = ref<string | null>(null);
 
-// Chat member drawer (成员列表)
-const chatMemberDrawerRowId = ref<string | null>(null);
+// Chat member panel (inline, shared for visitor and staff columns)
+const chatMemberPanelRowId = ref<string | null>(null);
 
 const visitorAvatarColors = [
   "linear-gradient(135deg, #ff6b6b 0%, #ff9a76 100%)",
@@ -2368,25 +2173,12 @@ const handleChatDrawerAssign = () => {
   }
 };
 
-const chatMemberDrawerRow = computed(() => allChatRows.value.find(r => r.id === chatMemberDrawerRowId.value) ?? null);
-const selectedChatMember = ref<ChatMember | null>(null);
-
-const openChatMemberDrawer = (rowId: string) => {
-  chatMemberDrawerRowId.value = rowId;
-  selectedChatMember.value = null;
+const toggleChatMemberPanel = (rowId: string) => {
+  chatMemberPanelRowId.value = chatMemberPanelRowId.value === rowId ? null : rowId;
 };
 
-const closeChatMemberDrawer = () => {
-  chatMemberDrawerRowId.value = null;
-  selectedChatMember.value = null;
-};
-
-const selectChatMember = (member: ChatMember) => {
-  selectedChatMember.value = member;
-};
-
-const backToMemberList = () => {
-  selectedChatMember.value = null;
+const closeChatMemberPanel = () => {
+  chatMemberPanelRowId.value = null;
 };
 
 const openChat = (row: ChatRecord) => {
@@ -2399,6 +2191,8 @@ onMounted(() => {
     closeActionMenu();
     closeChatActionMenu();
     closeTagPopover();
+    closeStaffPanel();
+    closeChatMemberPanel();
   };
   window.addEventListener("click", handleGlobalClick);
   onBeforeUnmount(() => {
@@ -3236,6 +3030,105 @@ onMounted(() => {
   justify-content: center;
   margin-left: -8px;
   width: 28px;
+}
+
+/* Staff cell with inline panel */
+.archive-staff-cell {
+  position: relative;
+}
+
+.archive-staff-panel {
+  background: #ffffff;
+  border: 1px solid #e5e9f0;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.12);
+  left: 0;
+  min-width: 240px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown, 50);
+}
+
+.archive-staff-panel__header {
+  border-bottom: 1px solid #edf1f5;
+  padding: 12px 16px;
+}
+
+.archive-staff-panel__title {
+  color: #222222;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.archive-staff-panel__list {
+  list-style: none;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+
+.archive-staff-panel__item {
+  align-items: center;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.archive-staff-panel__item:hover {
+  background: #f7f9fc;
+}
+
+.archive-staff-panel__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  height: 30px;
+  justify-content: center;
+  overflow: hidden;
+  width: 30px;
+}
+
+.archive-staff-panel__avatar-img {
+  border-radius: 50%;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.archive-staff-panel__name {
+  color: #1a1a1a;
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-staff-panel__owner-tag {
+  background: #eef3ff;
+  border-radius: 6px;
+  color: var(--agent-color-brand-primary, #2f6bff);
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.archive-staff-panel__staff-tag {
+  background: #f0faf4;
+  border-radius: 6px;
+  color: #16a34a;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
 }
 
 /* Owner cell with avatar */

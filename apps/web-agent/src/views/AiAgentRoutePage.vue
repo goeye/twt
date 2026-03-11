@@ -35,7 +35,7 @@
               {{ agentEnabled ? '已开启' : '已关闭' }}
             </span>
           </div>
-          <p class="agent-content-subtitle">开启后，AI 机器人将自动接待访客咨询，根据知识库内容智能回复，并在需要时转接人工客服</p>
+          <p class="agent-content-subtitle">开启后，AI Agent 将自动回复访客咨询，根据知识库内容智能回复，并在需要时转接人工客服</p>
         </div>
 
         <div class="agent-config-header__actions">
@@ -107,7 +107,7 @@
                   <div class="form-row">
                     <div class="form-row__label">
                       <span class="form-row__name">访客类型</span>
-                      <span class="form-row__desc">选择哪些访客会进入 AI 接待流程</span>
+                      <span class="form-row__desc">哪些访客由 AI Agent 回复</span>
                     </div>
                     <div class="form-row__control">
                       <div class="pill-group">
@@ -125,7 +125,7 @@
 
                   <div class="form-row">
                     <div class="form-row__label">
-                      <span class="form-row__name">参与时机</span>
+                      <span class="form-row__name">回复时机</span>
                       <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复</span>
                     </div>
                     <div class="form-row__control">
@@ -157,16 +157,12 @@
                     <div class="visibility-layout__preview">
                       <p class="bubble-preview__label">预览效果</p>
                       <div class="bubble-preview">
-                        <div class="bubble-preview__avatar">
-                          <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="" class="bubble-preview__avatar-img" />
-                          <span v-else class="bubble-preview__avatar-fallback">{{ avatarFallbackText }}</span>
-                        </div>
                         <div class="bubble-preview__content">
-                          <span class="bubble-preview__name">
-                            {{ botName.trim() || 'AI Agent' }}
+                          <span class="bubble-preview__time">16:54</span>
+                          <div class="bubble-preview__bubble">
+                            你好！有什么可以帮您的吗？
                             <span v-if="showMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
-                          </span>
-                          <div class="bubble-preview__bubble">你好！有什么可以帮您的吗？</div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -324,7 +320,7 @@
                 <template v-else-if="card.key === 'answering-unsupported'">
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">AI 无法回复</span>
+                      <span class="form-row__name">特殊场景</span>
                       <span class="form-row__desc">当访客发送图片、文件等内容或涉及敏感信息时，AI 如何回复</span>
                     </div>
                     <div class="form-row__control">
@@ -491,7 +487,7 @@
 
       <div v-else-if="configTab === 'settings'" class="settings-panel">
         <div class="settings-section agent-panel">
-          <h3 class="settings-section__title">身份信息</h3>
+          <h3 class="settings-section__title">基本信息</h3>
           <p class="settings-section__desc"> </p>
 
           <div class="settings-form">
@@ -834,7 +830,7 @@ const replyMode = ref("strict");
 const transferEnabled = ref(false);
 const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
 const transferMessage = ref("正在为你转接人工客服，请稍候");
-const unsupportedQuestionMessage = ref("抱歉，这个问题我暂时还无法处理。你可以换一种说法继续提问，或直接转接人工客服获得帮助");
+const unsupportedQuestionMessage = ref("抱歉，我暂时无法处理这类内容，请用文字描述或换个问题");
 
 const knowledgeDocCount = ref(3);
 
@@ -953,7 +949,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "answering-unsupported",
-          title: "兜底回复",
+          title: "特殊场景",
           summary: hasUnsupportedReply ? " " : " ",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
@@ -1968,33 +1964,7 @@ defineExpose({
   background: #f8f9fb;
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-lg);
-  display: flex;
-  gap: 10px;
   padding: 16px;
-}
-
-.bubble-preview__avatar {
-  align-items: center;
-  background: linear-gradient(135deg, #00b578, #00c2b8);
-  border-radius: 50%;
-  display: flex;
-  flex-shrink: 0;
-  height: 32px;
-  justify-content: center;
-  overflow: hidden;
-  width: 32px;
-}
-
-.bubble-preview__avatar-img {
-  height: 100%;
-  object-fit: cover;
-  width: 100%;
-}
-
-.bubble-preview__avatar-fallback {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .bubble-preview__content {
@@ -2004,23 +1974,18 @@ defineExpose({
   min-width: 0;
 }
 
-.bubble-preview__name {
-  align-items: center;
-  color: var(--agent-color-text-secondary);
-  display: flex;
-  font-size: 12px;
-  gap: 6px;
-  line-height: 1.4;
+.bubble-preview__time {
+  color: var(--agent-color-text-tertiary);
+  font-size: 11px;
+  margin-bottom: 4px;
 }
 
 .bubble-preview__tag {
-  background: #eef4ff;
-  border-radius: 4px;
-  color: #3b6fce;
-  font-size: 10px;
-  font-weight: var(--agent-font-weight-semibold);
+  color: #8a9ab5;
+  display: block;
+  font-size: 11px;
   line-height: 1;
-  padding: 2px 5px;
+  margin-top: 6px;
 }
 
 .bubble-preview__bubble {

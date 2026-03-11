@@ -7,6 +7,7 @@
         <header class="archive-drawer__header">
           <div v-if="isEditingTitle" class="archive-drawer__title-edit">
             <input
+              ref="drawerTitleInputRef"
               v-model="draftTitle"
               class="archive-drawer__title-input"
               @blur="saveTitle"
@@ -113,12 +114,16 @@ const emit = defineEmits<{
 }>();
 
 const messagesRef = ref<HTMLElement | null>(null);
+const drawerTitleInputRef = ref<HTMLInputElement | null>(null);
 const isEditingTitle = ref(false);
 const draftTitle = ref("");
 
 const startEditTitle = () => {
   draftTitle.value = props.title;
   isEditingTitle.value = true;
+  nextTick(() => {
+    drawerTitleInputRef.value?.focus();
+  });
 };
 
 const saveTitle = () => {

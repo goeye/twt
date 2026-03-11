@@ -33,12 +33,10 @@
             <span class="assign-card__empty-text">暂无数据</span>
           </div>
 
-          <button
+          <div
             v-for="agent in sortedAgents"
             :key="agent.id"
-            type="button"
             class="assign-card__agent-row"
-            @click="handleSelect(agent.id)"
           >
             <span class="assign-card__avatar-wrap">
               <span class="assign-card__avatar" :style="{ background: agent.avatarColor }">
@@ -50,15 +48,10 @@
               />
             </span>
             <span class="assign-card__agent-name">{{ agent.name }}</span>
-            <span v-if="actionLabel" class="assign-card__action-label">{{ actionLabel }}</span>
-            <span
-              v-else
-              class="assign-card__online-tag"
-              :class="agent.online ? 'assign-card__online-tag--on' : 'assign-card__online-tag--off'"
-            >
-              {{ agent.online ? '在线' : '离线' }}
-            </span>
-          </button>
+            <button type="button" class="assign-card__assign-btn" @click="handleSelect(agent.id)">
+              {{ assignBtnLabel }}
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -102,6 +95,10 @@ const sortedAgents = computed(() => {
     if (a.online === b.online) return 0;
     return a.online ? -1 : 1;
   });
+});
+
+const assignBtnLabel = computed(() => {
+  return props.actionLabel || "分配";
 });
 
 const handleSelect = (id: string) => {
@@ -219,14 +216,10 @@ const handleSelect = (id: string) => {
 
 .assign-card__agent-row {
   align-items: center;
-  background: transparent;
-  border: 0;
   border-radius: 12px;
-  cursor: pointer;
   display: flex;
   gap: 12px;
   padding: 10px 10px;
-  text-align: left;
   width: 100%;
 }
 
@@ -281,32 +274,24 @@ const handleSelect = (id: string) => {
   white-space: nowrap;
 }
 
-.assign-card__online-tag {
+.assign-card__assign-btn {
+  background: transparent;
+  border: 1px solid #d4dbe6;
   border-radius: 8px;
+  color: #555555;
+  cursor: pointer;
   flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 2px 8px;
-}
-
-.assign-card__online-tag--on {
-  background: #ecfdf5;
-  color: #16a34a;
-}
-
-.assign-card__online-tag--off {
-  background: #f3f4f6;
-  color: #9ca3af;
-}
-
-.assign-card__action-label {
-  background: var(--agent-color-brand-primary, #2f6bff);
-  border-radius: 8px;
-  color: #ffffff;
   font-size: 13px;
   font-weight: 500;
   margin-left: auto;
-  padding: 4px 14px;
+  padding: 4px 16px;
+  transition: all 0.15s ease;
+}
+
+.assign-card__assign-btn:hover {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+  color: #ffffff;
 }
 
 @media (max-width: 480px) {
