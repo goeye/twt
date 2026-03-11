@@ -729,7 +729,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         },
         {
           key: "entry-visibility",
-          title: "在消息中展示 AI Agent 标签",
+          title: "在消息中显示 AI Agent 标签",
           summary: showMessageAgentLabel.value ? "显示 AI Agent 标签" : "不显示 AI Agent 标签"
         }
       ]
