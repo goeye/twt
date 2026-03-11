@@ -22,6 +22,7 @@ export interface StoredAiAgentSettings {
   followUpMessage?: string;
   replyMode?: string;
   offlineMessage?: string;
+  transferEnabled?: boolean;
   transferMessage?: string;
   unsupportedQuestionMessage?: string;
 }

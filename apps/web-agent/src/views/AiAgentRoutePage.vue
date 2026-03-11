@@ -50,9 +50,24 @@
         </div>
       </header>
 
-      <div class="lifecycle-flow">
+      <nav class="config-tabs">
+        <button
+          type="button"
+          class="config-tabs__item"
+          :class="{ 'config-tabs__item--active': configTab === 'deploy' }"
+          @click="configTab = 'deploy'"
+        >AI Agent 部署</button>
+        <button
+          type="button"
+          class="config-tabs__item"
+          :class="{ 'config-tabs__item--active': configTab === 'settings' }"
+          @click="configTab = 'settings'"
+        >AI Agent 设置</button>
+      </nav>
+
+      <div v-if="configTab === 'deploy'" class="lifecycle-flow">
         <section
-          v-for="section in lifecycleSections"
+          v-for="section in deployLifecycleSections"
           :key="section.key"
           class="lifecycle-stage"
           :class="`lifecycle-stage--${section.key}`"
@@ -123,16 +138,37 @@
                 </template>
 
                 <template v-else-if="card.key === 'entry-visibility'">
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">显示 AI Agent 标签</span>
-                      <span class="form-row__desc">开启后，访客会在消息气泡中看到 AI Agent 标签</span>
+                  <div class="visibility-layout">
+                    <div class="visibility-layout__form">
+                      <div class="form-row form-row--single">
+                        <div class="form-row__label">
+                          <span class="form-row__name">显示 AI Agent 标签</span>
+                          <span class="form-row__desc">开启后，访客会在消息气泡中看到 AI Agent 标签</span>
+                        </div>
+                        <div class="form-row__control">
+                          <label class="agent-switch">
+                            <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
+                            <span class="agent-switch__track" />
+                          </label>
+                        </div>
+                      </div>
                     </div>
-                    <div class="form-row__control">
-                      <label class="agent-switch">
-                        <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
-                        <span class="agent-switch__track" />
-                      </label>
+
+                    <div class="visibility-layout__preview">
+                      <p class="bubble-preview__label">预览效果</p>
+                      <div class="bubble-preview">
+                        <div class="bubble-preview__avatar">
+                          <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="" class="bubble-preview__avatar-img" />
+                          <span v-else class="bubble-preview__avatar-fallback">{{ avatarFallbackText }}</span>
+                        </div>
+                        <div class="bubble-preview__content">
+                          <span class="bubble-preview__name">
+                            {{ botName.trim() || 'AI Agent' }}
+                            <span v-if="showMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
+                          </span>
+                          <div class="bubble-preview__bubble">你好！有什么可以帮您的吗？</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </template>
@@ -261,11 +297,17 @@
                 <template v-else-if="card.key === 'answering-knowledge'">
                   <div class="knowledge-card">
 
+                    <div v-if="knowledgeDocCount <= 10" class="knowledge-card__tip">
+                      <p class="knowledge-card__tip-text">
+                        AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关文档
+                      </p>
+                    </div>
+
                     <div class="knowledge-card__stats">
                       <span class="knowledge-card__stats-label">AI Agent 将使用：</span>
                       <span class="knowledge-card__stats-item">
                         <AgentIcon name="file" :size="16" />
-                        3 篇知识库文档
+                        {{ knowledgeDocCount }} 篇知识库文档
                       </span>
                     </div>
 
@@ -276,20 +318,14 @@
                     >
                       管理知识库 →
                     </button>
-
-                    <div class="knowledge-card__tip">
-                      <p class="knowledge-card__tip-text">
-                        AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关文档
-                      </p>
-                    </div>
                   </div>
                 </template>
 
                 <template v-else-if="card.key === 'answering-unsupported'">
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">暂时无法回答</span>
-                      <span class="form-row__desc">当访客发送图片、文件，或问题超出当前能力范围时展示的提示文案。</span>
+                      <span class="form-row__name">AI 无法回复</span>
+                      <span class="form-row__desc">当访客发送图片、文件、视频等多媒体内容，或涉及敏感信息、超出 AI 能力范围时，自动展示此提示文案</span>
                     </div>
                     <div class="form-row__control">
                       <textarea
@@ -307,37 +343,69 @@
                 </template>
 
                 <template v-else-if="card.key === 'fallback-transfer'">
-                  <div class="setting-helper-stack">
-                    <div class="setting-callout setting-callout--soft">
-                      <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
-                    </div>
-                  </div>
-
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">转接人工客服</span>
-                      <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案。</span>
+                      <span class="form-row__name">允许转接人工客服</span>
+                      <span class="form-row__desc">开启后，AI Agent 在无法解决问题时会将会话移交给人工客服</span>
                     </div>
                     <div class="form-row__control">
-                      <textarea
-                        v-model="transferMessage"
-                        class="agent-input form-row__textarea"
-                        :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
-                        rows="4"
-                        maxlength="2000"
-                        placeholder="请输入"
-                        @blur="transferMessageTouched = true"
-                      />
-                      <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
+                      <label class="agent-switch">
+                        <input v-model="transferEnabled" type="checkbox" class="agent-switch__input" />
+                        <span class="agent-switch__track" />
+                      </label>
                     </div>
                   </div>
-                </template>
 
-                <template v-else-if="card.key === 'fallback-offline'">
-                  <div class="form-row form-row--single">
+                  <template v-if="transferEnabled">
+                    <div class="setting-helper-stack">
+                      <div class="setting-callout setting-callout--soft">
+                        <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                      </div>
+                    </div>
+
+                    <div class="form-row form-row--single">
+                      <div class="form-row__label">
+                        <span class="form-row__name">转接人工提示</span>
+                        <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案</span>
+                      </div>
+                      <div class="form-row__control">
+                        <textarea
+                          v-model="transferMessage"
+                          class="agent-input form-row__textarea"
+                          :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
+                          rows="4"
+                          maxlength="2000"
+                          placeholder="请输入"
+                          @blur="transferMessageTouched = true"
+                        />
+                        <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
+                      </div>
+                    </div>
+
+                    <div class="form-row form-row--single">
+                      <div class="form-row__label">
+                        <span class="form-row__name">客服离线提示</span>
+                        <span class="form-row__desc">当人工客服团队暂时离线时，向访客说明当前服务状态</span>
+                      </div>
+                      <div class="form-row__control">
+                        <textarea
+                          v-model="offlineMessage"
+                          class="agent-input form-row__textarea"
+                          :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
+                          rows="4"
+                          maxlength="2000"
+                          placeholder="请输入"
+                          @blur="offlineMessageTouched = true"
+                        />
+                        <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-else class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">客服离线</span>
-                      <span class="form-row__desc">当人工客服团队暂时离线时，向访客说明当前服务状态</span>
+                      <span class="form-row__name">人工客服关闭提示</span>
+                      <span class="form-row__desc">未开启人工转接时，访客请求转人工将看到此提示</span>
                     </div>
                     <div class="form-row__control">
                       <textarea
@@ -421,6 +489,118 @@
         </section>
       </div>
 
+      <div v-else-if="configTab === 'settings'" class="settings-panel">
+        <div class="settings-section agent-panel">
+          <h3 class="settings-section__title">身份信息</h3>
+          <p class="settings-section__desc">配置 AI Agent 的外在形象和身份描述</p>
+
+          <div class="settings-form">
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">头像</span>
+                <span class="form-row__desc">设置 AI Agent 的头像形象，用于会话列表和消息头像展示</span>
+              </div>
+              <div class="form-row__control form-row__control--stack">
+                <div class="bot-avatar-upload">
+                  <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
+                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
+                    <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
+                  </div>
+                  <div class="bot-avatar-upload__actions">
+                    <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
+                      {{ botAvatarUrl ? '重新上传' : '上传头像' }}
+                    </button>
+                  </div>
+                  <input
+                    ref="avatarInputRef"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    class="bot-avatar-upload__input"
+                    @change="handleAvatarFileChange"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">昵称</span>
+                <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会优先使用这个身份名称</span>
+              </div>
+              <div class="form-row__control">
+                <input
+                  v-model="botName"
+                  class="agent-input"
+                  :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
+                  maxlength="64"
+                  placeholder="请输入昵称"
+                  @blur="botNameTouched = true"
+                />
+                <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">业务简介</span>
+                <span class="form-row__desc">描述你的业务和服务范围，AI 会据此生成更贴合场景的回答</span>
+              </div>
+              <div class="form-row__control">
+                <textarea
+                  v-model="botIntro"
+                  class="agent-input form-row__textarea"
+                  rows="5"
+                  maxlength="2000"
+                  placeholder="请输入"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section agent-panel">
+          <h3 class="settings-section__title">回复风格</h3>
+          <p class="settings-section__desc">统一 AI Agent 的表达风格和语言偏好</p>
+
+          <div class="settings-form">
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">回复语气</span>
+                <span class="form-row__desc">统一 AI Agent 的表达风格，保证对外沟通体验一致</span>
+              </div>
+              <div class="form-row__control">
+                <div class="bot-chips-group">
+                  <button
+                    v-for="tone in toneOptions"
+                    :key="tone.value"
+                    type="button"
+                    class="bot-chip"
+                    :class="{ 'bot-chip--active': selectedTone === tone.value }"
+                    @click="selectedTone = tone.value"
+                  >{{ tone.label }}</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-row__label">
+                <span class="form-row__name">默认语言</span>
+                <span class="form-row__desc">当系统无法判断访客语言时，将优先使用该语言回复</span>
+              </div>
+              <div class="form-row__control">
+                <select v-model="defaultLanguage" class="agent-input">
+                  <option
+                    v-for="language in languageOptions"
+                    :key="language.value"
+                    :value="language.value"
+                  >{{ language.label }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="ai-agent-page__footer">
         <button
           type="button"
@@ -490,7 +670,6 @@ type LifecycleCardKey =
   | "answering-knowledge"
   | "answering-unsupported"
   | "fallback-transfer"
-  | "fallback-offline"
   | "idle-autoclose"
   | "idle-followup";
 
@@ -533,7 +712,6 @@ const lifecycleCardKeys: LifecycleCardKey[] = [
   "answering-knowledge",
   "answering-unsupported",
   "fallback-transfer",
-  "fallback-offline",
   "idle-followup",
   "idle-autoclose"
 ];
@@ -546,8 +724,7 @@ const lifecycleCardFieldMap: Record<LifecycleCardKey, Array<keyof StoredAiAgentS
   "answering-mode": ["replyMode"],
   "answering-knowledge": [],
   "answering-unsupported": ["unsupportedQuestionMessage"],
-  "fallback-transfer": ["transferMessage"],
-  "fallback-offline": ["offlineMessage"],
+  "fallback-transfer": ["transferEnabled", "transferMessage", "offlineMessage"],
   "idle-followup": ["followUpEnabled", "followUpMessage"],
   "idle-autoclose": ["idleHours", "idleMinutes", "idleSeconds"]
 };
@@ -574,7 +751,10 @@ const createEmptyCropState = (): CropState => ({
   offsetY: 0
 });
 
+type ConfigTab = "deploy" | "settings";
+
 const showBanner = ref(true);
+const configTab = ref<ConfigTab>("deploy");
 const openLifecycleCard = ref<LifecycleCardKey | null>(null);
 const agentEnabled = ref(true);
 
@@ -651,9 +831,12 @@ const followUpEnabled = ref(false);
 const followUpMessage = ref("您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。");
 const followUpMessageTouched = ref(false);
 const replyMode = ref("strict");
+const transferEnabled = ref(false);
 const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
 const transferMessage = ref("正在为您转接人工客服，请稍候，马上为您接入。");
 const unsupportedQuestionMessage = ref("抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。");
+
+const knowledgeDocCount = ref(3);
 
 const avatarInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
@@ -759,7 +942,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "answering-knowledge",
           title: "AI 知识库",
-          summary: "已使用 3 篇知识库文档"
+          summary: `已关联 ${knowledgeDocCount.value} 篇知识库文档`
         }
       ]
     },
@@ -770,7 +953,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "answering-unsupported",
-          title: "遇到超出能力范围的问题",
+          title: "AI 无法回复",
           summary: hasUnsupportedReply ? "已设置兜底回复文案" : "需要补充回复文案",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
@@ -778,16 +961,11 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "fallback-transfer",
           title: "转接人工客服",
-          summary: hasTransferReply ? "已设置转人工提示" : "需要补充转人工文案",
-          badge: hasTransferReply ? undefined : "需要补充",
-          badgeTone: hasTransferReply ? undefined : "warning"
-        },
-        {
-          key: "fallback-offline",
-          title: "客服离线时如何说明",
-          summary: hasOfflineReply ? "已设置离线提示" : "需要补充离线文案",
-          badge: hasOfflineReply ? undefined : "需要补充",
-          badgeTone: hasOfflineReply ? undefined : "warning"
+          summary: transferEnabled.value
+            ? (hasTransferReply ? "已开启 · 已设置转人工提示" : "已开启 · 需要补充转人工文案")
+            : (hasOfflineReply ? "未开启 · 已设置离线提示" : "未开启 · 需要补充离线文案"),
+          badge: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "需要补充" : undefined,
+          badgeTone: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "warning" : undefined
         }
       ]
     },
@@ -811,6 +989,16 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
   ];
 });
 
+const deployLifecycleSections = computed<LifecycleSection[]>(() =>
+  lifecycleSections.value.map((section) => {
+    if (section.key !== "answering") return section;
+    return {
+      ...section,
+      cards: section.cards.filter((c) => c.key !== "identity-profile" && c.key !== "identity-style")
+    };
+  })
+);
+
 const getCurrentSettings = (): StoredAiAgentSettings => ({
   agentEnabled: agentEnabled.value,
   agentResponseMode: agentResponseMode.value,
@@ -828,6 +1016,7 @@ const getCurrentSettings = (): StoredAiAgentSettings => ({
   followUpEnabled: followUpEnabled.value,
   followUpMessage: followUpMessage.value,
   replyMode: replyMode.value,
+  transferEnabled: transferEnabled.value,
   offlineMessage: offlineMessage.value,
   transferMessage: transferMessage.value,
   unsupportedQuestionMessage: unsupportedQuestionMessage.value
@@ -874,6 +1063,7 @@ const loadAgentSettings = () => {
   if (typeof settings.followUpEnabled === "boolean") followUpEnabled.value = settings.followUpEnabled;
   if (typeof settings.followUpMessage === "string") followUpMessage.value = settings.followUpMessage;
   if (typeof settings.replyMode === "string") replyMode.value = settings.replyMode;
+  if (typeof settings.transferEnabled === "boolean") transferEnabled.value = settings.transferEnabled;
   if (typeof settings.offlineMessage === "string") offlineMessage.value = settings.offlineMessage;
   if (typeof settings.transferMessage === "string") transferMessage.value = settings.transferMessage;
   if (typeof settings.unsupportedQuestionMessage === "string") {
@@ -902,6 +1092,7 @@ const restoreSavedSnapshot = () => {
     followUpMessage.value = settings.followUpMessage ?? "您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。";
     followUpMessageTouched.value = false;
     replyMode.value = settings.replyMode ?? "strict";
+    transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
     offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
     transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
     unsupportedQuestionMessage.value =
@@ -959,10 +1150,9 @@ const applyCardSettings = (cardKey: LifecycleCardKey, settings: StoredAiAgentSet
       unsupportedMessageTouched.value = false;
       break;
     case "fallback-transfer":
+      transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
       transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
       transferMessageTouched.value = false;
-      break;
-    case "fallback-offline":
       offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
       offlineMessageTouched.value = false;
       break;
@@ -991,11 +1181,12 @@ const validateCard = (cardKey: LifecycleCardKey) => {
   }
 
   if (cardKey === "fallback-transfer") {
-    transferMessageTouched.value = true;
-    return transferMessage.value.trim().length > 0;
-  }
-
-  if (cardKey === "fallback-offline") {
+    if (transferEnabled.value) {
+      transferMessageTouched.value = true;
+      if (!transferMessage.value.trim()) return false;
+      offlineMessageTouched.value = true;
+      return offlineMessage.value.trim().length > 0;
+    }
     offlineMessageTouched.value = true;
     return offlineMessage.value.trim().length > 0;
   }
@@ -1379,6 +1570,72 @@ defineExpose({
   gap: 12px;
 }
 
+.config-tabs {
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: 0;
+}
+
+.config-tabs__item {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: var(--agent-font-weight-medium);
+  padding: 12px 20px;
+  transition: color var(--agent-motion-fast), border-color var(--agent-motion-fast);
+}
+
+.config-tabs__item:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.config-tabs__item--active {
+  border-bottom-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-20);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-4);
+  padding: var(--agent-space-24);
+}
+
+.settings-section__title {
+  color: var(--agent-color-text-primary);
+  font-size: 16px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.settings-section__desc {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--agent-space-16);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-24);
+}
+
+.settings-form .form-row + .form-row {
+  border-top: 1px solid var(--agent-color-border-default);
+  padding-top: var(--agent-space-24);
+}
+
 .lifecycle-flow {
   display: flex;
   flex-direction: column;
@@ -1682,6 +1939,100 @@ defineExpose({
   border-color: #e53e3e;
 }
 
+.visibility-layout {
+  display: flex;
+  gap: var(--agent-space-24);
+}
+
+.visibility-layout__form {
+  flex: 1;
+  min-width: 0;
+}
+
+.visibility-layout__preview {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 8px;
+  width: 280px;
+}
+
+.bubble-preview__label {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  font-weight: var(--agent-font-weight-medium);
+  margin: 0;
+}
+
+.bubble-preview {
+  background: #f8f9fb;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+}
+
+.bubble-preview__avatar {
+  align-items: center;
+  background: linear-gradient(135deg, #00b578, #00c2b8);
+  border-radius: 50%;
+  display: flex;
+  flex-shrink: 0;
+  height: 32px;
+  justify-content: center;
+  overflow: hidden;
+  width: 32px;
+}
+
+.bubble-preview__avatar-img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bubble-preview__avatar-fallback {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bubble-preview__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bubble-preview__name {
+  align-items: center;
+  color: var(--agent-color-text-secondary);
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.bubble-preview__tag {
+  background: #eef4ff;
+  border-radius: 4px;
+  color: #3b6fce;
+  font-size: 10px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1;
+  padding: 2px 5px;
+}
+
+.bubble-preview__bubble {
+  background: #ffffff;
+  border: 1px solid #e8ecf1;
+  border-radius: 0 12px 12px 12px;
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 8px 12px;
+}
+
 .pill-group {
   display: flex;
   flex-wrap: wrap;
@@ -1956,6 +2307,14 @@ defineExpose({
   .bot-avatar-upload {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .visibility-layout {
+    flex-direction: column;
+  }
+
+  .visibility-layout__preview {
+    width: 100%;
   }
 
   .agent-config-header {
