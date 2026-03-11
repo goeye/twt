@@ -106,8 +106,8 @@
                 <template v-if="card.key === 'entry-routing'">
                   <div class="form-row">
                     <div class="form-row__label">
-                      <span class="form-row__name">接待访客</span>
-                      <span class="form-row__desc">限定哪些访客会进入 AI 接待流程</span>
+                      <span class="form-row__name">访客类型</span>
+                      <span class="form-row__desc">选择哪些访客会进入 AI 接待流程</span>
                     </div>
                     <div class="form-row__control">
                       <div class="pill-group">
@@ -125,7 +125,7 @@
 
                   <div class="form-row">
                     <div class="form-row__label">
-                      <span class="form-row__name">AI 参与时机</span>
+                      <span class="form-row__name">参与时机</span>
                       <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复</span>
                     </div>
                     <div class="form-row__control">
@@ -325,7 +325,7 @@
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
                       <span class="form-row__name">AI 无法回复</span>
-                      <span class="form-row__desc">当访客发送图片、文件、视频等多媒体内容，或涉及敏感信息、超出 AI 能力范围时，自动展示此提示文案</span>
+                      <span class="form-row__desc">当访客发送图片、文件等内容或涉及敏感信息时，AI 如何回复</span>
                     </div>
                     <div class="form-row__control">
                       <textarea
@@ -345,8 +345,8 @@
                 <template v-else-if="card.key === 'fallback-transfer'">
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">允许转接人工客服</span>
-                      <span class="form-row__desc">开启后，AI Agent 在无法解决问题时会将会话移交给人工客服</span>
+                      <span class="form-row__name">转接人工客服</span>
+                      <span class="form-row__desc">当访客请求人工客服时 AI Agent 的行为方式</span>
                     </div>
                     <div class="form-row__control">
                       <label class="agent-switch">
@@ -365,7 +365,7 @@
 
                     <div class="form-row form-row--single">
                       <div class="form-row__label">
-                        <span class="form-row__name">转接人工提示</span>
+                        <span class="form-row__name">转接人工客服提示</span>
                         <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案</span>
                       </div>
                       <div class="form-row__control">
@@ -404,8 +404,8 @@
 
                   <div v-else class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">人工客服关闭提示</span>
-                      <span class="form-row__desc">未开启人工转接时，访客请求转人工将看到此提示</span>
+                      <span class="form-row__name">不转接人工客服提示</span>
+                      <span class="form-row__desc">未开启人工转接时，访客请求人工客服将看到此提示</span>
                     </div>
                     <div class="form-row__control">
                       <textarea
@@ -477,7 +477,7 @@
                         <span class="inactive-setting__unit-label">分</span>
                         <input v-model.number="idleSeconds" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
                         <span class="inactive-setting__unit-label">秒</span>
-                        <span class="inactive-setting__text">未操作时，自动关闭会话</span>
+                        <span class="inactive-setting__text">未回复时，自动关闭会话</span>
                       </div>
                     </div>
                   </div>
@@ -492,13 +492,13 @@
       <div v-else-if="configTab === 'settings'" class="settings-panel">
         <div class="settings-section agent-panel">
           <h3 class="settings-section__title">身份信息</h3>
-          <p class="settings-section__desc">配置 AI Agent 的外在形象和身份描述</p>
+          <p class="settings-section__desc"> </p>
 
           <div class="settings-form">
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">头像</span>
-                <span class="form-row__desc">设置 AI Agent 的头像形象，用于会话列表和消息头像展示</span>
+                <span class="form-row__desc">设置 AI Agent 的头像，用于会话列表中展示</span>
               </div>
               <div class="form-row__control form-row__control--stack">
                 <div class="bot-avatar-upload">
@@ -525,7 +525,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">昵称</span>
-                <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会优先使用这个身份名称</span>
+                <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会使用这个昵称</span>
               </div>
               <div class="form-row__control">
                 <input
@@ -543,7 +543,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">业务简介</span>
-                <span class="form-row__desc">描述你的业务和服务范围，AI 会据此生成更贴合场景的回答</span>
+                <span class="form-row__desc">描述你的业务和服务范围，AI Agent 会据此生成更贴合场景的回答</span>
               </div>
               <div class="form-row__control">
                 <textarea
@@ -560,13 +560,13 @@
 
         <div class="settings-section agent-panel">
           <h3 class="settings-section__title">回复风格</h3>
-          <p class="settings-section__desc">统一 AI Agent 的表达风格和语言偏好</p>
+          <p class="settings-section__desc"> </p>
 
           <div class="settings-form">
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">回复语气</span>
-                <span class="form-row__desc">统一 AI Agent 的表达风格，保证对外沟通体验一致</span>
+                <span class="form-row__desc">设置 AI Agent 的表达风格，保证对外沟通体验一致</span>
               </div>
               <div class="form-row__control">
                 <div class="bot-chips-group">
@@ -585,7 +585,7 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">默认语言</span>
-                <span class="form-row__desc">当系统无法判断访客语言时，将优先使用该语言回复</span>
+                <span class="form-row__desc">当 AI Agent 无法判断访客语言时，将使用该语言进行回复</span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input">
@@ -812,7 +812,7 @@ const audienceLabelMap: Record<AudienceType, string> = {
 
 const responseModeLabelMap: Record<string, string> = {
   always: "始终由 AI Agent 回复",
-  "offline-only": "仅客服离线时由 AI 回复"
+  "offline-only": "仅客服离线时"
 };
 
 const replyModeLabelMap: Record<string, string> = {
@@ -828,13 +828,13 @@ const idleHours = ref(0);
 const idleMinutes = ref(10);
 const idleSeconds = ref(0);
 const followUpEnabled = ref(false);
-const followUpMessage = ref("您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。");
+const followUpMessage = ref("你好，请问还有什么可以帮你的吗？如果没有其他问题，会话将在稍后自动关闭。");
 const followUpMessageTouched = ref(false);
 const replyMode = ref("strict");
 const transferEnabled = ref(false);
 const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
-const transferMessage = ref("正在为您转接人工客服，请稍候，马上为您接入。");
-const unsupportedQuestionMessage = ref("抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。");
+const transferMessage = ref("正在为你转接人工客服，请稍候");
+const unsupportedQuestionMessage = ref("抱歉，这个问题我暂时还无法处理。你可以换一种说法继续提问，或直接转接人工客服获得帮助");
 
 const knowledgeDocCount = ref(3);
 
@@ -907,19 +907,19 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "entry-routing",
-          title: "AI 接待哪些访客",
+          title: "AI Agent 将回复",
           summary: `${audienceLabelMap[visitorAudience.value]} · ${responseModeLabelMap[agentResponseMode.value] ?? responseModeLabelMap.always}`
         },
         {
           key: "entry-visibility",
-          title: "在消息中显示 AI Agent 标签",
-          summary: showMessageAgentLabel.value ? "显示 AI Agent 标签" : "不显示 AI Agent 标签"
+          title: "AI Agent 标签",
+          summary: showMessageAgentLabel.value ? "显示" : "不显示"
         }
       ]
     },
     {
       key: "answering",
-      title: "当 AI 回复访客",
+      title: "当 AI Agent 回复访客",
       icon: "ai-agent",
       cards: [
         {
@@ -936,25 +936,25 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         },
         {
           key: "answering-mode",
-          title: "AI 如何组织回答",
+          title: "如何回复",
           summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict
         },
         {
           key: "answering-knowledge",
-          title: "AI 知识库",
+          title: "关联知识库",
           summary: `已关联 ${knowledgeDocCount.value} 篇知识库文档`
         }
       ]
     },
     {
       key: "fallback",
-      title: "当 AI 无法解决会话",
+      title: "当 AI Agent 无法解决会话",
       icon: "service",
       cards: [
         {
           key: "answering-unsupported",
-          title: "AI 无法回复",
-          summary: hasUnsupportedReply ? "已设置兜底回复文案" : "需要补充回复文案",
+          title: "兜底回复",
+          summary: hasUnsupportedReply ? " " : " ",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
         },
@@ -962,8 +962,8 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           key: "fallback-transfer",
           title: "转接人工客服",
           summary: transferEnabled.value
-            ? (hasTransferReply ? "已开启 · 已设置转人工提示" : "已开启 · 需要补充转人工文案")
-            : (hasOfflineReply ? "未开启 · 已设置离线提示" : "未开启 · 需要补充离线文案"),
+            ? (hasTransferReply ? "转接人工客服" : "不转接人工客服")
+            : (hasOfflineReply ? "不转接人工客服" : "不转接人工客服"),
           badge: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "需要补充" : undefined,
           badgeTone: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "warning" : undefined
         }
@@ -976,8 +976,8 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "idle-followup",
-          title: "不活跃时跟进",
-          summary: followUpEnabled.value ? "已开启 · 5 分钟后发送跟进消息" : "未开启"
+          title: "跟进",
+          summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "不跟进"
         },
         {
           key: "idle-autoclose",
@@ -1089,12 +1089,12 @@ const restoreSavedSnapshot = () => {
     idleMinutes.value = typeof settings.idleMinutes === "number" ? settings.idleMinutes : 10;
     idleSeconds.value = typeof settings.idleSeconds === "number" ? settings.idleSeconds : 0;
     followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
-    followUpMessage.value = settings.followUpMessage ?? "您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。";
+    followUpMessage.value = settings.followUpMessage ?? "你好，请问还有什么可以帮你的吗？如果没有其他问题，会话将在稍后自动关闭。";
     followUpMessageTouched.value = false;
     replyMode.value = settings.replyMode ?? "strict";
     transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
     offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
-    transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
+    transferMessage.value = settings.transferMessage ?? "正在为你转接人工客服，请稍候";
     unsupportedQuestionMessage.value =
       settings.unsupportedQuestionMessage ??
       "抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。";
@@ -1151,14 +1151,14 @@ const applyCardSettings = (cardKey: LifecycleCardKey, settings: StoredAiAgentSet
       break;
     case "fallback-transfer":
       transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
-      transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
+      transferMessage.value = settings.transferMessage ?? "正在为你转接人工客服，请稍候";
       transferMessageTouched.value = false;
-      offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
+      offlineMessage.value = settings.offlineMessage ?? "当前客服暂不在线。你可以先留下问题或联系方式，我们会尽快与你联系。";
       offlineMessageTouched.value = false;
       break;
     case "idle-followup":
       followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
-      followUpMessage.value = settings.followUpMessage ?? "您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。";
+      followUpMessage.value = settings.followUpMessage ?? "你好，请问还有什么可以帮你的吗？如果没有其他问题，会话将在稍后自动关闭。";
       followUpMessageTouched.value = false;
       break;
     case "idle-autoclose":
