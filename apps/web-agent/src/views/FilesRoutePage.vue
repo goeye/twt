@@ -440,16 +440,61 @@
                 <td colspan="11" class="archive-table__empty">暂无符合条件的聊天</td>
               </tr>
               <tr v-for="row in paginatedChatRows" v-else :key="row.id">
-                <td><button type="button" class="archive-link" @click="openChat(row)">{{ row.title }}</button></td>
+                <td><button type="button" class="archive-link" @click="openChatDrawer(row)">{{ row.title }}</button></td>
                 <td>{{ row.chatType === 'single' ? '单聊' : '群聊' }}</td>
                 <td>
                   <span class="chat-status" :class="'chat-status--' + row.status">{{ row.status === 'active' ? '活跃' : '解散' }}</span>
                 </td>
                 <td>{{ row.category === 'external' ? '外部' : '内部' }}</td>
                 <td class="archive-table__number">{{ row.messageCount === 0 ? '\u2013' : row.messageCount }}</td>
-                <td>{{ row.owner }}</td>
-                <td class="archive-table__number">{{ row.visitorCount === 0 ? '\u2013' : row.visitorCount }}</td>
-                <td class="archive-table__number">{{ row.staffCount }}</td>
+                <!-- 群主: avatar + name (不可点击) -->
+                <td>
+                  <span v-if="row.ownerMember" class="archive-owner-cell">
+                    <span
+                      class="archive-owner-cell__avatar"
+                      :style="{ background: row.ownerMember.avatarColor }"
+                    >
+                      <img v-if="row.ownerMember.avatarUrl" :src="row.ownerMember.avatarUrl" class="archive-owner-cell__avatar-img" />
+                      <span v-else>{{ row.ownerMember.avatarText }}</span>
+                    </span>
+                    <span>{{ row.owner }}</span>
+                  </span>
+                  <span v-else>{{ row.owner }}</span>
+                </td>
+                <!-- 访客数量: avatar stacking -->
+                <td>
+                  <div v-if="row.visitorMembers.length > 0" class="archive-staff-avatars" @click.stop="openChatMemberDrawer(row.id)">
+                    <span
+                      v-for="(member, idx) in row.visitorMembers.slice(0, 4)"
+                      :key="member.name"
+                      class="archive-staff-avatars__item"
+                      :style="{ background: member.avatarColor, zIndex: 10 - idx }"
+                      :title="member.name"
+                    >
+                      <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-avatars__img" />
+                      <span v-else>{{ member.avatarText }}</span>
+                    </span>
+                    <span v-if="row.visitorMembers.length > 4" class="archive-staff-avatars__overflow">+{{ row.visitorMembers.length - 4 }}</span>
+                  </div>
+                  <span v-else class="archive-table__number">–</span>
+                </td>
+                <!-- 客服数量: avatar stacking -->
+                <td>
+                  <div v-if="row.staffMembers.length > 0" class="archive-staff-avatars" @click.stop="openChatMemberDrawer(row.id)">
+                    <span
+                      v-for="(member, idx) in row.staffMembers.slice(0, 4)"
+                      :key="member.name"
+                      class="archive-staff-avatars__item"
+                      :style="{ background: member.avatarColor, zIndex: 10 - idx }"
+                      :title="member.name"
+                    >
+                      <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-avatars__img" />
+                      <span v-else>{{ member.avatarText }}</span>
+                    </span>
+                    <span v-if="row.staffMembers.length > 4" class="archive-staff-avatars__overflow">+{{ row.staffMembers.length - 4 }}</span>
+                  </div>
+                  <span v-else class="archive-table__number">{{ row.staffCount }}</span>
+                </td>
                 <td>{{ row.startedAtLabel }}</td>
                 <td>{{ row.updatedAtLabel }}</td>
                 <td class="archive-table__actions-cell">
@@ -465,7 +510,7 @@
                   </button>
 
                   <div v-if="openChatActionMenuId === row.id" class="archive-action-menu" @click.stop>
-                    <button type="button" class="archive-action-menu__item" @click="openChat(row)">查看聊天</button>
+                    <button type="button" class="archive-action-menu__item" @click="openChatDrawer(row)">查看聊天</button>
                   </div>
                 </td>
               </tr>
@@ -532,6 +577,236 @@
         </aside>
       </div>
     </Teleport>
+
+    <!-- Chat member drawer overlay -->
+    <Teleport to="body">
+      <div v-if="chatMemberDrawerRow" class="archive-staff-drawer-overlay" @click="closeChatMemberDrawer">
+        <aside class="archive-staff-drawer" @click.stop>
+          <!-- Detail view: 客服信息 / 访客信息 -->
+          <template v-if="selectedChatMember">
+            <header class="archive-staff-drawer__header chat-member-detail-header">
+              <button type="button" class="chat-member-back" @click="backToMemberList">
+                <AgentIcon name="chevron-down" :size="16" class="chat-member-back__icon" />
+              </button>
+              <h3 class="archive-staff-drawer__title">{{ selectedChatMember.role === 'visitor' ? '访客信息' : '客服信息' }}</h3>
+              <button type="button" class="archive-staff-drawer__close" @click="closeChatMemberDrawer">&times;</button>
+            </header>
+
+            <!-- 客服信息 detail -->
+            <div v-if="selectedChatMember.role !== 'visitor'" class="chat-member-detail">
+              <div class="chat-member-detail__profile">
+                <div class="chat-member-detail__avatar-wrap">
+                  <span class="chat-member-detail__avatar" :style="{ background: selectedChatMember.avatarColor }">
+                    <img v-if="selectedChatMember.avatarUrl" :src="selectedChatMember.avatarUrl" class="chat-member-detail__avatar-img" />
+                    <span v-else>{{ selectedChatMember.avatarText }}</span>
+                  </span>
+                  <span class="chat-member-detail__online-dot" :class="selectedChatMember.online ? 'chat-member-detail__online-dot--on' : 'chat-member-detail__online-dot--off'" />
+                </div>
+                <span class="chat-member-detail__name">{{ selectedChatMember.name }}</span>
+              </div>
+
+              <div class="chat-member-detail__section">
+                <h4 class="chat-member-detail__section-title">
+                  <span class="chat-member-detail__section-icon">&#9632;</span>
+                  基本信息
+                </h4>
+                <div class="chat-member-detail__fields">
+                  <div class="chat-member-detail__field">
+                    <span class="chat-member-detail__label">姓名</span>
+                    <span class="chat-member-detail__value">{{ selectedChatMember.name }}</span>
+                  </div>
+                  <div class="chat-member-detail__field">
+                    <span class="chat-member-detail__label">昵称</span>
+                    <span class="chat-member-detail__value">{{ selectedChatMember.nickname || selectedChatMember.name }}</span>
+                  </div>
+                  <div class="chat-member-detail__field">
+                    <span class="chat-member-detail__label">邮箱</span>
+                    <span class="chat-member-detail__value">{{ selectedChatMember.email || '–' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 访客信息 detail -->
+            <div v-else class="chat-member-detail chat-member-detail--visitor">
+              <div class="chat-member-detail__scroll agent-scroll">
+                <!-- 基础信息 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">基础信息</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">备注名</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.alias || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">姓名</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.nickname || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">电话</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.phone || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">邮箱</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.email || '–' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 访客标签 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">访客标签</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <span class="chat-visitor-tag-add">+</span>
+                  </div>
+                </div>
+
+                <!-- 客户信息 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">客户信息</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">关联客户</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.relatedCustomer || '–' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 附加信息 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">附加信息</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">起始页面</span>
+                      <span class="chat-visitor-field__value chat-visitor-field__value--link">{{ selectedChatMember.landingPage || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">会话总数</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.sessionCount ?? 0 }} 个会话</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 访问轨迹 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">访问轨迹</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <div v-for="(visit, vi) in (selectedChatMember.visitHistory || [])" :key="vi" class="chat-visitor-visit">
+                      <div class="chat-visitor-visit__row">
+                        <span class="chat-visitor-visit__dot" :class="visit.online ? 'chat-visitor-visit__dot--on' : 'chat-visitor-visit__dot--off'" />
+                        <span class="chat-visitor-visit__title">{{ visit.title }}</span>
+                        <span class="chat-visitor-visit__url">{{ visit.url }}</span>
+                      </div>
+                      <div class="chat-visitor-visit__meta">{{ visit.time }}&ensp;{{ visit.duration }}</div>
+                    </div>
+                    <button type="button" class="chat-visitor-visit__more">查看更多</button>
+                  </div>
+                </div>
+
+                <!-- 设备信息 -->
+                <div class="chat-visitor-section">
+                  <button type="button" class="chat-visitor-section__header">
+                    <span class="chat-visitor-section__title">设备信息</span>
+                    <AgentIcon name="chevron-down" :size="14" class="chat-visitor-section__arrow" />
+                  </button>
+                  <div class="chat-visitor-section__body">
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">IP 地址</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.ip || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">操作系统</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.os || '–' }}</span>
+                    </div>
+                    <div class="chat-visitor-field">
+                      <span class="chat-visitor-field__label">浏览器</span>
+                      <span class="chat-visitor-field__value">{{ selectedChatMember.browser || '–' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- List view: 成员列表 -->
+          <template v-else>
+            <header class="archive-staff-drawer__header">
+              <h3 class="archive-staff-drawer__title">成员列表</h3>
+              <button type="button" class="archive-staff-drawer__close" @click="closeChatMemberDrawer">&times;</button>
+            </header>
+            <ul class="archive-staff-drawer__list">
+              <!-- 群主 -->
+              <li v-if="chatMemberDrawerRow.ownerMember" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(chatMemberDrawerRow.ownerMember!)">
+                <span class="archive-staff-drawer__avatar-wrap">
+                  <span class="archive-staff-drawer__avatar" :style="{ background: chatMemberDrawerRow.ownerMember.avatarColor }">
+                    <img v-if="chatMemberDrawerRow.ownerMember.avatarUrl" :src="chatMemberDrawerRow.ownerMember.avatarUrl" class="archive-staff-drawer__avatar-img" />
+                    <span v-else>{{ chatMemberDrawerRow.ownerMember.avatarText }}</span>
+                  </span>
+                  <span class="archive-staff-drawer__online-dot" :class="chatMemberDrawerRow.ownerMember.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
+                </span>
+                <span class="archive-staff-drawer__info">
+                  <span class="archive-staff-drawer__name">{{ chatMemberDrawerRow.ownerMember.name }}</span>
+                </span>
+                <span class="archive-staff-drawer__owner-tag">群主</span>
+              </li>
+              <!-- 客服 -->
+              <li v-for="member in chatMemberDrawerRow.staffMembers" :key="'staff-' + member.name" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(member)">
+                <span class="archive-staff-drawer__avatar-wrap">
+                  <span class="archive-staff-drawer__avatar" :style="{ background: member.avatarColor }">
+                    <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-drawer__avatar-img" />
+                    <span v-else>{{ member.avatarText }}</span>
+                  </span>
+                  <span class="archive-staff-drawer__online-dot" :class="member.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
+                </span>
+                <span class="archive-staff-drawer__info">
+                  <span class="archive-staff-drawer__name">{{ member.name }}</span>
+                </span>
+                <span class="archive-staff-drawer__staff-tag">客服</span>
+              </li>
+              <!-- 访客 -->
+              <li v-for="member in chatMemberDrawerRow.visitorMembers" :key="'visitor-' + member.name" class="archive-staff-drawer__item archive-staff-drawer__item--clickable" @click="selectChatMember(member)">
+                <span class="archive-staff-drawer__avatar-wrap">
+                  <span class="archive-staff-drawer__avatar" :style="{ background: member.avatarColor }">
+                    <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-drawer__avatar-img" />
+                    <span v-else>{{ member.avatarText }}</span>
+                  </span>
+                  <span class="archive-staff-drawer__online-dot" :class="member.online ? 'archive-staff-drawer__online-dot--on' : 'archive-staff-drawer__online-dot--off'" />
+                </span>
+                <span class="archive-staff-drawer__info">
+                  <span class="archive-staff-drawer__name">{{ member.name }}</span>
+                </span>
+              </li>
+            </ul>
+          </template>
+        </aside>
+      </div>
+    </Teleport>
+
+    <!-- Chat record drawer -->
+    <ArchiveConversationDrawer
+      :open="Boolean(chatDrawerRow)"
+      :title="chatDrawerRow?.title ?? ''"
+      :messages="chatDrawerMessages"
+      assign-label="查看详情"
+      :editable="false"
+      @assign="handleChatDrawerAssign"
+      @close="closeChatDrawer"
+    />
 
     <!-- Confirm dialog -->
     <Teleport to="body">
@@ -1703,6 +1978,27 @@ type ChatStatus = "active" | "dissolved";
 type ChatCategory = "external" | "internal";
 type ChatSortKey = "messageCount" | "startedAt" | "updatedAt";
 
+interface ChatMember {
+  name: string;
+  avatarText: string;
+  avatarColor: string;
+  avatarUrl?: string;
+  role: "owner" | "staff" | "visitor";
+  online?: boolean;
+  nickname?: string;
+  email?: string;
+  // visitor-specific fields
+  alias?: string;
+  phone?: string;
+  relatedCustomer?: string;
+  landingPage?: string;
+  sessionCount?: number;
+  visitHistory?: { title: string; url: string; time: string; duration: string; online: boolean }[];
+  ip?: string;
+  os?: string;
+  browser?: string;
+}
+
 interface ChatRecord {
   id: string;
   title: string;
@@ -1713,6 +2009,9 @@ interface ChatRecord {
   owner: string;
   visitorCount: number;
   staffCount: number;
+  ownerMember: ChatMember | null;
+  visitorMembers: ChatMember[];
+  staffMembers: ChatMember[];
   startedAtLabel: string;
   startedAtValue: number;
   updatedAtLabel: string;
@@ -1751,6 +2050,118 @@ const openChatActionMenuId = ref<string | null>(null);
 const chatCurrentPage = ref(1);
 const chatPageSize = ref(20);
 
+// Chat drawer (聊天记录面板)
+const chatDrawerRowId = ref<string | null>(null);
+
+// Chat member drawer (成员列表)
+const chatMemberDrawerRowId = ref<string | null>(null);
+
+const visitorAvatarColors = [
+  "linear-gradient(135deg, #ff6b6b 0%, #ff9a76 100%)",
+  "linear-gradient(135deg, #ffa726 0%, #ffcc80 100%)",
+  "linear-gradient(135deg, #66bb6a 0%, #a5d6a7 100%)",
+  "linear-gradient(135deg, #42a5f5 0%, #90caf9 100%)",
+  "linear-gradient(135deg, #ab47bc 0%, #ce93d8 100%)",
+  "linear-gradient(135deg, #ef5350 0%, #ef9a9a 100%)",
+  "linear-gradient(135deg, #26c6da 0%, #80deea 100%)"
+];
+
+const buildChatOwnerMember = (ownerName: string): ChatMember | null => {
+  if (!ownerName || ownerName === "–") return null;
+  const profile = getArchiveAgentProfile(ownerName);
+  const agent = archiveAgentPool.find(a => a.name === ownerName);
+  return {
+    name: ownerName,
+    avatarText: profile.avatarText,
+    avatarColor: profile.avatarColor,
+    avatarUrl: profile.avatarUrl || undefined,
+    role: "owner",
+    online: agent?.online ?? true,
+    nickname: ownerName,
+    email: `${ownerName.replace(/\s/g, "").toLowerCase()}@company.com`
+  };
+};
+
+const buildChatVisitorMembers = (count: number, chatId: string): ChatMember[] => {
+  const members: ChatMember[] = [];
+  const aliasPool = ["需要进群的客户", "重点回访客户", "需要二次联系", "老客户跟进", "VIP客户"];
+  const namePool = ["微微", "小明", "Alice", "张三", "李四"];
+  const phonePool = ["18133093890", "13800138000", "15912345678", "17600001111", "13566778899"];
+  const emailPool = ["aidanswang@gmail.com", "xiaoming@qq.com", "alice@outlook.com", "zhangsan@163.com", "lisi@gmail.com"];
+  const osPool = ["Windows 11", "macOS 14", "Windows 10", "Ubuntu 22.04", "macOS 15"];
+  const browserPool = ["Chrome 133", "Safari 18", "Firefox 128", "Edge 131", "Chrome 132"];
+  const ipPool = ["192.169.0.23", "10.0.1.55", "172.16.0.102", "192.168.1.88", "10.10.5.12"];
+
+  for (let i = 0; i < count; i++) {
+    const idx = (chatId.charCodeAt(chatId.length - 1) + i) % visitorAvatarColors.length;
+    const visitorNum = (i + 1) * 10 + parseInt(chatId.replace(/\D/g, "") || "0") % 100;
+    const seed = (visitorNum + i) % 5;
+    members.push({
+      name: `Visitor${visitorNum}`,
+      avatarText: `V${i + 1}`,
+      avatarColor: visitorAvatarColors[idx],
+      role: "visitor",
+      online: i % 3 !== 2,
+      nickname: namePool[seed],
+      email: emailPool[seed],
+      alias: aliasPool[seed],
+      phone: phonePool[seed],
+      relatedCustomer: `${100000 + visitorNum}`,
+      landingPage: "https://www.twt.com/sho...",
+      sessionCount: 3 + (visitorNum % 8),
+      visitHistory: [
+        { title: "Chat with us", url: "https://visitorchat.twt.com...", time: "2026-02-24 16:09", duration: "1天 2小时 30分", online: true },
+        { title: "Chat with us", url: "https://visitorchat.twt.com...", time: "2026-02-05 19:34", duration: "1分 14秒", online: false },
+        { title: "Chat with us", url: "https://visitorchat.twt.com...", time: "2026-02-05 19:34", duration: "3秒", online: false }
+      ],
+      ip: ipPool[seed],
+      os: osPool[seed],
+      browser: browserPool[seed]
+    });
+  }
+  return members;
+};
+
+const buildChatStaffMembers = (count: number, ownerName: string, chatIndex: number): ChatMember[] => {
+  const members: ChatMember[] = [];
+  for (let i = 0; i < count; i++) {
+    const agentName = ownerPool[(chatIndex + i) % ownerPool.length];
+    if (agentName === ownerName) continue;
+    const profile = getArchiveAgentProfile(agentName);
+    const agent = archiveAgentPool.find(a => a.name === agentName);
+    members.push({
+      name: agentName,
+      avatarText: profile.avatarText,
+      avatarColor: profile.avatarColor,
+      role: "staff",
+      online: agent?.online ?? true,
+      nickname: agentName,
+      email: `${agentName.replace(/\s/g, "").toLowerCase()}@company.com`
+    });
+    if (members.length >= count) break;
+  }
+  // Fill remaining if we skipped owner
+  while (members.length < count) {
+    const agentName = ownerPool[(chatIndex + members.length + count) % ownerPool.length];
+    if (agentName !== ownerName && !members.find(m => m.name === agentName)) {
+      const profile = getArchiveAgentProfile(agentName);
+      const agent = archiveAgentPool.find(a => a.name === agentName);
+      members.push({
+        name: agentName,
+        avatarText: profile.avatarText,
+        avatarColor: profile.avatarColor,
+        role: "staff",
+        online: agent?.online ?? true,
+        nickname: agentName,
+        email: `${agentName.replace(/\s/g, "").toLowerCase()}@company.com`
+      });
+    } else {
+      break;
+    }
+  }
+  return members;
+};
+
 const allChatRows = ref<ChatRecord[]>([
   {
     id: "chat-1",
@@ -1762,6 +2173,9 @@ const allChatRows = ref<ChatRecord[]>([
     owner: "\u771F\u9F99",
     visitorCount: 1,
     staffCount: 1,
+    ownerMember: buildChatOwnerMember("\u771F\u9F99"),
+    visitorMembers: buildChatVisitorMembers(1, "chat-1"),
+    staffMembers: buildChatStaffMembers(1, "\u771F\u9F99", 0),
     startedAtLabel: "2026-03-09 17:20:45",
     startedAtValue: new Date("2026-03-09T17:20:45").getTime(),
     updatedAtLabel: "2026-03-09 17:20:45",
@@ -1777,6 +2191,9 @@ const allChatRows = ref<ChatRecord[]>([
     owner: "1\u597D\u70E6\u597D\u70E6\u597D...",
     visitorCount: 0,
     staffCount: 2,
+    ownerMember: buildChatOwnerMember("1\u597D\u70E6\u597D\u70E6\u597D..."),
+    visitorMembers: [],
+    staffMembers: buildChatStaffMembers(2, "1\u597D\u70E6\u597D\u70E6\u597D...", 1),
     startedAtLabel: "2026-03-09 14:18:24",
     startedAtValue: new Date("2026-03-09T14:18:24").getTime(),
     updatedAtLabel: "2026-03-09 14:18:24",
@@ -1792,6 +2209,9 @@ const allChatRows = ref<ChatRecord[]>([
     owner: "\u771F\u9F99",
     visitorCount: 1,
     staffCount: 1,
+    ownerMember: buildChatOwnerMember("\u771F\u9F99"),
+    visitorMembers: buildChatVisitorMembers(1, "chat-3"),
+    staffMembers: buildChatStaffMembers(1, "\u771F\u9F99", 2),
     startedAtLabel: "2026-03-06 10:25:15",
     startedAtValue: new Date("2026-03-06T10:25:15").getTime(),
     updatedAtLabel: "2026-03-06 10:25:15",
@@ -1894,6 +2314,79 @@ const toggleChatActionMenu = (rowId: string) => {
 
 const closeChatActionMenu = () => {
   openChatActionMenuId.value = null;
+};
+
+const chatDrawerRow = computed(() => allChatRows.value.find(r => r.id === chatDrawerRowId.value) ?? null);
+
+const chatDrawerMessages = computed<ArchivePreviewMessage[]>(() => {
+  const row = chatDrawerRow.value;
+  if (!row) return [];
+
+  const ownerProfile = row.ownerMember
+    ? { avatarText: row.ownerMember.avatarText, avatarColor: row.ownerMember.avatarColor, avatarUrl: row.ownerMember.avatarUrl }
+    : { avatarText: "客", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", avatarUrl: undefined };
+
+  const visitorProfile = row.visitorMembers.length > 0
+    ? { avatarText: row.visitorMembers[0].avatarText, avatarColor: row.visitorMembers[0].avatarColor }
+    : { avatarText: "V", avatarColor: "linear-gradient(135deg, #ff6b6b 0%, #ff9a76 100%)" };
+
+  return [
+    ...(row.visitorMembers.length > 0 ? [{
+      id: `${row.id}-v1`,
+      role: "customer" as const,
+      sender: row.visitorMembers[0].name,
+      content: "你好，请问有人在吗？",
+      time: row.startedAtLabel.split(" ")[1] || "10:00",
+      avatarText: visitorProfile.avatarText,
+      avatarColor: visitorProfile.avatarColor
+    }] : []),
+    {
+      id: `${row.id}-a1`,
+      role: "agent" as const,
+      sender: row.owner,
+      content: "你好，请问有什么可以帮您？",
+      time: row.startedAtLabel.split(" ")[1] || "10:01",
+      avatarText: ownerProfile.avatarText,
+      avatarColor: ownerProfile.avatarColor,
+      avatarUrl: ownerProfile.avatarUrl
+    }
+  ];
+});
+
+const openChatDrawer = (row: ChatRecord) => {
+  closeChatActionMenu();
+  chatDrawerRowId.value = row.id;
+};
+
+const closeChatDrawer = () => {
+  chatDrawerRowId.value = null;
+};
+
+const handleChatDrawerAssign = () => {
+  if (chatDrawerRow.value) {
+    emit("toast", "\u67E5\u770B\u804A\u5929\u201C" + chatDrawerRow.value.title + "\u201D");
+  }
+};
+
+const chatMemberDrawerRow = computed(() => allChatRows.value.find(r => r.id === chatMemberDrawerRowId.value) ?? null);
+const selectedChatMember = ref<ChatMember | null>(null);
+
+const openChatMemberDrawer = (rowId: string) => {
+  chatMemberDrawerRowId.value = rowId;
+  selectedChatMember.value = null;
+};
+
+const closeChatMemberDrawer = () => {
+  chatMemberDrawerRowId.value = null;
+  selectedChatMember.value = null;
+};
+
+const selectChatMember = (member: ChatMember) => {
+  selectedChatMember.value = member;
+};
+
+const backToMemberList = () => {
+  selectedChatMember.value = null;
 };
 
 const openChat = (row: ChatRecord) => {
@@ -2891,6 +3384,328 @@ onMounted(() => {
   margin-left: auto;
   padding: 3px 10px;
   white-space: nowrap;
+}
+
+.archive-staff-drawer__staff-tag {
+  background: rgba(0, 181, 120, 0.08);
+  border: 1px solid rgba(0, 181, 120, 0.18);
+  border-radius: 12px;
+  color: #00b578;
+  font-size: 12px;
+  margin-left: auto;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.archive-staff-drawer__item--clickable {
+  cursor: pointer;
+}
+
+/* Avatar wrap with online dot */
+.archive-staff-drawer__avatar-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.archive-staff-drawer__online-dot {
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  bottom: 0;
+  height: 12px;
+  position: absolute;
+  right: 0;
+  width: 12px;
+}
+
+.archive-staff-drawer__online-dot--on {
+  background: #22c55e;
+}
+
+.archive-staff-drawer__online-dot--off {
+  background: #d1d5db;
+}
+
+/* Back button */
+.chat-member-detail-header .archive-staff-drawer__title {
+  flex: 1;
+  text-align: left;
+}
+
+.chat-member-back {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #4c5563;
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  width: 32px;
+}
+
+.chat-member-back:hover {
+  color: #222222;
+}
+
+.chat-member-back__icon {
+  display: block;
+  transform: rotate(90deg);
+}
+
+/* Member detail panel — staff */
+.chat-member-detail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+}
+
+.chat-member-detail--visitor {
+  overflow: hidden;
+  padding: 0;
+}
+
+.chat-member-detail__profile {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.chat-member-detail__avatar-wrap {
+  position: relative;
+}
+
+.chat-member-detail__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 24px;
+  font-weight: 600;
+  height: 72px;
+  justify-content: center;
+  overflow: hidden;
+  width: 72px;
+}
+
+.chat-member-detail__avatar-img {
+  border-radius: 50%;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.chat-member-detail__online-dot {
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  bottom: 2px;
+  height: 16px;
+  position: absolute;
+  right: 2px;
+  width: 16px;
+}
+
+.chat-member-detail__online-dot--on {
+  background: #22c55e;
+}
+
+.chat-member-detail__online-dot--off {
+  background: #d1d5db;
+}
+
+.chat-member-detail__name {
+  color: #222222;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.chat-member-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chat-member-detail__section-title {
+  align-items: center;
+  color: #222222;
+  display: flex;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 8px;
+  margin: 0;
+}
+
+.chat-member-detail__section-icon {
+  color: #222222;
+  font-size: 14px;
+}
+
+.chat-member-detail__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-left: 4px;
+}
+
+.chat-member-detail__field {
+  align-items: baseline;
+  display: flex;
+  gap: 16px;
+}
+
+.chat-member-detail__label {
+  color: #222222;
+  flex-shrink: 0;
+  font-size: 14px;
+  width: 80px;
+}
+
+.chat-member-detail__value {
+  color: #222222;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.chat-member-detail__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 20px 20px;
+}
+
+/* Visitor collapsible sections */
+.chat-visitor-section {
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.chat-visitor-section__header {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: space-between;
+  padding: 14px 0;
+  width: 100%;
+}
+
+.chat-visitor-section__title {
+  color: #222222;
+}
+
+.chat-visitor-section__arrow {
+  color: #97a3b4;
+}
+
+.chat-visitor-section__body {
+  padding: 0 0 14px;
+}
+
+/* Visitor field rows */
+.chat-visitor-field {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.chat-visitor-field__label {
+  color: #75869c;
+  flex-shrink: 0;
+  font-size: 13px;
+  width: 64px;
+}
+
+.chat-visitor-field__value {
+  color: #222222;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.chat-visitor-field__value--link {
+  color: #75869c;
+}
+
+/* Visitor tag add button */
+.chat-visitor-tag-add {
+  align-items: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  color: #97a3b4;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 16px;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+/* Visit history */
+.chat-visitor-visit {
+  padding: 6px 0;
+}
+
+.chat-visitor-visit__row {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.chat-visitor-visit__dot {
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
+}
+
+.chat-visitor-visit__dot--on {
+  background: #22c55e;
+}
+
+.chat-visitor-visit__dot--off {
+  background: #d1d5db;
+}
+
+.chat-visitor-visit__title {
+  color: #222222;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.chat-visitor-visit__url {
+  color: var(--agent-color-brand-primary, #2f6bff);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-visitor-visit__meta {
+  color: #97a3b4;
+  font-size: 12px;
+  padding-left: 14px;
+  padding-top: 2px;
+}
+
+.chat-visitor-visit__more {
+  background: transparent;
+  border: 0;
+  color: #75869c;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 0 0;
+}
+
+.chat-visitor-visit__more:hover {
+  color: var(--agent-color-brand-primary, #2f6bff);
 }
 
 /* Admin toggle */
