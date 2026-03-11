@@ -2,7 +2,11 @@
   <section class="files-page">
     <section v-if="activeKey === 'all-conversations'" class="files-page__card agent-panel">
       <header class="files-page__header">
-        <h1 class="files-page__title">所有会话</h1>
+        <h1 class="files-page__title">会话记录</h1>
+        <label class="archive-admin-toggle">
+          <input type="checkbox" v-model="isAdmin" class="archive-admin-toggle__checkbox" />
+          <span class="archive-admin-toggle__label">管理员视角</span>
+        </label>
       </header>
 
       <section class="files-page__summary summary-banner">
@@ -104,7 +108,7 @@
                 <th>状态</th>
                 <th>消息数量</th>
                 <th>会话负责人</th>
-                <th>客服数量</th>
+                <th>服务客服</th>
                 <th>标签</th>
                 <th>
                   <button type="button" class="archive-sort" @click="toggleSort('startedAt')">
@@ -146,20 +150,22 @@
                 <td colspan="14" class="archive-table__empty">暂无符合条件的会话</td>
               </tr>
               <tr v-for="row in visibleRows" v-else :key="row.id">
+                <!-- 2a. 会话标题列: inline edit -->
                 <td>
-                  <span class="archive-title-cell">
+                  <div v-if="editingRowId === row.id" class="archive-title-edit">
+                    <input
+                      v-model="editDraftTitle"
+                      class="agent-input archive-title-edit__input"
+                      @blur="confirmEditTitle"
+                      @keydown.enter.prevent="confirmEditTitle"
+                      @keydown.esc.prevent="cancelEditTitle"
+                    />
+                  </div>
+                  <span v-else class="archive-title-cell">
                     <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
-                    <span v-if="row.aiAgentHandled" class="archive-ai-badge" title="AI Agent 接待过">
-                      <svg class="archive-ai-badge__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="10" height="8" rx="2" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.2" />
-                        <circle cx="6" cy="8" r="1" fill="currentColor" />
-                        <circle cx="10" cy="8" r="1" fill="currentColor" />
-                        <path d="M5 2.5V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-                        <path d="M11 2.5V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-                        <path d="M1.5 7v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-                        <path d="M14.5 7v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-                      </svg>
-                    </span>
+                    <button type="button" class="archive-title-cell__edit-btn" aria-label="编辑标题" @click.stop="startEditTitle(row)">
+                      <AgentIcon name="edit" :size="13" />
+                    </button>
                   </span>
                 </td>
                 <td>{{ row.visitorName }}</td>
@@ -169,13 +175,63 @@
                   <span class="archive-status" :class="`archive-status--${row.status}`">{{ statusLabelMap[row.status] }}</span>
                 </td>
                 <td class="archive-table__number">{{ row.messageCount }}</td>
-                <td>{{ row.owner }}</td>
-                <td class="archive-table__number">{{ row.staffCount }}</td>
-                <td>{{ row.tag }}</td>
+                <!-- 2e. 会话负责人列: avatar + name -->
+                <td>
+                  <span v-if="row.owner !== '–'" class="archive-owner-cell">
+                    <span
+                      class="archive-owner-cell__avatar"
+                      :style="{ background: getArchiveAgentProfile(row.owner).avatarColor }"
+                    >
+                      <img v-if="getArchiveAgentProfile(row.owner).avatarUrl" :src="getArchiveAgentProfile(row.owner).avatarUrl" class="archive-owner-cell__avatar-img" />
+                      <span v-else>{{ getArchiveAgentProfile(row.owner).avatarText }}</span>
+                    </span>
+                    <span>{{ row.owner }}</span>
+                  </span>
+                  <span v-else>–</span>
+                </td>
+                <!-- 2c. 服务客服列: avatar stacking -->
+                <td>
+                  <div v-if="row.staffAgents.length > 0" class="archive-staff-avatars" @click.stop="openStaffDrawer(row.id)">
+                    <span
+                      v-for="(agent, idx) in row.staffAgents.slice(0, 4)"
+                      :key="agent.name"
+                      class="archive-staff-avatars__item"
+                      :style="{ background: agent.avatarColor, zIndex: 10 - idx }"
+                      :title="agent.name"
+                    >
+                      <img v-if="agent.avatarUrl" :src="agent.avatarUrl" class="archive-staff-avatars__img" />
+                      <span v-else>{{ agent.avatarText }}</span>
+                    </span>
+                    <span v-if="row.staffAgents.length > 4" class="archive-staff-avatars__overflow">+{{ row.staffAgents.length - 4 }}</span>
+                  </div>
+                  <span v-else>–</span>
+                </td>
+                <!-- 2b. 标签列: tag chips + popover -->
+                <td class="archive-tag-cell">
+                  <div class="archive-tag-group" @click.stop="openTagPopover(row.id)">
+                    <span v-if="row.tags.length === 0" class="archive-tag archive-tag--empty">–</span>
+                    <span v-for="t in row.tags" v-else :key="t" class="archive-tag">{{ t }}</span>
+                  </div>
+                  <div v-if="tagPopoverRowId === row.id" class="archive-tag-popover" @click.stop>
+                    <div class="archive-tag-popover__search">
+                      <input v-model.trim="tagSearchKeyword" class="archive-tag-popover__input" placeholder="搜索或创建标签" @keydown.enter.prevent="createAndAddTag(row.id)" />
+                    </div>
+                    <div class="archive-tag-popover__list agent-scroll">
+                      <label v-for="t in filteredTagPool" :key="t" class="archive-tag-popover__option">
+                        <input type="checkbox" :checked="row.tags.includes(t)" @change="toggleRowTag(row.id, t)" />
+                        <span>{{ t }}</span>
+                      </label>
+                      <p v-if="filteredTagPool.length === 0 && tagSearchKeyword" class="archive-tag-popover__empty">
+                        按回车创建「{{ tagSearchKeyword }}」
+                      </p>
+                    </div>
+                  </div>
+                </td>
                 <td>{{ row.startedAtLabel }}</td>
                 <td>{{ row.acceptedAtLabel }}</td>
                 <td>{{ row.serviceDuration }}</td>
                 <td>{{ row.rating === 'satisfied' ? '满意' : '–' }}</td>
+                <!-- 操作列: all actions in dropdown -->
                 <td class="archive-table__actions-cell">
                   <button
                     type="button"
@@ -189,7 +245,13 @@
                   </button>
 
                   <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
-                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">{{ row.owner === aiAgentArchiveName ? '接管会话' : '分配会话' }}</button>
+                    <template v-if="row.status === 'queueing'">
+                      <button v-if="isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                      <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    </template>
+                    <template v-else>
+                      <button type="button" class="archive-action-menu__item" @click="handleTakeoverOrAssign(row)">{{ row.owner === aiAgentArchiveName ? '接管会话' : '分配会话' }}</button>
+                    </template>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </div>
                 </td>
@@ -202,7 +264,7 @@
 
     <section v-else-if="activeKey === 'all-chats'" class="files-page__card agent-panel">
       <header class="files-page__header">
-        <h1 class="files-page__title">所有聊天</h1>
+        <h1 class="files-page__title">聊天记录</h1>
       </header>
 
       <section class="files-page__summary summary-banner">
@@ -447,13 +509,54 @@
       </footer>
     </section>
 
+    <!-- Staff drawer overlay -->
+    <Teleport to="body">
+      <div v-if="staffDrawerRow" class="archive-staff-drawer-overlay" @click="closeStaffDrawer">
+        <aside class="archive-staff-drawer" @click.stop>
+          <header class="archive-staff-drawer__header">
+            <h3 class="archive-staff-drawer__title">服务客服列表</h3>
+            <button type="button" class="archive-staff-drawer__close" @click="closeStaffDrawer">&times;</button>
+          </header>
+          <ul class="archive-staff-drawer__list">
+            <li v-for="agent in staffDrawerRow.staffAgents" :key="agent.name" class="archive-staff-drawer__item">
+              <span class="archive-staff-drawer__avatar" :style="{ background: agent.avatarColor }">
+                <img v-if="agent.avatarUrl" :src="agent.avatarUrl" class="archive-staff-drawer__avatar-img" />
+                <span v-else>{{ agent.avatarText }}</span>
+              </span>
+              <span class="archive-staff-drawer__info">
+                <span class="archive-staff-drawer__name">{{ agent.name }}</span>
+              </span>
+              <span v-if="agent.name === staffDrawerRow.owner" class="archive-staff-drawer__owner-tag">会话负责人</span>
+            </li>
+          </ul>
+        </aside>
+      </div>
+    </Teleport>
+
+    <!-- Confirm dialog -->
+    <Teleport to="body">
+      <div v-if="confirmDialogOpen" class="archive-confirm-overlay" @click="closeConfirmDialog">
+        <div class="archive-confirm-dialog" @click.stop>
+          <h3 class="archive-confirm-dialog__title">{{ confirmDialogTitle }}</h3>
+          <p class="archive-confirm-dialog__desc">{{ confirmDialogDesc }}</p>
+          <div class="archive-confirm-dialog__actions">
+            <button type="button" class="agent-btn agent-btn--ghost archive-confirm-dialog__btn" @click="closeConfirmDialog">取 消</button>
+            <button type="button" class="agent-btn agent-btn--primary archive-confirm-dialog__btn" @click="handleConfirmDialog">确 认</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <ArchiveConversationDrawer
       :open="Boolean(previewConversation)"
       :title="previewConversation?.title ?? ''"
       :messages="previewConversationMessages"
       :assign-label="previewConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
+      :editable="true"
       @assign="previewConversation && assignConversation(previewConversation)"
       @close="closeConversationDrawer"
+      @edit-title="previewConversation && startEditTitle(previewConversation)"
+      @update:title="handleDrawerTitleUpdate"
     />
 
     <ArchiveAssignModal
@@ -462,6 +565,7 @@
       :conversation-title="pendingAssignConversation?.title ?? ''"
       :agents="assignableAgents"
       :modal-title="pendingAssignConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
+      :action-label="pendingAssignConversation?.owner === aiAgentArchiveName ? '接管' : ''"
       @close="closeAssignModal"
       @confirm="handleAssignConfirm"
       @update:keyword="assignKeyword = $event"
@@ -483,6 +587,14 @@ type ConversationRating = "none" | "satisfied";
 type SortKey = "startedAt" | "acceptedAt";
 type SortOrder = "asc" | "desc";
 
+interface StaffAgent {
+  name: string;
+  avatarText: string;
+  avatarColor: string;
+  avatarUrl?: string;
+  role?: string;
+}
+
 interface ConversationRecord {
   id: string;
   title: string;
@@ -494,6 +606,8 @@ interface ConversationRecord {
   owner: string;
   staffCount: number;
   tag: string;
+  tags: string[];
+  staffAgents: StaffAgent[];
   startedAtLabel: string;
   startedAtValue: number;
   acceptedAtLabel: string;
@@ -513,6 +627,8 @@ interface ConversationSeed {
   owner?: string;
   staffCount?: number;
   tag?: string;
+  tags?: string[];
+  staffAgents?: StaffAgent[];
   startedAtLabel?: string;
   acceptedAtLabel?: string;
   startedAtValue?: number;
@@ -605,6 +721,7 @@ const titlePool = [
   "合作方案沟通"
 ];
 const tagPool = ["–", "高意向", "VIP", "续费", "退款", "活动"];
+const allTagPool = ["有购买意向", "外部推荐", "广告投放", "待跟进", "情绪稳定", "放弃购买", "高意向", "VIP", "续费", "退款", "活动", "AI Agent"];
 const aliasPool = ["–", "需要 进群的客户", "重点回访客户", "需要二次联系", "老客户跟进"];
 const visitorPool = [
   "Visitor34",
@@ -668,6 +785,26 @@ const assignModalOpen = ref(false);
 const assignKeyword = ref("");
 const pendingAssignConversationId = ref<string | null>(null);
 
+// Title inline editing
+const editingRowId = ref<string | null>(null);
+const editDraftTitle = ref("");
+
+// Tag popover
+const tagPopoverRowId = ref<string | null>(null);
+const tagSearchKeyword = ref("");
+
+// Staff drawer
+const staffDrawerRowId = ref<string | null>(null);
+
+// Admin mode
+const isAdmin = ref(true);
+
+// Confirm dialog
+const confirmDialogOpen = ref(false);
+const confirmDialogTitle = ref("");
+const confirmDialogDesc = ref("");
+const confirmDialogCallback = ref<(() => void) | null>(null);
+
 const formatDateTime = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -716,6 +853,62 @@ const buildDurationPayload = (index: number) => {
   return { minutes: 11 * 24 * 60 + 3 * 60 + 58 };
 };
 
+const getArchiveAgentProfile = (name: string) => {
+  if (name === aiAgentArchiveName) {
+    return {
+      avatarText: aiAgentProfile.avatarText,
+      avatarColor: aiAgentProfile.avatarColor,
+      avatarUrl: aiAgentProfile.avatarUrl
+    };
+  }
+
+  const agent = archiveAgentPool.find((item) => item.name === name);
+  const fallbackText = name.slice(0, 1) || "客";
+  return {
+    avatarText: agent?.avatarText ?? fallbackText,
+    avatarColor: agent?.avatarColor ?? "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
+    avatarUrl: ""
+  };
+};
+
+const buildStaffAgents = (seed: ConversationSeed, index: number): StaffAgent[] => {
+  const agents: StaffAgent[] = [];
+  if (seed.staffAgents) return seed.staffAgents;
+
+  if (seed.aiAgentHandled) {
+    agents.push({
+      name: aiAgentArchiveName,
+      avatarText: aiAgentProfile.avatarText,
+      avatarColor: aiAgentProfile.avatarColor,
+      avatarUrl: aiAgentProfile.avatarUrl,
+      role: "AI Agent"
+    });
+  }
+
+  const ownerName = seed.owner ?? (seed.status === "pending-reply" || seed.status === "queueing" || seed.status === "processing" ? "–" : ownerPool[index % ownerPool.length]);
+  if (ownerName !== "–" && ownerName !== aiAgentArchiveName) {
+    const profile = getArchiveAgentProfile(ownerName);
+    agents.push({
+      name: ownerName,
+      avatarText: profile.avatarText,
+      avatarColor: profile.avatarColor,
+      role: "客服"
+    });
+  }
+
+  // Add extra staff for variety — ensure some rows have 4+ agents
+  const extrasCount = index % 12 === 0 ? 4 : index % 4 === 0 ? 2 : index % 6 === 0 ? 1 : 0;
+  for (let i = 0; i < extrasCount; i++) {
+    const extraName = ownerPool[(index + i + 2) % ownerPool.length];
+    if (!agents.find(a => a.name === extraName)) {
+      const profile = getArchiveAgentProfile(extraName);
+      agents.push({ name: extraName, avatarText: profile.avatarText, avatarColor: profile.avatarColor, role: "客服" });
+    }
+  }
+
+  return agents;
+};
+
 const createRecord = (index: number, seed: ConversationSeed): ConversationRecord => {
   const startedAt =
     seed.startedAtValue ?? new Date("2026-02-24T20:08:00").getTime() - index * (11 * 60 + 37) * 60 * 1000;
@@ -739,6 +932,8 @@ const createRecord = (index: number, seed: ConversationSeed): ConversationRecord
     staffCount:
       seed.staffCount ?? (seed.status === "pending-reply" || seed.status === "queueing" || seed.status === "processing" ? 0 : 1),
     tag: seed.tag ?? tagPool[index % tagPool.length],
+    tags: seed.tags ?? (seed.tag && seed.tag !== "–" ? [seed.tag] : (tagPool[index % tagPool.length] !== "–" ? [tagPool[index % tagPool.length]] : [])),
+    staffAgents: buildStaffAgents(seed, index),
     startedAtLabel: seed.startedAtLabel ?? formatDateTime(new Date(startedAt)),
     startedAtValue: startedAt,
     acceptedAtLabel:
@@ -768,6 +963,7 @@ const presetSeeds: ConversationSeed[] = [
     owner: aiAgentArchiveName,
     staffCount: 1,
     tag: "AI Agent",
+    tags: ["AI Agent", "有购买意向"],
     startedAtLabel: "2026-02-24 20:10",
     startedAtValue: new Date("2026-02-24T20:10:00").getTime(),
     acceptedAtLabel: "2026-02-24 20:10",
@@ -786,6 +982,7 @@ const presetSeeds: ConversationSeed[] = [
     owner: "王珂",
     staffCount: 1,
     tag: "AI Agent",
+    tags: ["AI Agent", "待跟进"],
     startedAtLabel: "2026-02-24 19:50",
     startedAtValue: new Date("2026-02-24T19:50:00").getTime(),
     acceptedAtLabel: "2026-02-24 19:55",
@@ -804,6 +1001,7 @@ const presetSeeds: ConversationSeed[] = [
     owner: aiAgentArchiveName,
     staffCount: 1,
     tag: "VIP",
+    tags: ["VIP", "外部推荐"],
     startedAtLabel: "2026-02-24 20:05",
     startedAtValue: new Date("2026-02-24T20:05:00").getTime(),
     acceptedAtLabel: "2026-02-24 20:05",
@@ -1092,24 +1290,6 @@ const assignableAgents = computed(() => {
     .sort((left, right) => (left.online === right.online ? 0 : left.online ? -1 : 1));
 });
 
-const getArchiveAgentProfile = (name: string) => {
-  if (name === aiAgentArchiveName) {
-    return {
-      avatarText: aiAgentProfile.avatarText,
-      avatarColor: aiAgentProfile.avatarColor,
-      avatarUrl: aiAgentProfile.avatarUrl
-    };
-  }
-
-  const agent = archiveAgentPool.find((item) => item.name === name);
-  const fallbackText = name.slice(0, 1) || "客";
-  return {
-    avatarText: agent?.avatarText ?? fallbackText,
-    avatarColor: agent?.avatarColor ?? "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
-    avatarUrl: ""
-  };
-};
-
 const getVisitorAvatarProfile = (name: string) => ({
   avatarText: name.slice(0, 1).toUpperCase() || "访",
   avatarColor: "linear-gradient(135deg, #64748b 0%, #94a3b8 100%)"
@@ -1140,7 +1320,7 @@ const getVisitorQuestion = (row: ConversationRecord) => {
   if (row.title.includes("Inquiry")) {
     return "Hi, I have a few questions about your service plan.";
   }
-  return `我想咨询一下“${row.title}”这个问题。`;
+  return `我想咨询一下「${row.title}」这个问题。`;
 };
 
 const getAgentReply = (row: ConversationRecord) => {
@@ -1153,7 +1333,7 @@ const getAgentReply = (row: ConversationRecord) => {
   if (row.title.includes("发票")) {
     return "已收到，我先帮您核对发票配置和缓存状态，请稍等。";
   }
-  return `您好，已收到您关于“${row.title}”的咨询，我先帮您核查一下。`;
+  return `您好，已收到您关于「${row.title}」的咨询，我先帮您核查一下。`;
 };
 
 const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {
@@ -1182,7 +1362,7 @@ const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {
         id: `${row.id}-a1`,
         role: "agent",
         sender: aiAgentArchiveName,
-        content: "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示“加急配送”选项。",
+        content: "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示「加急配送」选项。",
         time: acceptTime,
         avatarText: owner?.avatarText,
         avatarColor: owner?.avatarColor,
@@ -1321,6 +1501,157 @@ const openConversation = (row: ConversationRecord) => {
   previewConversationId.value = row.id;
 };
 
+// Title editing methods
+const startEditTitle = (row: ConversationRecord) => {
+  editingRowId.value = row.id;
+  editDraftTitle.value = row.title;
+};
+
+const confirmEditTitle = () => {
+  const nextTitle = editDraftTitle.value.trim();
+  if (!nextTitle || !editingRowId.value) {
+    cancelEditTitle();
+    return;
+  }
+  allRows.value = allRows.value.map((row) =>
+    row.id === editingRowId.value ? { ...row, title: nextTitle } : row
+  );
+  editingRowId.value = null;
+  editDraftTitle.value = "";
+  emit("toast", "保存成功");
+};
+
+const cancelEditTitle = () => {
+  editingRowId.value = null;
+  editDraftTitle.value = "";
+};
+
+const handleDrawerTitleUpdate = (newTitle: string) => {
+  if (!previewConversationId.value) return;
+  allRows.value = allRows.value.map((row) =>
+    row.id === previewConversationId.value ? { ...row, title: newTitle } : row
+  );
+  emit("toast", "保存成功");
+};
+
+// Tag popover methods
+const openTagPopover = (rowId: string) => {
+  tagPopoverRowId.value = tagPopoverRowId.value === rowId ? null : rowId;
+  tagSearchKeyword.value = "";
+};
+
+const closeTagPopover = () => {
+  tagPopoverRowId.value = null;
+  tagSearchKeyword.value = "";
+};
+
+const filteredTagPool = computed(() => {
+  const keyword = tagSearchKeyword.value.trim().toLowerCase();
+  if (!keyword) return allTagPool;
+  return allTagPool.filter(t => t.toLowerCase().includes(keyword));
+});
+
+const toggleRowTag = (rowId: string, tagName: string) => {
+  allRows.value = allRows.value.map((row) => {
+    if (row.id !== rowId) return row;
+    const has = row.tags.includes(tagName);
+    const nextTags = has ? row.tags.filter(t => t !== tagName) : [...row.tags, tagName];
+    return { ...row, tags: nextTags, tag: nextTags[0] ?? "–" };
+  });
+};
+
+const createAndAddTag = (rowId: string) => {
+  const tagName = tagSearchKeyword.value.trim();
+  if (!tagName) return;
+  if (!allTagPool.includes(tagName)) {
+    allTagPool.push(tagName);
+  }
+  toggleRowTag(rowId, tagName);
+  tagSearchKeyword.value = "";
+};
+
+// Staff drawer methods
+const openStaffDrawer = (rowId: string) => {
+  staffDrawerRowId.value = rowId;
+};
+
+const closeStaffDrawer = () => {
+  staffDrawerRowId.value = null;
+};
+
+const staffDrawerRow = computed(() => allRows.value.find(r => r.id === staffDrawerRowId.value) ?? null);
+
+// Assign to self
+const assignToSelf = (row: ConversationRecord) => {
+  const selfAgent = archiveAgentPool[0]; // 客服主管
+  const now = new Date();
+  allRows.value = allRows.value.map((r) => {
+    if (r.id !== row.id) return r;
+    return {
+      ...r,
+      owner: selfAgent.name,
+      staffCount: Math.max(r.staffCount, 1),
+      staffAgents: r.staffAgents.find(a => a.name === selfAgent.name)
+        ? r.staffAgents
+        : [...r.staffAgents, { name: selfAgent.name, avatarText: selfAgent.avatarText, avatarColor: selfAgent.avatarColor, role: "客服" }],
+      acceptedAtLabel: r.acceptedAtLabel === "–" ? formatDateTime(now) : r.acceptedAtLabel,
+      acceptedAtValue: r.acceptedAtValue ?? now.getTime(),
+      status: r.status === "queueing" ? "pending-reply" : r.status
+    };
+  });
+  emit("toast", `已将会话分配给${selfAgent.name}`);
+};
+
+// Confirm dialog methods
+const openConfirmDialog = (title: string, desc: string, callback: () => void) => {
+  confirmDialogTitle.value = title;
+  confirmDialogDesc.value = desc;
+  confirmDialogCallback.value = callback;
+  confirmDialogOpen.value = true;
+};
+
+const closeConfirmDialog = () => {
+  confirmDialogOpen.value = false;
+  confirmDialogTitle.value = "";
+  confirmDialogDesc.value = "";
+  confirmDialogCallback.value = null;
+};
+
+const handleConfirmDialog = () => {
+  confirmDialogCallback.value?.();
+  closeConfirmDialog();
+};
+
+// Non-admin: "分配给我" with confirmation
+const confirmAssignToSelf = (row: ConversationRecord) => {
+  closeActionMenu();
+  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+    assignToSelf(row);
+  });
+};
+
+// "接管会话" / "分配会话" with role-based logic
+const handleTakeoverOrAssign = (row: ConversationRecord) => {
+  closeActionMenu();
+  if (row.owner === aiAgentArchiveName) {
+    // 接管会话
+    if (isAdmin.value) {
+      // Admin: open assign modal to choose agent
+      pendingAssignConversationId.value = row.id;
+      assignKeyword.value = "";
+      assignModalOpen.value = true;
+    } else {
+      // Non-admin: confirm takeover to self
+      openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
+        assignToSelf(row);
+      });
+    }
+  } else {
+    // 分配会话
+    assignConversation(row);
+  }
+};
+
 const closeConversationDrawer = () => {
   previewConversationId.value = null;
 };
@@ -1338,13 +1669,9 @@ const handleAssignConfirm = (agentId: string) => {
     return;
   }
 
-  const conversationTitle = pendingAssignConversation.value?.title ?? "";
-
   const now = new Date();
   const acceptedAtLabel = formatDateTime(now);
   const acceptedAtValue = now.getTime();
-
-  const wasAiAgent = pendingAssignConversation.value?.owner === aiAgentArchiveName;
 
   allRows.value = allRows.value.map((row) => {
     if (row.id !== rowId) {
@@ -1355,6 +1682,9 @@ const handleAssignConfirm = (agentId: string) => {
       ...row,
       owner: agent.name,
       staffCount: Math.max(row.staffCount, 1),
+      staffAgents: row.staffAgents.find(a => a.name === agent.name)
+        ? row.staffAgents
+        : [...row.staffAgents, { name: agent.name, avatarText: agent.avatarText, avatarColor: agent.avatarColor, role: "客服" }],
       acceptedAtLabel: row.acceptedAtLabel === "–" ? acceptedAtLabel : row.acceptedAtLabel,
       acceptedAtValue: row.acceptedAtValue ?? acceptedAtValue,
       status: row.status === "queueing" ? "pending-reply" : row.status
@@ -1362,9 +1692,7 @@ const handleAssignConfirm = (agentId: string) => {
   });
 
   closeAssignModal();
-  emit("toast", wasAiAgent
-    ? `已将会话“${conversationTitle}”从 AI Agent 接管给${agent.name}`
-    : `已将会话“${conversationTitle}”分配给${agent.name}`);
+  emit("toast", `已将会话分配给${agent.name}`);
 };
 
 // --- All Chats (所有聊天) ---
@@ -1577,6 +1905,7 @@ onMounted(() => {
   const handleGlobalClick = () => {
     closeActionMenu();
     closeChatActionMenu();
+    closeTagPopover();
   };
   window.addEventListener("click", handleGlobalClick);
   onBeforeUnmount(() => {
@@ -1895,7 +2224,7 @@ onMounted(() => {
   font-weight: var(--agent-font-weight-semibold);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 20;
 }
 
 .archive-table tbody tr:nth-child(even) td {
@@ -2048,31 +2377,62 @@ onMounted(() => {
   background: #f7f9fc;
 }
 
-/* AI Agent badge in title cell */
+/* Title cell with hover edit */
 .archive-title-cell {
   align-items: center;
   display: inline-flex;
   gap: 6px;
 }
 
-.archive-ai-badge {
+.archive-title-cell__edit-btn {
   align-items: center;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.10) 0%, rgba(139, 92, 246, 0.10) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.20);
+  background: transparent;
+  border: 0;
   border-radius: 6px;
-  color: #6366f1;
-  cursor: default;
+  color: #97a3b4;
+  cursor: pointer;
   display: inline-flex;
-  flex-shrink: 0;
-  height: 22px;
+  height: 24px;
   justify-content: center;
-  width: 22px;
+  opacity: 0;
+  padding: 0;
+  transition: opacity var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
+  width: 24px;
 }
 
-.archive-ai-badge__icon {
-  display: block;
-  height: 14px;
-  width: 14px;
+.archive-title-cell:hover .archive-title-cell__edit-btn {
+  opacity: 1;
+}
+
+.archive-title-cell__edit-btn:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+.archive-title-edit {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.archive-title-edit__input {
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  font-size: 14px;
+  height: 32px;
+  min-width: 140px;
+  outline: none;
+  padding: 0 10px;
+}
+
+.archive-title-edit__input:focus {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.08);
+}
+
+.archive-title-edit__action {
+  font-size: 13px;
+  height: 30px;
+  padding: 0 12px;
 }
 
 .files-page__placeholder {
@@ -2230,5 +2590,377 @@ onMounted(() => {
   .archive-filters__row--chat-secondary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* Tag chip styles */
+.archive-tag-cell {
+  position: relative;
+}
+
+.archive-tag-group {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.archive-tag {
+  background: rgba(47, 107, 255, 0.08);
+  border: 1px solid rgba(47, 107, 255, 0.18);
+  border-radius: 12px;
+  color: #2f6bff;
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1;
+  max-width: 100px;
+  overflow: hidden;
+  padding: 4px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-tag--empty {
+  background: transparent;
+  border-color: transparent;
+  color: #97a3b4;
+}
+
+/* Tag popover */
+.archive-tag-popover {
+  background: #ffffff;
+  border: 1px solid #edf1f5;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(20, 32, 64, 0.14);
+  left: 0;
+  max-height: 320px;
+  min-width: 220px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 10;
+}
+
+.archive-tag-popover__search {
+  border-bottom: 1px solid #edf1f5;
+  padding: 10px 12px;
+}
+
+.archive-tag-popover__input {
+  appearance: none;
+  background: #f7f9fc;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  font-size: 13px;
+  height: 34px;
+  outline: none;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.archive-tag-popover__input:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.archive-tag-popover__list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px 4px;
+}
+
+.archive-tag-popover__option {
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.archive-tag-popover__option:hover {
+  background: #f7f9fc;
+}
+
+.archive-tag-popover__option input[type="checkbox"] {
+  accent-color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  height: 16px;
+  width: 16px;
+}
+
+.archive-tag-popover__empty {
+  color: #97a3b4;
+  font-size: 13px;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+/* Staff avatar stacking */
+.archive-staff-avatars {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.archive-staff-avatars__item {
+  align-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 28px;
+  justify-content: center;
+  margin-left: -8px;
+  overflow: hidden;
+  position: relative;
+  width: 28px;
+}
+
+.archive-staff-avatars__item:first-child {
+  margin-left: 0;
+}
+
+.archive-staff-avatars__img {
+  border-radius: 50%;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.archive-staff-avatars__overflow {
+  align-items: center;
+  background: #e8ecf1;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #4c5563;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 28px;
+  justify-content: center;
+  margin-left: -8px;
+  width: 28px;
+}
+
+/* Owner cell with avatar */
+.archive-owner-cell {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.archive-owner-cell__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 24px;
+  justify-content: center;
+  overflow: hidden;
+  width: 24px;
+}
+
+.archive-owner-cell__avatar-img {
+  border-radius: 50%;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Staff drawer */
+.archive-staff-drawer-overlay {
+  background: rgba(0, 0, 0, 0.25);
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: var(--agent-z-modal, 100);
+}
+
+.archive-staff-drawer {
+  background: #ffffff;
+  border-radius: 20px 0 0 20px;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 380px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 380px;
+}
+
+.archive-staff-drawer__header {
+  align-items: center;
+  border-bottom: 1px solid #edf1f5;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.archive-staff-drawer__title {
+  color: #222222;
+  font-size: 17px;
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+}
+
+.archive-staff-drawer__close {
+  background: transparent;
+  border: 0;
+  color: #97a3b4;
+  cursor: pointer;
+  font-size: 22px;
+  height: 32px;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+}
+
+.archive-staff-drawer__close:hover {
+  color: #222222;
+}
+
+.archive-staff-drawer__list {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.archive-staff-drawer__item {
+  align-items: center;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.archive-staff-drawer__item:hover {
+  background: #f7f9fc;
+}
+
+.archive-staff-drawer__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  height: 36px;
+  justify-content: center;
+  overflow: hidden;
+  width: 36px;
+}
+
+.archive-staff-drawer__avatar-img {
+  border-radius: 50%;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.archive-staff-drawer__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.archive-staff-drawer__name {
+  color: #222222;
+  font-size: 14px;
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.archive-staff-drawer__owner-tag {
+  background: rgba(47, 107, 255, 0.08);
+  border: 1px solid rgba(47, 107, 255, 0.18);
+  border-radius: 12px;
+  color: #2f6bff;
+  font-size: 12px;
+  margin-left: auto;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* Admin toggle */
+.archive-admin-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 6px;
+  user-select: none;
+}
+
+.archive-admin-toggle__checkbox {
+  accent-color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  height: 16px;
+  width: 16px;
+}
+
+.archive-admin-toggle__label {
+  color: #4c5563;
+}
+
+/* Confirm dialog */
+.archive-confirm-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: var(--agent-z-modal, 100);
+}
+
+.archive-confirm-dialog {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  padding: 28px 32px 24px;
+  width: 90%;
+}
+
+.archive-confirm-dialog__title {
+  color: #222222;
+  font-size: 17px;
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0 0 10px;
+}
+
+.archive-confirm-dialog__desc {
+  color: #75869C;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px;
+}
+
+.archive-confirm-dialog__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.archive-confirm-dialog__btn {
+  font-size: 14px;
+  height: 38px;
+  min-width: 72px;
+  padding: 0 20px;
 }
 </style>

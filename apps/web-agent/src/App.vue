@@ -556,8 +556,8 @@ const campaignNavGroups = [
 ];
 
 const filesNavItems = [
-  { key: "all-conversations", label: "所有会话", icon: "book" },
-  { key: "all-chats", label: "所有聊天", icon: "conversation" }
+  { key: "all-conversations", label: "会话记录", icon: "book" },
+  { key: "all-chats", label: "聊天记录", icon: "conversation" }
 ];
 
 const aiNavGroups = [

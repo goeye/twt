@@ -50,7 +50,9 @@
               />
             </span>
             <span class="assign-card__agent-name">{{ agent.name }}</span>
+            <span v-if="actionLabel" class="assign-card__action-label">{{ actionLabel }}</span>
             <span
+              v-else
               class="assign-card__online-tag"
               :class="agent.online ? 'assign-card__online-tag--on' : 'assign-card__online-tag--off'"
             >
@@ -81,9 +83,11 @@ const props = withDefaults(
     conversationTitle?: string;
     agents: AssignAgent[];
     modalTitle?: string;
+    actionLabel?: string;
   }>(),
   {
-    modalTitle: "分配会话"
+    modalTitle: "分配会话",
+    actionLabel: ""
   }
 );
 
@@ -293,6 +297,16 @@ const handleSelect = (id: string) => {
 .assign-card__online-tag--off {
   background: #f3f4f6;
   color: #9ca3af;
+}
+
+.assign-card__action-label {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  margin-left: auto;
+  padding: 4px 14px;
 }
 
 @media (max-width: 480px) {

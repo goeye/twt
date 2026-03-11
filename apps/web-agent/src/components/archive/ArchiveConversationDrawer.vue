@@ -5,7 +5,27 @@
 
       <aside class="archive-drawer" @click.stop>
         <header class="archive-drawer__header">
-          <h2 class="archive-drawer__title">{{ title }}</h2>
+          <div v-if="isEditingTitle" class="archive-drawer__title-edit">
+            <input
+              v-model="draftTitle"
+              class="archive-drawer__title-input"
+              @blur="saveTitle"
+              @keydown.enter.prevent="saveTitle"
+              @keydown.esc.prevent="cancelEditTitle"
+            />
+          </div>
+          <div v-else class="archive-drawer__title-row">
+            <h2 class="archive-drawer__title">{{ title }}</h2>
+            <button
+              v-if="editable"
+              type="button"
+              class="archive-drawer__edit-btn"
+              aria-label="编辑会话标题"
+              @click="startEditTitle"
+            >
+              <AgentIcon name="edit" :size="14" />
+            </button>
+          </div>
 
           <div class="archive-drawer__actions">
             <button type="button" class="archive-drawer__icon-btn" aria-label="滚动到顶部" @click="scrollToTop">
@@ -77,18 +97,41 @@ const props = withDefaults(
     title: string;
     messages: DrawerMessage[];
     assignLabel?: string;
+    editable?: boolean;
   }>(),
   {
-    assignLabel: "分配会话"
+    assignLabel: "分配会话",
+    editable: true
   }
 );
 
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "assign"): void;
+  (e: "edit-title"): void;
+  (e: "update:title", value: string): void;
 }>();
 
 const messagesRef = ref<HTMLElement | null>(null);
+const isEditingTitle = ref(false);
+const draftTitle = ref("");
+
+const startEditTitle = () => {
+  draftTitle.value = props.title;
+  isEditingTitle.value = true;
+};
+
+const saveTitle = () => {
+  const next = draftTitle.value.trim();
+  if (next && next !== props.title) {
+    emit("update:title", next);
+  }
+  isEditingTitle.value = false;
+};
+
+const cancelEditTitle = () => {
+  isEditingTitle.value = false;
+};
 
 const scrollToTop = () => {
   messagesRef.value?.scrollTo({ top: 0, behavior: "smooth" });
@@ -153,12 +196,66 @@ watch(
   gap: 16px;
 }
 
+.archive-drawer__title-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
 .archive-drawer__title {
   color: #222222;
   font-size: 17px;
   font-weight: 600;
   line-height: 1.3;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-drawer__edit-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #97a3b4;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s ease;
+  width: 28px;
+}
+
+.archive-drawer__edit-btn:hover {
+  color: var(--agent-color-brand-primary, #2f6bff);
+}
+
+.archive-drawer__title-edit {
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-drawer__title-input {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  color: #222222;
+  font-size: 16px;
+  font-weight: 600;
+  height: 36px;
+  outline: none;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.archive-drawer__title-input:focus {
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.08);
 }
 
 .archive-drawer__actions {
