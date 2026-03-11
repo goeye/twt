@@ -65,425 +65,41 @@
         >AI Agent 设置</button>
       </nav>
 
-      <div v-if="configTab === 'deploy'" class="lifecycle-flow">
-        <section
-          v-for="section in deployLifecycleSections"
-          :key="section.key"
-          class="lifecycle-stage"
-          :class="`lifecycle-stage--${section.key}`"
-        >
-          <header class="lifecycle-stage__header">
-            <span class="lifecycle-stage__badge" :class="`lifecycle-stage__badge--${section.key}`">
-              <AgentIcon :name="section.icon" :size="16" />
-            </span>
-            <h2 class="lifecycle-stage__title">{{ section.title }}</h2>
-          </header>
-
-          <div class="lifecycle-stage__cards">
-            <article
-              v-for="card in section.cards"
-              :key="card.key"
-              class="config-card agent-panel"
-              :class="{ 'config-card--open': openLifecycleCard === card.key }"
-            >
-              <button type="button" class="config-card__trigger" @click="toggleLifecycleCard(card.key)">
-                <div class="config-card__heading">
-                  <h3 class="config-card__title">{{ card.title }}</h3>
-                  <span v-if="card.badge" class="config-card__status" :class="`config-card__status--${card.badgeTone ?? 'default'}`">
-                    {{ card.badge }}
-                  </span>
-                  <p class="config-card__summary">{{ card.summary }}</p>
-                </div>
-
-                <AgentIcon
-                  class="config-card__chevron"
-                  :name="openLifecycleCard === card.key ? 'chevron-down' : 'chevron-right'"
-                  :size="18"
-                />
-              </button>
-
-              <div v-if="openLifecycleCard === card.key" class="config-card__body">
-                <template v-if="card.key === 'entry-routing'">
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">访客类型</span>
-                      <span class="form-row__desc">哪些访客由 AI Agent 回复</span>
-                    </div>
-                    <div class="form-row__control">
-                      <div class="pill-group">
-                        <button
-                          v-for="option in audienceOptions"
-                          :key="option.value"
-                          type="button"
-                          class="pill-option"
-                          :class="{ 'pill-option--active': visitorAudience === option.value }"
-                          @click="visitorAudience = option.value"
-                        >{{ option.label }}</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">回复时机</span>
-                      <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复</span>
-                    </div>
-                    <div class="form-row__control">
-                      <select v-model="agentResponseMode" class="agent-input">
-                        <option value="always">始终由 AI Agent 回复</option>
-                        <option value="offline-only">仅客服离线时</option>
-                      </select>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'entry-visibility'">
-                  <div class="visibility-layout">
-                    <div class="visibility-layout__form">
-                      <div class="form-row form-row--single">
-                        <div class="form-row__label">
-                          <span class="form-row__name">显示 AI Agent 标签</span>
-                          <span class="form-row__desc">开启后，访客会在消息气泡中看到 AI Agent 标签</span>
-                        </div>
-                        <div class="form-row__control">
-                          <label class="agent-switch">
-                            <input v-model="showMessageAgentLabel" type="checkbox" class="agent-switch__input" />
-                            <span class="agent-switch__track" />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="visibility-layout__preview">
-                      <p class="bubble-preview__label">预览效果</p>
-                      <div class="bubble-preview">
-                        <div class="bubble-preview__content">
-                          <span class="bubble-preview__time">16:54</span>
-                          <div class="bubble-preview__bubble">
-                            你好！有什么可以帮您的吗？
-                            <span v-if="showMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'identity-profile'">
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">头像</span>
-                      <span class="form-row__desc">设置 AI Agent 的头像形象，用于会话列表和消息头像展示</span>
-                    </div>
-                    <div class="form-row__control form-row__control--stack">
-                      <div class="bot-avatar-upload">
-                        <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
-                          <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
-                          <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
-                        </div>
-                        <div class="bot-avatar-upload__actions">
-                          <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
-                            {{ botAvatarUrl ? '重新上传' : '上传头像' }}
-                          </button>
-                        </div>
-                        <input
-                          ref="avatarInputRef"
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg"
-                          class="bot-avatar-upload__input"
-                          @change="handleAvatarFileChange"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">昵称</span>
-                      <span class="form-row__desc">当访客询问“你是谁”时，AI Agent 会优先使用这个身份名称</span>
-                    </div>
-                    <div class="form-row__control">
-                      <input
-                        v-model="botName"
-                        class="agent-input"
-                        :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
-                        maxlength="64"
-                        placeholder="请输入昵称"
-                        @blur="botNameTouched = true"
-                      />
-                      <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
-                    </div>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">业务简介</span>
-                      <span class="form-row__desc">描述你的业务和服务范围，AI 会据此生成更贴合场景的回答</span>
-                    </div>
-                    <div class="form-row__control">
-                      <textarea
-                        v-model="botIntro"
-                        class="agent-input form-row__textarea"
-                        rows="5"
-                        maxlength="2000"
-                        placeholder="请输入"
-                      />
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'identity-style'">
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">回复语气</span>
-                      <span class="form-row__desc">统一 AI Agent 的表达风格，保证对外沟通体验一致</span>
-                    </div>
-                    <div class="form-row__control">
-                      <div class="bot-chips-group">
-                        <button
-                          v-for="tone in toneOptions"
-                          :key="tone.value"
-                          type="button"
-                          class="bot-chip"
-                          :class="{ 'bot-chip--active': selectedTone === tone.value }"
-                          @click="selectedTone = tone.value"
-                        >{{ tone.label }}</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-row">
-                    <div class="form-row__label">
-                      <span class="form-row__name">默认语言</span>
-                      <span class="form-row__desc">当系统无法判断访客语言时，将优先使用该语言回复</span>
-                    </div>
-                    <div class="form-row__control">
-                      <select v-model="defaultLanguage" class="agent-input">
-                        <option
-                          v-for="language in languageOptions"
-                          :key="language.value"
-                          :value="language.value"
-                        >{{ language.label }}</option>
-                      </select>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'answering-mode'">
-                  <div class="setting-helper-stack">
-                    <div class="setting-callout">
-                      <p class="setting-callout__text">AI 会结合知识库、业务简介、语气和语言设置来组织回复</p>
-                    </div>
-                  </div>
-
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">回复模式</span>
-                      <span class="form-row__desc">定义 AI 是严格依赖知识库回答，还是允许更主动地推理生成内容</span>
-                    </div>
-                    <div class="form-row__control">
-                      <select v-model="replyMode" class="agent-input">
-                        <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
-                        <option value="creative">发散模式 — 允许 AI 在知识边界内适度推理</option>
-                      </select>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'answering-knowledge'">
-                  <div class="knowledge-card">
-
-                    <div v-if="knowledgeDocCount <= 10" class="knowledge-card__tip">
-                      <p class="knowledge-card__tip-text">
-                        AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关文档
-                      </p>
-                    </div>
-
-                    <div class="knowledge-card__stats">
-                      <span class="knowledge-card__stats-label">AI Agent 将使用：</span>
-                      <span class="knowledge-card__stats-item">
-                        <AgentIcon name="file" :size="16" />
-                        {{ knowledgeDocCount }} 篇知识库文档
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      class="agent-btn agent-btn--ghost knowledge-card__action"
-                      @click="emit('nav-change', 'doc-knowledge')"
-                    >
-                      管理知识库 →
-                    </button>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'answering-unsupported'">
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">特殊场景</span>
-                      <span class="form-row__desc">当访客发送图片、文件等内容或涉及敏感信息时，AI 如何回复</span>
-                    </div>
-                    <div class="form-row__control">
-                      <textarea
-                        v-model="unsupportedQuestionMessage"
-                        class="agent-input form-row__textarea"
-                        :class="{ 'agent-input--error': unsupportedMessageTouched && !unsupportedQuestionMessage.trim() }"
-                        rows="4"
-                        maxlength="2000"
-                        placeholder="请输入"
-                        @blur="unsupportedMessageTouched = true"
-                      />
-                      <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'fallback-transfer'">
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">转接人工客服</span>
-                      <span class="form-row__desc">当访客请求人工客服时 AI Agent 的行为方式</span>
-                    </div>
-                    <div class="form-row__control">
-                      <label class="agent-switch">
-                        <input v-model="transferEnabled" type="checkbox" class="agent-switch__input" />
-                        <span class="agent-switch__track" />
-                      </label>
-                    </div>
-                  </div>
-
-                  <template v-if="transferEnabled">
-                    <div class="setting-helper-stack">
-                      <div class="setting-callout setting-callout--soft">
-                        <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
-                      </div>
-                    </div>
-
-                    <div class="form-row form-row--single">
-                      <div class="form-row__label">
-                        <span class="form-row__name">转接人工客服提示</span>
-                        <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案</span>
-                      </div>
-                      <div class="form-row__control">
-                        <textarea
-                          v-model="transferMessage"
-                          class="agent-input form-row__textarea"
-                          :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
-                          rows="4"
-                          maxlength="2000"
-                          placeholder="请输入"
-                          @blur="transferMessageTouched = true"
-                        />
-                        <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
-                      </div>
-                    </div>
-
-                    <div class="form-row form-row--single">
-                      <div class="form-row__label">
-                        <span class="form-row__name">客服离线提示</span>
-                        <span class="form-row__desc">当人工客服团队暂时离线时，向访客说明当前服务状态</span>
-                      </div>
-                      <div class="form-row__control">
-                        <textarea
-                          v-model="offlineMessage"
-                          class="agent-input form-row__textarea"
-                          :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                          rows="4"
-                          maxlength="2000"
-                          placeholder="请输入"
-                          @blur="offlineMessageTouched = true"
-                        />
-                        <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
-                      </div>
-                    </div>
-                  </template>
-
-                  <div v-else class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">不转接人工客服提示</span>
-                      <span class="form-row__desc">未开启人工转接时，访客请求人工客服将看到此提示</span>
-                    </div>
-                    <div class="form-row__control">
-                      <textarea
-                        v-model="offlineMessage"
-                        class="agent-input form-row__textarea"
-                        :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                        rows="4"
-                        maxlength="2000"
-                        placeholder="请输入"
-                        @blur="offlineMessageTouched = true"
-                      />
-                      <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'idle-followup'">
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">发送跟进消息</span>
-                      <span class="form-row__desc">当访客 5 分钟未回复时，AI 自动发送一条跟进消息，尝试挽回会话</span>
-                    </div>
-                    <div class="form-row__control">
-                      <label class="agent-switch">
-                        <input v-model="followUpEnabled" type="checkbox" class="agent-switch__input" />
-                        <span class="agent-switch__track" />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div v-if="followUpEnabled" class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">跟进消息内容</span>
-                      <span class="form-row__desc">自定义跟进消息的文案，引导访客继续对话或留下联系方式</span>
-                    </div>
-                    <div class="form-row__control">
-                      <textarea
-                        v-model="followUpMessage"
-                        class="agent-input form-row__textarea"
-                        :class="{ 'agent-input--error': followUpMessageTouched && !followUpMessage.trim() }"
-                        rows="4"
-                        maxlength="2000"
-                        placeholder="请输入跟进消息内容"
-                        @blur="followUpMessageTouched = true"
-                      />
-                      <p v-if="followUpMessageTouched && !followUpMessage.trim()" class="form-row__error">请输入跟进消息内容</p>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="card.key === 'idle-autoclose'">
-                  <div class="setting-helper-stack">
-                    <div class="setting-callout setting-callout--soft">
-                      <p class="setting-callout__text">若开启跟进消息，空闲计时将从跟进消息发送后开始计算</p>
-                    </div>
-                  </div>
-
-                  <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">自动关闭空闲会话</span>
-                      <span class="form-row__desc">避免访客长时间未响应时持续占用会话</span>
-                    </div>
-                    <div class="form-row__control">
-                      <div class="inactive-setting">
-                        <span class="inactive-setting__text">当访客超过</span>
-                        <input v-model.number="idleHours" type="number" class="agent-input inactive-setting__input" min="0" />
-                        <span class="inactive-setting__unit-label">时</span>
-                        <input v-model.number="idleMinutes" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
-                        <span class="inactive-setting__unit-label">分</span>
-                        <input v-model.number="idleSeconds" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
-                        <span class="inactive-setting__unit-label">秒</span>
-                        <span class="inactive-setting__text">未回复时，自动关闭会话</span>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-
-              </div>
-            </article>
-          </div>
-        </section>
-      </div>
+      <AiAgentDeployFlow
+        v-if="configTab === 'deploy'"
+        :sections="deployLifecycleSections"
+        :open-card-key="openLifecycleCard"
+        :visitor-audience="visitorAudience"
+        :agent-response-mode="agentResponseMode"
+        :show-message-agent-label="showMessageAgentLabel"
+        :bot-avatar-url="botAvatarUrl"
+        :bot-name="botName"
+        :bot-name-touched="botNameTouched"
+        :bot-intro="botIntro"
+        :selected-tone="selectedTone"
+        :default-language="defaultLanguage"
+        :reply-mode="replyMode"
+        :knowledge-doc-count="knowledgeDocCount"
+        :unsupported-question-message="unsupportedQuestionMessage"
+        :unsupported-message-touched="unsupportedMessageTouched"
+        :transfer-enabled="transferEnabled"
+        :transfer-message="transferMessage"
+        :transfer-message-touched="transferMessageTouched"
+        :offline-message="offlineMessage"
+        :offline-message-touched="offlineMessageTouched"
+        :follow-up-enabled="followUpEnabled"
+        :follow-up-message="followUpMessage"
+        :follow-up-message-touched="followUpMessageTouched"
+        :idle-hours="idleHours"
+        :idle-minutes="idleMinutes"
+        :idle-seconds="idleSeconds"
+        :avatar-fallback-text="avatarFallbackText"
+        @toggle-card="toggleLifecycleCard"
+        @update:field="handleDeployFieldUpdate"
+        @update:touched="handleDeployTouchedUpdate"
+        @trigger-avatar-select="triggerBotAvatarSelect"
+        @nav-change="emit('nav-change', $event)"
+      />
 
       <div v-else-if="configTab === 'settings'" class="settings-panel">
         <div class="settings-section agent-panel">
@@ -619,39 +235,25 @@
     </section>
     <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
 
-    <BaseModal :open="cropModalOpen" title="图片裁剪" max-width="580px" @close="closeCropModal">
-      <div v-if="cropState.imageSrc" class="avatar-crop-modal">
-        <p class="avatar-crop-modal__hint">拖动图片调整头像显示区域</p>
-        <div
-          class="avatar-crop-canvas"
-          :class="{ 'avatar-crop-canvas--dragging': cropDragging }"
-          @mousedown.prevent="startCropDrag"
-          @mousemove.prevent="handleCropDrag"
-          @mouseup="endCropDrag"
-          @mouseleave="endCropDrag"
-        >
-          <img :src="cropState.imageSrc" alt="头像裁剪预览" :style="cropImageStyle" draggable="false" />
-        </div>
-      </div>
-      <template #footer>
-        <span />
-        <div class="modal-footer-actions">
-          <button type="button" class="agent-btn agent-btn--ghost" @click="closeCropModal">取消</button>
-          <button type="button" class="agent-btn agent-btn--primary" @click="confirmCropImage">确定</button>
-        </div>
-      </template>
-    </BaseModal>
+    <AiAgentImageCropModal
+      :open="cropModalOpen"
+      :image-src="cropImageSource"
+      @close="cropModalOpen = false"
+      @confirm="handleCroppedImage"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { AgentIcon, BaseModal, CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
+import { CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
 import {
   type StoredAiAgentSettings,
   loadStoredAiAgentSettings,
   persistStoredAiAgentSettings
 } from "../lib/aiAgentSettings";
+import AiAgentDeployFlow from "../components/ai-agent/AiAgentDeployFlow.vue";
+import AiAgentImageCropModal from "../components/ai-agent/AiAgentImageCropModal.vue";
 
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
 
@@ -674,14 +276,6 @@ interface CopilotSetting {
   title: string;
   description: string;
   enabled: boolean;
-}
-
-interface CropState {
-  imageSrc: string;
-  naturalWidth: number;
-  naturalHeight: number;
-  offsetX: number;
-  offsetY: number;
 }
 
 interface LifecycleCard {
@@ -735,17 +329,7 @@ const emit = defineEmits<{
   (e: "nav-change", key: string): void;
 }>();
 
-const AVATAR_CROP_SIZE = 240;
-const AVATAR_CROP_DRAG_SCALE = 1.1;
 const AVATAR_MAX_SIZE = 10 * 1024 * 1024; // 10MB
-
-const createEmptyCropState = (): CropState => ({
-  imageSrc: "",
-  naturalWidth: 0,
-  naturalHeight: 0,
-  offsetX: 0,
-  offsetY: 0
-});
 
 type ConfigTab = "deploy" | "settings";
 
@@ -794,12 +378,6 @@ const languageOptions = [
   { value: "ms", label: "马利西亚语" }
 ];
 
-const audienceOptions: Array<{ label: string; value: AudienceType }> = [
-  { label: "全部", value: "all" },
-  { label: "访客", value: "visitor" },
-  { label: "客户", value: "customer" }
-];
-
 const audienceLabelMap: Record<AudienceType, string> = {
   all: "全部",
   visitor: "访客",
@@ -836,9 +414,7 @@ const knowledgeDocCount = ref(3);
 
 const avatarInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
-const cropDragging = ref(false);
-const cropDragStart = ref({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
-const cropState = ref<CropState>(createEmptyCropState());
+const cropImageSource = ref("");
 const unsavedChangesModalOpen = ref(false);
 const pendingNavigationAction = ref<(() => void) | null>(null);
 const initializing = ref(true);
@@ -1274,135 +850,6 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-const loadImageMeta = (src: string) =>
-  new Promise<{ width: number; height: number }>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
-    image.onerror = () => reject(new Error("image-load-failed"));
-    image.src = src;
-  });
-
-const loadImageElement = (src: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("image-load-failed"));
-    image.src = src;
-  });
-
-const getCropDrawMetrics = () => {
-  const { naturalWidth, naturalHeight, offsetX, offsetY } = cropState.value;
-  if (!naturalWidth || !naturalHeight) {
-    return {
-      drawWidth: 0,
-      drawHeight: 0,
-      left: 0,
-      top: 0,
-      maxOffsetX: 0,
-      maxOffsetY: 0
-    };
-  }
-
-  const baseScale = Math.max(AVATAR_CROP_SIZE / naturalWidth, AVATAR_CROP_SIZE / naturalHeight);
-  const drawWidth = naturalWidth * baseScale * AVATAR_CROP_DRAG_SCALE;
-  const drawHeight = naturalHeight * baseScale * AVATAR_CROP_DRAG_SCALE;
-  const maxOffsetX = Math.max(0, (drawWidth - AVATAR_CROP_SIZE) / 2);
-  const maxOffsetY = Math.max(0, (drawHeight - AVATAR_CROP_SIZE) / 2);
-  const clampedOffsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX));
-  const clampedOffsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY));
-  const left = AVATAR_CROP_SIZE / 2 - drawWidth / 2 + clampedOffsetX;
-  const top = AVATAR_CROP_SIZE / 2 - drawHeight / 2 + clampedOffsetY;
-
-  return {
-    drawWidth,
-    drawHeight,
-    left,
-    top,
-    maxOffsetX,
-    maxOffsetY
-  };
-};
-
-const cropImageStyle = computed(() => {
-  const { drawWidth, drawHeight, left, top } = getCropDrawMetrics();
-  return {
-    width: `${drawWidth}px`,
-    height: `${drawHeight}px`,
-    left: `${left}px`,
-    top: `${top}px`
-  };
-});
-
-const clampCropOffset = () => {
-  const { maxOffsetX, maxOffsetY } = getCropDrawMetrics();
-  cropState.value.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, cropState.value.offsetX));
-  cropState.value.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, cropState.value.offsetY));
-};
-
-const openCropModalWithSource = async (source: string) => {
-  try {
-    const meta = await loadImageMeta(source);
-    cropState.value = {
-      imageSrc: source,
-      naturalWidth: meta.width,
-      naturalHeight: meta.height,
-      offsetX: 0,
-      offsetY: 0
-    };
-    cropModalOpen.value = true;
-  } catch {
-    emitToast("图片解析失败，请重试");
-  }
-};
-
-const closeCropModal = () => {
-  cropModalOpen.value = false;
-  cropDragging.value = false;
-  cropState.value = createEmptyCropState();
-};
-
-const startCropDrag = (event: MouseEvent) => {
-  if (!cropState.value.imageSrc) return;
-  cropDragging.value = true;
-  cropDragStart.value = {
-    x: event.clientX,
-    y: event.clientY,
-    offsetX: cropState.value.offsetX,
-    offsetY: cropState.value.offsetY
-  };
-};
-
-const handleCropDrag = (event: MouseEvent) => {
-  if (!cropDragging.value) return;
-  cropState.value.offsetX = cropDragStart.value.offsetX + (event.clientX - cropDragStart.value.x);
-  cropState.value.offsetY = cropDragStart.value.offsetY + (event.clientY - cropDragStart.value.y);
-  clampCropOffset();
-};
-
-const endCropDrag = () => {
-  cropDragging.value = false;
-};
-
-const confirmCropImage = async () => {
-  if (!cropState.value.imageSrc) return;
-
-  try {
-    const image = await loadImageElement(cropState.value.imageSrc);
-    const canvas = document.createElement("canvas");
-    canvas.width = AVATAR_CROP_SIZE;
-    canvas.height = AVATAR_CROP_SIZE;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    const { drawWidth, drawHeight, left, top } = getCropDrawMetrics();
-    context.drawImage(image, left, top, drawWidth, drawHeight);
-    botAvatarUrl.value = canvas.toDataURL("image/png");
-    closeCropModal();
-  } catch {
-    emitToast("头像裁剪失败，请重试");
-  }
-};
-
 const handleAvatarFileChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -1429,11 +876,53 @@ const handleAvatarFileChange = async (event: Event) => {
   }
 
   try {
-    const source = await readFileAsDataUrl(file);
-    await openCropModalWithSource(source);
+    cropImageSource.value = await readFileAsDataUrl(file);
+    cropModalOpen.value = true;
   } catch {
     emitToast("头像读取失败，请重试");
   }
+};
+
+const handleCroppedImage = (dataUrl: string) => {
+  botAvatarUrl.value = dataUrl;
+  cropModalOpen.value = false;
+  cropImageSource.value = "";
+};
+
+const handleDeployFieldUpdate = (field: string, value: unknown) => {
+  const fieldMap: Record<string, { ref: { value: unknown } }> = {
+    visitorAudience: { ref: visitorAudience },
+    agentResponseMode: { ref: agentResponseMode },
+    showMessageAgentLabel: { ref: showMessageAgentLabel },
+    botName: { ref: botName },
+    botIntro: { ref: botIntro },
+    selectedTone: { ref: selectedTone },
+    defaultLanguage: { ref: defaultLanguage },
+    replyMode: { ref: replyMode },
+    unsupportedQuestionMessage: { ref: unsupportedQuestionMessage },
+    transferEnabled: { ref: transferEnabled },
+    transferMessage: { ref: transferMessage },
+    offlineMessage: { ref: offlineMessage },
+    followUpEnabled: { ref: followUpEnabled },
+    followUpMessage: { ref: followUpMessage },
+    idleHours: { ref: idleHours },
+    idleMinutes: { ref: idleMinutes },
+    idleSeconds: { ref: idleSeconds }
+  };
+  const entry = fieldMap[field];
+  if (entry) entry.ref.value = value;
+};
+
+const handleDeployTouchedUpdate = (field: string, value: boolean) => {
+  const touchedMap: Record<string, { value: boolean }> = {
+    botNameTouched: botNameTouched,
+    unsupportedMessageTouched: unsupportedMessageTouched,
+    transferMessageTouched: transferMessageTouched,
+    offlineMessageTouched: offlineMessageTouched,
+    followUpMessageTouched: followUpMessageTouched
+  };
+  const entry = touchedMap[field];
+  if (entry) entry.value = value;
 };
 
 const requestNavigation = (action: () => void) => {
@@ -1632,253 +1121,16 @@ defineExpose({
   padding-top: var(--agent-space-24);
 }
 
-.lifecycle-flow {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.lifecycle-stage {
-  padding-left: 56px;
-  position: relative;
-}
-
-.lifecycle-stage:not(:last-of-type)::before {
-  border-left: 1px dashed #d7dbe4;
-  bottom: -28px;
-  content: "";
-  left: 19px;
-  position: absolute;
-  top: 46px;
-}
-
-.lifecycle-stage__header {
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  margin: 0 0 16px -56px;
-}
-
-.lifecycle-stage__badge {
-  align-items: center;
-  border-radius: 12px;
-  color: #18212f;
-  display: inline-flex;
-  flex-shrink: 0;
-  height: 40px;
-  justify-content: center;
-  width: 40px;
-}
-
-.lifecycle-stage__badge--entry {
-  background: #fee07c;
-}
-
-.lifecycle-stage__badge--answering {
-  background: #1f1f1f;
-  color: #ffffff;
-}
-
-.lifecycle-stage__badge--fallback {
-  background: #bfead7;
-}
-
-.lifecycle-stage__badge--idle {
-  background: #bfead7;
-}
-
-.lifecycle-stage__title {
-  color: var(--agent-color-text-primary);
-  font-size: 18px;
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1.45;
-  margin: 0;
-}
-
-.lifecycle-stage__cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.config-card {
-  overflow: hidden;
-  padding: 0;
-  transition: border-color var(--agent-motion-fast) ease, box-shadow var(--agent-motion-fast) ease;
-}
-
-.config-card--open {
-  border-color: var(--agent-color-brand-primary);
-  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
-}
-
-.config-card__trigger {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  min-height: 80px;
-  padding: 0 24px;
-  text-align: left;
-  width: 100%;
-}
-
-.config-card__heading {
-  align-items: center;
-  color: var(--agent-color-text-primary);
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 10px;
-  min-width: 0;
-}
-
-.config-card__title {
-  color: var(--agent-color-text-primary);
-  font-size: 16px;
-  font-weight: var(--agent-font-weight-semibold);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.config-card__summary {
-  color: var(--agent-color-text-tertiary);
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.config-card__status {
-  align-items: center;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 12px;
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1;
-  padding: 6px 12px;
-}
-
-.config-card__status--default {
-  background: #eef2f8;
-  color: var(--agent-color-text-secondary);
-}
-
-.config-card__status--warning {
-  background: #f8e7a7;
-  color: #4f3a00;
-}
-
-.config-card__chevron {
-  color: var(--agent-color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.config-card__body {
-  border-top: 1px solid var(--agent-color-border-default);
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-24);
-  padding: 24px;
-}
-
 .ai-agent-page__footer {
   display: flex;
   justify-content: flex-start;
   padding-top: var(--agent-space-20);
 }
 
-.setting-helper-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.setting-callout {
-  background: #f8e7a7;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.setting-callout--soft {
-  background: #eef4ff;
-}
-
-.setting-callout__text {
-  color: #4f3a00;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.setting-callout--soft .setting-callout__text {
-  color: #20478a;
-}
-
-.knowledge-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-16);
-}
-
-.knowledge-card__desc {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.knowledge-card__stats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.knowledge-card__stats-label {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-semibold);
-}
-
-.knowledge-card__stats-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-}
-
-.knowledge-card__action {
-  align-self: flex-start;
-  font-weight: var(--agent-font-weight-medium);
-}
-
-.knowledge-card__tip {
-  background: #f8e7a7;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.knowledge-card__tip-text {
-  color: #4f3a00;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1.6;
-  margin: 0;
-}
-
 .form-row {
   align-items: flex-start;
   display: flex;
   gap: var(--agent-space-24);
-}
-
-.config-card__body .form-row + .form-row {
-  border-top: 1px solid var(--agent-color-border-default);
-  padding-top: var(--agent-space-24);
 }
 
 .form-row__label {
@@ -1933,168 +1185,6 @@ defineExpose({
 
 .agent-input--error {
   border-color: #e53e3e;
-}
-
-.visibility-layout {
-  display: flex;
-  gap: var(--agent-space-24);
-}
-
-.visibility-layout__form {
-  flex: 1;
-  min-width: 0;
-}
-
-.visibility-layout__preview {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  gap: 8px;
-  width: 280px;
-}
-
-.bubble-preview__label {
-  color: var(--agent-color-text-tertiary);
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  margin: 0;
-}
-
-.bubble-preview {
-  background: #f8f9fb;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-lg);
-  padding: 16px;
-}
-
-.bubble-preview__content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.bubble-preview__time {
-  color: var(--agent-color-text-tertiary);
-  font-size: 11px;
-  margin-bottom: 4px;
-}
-
-.bubble-preview__tag {
-  color: #8a9ab5;
-  display: block;
-  font-size: 11px;
-  line-height: 1;
-  margin-top: 6px;
-}
-
-.bubble-preview__bubble {
-  background: #ffffff;
-  border: 1px solid #e8ecf1;
-  border-radius: 0 12px 12px 12px;
-  color: var(--agent-color-text-primary);
-  font-size: 13px;
-  line-height: 1.6;
-  padding: 8px 12px;
-}
-
-.pill-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pill-option {
-  background: #f4f6fa;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 6px 12px;
-  transition: all var(--agent-motion-fast) ease;
-}
-
-.pill-option--active {
-  background: #e9f1ff;
-  border-color: #b7ccff;
-  color: var(--agent-color-brand-primary);
-}
-
-.inactive-setting {
-  align-items: center;
-  color: var(--agent-color-text-primary);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.inactive-setting__input {
-  max-width: 72px;
-  min-height: 38px;
-  padding-left: 12px;
-  padding-right: 12px;
-  text-align: center;
-}
-
-.inactive-setting__unit-label {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  flex-shrink: 0;
-}
-
-.inactive-setting__unit {
-  max-width: 100px;
-  min-height: 38px;
-}
-
-.inactive-setting__text {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.6;
-}
-
-.agent-switch {
-  cursor: pointer;
-  display: inline-flex;
-  position: relative;
-}
-
-.agent-switch__input {
-  height: 0;
-  opacity: 0;
-  position: absolute;
-  width: 0;
-}
-
-.agent-switch__track {
-  background: var(--agent-color-border-default);
-  border-radius: 12px;
-  display: inline-block;
-  height: 24px;
-  position: relative;
-  transition: background var(--agent-motion-fast);
-  width: 44px;
-}
-
-.agent-switch__track::after {
-  background: #fff;
-  border-radius: 50%;
-  content: "";
-  height: 20px;
-  left: 2px;
-  position: absolute;
-  top: 2px;
-  transition: transform var(--agent-motion-fast);
-  width: 20px;
-}
-
-.agent-switch__input:checked + .agent-switch__track {
-  background: var(--agent-color-brand-primary);
-}
-
-.agent-switch__input:checked + .agent-switch__track::after {
-  transform: translateX(20px);
 }
 
 .bot-avatar-upload {
@@ -2179,80 +1269,9 @@ defineExpose({
   font-weight: var(--agent-font-weight-medium);
 }
 
-.modal-footer-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.avatar-crop-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.avatar-crop-modal__hint {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.avatar-crop-canvas {
-  background: #f4f6fa;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-lg);
-  cursor: grab;
-  height: 240px;
-  margin: 0 auto;
-  overflow: hidden;
-  position: relative;
-  width: 240px;
-}
-
-.avatar-crop-canvas::after {
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: var(--agent-radius-lg);
-  box-shadow: 0 0 0 999px rgba(17, 24, 39, 0.08);
-  content: "";
-  inset: 0;
-  pointer-events: none;
-  position: absolute;
-}
-
-.avatar-crop-canvas--dragging {
-  cursor: grabbing;
-}
-
-.avatar-crop-canvas img {
-  position: absolute;
-  user-select: none;
-}
-
 @media (max-width: 1280px) {
   .ai-agent-page__placeholder {
     padding: var(--agent-space-16);
-  }
-
-  .lifecycle-stage {
-    padding-left: 0;
-  }
-
-  .lifecycle-stage::before {
-    display: none;
-  }
-
-  .lifecycle-stage__header {
-    margin-left: 0;
-  }
-
-  .config-card__trigger {
-    align-items: flex-start;
-    min-height: 0;
-    padding: 18px;
-  }
-
-  .config-card__body {
-    padding: 18px;
   }
 
   .form-row {
@@ -2265,21 +1284,9 @@ defineExpose({
     width: auto;
   }
 
-  .inactive-setting {
-    align-items: flex-start;
-  }
-
   .bot-avatar-upload {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .visibility-layout {
-    flex-direction: column;
-  }
-
-  .visibility-layout__preview {
-    width: 100%;
   }
 
   .agent-config-header {
@@ -2289,11 +1296,6 @@ defineExpose({
 
   .agent-config-header__actions {
     width: 100%;
-  }
-
-  .avatar-crop-canvas {
-    height: 220px;
-    width: 220px;
   }
 }
 </style>
