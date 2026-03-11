@@ -178,6 +178,7 @@
       :active-key="activeAiNavKey"
       @toast="showTopToast"
       @dirty-change="handleAiAgentDirtyChange"
+      @nav-change="handleAiNavSelect"
     />
     <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">

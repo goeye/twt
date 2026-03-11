@@ -258,6 +258,33 @@
                   </div>
                 </template>
 
+                <template v-else-if="card.key === 'answering-knowledge'">
+                  <div class="knowledge-card">
+
+                    <div class="knowledge-card__stats">
+                      <span class="knowledge-card__stats-label">AI Agent 将使用：</span>
+                      <span class="knowledge-card__stats-item">
+                        <AgentIcon name="file" :size="16" />
+                        3 篇知识库文档
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="agent-btn agent-btn--ghost knowledge-card__action"
+                      @click="emit('nav-change', 'doc-knowledge')"
+                    >
+                      管理知识库 →
+                    </button>
+
+                    <div class="knowledge-card__tip">
+                      <p class="knowledge-card__tip-text">
+                        AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关文档
+                      </p>
+                    </div>
+                  </div>
+                </template>
+
                 <template v-else-if="card.key === 'answering-unsupported'">
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
@@ -460,6 +487,7 @@ type LifecycleCardKey =
   | "identity-profile"
   | "identity-style"
   | "answering-mode"
+  | "answering-knowledge"
   | "answering-unsupported"
   | "fallback-transfer"
   | "fallback-offline"
@@ -502,6 +530,7 @@ const lifecycleCardKeys: LifecycleCardKey[] = [
   "identity-profile",
   "identity-style",
   "answering-mode",
+  "answering-knowledge",
   "answering-unsupported",
   "fallback-transfer",
   "fallback-offline",
@@ -515,6 +544,7 @@ const lifecycleCardFieldMap: Record<LifecycleCardKey, Array<keyof StoredAiAgentS
   "identity-profile": ["botAvatarUrl", "botName", "botIntro"],
   "identity-style": ["selectedTone", "defaultLanguage"],
   "answering-mode": ["replyMode"],
+  "answering-knowledge": [],
   "answering-unsupported": ["unsupportedQuestionMessage"],
   "fallback-transfer": ["transferMessage"],
   "fallback-offline": ["offlineMessage"],
@@ -529,6 +559,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "dirty-change", dirty: boolean): void;
+  (e: "nav-change", key: string): void;
 }>();
 
 const AVATAR_CROP_SIZE = 240;
@@ -705,7 +736,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
     },
     {
       key: "answering",
-      title: "当 AI 开始回答访客",
+      title: "当 AI 回复访客",
       icon: "ai-agent",
       cards: [
         {
@@ -726,11 +757,9 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict
         },
         {
-          key: "answering-unsupported",
-          title: "遇到超出能力范围的问题",
-          summary: hasUnsupportedReply ? "已设置兜底回复文案" : "需要补充回复文案",
-          badge: hasUnsupportedReply ? undefined : "需要补充",
-          badgeTone: hasUnsupportedReply ? undefined : "warning"
+          key: "answering-knowledge",
+          title: "AI 知识库",
+          summary: "已使用 3 篇知识库文档"
         }
       ]
     },
@@ -739,6 +768,13 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       title: "当 AI 无法解决会话",
       icon: "service",
       cards: [
+        {
+          key: "answering-unsupported",
+          title: "遇到超出能力范围的问题",
+          summary: hasUnsupportedReply ? "已设置兜底回复文案" : "需要补充回复文案",
+          badge: hasUnsupportedReply ? undefined : "需要补充",
+          badgeTone: hasUnsupportedReply ? undefined : "warning"
+        },
         {
           key: "fallback-transfer",
           title: "转接人工客服",
@@ -1527,6 +1563,58 @@ defineExpose({
 
 .setting-callout--soft .setting-callout__text {
   color: #20478a;
+}
+
+.knowledge-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+}
+
+.knowledge-card__desc {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.knowledge-card__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.knowledge-card__stats-label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+}
+
+.knowledge-card__stats-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+}
+
+.knowledge-card__action {
+  align-self: flex-start;
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.knowledge-card__tip {
+  background: #f8e7a7;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.knowledge-card__tip-text {
+  color: #4f3a00;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .form-row {
