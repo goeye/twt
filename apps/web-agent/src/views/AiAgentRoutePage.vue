@@ -29,14 +29,16 @@
     <template v-else-if="activeKey === 'ai-agent-config'">
       <header class="agent-content-header agent-config-header">
         <div class="agent-config-header__content">
-          <h1 class="agent-content-title">AI Agent</h1>
-          <p class="agent-content-subtitle">按会话生命周期依次配置 AI Agent 的接待对象、回复策略与兜底行为。</p>
+          <div class="agent-config-header__title-row">
+            <h1 class="agent-content-title">AI Agent</h1>
+            <span class="agent-config-header__status" :class="agentEnabled ? 'agent-config-header__status--active' : 'agent-config-header__status--inactive'">
+              {{ agentEnabled ? '已开启' : '已关闭' }}
+            </span>
+          </div>
+          <p class="agent-content-subtitle">开启后，AI 机器人将自动接待访客咨询，根据知识库内容智能回复，并在需要时转接人工客服</p>
         </div>
 
         <div class="agent-config-header__actions">
-          <span class="agent-config-header__status" :class="{ 'agent-config-header__status--active': agentEnabled }">
-            {{ agentEnabled ? '已开启' : '已暂停' }}
-          </span>
           <button
             type="button"
             class="agent-btn"
@@ -113,7 +115,7 @@
                     </div>
                     <div class="form-row__control">
                       <select v-model="agentResponseMode" class="agent-input">
-                        <option value="always">始终开启</option>
+                        <option value="always">始终由 AI Agent 回复</option>
                         <option value="offline-only">仅客服离线时</option>
                       </select>
                     </div>
@@ -123,8 +125,8 @@
                 <template v-else-if="card.key === 'entry-visibility'">
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
-                      <span class="form-row__name">显示 AI 标签</span>
-                      <span class="form-row__desc">开启后，访客会在消息气泡中看到当前回复来自 AI Agent</span>
+                      <span class="form-row__name">显示 AI Agent 标签</span>
+                      <span class="form-row__desc">开启后，访客会在消息气泡中看到 AI Agent 标签</span>
                     </div>
                     <div class="form-row__control">
                       <label class="agent-switch">
@@ -325,7 +327,47 @@
                   </div>
                 </template>
 
+                <template v-else-if="card.key === 'idle-followup'">
+                  <div class="form-row form-row--single">
+                    <div class="form-row__label">
+                      <span class="form-row__name">发送跟进消息</span>
+                      <span class="form-row__desc">当访客 5 分钟未回复时，AI 自动发送一条跟进消息，尝试挽回会话</span>
+                    </div>
+                    <div class="form-row__control">
+                      <label class="agent-switch">
+                        <input v-model="followUpEnabled" type="checkbox" class="agent-switch__input" />
+                        <span class="agent-switch__track" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div v-if="followUpEnabled" class="form-row form-row--single">
+                    <div class="form-row__label">
+                      <span class="form-row__name">跟进消息内容</span>
+                      <span class="form-row__desc">自定义跟进消息的文案，引导访客继续对话或留下联系方式</span>
+                    </div>
+                    <div class="form-row__control">
+                      <textarea
+                        v-model="followUpMessage"
+                        class="agent-input form-row__textarea"
+                        :class="{ 'agent-input--error': followUpMessageTouched && !followUpMessage.trim() }"
+                        rows="4"
+                        maxlength="2000"
+                        placeholder="请输入跟进消息内容"
+                        @blur="followUpMessageTouched = true"
+                      />
+                      <p v-if="followUpMessageTouched && !followUpMessage.trim()" class="form-row__error">请输入跟进消息内容</p>
+                    </div>
+                  </div>
+                </template>
+
                 <template v-else-if="card.key === 'idle-autoclose'">
+                  <div class="setting-helper-stack">
+                    <div class="setting-callout setting-callout--soft">
+                      <p class="setting-callout__text">若开启跟进消息，空闲计时将从跟进消息发送后开始计算</p>
+                    </div>
+                  </div>
+
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
                       <span class="form-row__name">自动关闭空闲会话</span>
@@ -334,42 +376,32 @@
                     <div class="form-row__control">
                       <div class="inactive-setting">
                         <span class="inactive-setting__text">当访客超过</span>
-                        <input
-                          v-model.number="visitorInactiveMinutes"
-                          type="number"
-                          class="agent-input inactive-setting__input"
-                          min="1"
-                          max="1440"
-                          @blur="handleInactiveMinutesBlur"
-                        />
-                        <span class="inactive-setting__text">分钟未操作时，自动关闭会话</span>
+                        <input v-model.number="idleHours" type="number" class="agent-input inactive-setting__input" min="0" />
+                        <span class="inactive-setting__unit-label">时</span>
+                        <input v-model.number="idleMinutes" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
+                        <span class="inactive-setting__unit-label">分</span>
+                        <input v-model.number="idleSeconds" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
+                        <span class="inactive-setting__unit-label">秒</span>
+                        <span class="inactive-setting__text">未操作时，自动关闭会话</span>
                       </div>
                     </div>
                   </div>
                 </template>
 
-                <div class="config-card__footer">
-                  <button
-                    type="button"
-                    class="agent-btn agent-btn--ghost"
-                    :disabled="!cardHasChanges(card.key)"
-                    @click.stop="cancelCardChanges(card.key)"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="button"
-                    class="agent-btn agent-btn--primary"
-                    :disabled="!cardHasChanges(card.key)"
-                    @click.stop="saveCardChanges(card.key)"
-                  >
-                    保存
-                  </button>
-                </div>
               </div>
             </article>
           </div>
         </section>
+      </div>
+
+      <div class="ai-agent-page__footer">
+        <button
+          type="button"
+          class="agent-btn agent-btn--primary"
+          @click="saveAllChanges"
+        >
+          保存
+        </button>
       </div>
 
     </template>
@@ -420,7 +452,7 @@ import {
 
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
 
-type AudienceType = "all" | "first" | "returning";
+type AudienceType = "all" | "visitor" | "customer";
 type LifecycleSectionKey = "entry" | "answering" | "fallback" | "idle";
 type LifecycleCardKey =
   | "entry-routing"
@@ -431,7 +463,8 @@ type LifecycleCardKey =
   | "answering-unsupported"
   | "fallback-transfer"
   | "fallback-offline"
-  | "idle-autoclose";
+  | "idle-autoclose"
+  | "idle-followup";
 
 interface CopilotSetting {
   key: string;
@@ -472,6 +505,7 @@ const lifecycleCardKeys: LifecycleCardKey[] = [
   "answering-unsupported",
   "fallback-transfer",
   "fallback-offline",
+  "idle-followup",
   "idle-autoclose"
 ];
 
@@ -484,7 +518,8 @@ const lifecycleCardFieldMap: Record<LifecycleCardKey, Array<keyof StoredAiAgentS
   "answering-unsupported": ["unsupportedQuestionMessage"],
   "fallback-transfer": ["transferMessage"],
   "fallback-offline": ["offlineMessage"],
-  "idle-autoclose": ["visitorInactiveMinutes"]
+  "idle-followup": ["followUpEnabled", "followUpMessage"],
+  "idle-autoclose": ["idleHours", "idleMinutes", "idleSeconds"]
 };
 
 const props = defineProps<{
@@ -553,15 +588,15 @@ const languageOptions = [
 ];
 
 const audienceOptions: Array<{ label: string; value: AudienceType }> = [
-  { label: "全部访客", value: "all" },
-  { label: "首次访客", value: "first" },
-  { label: "回访访客", value: "returning" }
+  { label: "全部", value: "all" },
+  { label: "访客", value: "visitor" },
+  { label: "客户", value: "customer" }
 ];
 
 const audienceLabelMap: Record<AudienceType, string> = {
-  all: "全部访客",
-  first: "首次访客",
-  returning: "回访访客"
+  all: "全部",
+  visitor: "访客",
+  customer: "客户"
 };
 
 const responseModeLabelMap: Record<string, string> = {
@@ -578,6 +613,12 @@ const agentResponseMode = ref("always");
 const visitorAudience = ref<AudienceType>("all");
 const showMessageAgentLabel = ref(true);
 const visitorInactiveMinutes = ref(10);
+const idleHours = ref(0);
+const idleMinutes = ref(10);
+const idleSeconds = ref(0);
+const followUpEnabled = ref(false);
+const followUpMessage = ref("您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。");
+const followUpMessageTouched = ref(false);
 const replyMode = ref("strict");
 const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
 const transferMessage = ref("正在为您转接人工客服，请稍候，马上为您接入。");
@@ -608,12 +649,20 @@ const activeSectionLabel = computed(() => {
 
 const avatarFallbackText = computed(() => "🤖");
 
+const idleSummaryText = computed(() => {
+  const parts: string[] = [];
+  if (idleHours.value > 0) parts.push(`${idleHours.value} 时`);
+  if (idleMinutes.value > 0) parts.push(`${idleMinutes.value} 分`);
+  if (idleSeconds.value > 0) parts.push(`${idleSeconds.value} 秒`);
+  return parts.length > 0 ? `${parts.join(" ")}后自动关闭会话` : "0 秒后自动关闭会话";
+});
+
 const getToneLabel = (tone: string) => toneOptions.find((item) => item.value === tone)?.label ?? toneOptions[0].label;
 
 const getLanguageLabel = (languageCode: string) => languageOptions.find((item) => item.value === languageCode)?.label ?? languageCode;
 
 const resolveAudienceType = (value: unknown): AudienceType => {
-  if (value === "first" || value === "returning") {
+  if (value === "visitor" || value === "customer") {
     return value;
   }
 
@@ -645,15 +694,11 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "entry-routing",
           title: "AI 接待哪些访客",
-          summary: agentEnabled.value
-            ? `${audienceLabelMap[visitorAudience.value]} · ${responseModeLabelMap[agentResponseMode.value] ?? responseModeLabelMap.always}`
-            : "AI Agent 已关闭",
-          badge: agentEnabled.value ? undefined : "已关闭",
-          badgeTone: agentEnabled.value ? undefined : "default"
+          summary: `${audienceLabelMap[visitorAudience.value]} · ${responseModeLabelMap[agentResponseMode.value] ?? responseModeLabelMap.always}`
         },
         {
           key: "entry-visibility",
-          title: "在消息中展示 AI 身份",
+          title: "在消息中展示 AI Agent 标签",
           summary: showMessageAgentLabel.value ? "显示 AI Agent 标签" : "不显示 AI Agent 标签"
         }
       ]
@@ -666,7 +711,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "identity-profile",
           title: "AI 如何介绍自己",
-          summary: `${botLabel} · ${hasIntro ? "已设置简介" : "未设置简介"}`,
+          summary: `${botLabel} · ${hasIntro ? "已设置业务简介" : "未设置业务简介"}`,
           badge: botName.value.trim() ? undefined : "需要补充",
           badgeTone: botName.value.trim() ? undefined : "warning"
         },
@@ -716,9 +761,14 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       icon: "calendar",
       cards: [
         {
+          key: "idle-followup",
+          title: "不活跃时跟进",
+          summary: followUpEnabled.value ? "已开启 · 5 分钟后发送跟进消息" : "未开启"
+        },
+        {
           key: "idle-autoclose",
           title: "自动关闭空闲会话",
-          summary: `${normalizeInactiveMinutes(visitorInactiveMinutes.value)} 分钟后自动关闭会话`
+          summary: idleSummaryText.value
         }
       ]
     }
@@ -736,6 +786,11 @@ const getCurrentSettings = (): StoredAiAgentSettings => ({
   selectedTone: selectedTone.value,
   defaultLanguage: defaultLanguage.value,
   visitorInactiveMinutes: visitorInactiveMinutes.value,
+  idleHours: idleHours.value,
+  idleMinutes: idleMinutes.value,
+  idleSeconds: idleSeconds.value,
+  followUpEnabled: followUpEnabled.value,
+  followUpMessage: followUpMessage.value,
   replyMode: replyMode.value,
   offlineMessage: offlineMessage.value,
   transferMessage: transferMessage.value,
@@ -777,6 +832,11 @@ const loadAgentSettings = () => {
   } else if (typeof settings.visitorInactiveHours === "number") {
     visitorInactiveMinutes.value = settings.visitorInactiveHours * 60;
   }
+  if (typeof settings.idleHours === "number") idleHours.value = settings.idleHours;
+  if (typeof settings.idleMinutes === "number") idleMinutes.value = settings.idleMinutes;
+  if (typeof settings.idleSeconds === "number") idleSeconds.value = settings.idleSeconds;
+  if (typeof settings.followUpEnabled === "boolean") followUpEnabled.value = settings.followUpEnabled;
+  if (typeof settings.followUpMessage === "string") followUpMessage.value = settings.followUpMessage;
   if (typeof settings.replyMode === "string") replyMode.value = settings.replyMode;
   if (typeof settings.offlineMessage === "string") offlineMessage.value = settings.offlineMessage;
   if (typeof settings.transferMessage === "string") transferMessage.value = settings.transferMessage;
@@ -799,6 +859,12 @@ const restoreSavedSnapshot = () => {
     selectedTone.value = settings.selectedTone ?? "friendly";
     defaultLanguage.value = settings.defaultLanguage ?? "en";
     visitorInactiveMinutes.value = typeof settings.visitorInactiveMinutes === "number" ? settings.visitorInactiveMinutes : 10;
+    idleHours.value = typeof settings.idleHours === "number" ? settings.idleHours : 0;
+    idleMinutes.value = typeof settings.idleMinutes === "number" ? settings.idleMinutes : 10;
+    idleSeconds.value = typeof settings.idleSeconds === "number" ? settings.idleSeconds : 0;
+    followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
+    followUpMessage.value = settings.followUpMessage ?? "您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。";
+    followUpMessageTouched.value = false;
     replyMode.value = settings.replyMode ?? "strict";
     offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
     transferMessage.value = settings.transferMessage ?? "正在为您转接人工客服，请稍候，马上为您接入。";
@@ -864,8 +930,15 @@ const applyCardSettings = (cardKey: LifecycleCardKey, settings: StoredAiAgentSet
       offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
       offlineMessageTouched.value = false;
       break;
+    case "idle-followup":
+      followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
+      followUpMessage.value = settings.followUpMessage ?? "您好，请问还有什么可以帮您的吗？如果没有其他问题，会话将在稍后自动关闭。";
+      followUpMessageTouched.value = false;
+      break;
     case "idle-autoclose":
-      visitorInactiveMinutes.value = typeof settings.visitorInactiveMinutes === "number" ? settings.visitorInactiveMinutes : 10;
+      idleHours.value = typeof settings.idleHours === "number" ? settings.idleHours : 0;
+      idleMinutes.value = typeof settings.idleMinutes === "number" ? settings.idleMinutes : 10;
+      idleSeconds.value = typeof settings.idleSeconds === "number" ? settings.idleSeconds : 0;
       break;
   }
 };
@@ -891,8 +964,17 @@ const validateCard = (cardKey: LifecycleCardKey) => {
     return offlineMessage.value.trim().length > 0;
   }
 
+  if (cardKey === "idle-followup") {
+    if (followUpEnabled.value) {
+      followUpMessageTouched.value = true;
+      return followUpMessage.value.trim().length > 0;
+    }
+  }
+
   if (cardKey === "idle-autoclose") {
-    visitorInactiveMinutes.value = normalizeInactiveMinutes(visitorInactiveMinutes.value);
+    idleHours.value = Math.max(0, Math.round(Number(idleHours.value) || 0));
+    idleMinutes.value = Math.max(0, Math.min(59, Math.round(Number(idleMinutes.value) || 0)));
+    idleSeconds.value = Math.max(0, Math.min(59, Math.round(Number(idleSeconds.value) || 0)));
   }
 
   return true;
@@ -912,6 +994,23 @@ const saveCardChanges = (cardKey: LifecycleCardKey) => {
 const cancelCardChanges = (cardKey: LifecycleCardKey) => {
   applyCardSettings(cardKey, getSavedSettings());
   emitToast("已取消当前卡片的修改");
+};
+
+const saveAllChanges = () => {
+  for (const cardKey of lifecycleCardKeys) {
+    if (cardHasChanges(cardKey) && !validateCard(cardKey)) {
+      openLifecycleCard.value = cardKey;
+      emitToast("请先完善必填项");
+      return;
+    }
+  }
+  markSnapshotSaved();
+  emitToast("配置已保存");
+};
+
+const restoreAndNotify = () => {
+  restoreSavedSnapshot();
+  emitToast("已取消所有修改");
 };
 
 const handleInactiveMinutesBlur = () => {
@@ -1172,7 +1271,13 @@ defineExpose({
 
 <style scoped>
 .ai-agent-page {
+  align-items: center;
   gap: var(--agent-space-16);
+}
+
+.ai-agent-page > * {
+  max-width: 1080px;
+  width: 100%;
 }
 
 .ai-agent-page__list {
@@ -1205,28 +1310,37 @@ defineExpose({
   min-width: 0;
 }
 
-.agent-config-header__actions {
+.agent-config-header__title-row {
   align-items: center;
   display: flex;
-  flex-shrink: 0;
   gap: 12px;
 }
 
 .agent-config-header__status {
   align-items: center;
-  background: #eef2f8;
   border-radius: 999px;
-  color: var(--agent-color-text-secondary);
   display: inline-flex;
   font-size: 12px;
   font-weight: var(--agent-font-weight-medium);
   line-height: 1;
-  padding: 7px 12px;
+  padding: 4px 10px;
 }
 
 .agent-config-header__status--active {
   background: #e8f7ef;
   color: #137a49;
+}
+
+.agent-config-header__status--inactive {
+  background: #feecec;
+  color: #c53030;
+}
+
+.agent-config-header__actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
 }
 
 .lifecycle-flow {
@@ -1381,11 +1495,10 @@ defineExpose({
   padding: 24px;
 }
 
-.config-card__footer {
+.ai-agent-page__footer {
   display: flex;
-  gap: var(--agent-space-8);
-  justify-content: flex-end;
-  padding-top: 4px;
+  justify-content: flex-start;
+  padding-top: var(--agent-space-20);
 }
 
 .setting-helper-stack {
@@ -1513,11 +1626,22 @@ defineExpose({
 }
 
 .inactive-setting__input {
-  max-width: 88px;
+  max-width: 72px;
   min-height: 38px;
   padding-left: 12px;
   padding-right: 12px;
   text-align: center;
+}
+
+.inactive-setting__unit-label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  flex-shrink: 0;
+}
+
+.inactive-setting__unit {
+  max-width: 100px;
+  min-height: 38px;
 }
 
 .inactive-setting__text {

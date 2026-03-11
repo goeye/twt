@@ -13,6 +13,13 @@ export interface StoredAiAgentSettings {
   defaultLanguage?: string;
   visitorInactiveMinutes?: number;
   visitorInactiveHours?: number;
+  inactiveTimeValue?: number;
+  inactiveTimeUnit?: string;
+  idleHours?: number;
+  idleMinutes?: number;
+  idleSeconds?: number;
+  followUpEnabled?: boolean;
+  followUpMessage?: string;
   replyMode?: string;
   offlineMessage?: string;
   transferMessage?: string;
