@@ -778,7 +778,7 @@ const chatPreviewImages = computed(() => {
 // Section -> preview mapping (null = don't change)
 const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | null>> = {
   brand: "sessionList",
-  position: "sessionList",
+  position: "minimized",
   display: "sessionList",
   quickAccess: "chat",
   welcome: "chat",
