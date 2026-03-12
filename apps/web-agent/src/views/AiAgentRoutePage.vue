@@ -99,6 +99,7 @@
         @update:touched="handleDeployTouchedUpdate"
         @trigger-avatar-select="triggerBotAvatarSelect"
         @nav-change="emit('nav-change', $event)"
+        @auto-save="autoSave"
       />
 
       <div v-else-if="configTab === 'settings'" class="settings-panel">
@@ -146,7 +147,7 @@
                   :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
                   maxlength="64"
                   placeholder="请输入昵称"
-                  @blur="botNameTouched = true"
+                  @blur="botNameTouched = true; autoSave()"
                 />
                 <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
               </div>
@@ -164,6 +165,7 @@
                   rows="5"
                   maxlength="2000"
                   placeholder="请输入"
+                  @blur="autoSave"
                 />
               </div>
             </div>
@@ -188,7 +190,7 @@
                     type="button"
                     class="bot-chip"
                     :class="{ 'bot-chip--active': selectedTone === tone.value }"
-                    @click="selectedTone = tone.value"
+                    @click="selectedTone = tone.value; autoSave()"
                   >{{ tone.label }}</button>
                 </div>
               </div>
@@ -200,7 +202,7 @@
                 <span class="form-row__desc">当 AI Agent 无法判断访客语言时，将使用该语言进行回复</span>
               </div>
               <div class="form-row__control">
-                <select v-model="defaultLanguage" class="agent-input">
+                <select v-model="defaultLanguage" class="agent-input" @change="autoSave">
                   <option
                     v-for="language in languageOptions"
                     :key="language.value"
@@ -213,16 +215,6 @@
         </div>
       </div>
 
-      <div class="ai-agent-page__footer">
-        <button
-          type="button"
-          class="agent-btn agent-btn--primary"
-          @click="saveAllChanges"
-        >
-          保存
-        </button>
-      </div>
-
     </template>
 
     <!-- 原有的占位页面 -->
@@ -233,7 +225,6 @@
       </p>
       <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('功能开发中')">了解更多</button>
     </section>
-    <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
 
     <AiAgentImageCropModal
       :open="cropModalOpen"
@@ -245,8 +236,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { CopilotPromoBanner, CopilotSettingItem, UnsavedChangesModal } from "@twt/ui-agent";
+import { computed, onMounted, ref } from "vue";
+import { CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
 import {
   type StoredAiAgentSettings,
   loadStoredAiAgentSettings,
@@ -293,31 +284,6 @@ interface LifecycleSection {
   cards: LifecycleCard[];
 }
 
-const lifecycleCardKeys: LifecycleCardKey[] = [
-  "entry-routing",
-  "entry-visibility",
-  "identity-profile",
-  "identity-style",
-  "answering-mode",
-  "answering-knowledge",
-  "answering-unsupported",
-  "fallback-transfer",
-  "idle-followup",
-  "idle-autoclose"
-];
-
-const lifecycleCardFieldMap: Record<LifecycleCardKey, Array<keyof StoredAiAgentSettings>> = {
-  "entry-routing": ["visitorAudience", "agentResponseMode"],
-  "entry-visibility": ["showMessageAgentLabel"],
-  "identity-profile": ["botAvatarUrl", "botName", "botIntro"],
-  "identity-style": ["selectedTone", "defaultLanguage"],
-  "answering-mode": ["replyMode"],
-  "answering-knowledge": [],
-  "answering-unsupported": ["unsupportedQuestionMessage"],
-  "fallback-transfer": ["transferEnabled", "transferMessage", "offlineMessage"],
-  "idle-followup": ["followUpEnabled", "followUpMessage"],
-  "idle-autoclose": ["idleHours", "idleMinutes", "idleSeconds"]
-};
 
 const props = defineProps<{
   activeKey: AiAgentNavKey;
@@ -325,7 +291,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
-  (e: "dirty-change", dirty: boolean): void;
   (e: "nav-change", key: string): void;
 }>();
 
@@ -415,9 +380,6 @@ const knowledgeDocCount = ref(3);
 const avatarInputRef = ref<HTMLInputElement | null>(null);
 const cropModalOpen = ref(false);
 const cropImageSource = ref("");
-const unsavedChangesModalOpen = ref(false);
-const pendingNavigationAction = ref<(() => void) | null>(null);
-const initializing = ref(true);
 const botNameTouched = ref(false);
 const transferMessageTouched = ref(false);
 const offlineMessageTouched = ref(false);
@@ -455,14 +417,6 @@ const resolveAudienceType = (value: unknown): AudienceType => {
   return "all";
 };
 
-const normalizeInactiveMinutes = (value: unknown) => {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return 10;
-  }
-
-  return Math.min(1440, Math.max(1, Math.round(numericValue)));
-};
 
 const lifecycleSections = computed<LifecycleSection[]>(() => {
   const hasIntro = botIntro.value.trim().length > 0;
@@ -594,22 +548,14 @@ const getCurrentSettings = (): StoredAiAgentSettings => ({
   unsupportedQuestionMessage: unsupportedQuestionMessage.value
 });
 
-const getSavedSettings = (): StoredAiAgentSettings => {
-  try {
-    return JSON.parse(savedSnapshot.value) as StoredAiAgentSettings;
-  } catch {
-    return getCurrentSettings();
-  }
-};
+let lastSnapshot = "";
 
-const getConfigSnapshot = () => JSON.stringify(getCurrentSettings());
-
-const savedSnapshot = ref(getConfigSnapshot());
-
-const hasUnsavedChanges = computed(() => !initializing.value && getConfigSnapshot() !== savedSnapshot.value);
-
-const persistAgentSettings = () => {
+const autoSave = () => {
+  const snapshot = JSON.stringify(getCurrentSettings());
+  if (snapshot === lastSnapshot) return;
+  lastSnapshot = snapshot;
   persistStoredAiAgentSettings(getCurrentSettings());
+  emitToast("保存成功");
 };
 
 const loadAgentSettings = () => {
@@ -643,190 +589,17 @@ const loadAgentSettings = () => {
   }
 };
 
-const restoreSavedSnapshot = () => {
-  try {
-    const settings = JSON.parse(savedSnapshot.value) as StoredAiAgentSettings;
-
-    agentEnabled.value = Boolean(settings.agentEnabled);
-    agentResponseMode.value = settings.agentResponseMode ?? "always";
-    visitorAudience.value = resolveAudienceType(settings.visitorAudience);
-    showMessageAgentLabel.value = typeof settings.showMessageAgentLabel === "boolean" ? settings.showMessageAgentLabel : true;
-    botAvatarUrl.value = settings.botAvatarUrl ?? "";
-    botName.value = settings.botName ?? "AI Agent";
-    botIntro.value = settings.botIntro ?? "";
-    selectedTone.value = settings.selectedTone ?? "friendly";
-    defaultLanguage.value = settings.defaultLanguage ?? "en";
-    visitorInactiveMinutes.value = typeof settings.visitorInactiveMinutes === "number" ? settings.visitorInactiveMinutes : 10;
-    idleHours.value = typeof settings.idleHours === "number" ? settings.idleHours : 0;
-    idleMinutes.value = typeof settings.idleMinutes === "number" ? settings.idleMinutes : 10;
-    idleSeconds.value = typeof settings.idleSeconds === "number" ? settings.idleSeconds : 0;
-    followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
-    followUpMessage.value = settings.followUpMessage ?? "你好，请问还有什么可以帮你的吗？如果没有其他问题，会话将在稍后自动关闭。";
-    followUpMessageTouched.value = false;
-    replyMode.value = settings.replyMode ?? "strict";
-    transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
-    offlineMessage.value = settings.offlineMessage ?? "当前客服不在线。你可以先留下问题或联系方式，我们会尽快与你联系。";
-    transferMessage.value = settings.transferMessage ?? "正在为你转接人工客服，请稍候";
-    unsupportedQuestionMessage.value =
-      settings.unsupportedQuestionMessage ??
-      "抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。";
-  } catch {}
-};
-
-const markSnapshotSaved = () => {
-  persistAgentSettings();
-  savedSnapshot.value = getConfigSnapshot();
-  emit("dirty-change", false);
-};
-
 const launchActionLabel = computed(() => (agentEnabled.value ? "暂停 AI Agent" : "开启 AI Agent"));
 
 const toggleLifecycleCard = (key: LifecycleCardKey) => {
   openLifecycleCard.value = openLifecycleCard.value === key ? null : key;
 };
 
-const cardHasChanges = (cardKey: LifecycleCardKey) => {
-  const currentSettings = getCurrentSettings();
-  const savedSettings = getSavedSettings();
-  return lifecycleCardFieldMap[cardKey].some((field) => currentSettings[field] !== savedSettings[field]);
-};
-
-const firstDirtyCard = computed<LifecycleCardKey | null>(() => lifecycleCardKeys.find((cardKey) => cardHasChanges(cardKey)) ?? null);
-
-const applyCardSettings = (cardKey: LifecycleCardKey, settings: StoredAiAgentSettings) => {
-  switch (cardKey) {
-    case "entry-routing":
-      agentResponseMode.value = settings.agentResponseMode ?? "always";
-      visitorAudience.value = resolveAudienceType(settings.visitorAudience);
-      break;
-    case "entry-visibility":
-      showMessageAgentLabel.value = typeof settings.showMessageAgentLabel === "boolean" ? settings.showMessageAgentLabel : true;
-      break;
-    case "identity-profile":
-      botAvatarUrl.value = settings.botAvatarUrl ?? "";
-      botName.value = settings.botName ?? "AI Agent";
-      botIntro.value = settings.botIntro ?? "";
-      botNameTouched.value = false;
-      break;
-    case "identity-style":
-      selectedTone.value = settings.selectedTone ?? "friendly";
-      defaultLanguage.value = settings.defaultLanguage ?? "en";
-      break;
-    case "answering-mode":
-      replyMode.value = settings.replyMode ?? "strict";
-      break;
-    case "answering-unsupported":
-      unsupportedQuestionMessage.value =
-        settings.unsupportedQuestionMessage ??
-        "抱歉，这个问题我暂时还无法准确处理。您可以换一种说法继续提问，或直接转接人工客服获得帮助。";
-      unsupportedMessageTouched.value = false;
-      break;
-    case "fallback-transfer":
-      transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
-      transferMessage.value = settings.transferMessage ?? "正在为你转接人工客服，请稍候";
-      transferMessageTouched.value = false;
-      offlineMessage.value = settings.offlineMessage ?? "当前客服暂不在线。你可以先留下问题或联系方式，我们会尽快与你联系。";
-      offlineMessageTouched.value = false;
-      break;
-    case "idle-followup":
-      followUpEnabled.value = typeof settings.followUpEnabled === "boolean" ? settings.followUpEnabled : false;
-      followUpMessage.value = settings.followUpMessage ?? "你好，请问还有什么可以帮你的吗？如果没有其他问题，会话将在稍后自动关闭。";
-      followUpMessageTouched.value = false;
-      break;
-    case "idle-autoclose":
-      idleHours.value = typeof settings.idleHours === "number" ? settings.idleHours : 0;
-      idleMinutes.value = typeof settings.idleMinutes === "number" ? settings.idleMinutes : 10;
-      idleSeconds.value = typeof settings.idleSeconds === "number" ? settings.idleSeconds : 0;
-      break;
-  }
-};
-
-const validateCard = (cardKey: LifecycleCardKey) => {
-  if (cardKey === "identity-profile") {
-    botNameTouched.value = true;
-    return botName.value.trim().length > 0;
-  }
-
-  if (cardKey === "answering-unsupported") {
-    unsupportedMessageTouched.value = true;
-    return unsupportedQuestionMessage.value.trim().length > 0;
-  }
-
-  if (cardKey === "fallback-transfer") {
-    if (transferEnabled.value) {
-      transferMessageTouched.value = true;
-      if (!transferMessage.value.trim()) return false;
-      offlineMessageTouched.value = true;
-      return offlineMessage.value.trim().length > 0;
-    }
-    offlineMessageTouched.value = true;
-    return offlineMessage.value.trim().length > 0;
-  }
-
-  if (cardKey === "idle-followup") {
-    if (followUpEnabled.value) {
-      followUpMessageTouched.value = true;
-      return followUpMessage.value.trim().length > 0;
-    }
-  }
-
-  if (cardKey === "idle-autoclose") {
-    idleHours.value = Math.max(0, Math.round(Number(idleHours.value) || 0));
-    idleMinutes.value = Math.max(0, Math.min(59, Math.round(Number(idleMinutes.value) || 0)));
-    idleSeconds.value = Math.max(0, Math.min(59, Math.round(Number(idleSeconds.value) || 0)));
-  }
-
-  return true;
-};
-
-const saveCardChanges = (cardKey: LifecycleCardKey) => {
-  if (!validateCard(cardKey)) {
-    openLifecycleCard.value = cardKey;
-    emitToast("请先完善当前卡片中的必填项");
-    return;
-  }
-
-  markSnapshotSaved();
-  emitToast("当前配置已保存");
-};
-
-const cancelCardChanges = (cardKey: LifecycleCardKey) => {
-  applyCardSettings(cardKey, getSavedSettings());
-  emitToast("已取消当前卡片的修改");
-};
-
-const saveAllChanges = () => {
-  for (const cardKey of lifecycleCardKeys) {
-    if (cardHasChanges(cardKey) && !validateCard(cardKey)) {
-      openLifecycleCard.value = cardKey;
-      emitToast("请先完善必填项");
-      return;
-    }
-  }
-  markSnapshotSaved();
-  emitToast("配置已保存");
-};
-
-const restoreAndNotify = () => {
-  restoreSavedSnapshot();
-  emitToast("已取消所有修改");
-};
-
-const handleInactiveMinutesBlur = () => {
-  visitorInactiveMinutes.value = normalizeInactiveMinutes(visitorInactiveMinutes.value);
-};
-
 const toggleAgentLiveStatus = () => {
-  if (hasUnsavedChanges.value) {
-    if (firstDirtyCard.value) {
-      openLifecycleCard.value = firstDirtyCard.value;
-    }
-    emitToast("请先保存或取消当前更改");
-    return;
-  }
-
   agentEnabled.value = !agentEnabled.value;
-  markSnapshotSaved();
+  const settings = getCurrentSettings();
+  persistStoredAiAgentSettings(settings);
+  lastSnapshot = JSON.stringify(settings);
   emitToast(agentEnabled.value ? "AI Agent 已开启" : "AI Agent 已暂停");
 };
 
@@ -887,6 +660,7 @@ const handleCroppedImage = (dataUrl: string) => {
   botAvatarUrl.value = dataUrl;
   cropModalOpen.value = false;
   cropImageSource.value = "";
+  autoSave();
 };
 
 const handleDeployFieldUpdate = (field: string, value: unknown) => {
@@ -925,59 +699,9 @@ const handleDeployTouchedUpdate = (field: string, value: boolean) => {
   if (entry) entry.value = value;
 };
 
-const requestNavigation = (action: () => void) => {
-  if (!hasUnsavedChanges.value) {
-    action();
-    return true;
-  }
-
-  pendingNavigationAction.value = action;
-  unsavedChangesModalOpen.value = true;
-  return false;
-};
-
-const cancelPendingNavigation = () => {
-  pendingNavigationAction.value = null;
-  unsavedChangesModalOpen.value = false;
-};
-
-const confirmPendingNavigation = () => {
-  const action = pendingNavigationAction.value;
-  restoreSavedSnapshot();
-  cancelPendingNavigation();
-  action?.();
-};
-
-const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-  if (!hasUnsavedChanges.value) {
-    return;
-  }
-  event.preventDefault();
-  event.returnValue = "";
-};
-
-watch(
-  hasUnsavedChanges,
-  (dirty) => {
-    emit("dirty-change", dirty);
-  },
-  { immediate: true }
-);
-
 onMounted(() => {
   loadAgentSettings();
-  savedSnapshot.value = getConfigSnapshot();
-  initializing.value = false;
-  window.addEventListener("beforeunload", handleBeforeUnload);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("beforeunload", handleBeforeUnload);
-});
-
-defineExpose({
-  requestNavigation,
-  hasUnsavedChanges: () => hasUnsavedChanges.value
+  lastSnapshot = JSON.stringify(getCurrentSettings());
 });
 </script>
 
@@ -1121,11 +845,6 @@ defineExpose({
   padding-top: var(--agent-space-24);
 }
 
-.ai-agent-page__footer {
-  display: flex;
-  justify-content: flex-start;
-  padding-top: var(--agent-space-20);
-}
 
 .form-row {
   align-items: flex-start;

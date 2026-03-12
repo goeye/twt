@@ -51,7 +51,7 @@
                       type="button"
                       class="pill-option"
                       :class="{ 'pill-option--active': localVisitorAudience === option.value }"
-                      @click="localVisitorAudience = option.value"
+                      @click="localVisitorAudience = option.value; emit('auto-save')"
                     >{{ option.label }}</button>
                   </div>
                 </div>
@@ -63,7 +63,7 @@
                   <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复</span>
                 </div>
                 <div class="form-row__control">
-                  <select v-model="localAgentResponseMode" class="agent-input">
+                  <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
                     <option value="always">始终由 AI Agent 回复</option>
                     <option value="offline-only">仅客服离线时</option>
                   </select>
@@ -81,7 +81,7 @@
                     </div>
                     <div class="form-row__control">
                       <label class="agent-switch">
-                        <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" />
+                        <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                         <span class="agent-switch__track" />
                       </label>
                     </div>
@@ -135,7 +135,7 @@
                     :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
                     maxlength="64"
                     placeholder="请输入昵称"
-                    @blur="emit('update:touched', 'botNameTouched', true)"
+                    @blur="emit('update:touched', 'botNameTouched', true); emit('auto-save')"
                   />
                   <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
                 </div>
@@ -153,6 +153,7 @@
                     rows="5"
                     maxlength="2000"
                     placeholder="请输入"
+                    @blur="emit('auto-save')"
                   />
                 </div>
               </div>
@@ -172,7 +173,7 @@
                       type="button"
                       class="bot-chip"
                       :class="{ 'bot-chip--active': localSelectedTone === tone.value }"
-                      @click="localSelectedTone = tone.value"
+                      @click="localSelectedTone = tone.value; emit('auto-save')"
                     >{{ tone.label }}</button>
                   </div>
                 </div>
@@ -184,7 +185,7 @@
                   <span class="form-row__desc">当系统无法判断访客语言时，将优先使用该语言回复</span>
                 </div>
                 <div class="form-row__control">
-                  <select v-model="localDefaultLanguage" class="agent-input">
+                  <select v-model="localDefaultLanguage" class="agent-input" @change="emit('auto-save')">
                     <option
                       v-for="language in languageOptions"
                       :key="language.value"
@@ -208,7 +209,7 @@
                   <span class="form-row__desc">定义 AI 是严格依赖知识库回答，还是允许更主动地推理生成内容</span>
                 </div>
                 <div class="form-row__control">
-                  <select v-model="localReplyMode" class="agent-input">
+                  <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
                     <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
                     <option value="creative">发散模式 — 允许 AI 在知识边界内适度推理</option>
                   </select>
@@ -257,7 +258,7 @@
                     rows="4"
                     maxlength="2000"
                     placeholder="请输入"
-                    @blur="emit('update:touched', 'unsupportedMessageTouched', true)"
+                    @blur="emit('update:touched', 'unsupportedMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
                 </div>
@@ -272,7 +273,7 @@
                 </div>
                 <div class="form-row__control">
                   <label class="agent-switch">
-                    <input v-model="localTransferEnabled" type="checkbox" class="agent-switch__input" />
+                    <input v-model="localTransferEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                     <span class="agent-switch__track" />
                   </label>
                 </div>
@@ -298,7 +299,7 @@
                       rows="4"
                       maxlength="2000"
                       placeholder="请输入"
-                      @blur="emit('update:touched', 'transferMessageTouched', true)"
+                      @blur="emit('update:touched', 'transferMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
                   </div>
@@ -317,7 +318,7 @@
                       rows="4"
                       maxlength="2000"
                       placeholder="请输入"
-                      @blur="emit('update:touched', 'offlineMessageTouched', true)"
+                      @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
                   </div>
@@ -352,7 +353,7 @@
                 </div>
                 <div class="form-row__control">
                   <label class="agent-switch">
-                    <input v-model="localFollowUpEnabled" type="checkbox" class="agent-switch__input" />
+                    <input v-model="localFollowUpEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                     <span class="agent-switch__track" />
                   </label>
                 </div>
@@ -371,7 +372,7 @@
                     rows="4"
                     maxlength="2000"
                     placeholder="请输入跟进消息内容"
-                    @blur="emit('update:touched', 'followUpMessageTouched', true)"
+                    @blur="emit('update:touched', 'followUpMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="followUpMessageTouched && !followUpMessage.trim()" class="form-row__error">请输入跟进消息内容</p>
                 </div>
@@ -393,11 +394,11 @@
                 <div class="form-row__control">
                   <div class="inactive-setting">
                     <span class="inactive-setting__text">当访客超过</span>
-                    <input v-model.number="localIdleHours" type="number" class="agent-input inactive-setting__input" min="0" />
+                    <input v-model.number="localIdleHours" type="number" class="agent-input inactive-setting__input" min="0" @blur="emit('auto-save')" />
                     <span class="inactive-setting__unit-label">时</span>
-                    <input v-model.number="localIdleMinutes" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
+                    <input v-model.number="localIdleMinutes" type="number" class="agent-input inactive-setting__input" min="0" max="59" @blur="emit('auto-save')" />
                     <span class="inactive-setting__unit-label">分</span>
-                    <input v-model.number="localIdleSeconds" type="number" class="agent-input inactive-setting__input" min="0" max="59" />
+                    <input v-model.number="localIdleSeconds" type="number" class="agent-input inactive-setting__input" min="0" max="59" @blur="emit('auto-save')" />
                     <span class="inactive-setting__unit-label">秒</span>
                     <span class="inactive-setting__text">未回复时，自动关闭会话</span>
                   </div>
@@ -519,6 +520,7 @@ const emit = defineEmits<{
   (e: "update:touched", field: string, value: boolean): void;
   (e: "trigger-avatar-select"): void;
   (e: "nav-change", key: string): void;
+  (e: "auto-save"): void;
 }>();
 
 // ── Computed v-model wrappers ────────────────────────────────────────────────

@@ -172,10 +172,8 @@
     </template>
     <AiAgentRoutePage
       v-else-if="isAiAgentRoute"
-      ref="aiAgentPageRef"
       :active-key="activeAiNavKey"
       @toast="showTopToast"
-      @dirty-change="handleAiAgentDirtyChange"
       @nav-change="handleAiNavSelect"
     />
     <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
@@ -360,11 +358,6 @@ type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "tea
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
-
-type AiAgentPageExpose = {
-  requestNavigation: (action: () => void) => boolean;
-  hasUnsavedChanges: () => boolean;
-};
 
 type ProactiveCampaignPageExpose = {
   requestNavigation: (action: () => void) => boolean;
@@ -954,12 +947,9 @@ const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
 const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
-const aiAgentPageRef = ref<AiAgentPageExpose | null>(null);
 const proactiveCampaignPageRef = ref<ProactiveCampaignPageExpose | null>(null);
 const aiAgentProfile = ref(resolveAiAgentProfile());
-const aiAgentDirty = ref(false);
 const proactiveCampaignDirty = ref(false);
-const allowAiAgentRouteLeaveOnce = ref(false);
 const allowProactiveCampaignRouteLeaveOnce = ref(false);
 const showToast = ref(false);
 const toastMessage = ref("");
@@ -1277,19 +1267,6 @@ const toggleDetailSection = (key: string) => {
   collapsedDetailSections.value = [...collapsedDetailSections.value, key];
 };
 
-const requestAiAgentNavigation = (action: () => void) => {
-  const guard = aiAgentPageRef.value;
-  if (!guard) {
-    action();
-    return;
-  }
-  guard.requestNavigation(action);
-};
-
-const handleAiAgentDirtyChange = (dirty: boolean) => {
-  aiAgentDirty.value = dirty;
-};
-
 const handleProactiveCampaignDirtyChange = (dirty: boolean) => {
   proactiveCampaignDirty.value = dirty;
 };
@@ -1329,19 +1306,7 @@ const handleAiNavSelect = (key: string) => {
     return;
   }
 
-  const nextKey = key as AiAgentNavKey;
-  if (activeAiNavKey.value === nextKey) {
-    return;
-  }
-
-  if (activeAiNavKey.value === "ai-agent-config") {
-    requestAiAgentNavigation(() => {
-      activeAiNavKey.value = nextKey;
-    });
-    return;
-  }
-
-  activeAiNavKey.value = nextKey;
+  activeAiNavKey.value = key as AiAgentNavKey;
 };
 
 const handleCampaignNavSelect = (key: string) => {
@@ -1617,23 +1582,6 @@ const handleSend = () => {
   showTopToast("消息已发送");
 };
 
-const removeAiAgentRouteGuard = router.beforeEach((to, from) => {
-  if (allowAiAgentRouteLeaveOnce.value) {
-    allowAiAgentRouteLeaveOnce.value = false;
-    return true;
-  }
-  if (to.fullPath === from.fullPath) {
-    return true;
-  }
-  if (from.name !== "ai-agent" || activeAiNavKey.value !== "ai-agent-config" || !aiAgentDirty.value) {
-    return true;
-  }
-  requestAiAgentNavigation(() => {
-    allowAiAgentRouteLeaveOnce.value = true;
-    router.push(to.fullPath);
-  });
-  return false;
-});
 
 const removeProactiveCampaignRouteGuard = router.beforeEach((to, from) => {
   if (allowProactiveCampaignRouteLeaveOnce.value) {
@@ -1679,7 +1627,6 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  removeAiAgentRouteGuard();
   removeProactiveCampaignRouteGuard();
   if (toastTimer) {
     window.clearTimeout(toastTimer);
