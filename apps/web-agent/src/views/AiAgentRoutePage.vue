@@ -110,7 +110,13 @@
           <div class="settings-form">
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">头像</span>
+                <span class="form-row__name">
+                  头像
+                  <span class="form-row__help-wrap">
+                    <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
+                    <span class="form-row__tooltip">头像不会在访客端进行展示</span>
+                  </span>
+                </span>
                 <span class="form-row__desc">设置 AI Agent 的头像，用于会话列表中展示</span>
               </div>
               <div class="form-row__control form-row__control--stack">
@@ -137,7 +143,13 @@
 
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">昵称</span>
+                <span class="form-row__name">
+                  昵称
+                  <span class="form-row__help-wrap">
+                    <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
+                    <span class="form-row__tooltip">昵称不会在访客端进行展示</span>
+                  </span>
+                </span>
                 <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会使用这个昵称</span>
               </div>
               <div class="form-row__control">
@@ -164,7 +176,7 @@
                   class="agent-input form-row__textarea"
                   rows="5"
                   maxlength="2000"
-                  placeholder="请输入"
+                  placeholder="例如：我们是一家 SaaS 软件服务商，提供产品功能咨询、账户管理、订阅与计费、技术故障排查等支持。请用专业友好的语气解答客户问题，无法解决时引导联系人工客服。"
                   @blur="autoSave"
                 />
               </div>
@@ -862,9 +874,57 @@ onMounted(() => {
 }
 
 .form-row__name {
+  align-items: center;
   color: var(--agent-color-text-primary);
+  display: flex;
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
+  gap: 4px;
+}
+
+.form-row__help-wrap {
+  display: inline-flex;
+  position: relative;
+}
+
+.form-row__help-icon {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 50%;
+  color: var(--agent-color-text-tertiary);
+  cursor: default;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: var(--agent-font-weight-semibold);
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 16px;
+}
+
+.form-row__tooltip {
+  background: var(--agent-color-text-primary);
+  border-radius: var(--agent-radius-sm);
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-regular, 400);
+  left: 50%;
+  line-height: 1.5;
+  opacity: 0;
+  padding: 6px 10px;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  transition: opacity var(--agent-motion-fast);
+  white-space: nowrap;
+  z-index: var(--agent-z-dropdown);
+}
+
+.form-row__help-wrap:hover .form-row__tooltip {
+  opacity: 1;
 }
 
 .form-row__desc {

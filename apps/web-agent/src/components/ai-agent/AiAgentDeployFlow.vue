@@ -245,6 +245,12 @@
             </template>
 
             <template v-else-if="card.key === 'answering-unsupported'">
+              <div class="setting-helper-stack">
+                <div class="setting-callout setting-callout--soft">
+                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                </div>
+              </div>
+
               <div class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">兜底回复</span>
@@ -325,24 +331,32 @@
                 </div>
               </template>
 
-              <div v-else class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">不转接人工客服提示</span>
-                  <span class="form-row__desc">未开启人工转接时，访客请求人工客服将看到此提示</span>
+              <template v-else>
+                <div class="setting-helper-stack">
+                  <div class="setting-callout setting-callout--soft">
+                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                  </div>
                 </div>
-                <div class="form-row__control">
-                  <textarea
-                    v-model="localOfflineMessage"
-                    class="agent-input form-row__textarea"
-                    :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                    rows="4"
-                    maxlength="2000"
-                    placeholder="请输入"
-                    @blur="emit('update:touched', 'offlineMessageTouched', true)"
-                  />
-                  <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+
+                <div class="form-row form-row--single">
+                  <div class="form-row__label">
+                    <span class="form-row__name">不转接人工客服提示</span>
+                    <span class="form-row__desc">未开启人工转接时，访客请求人工客服将看到此提示</span>
+                  </div>
+                  <div class="form-row__control">
+                    <textarea
+                      v-model="localOfflineMessage"
+                      class="agent-input form-row__textarea"
+                      :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
+                      rows="4"
+                      maxlength="2000"
+                      placeholder="请输入"
+                      @blur="emit('update:touched', 'offlineMessageTouched', true)"
+                    />
+                    <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+                  </div>
                 </div>
-              </div>
+              </template>
             </template>
 
             <template v-else-if="card.key === 'idle-followup'">
@@ -356,6 +370,12 @@
                     <input v-model="localFollowUpEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                     <span class="agent-switch__track" />
                   </label>
+                </div>
+              </div>
+
+              <div v-if="localFollowUpEnabled" class="setting-helper-stack">
+                <div class="setting-callout setting-callout--soft">
+                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
                 </div>
               </div>
 
