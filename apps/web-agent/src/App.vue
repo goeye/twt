@@ -166,9 +166,7 @@
     <template v-else-if="isSettingsRoute">
       <WidgetCustomizePage
         v-if="activeSettingsNavKey === 'customize'"
-        ref="widgetCustomizePageRef"
         @toast="showTopToast"
-        @dirty-change="handleCustomizeDirtyChange"
       />
       <SettingsRoutePage v-else :active-key="activeSettingsNavKey" @toast="showTopToast" />
     </template>
@@ -362,11 +360,6 @@ type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "tea
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
-
-type WidgetCustomizePageExpose = {
-  requestNavigation: (action: () => void) => boolean;
-  hasUnsavedChanges: () => boolean;
-};
 
 type AiAgentPageExpose = {
   requestNavigation: (action: () => void) => boolean;
@@ -961,14 +954,11 @@ const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
 const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
-const widgetCustomizePageRef = ref<WidgetCustomizePageExpose | null>(null);
 const aiAgentPageRef = ref<AiAgentPageExpose | null>(null);
 const proactiveCampaignPageRef = ref<ProactiveCampaignPageExpose | null>(null);
 const aiAgentProfile = ref(resolveAiAgentProfile());
-const customizeDirty = ref(false);
 const aiAgentDirty = ref(false);
 const proactiveCampaignDirty = ref(false);
-const allowCustomizeRouteLeaveOnce = ref(false);
 const allowAiAgentRouteLeaveOnce = ref(false);
 const allowProactiveCampaignRouteLeaveOnce = ref(false);
 const showToast = ref(false);
@@ -1287,15 +1277,6 @@ const toggleDetailSection = (key: string) => {
   collapsedDetailSections.value = [...collapsedDetailSections.value, key];
 };
 
-const requestCustomizeNavigation = (action: () => void) => {
-  const guard = widgetCustomizePageRef.value;
-  if (!guard) {
-    action();
-    return;
-  }
-  guard.requestNavigation(action);
-};
-
 const requestAiAgentNavigation = (action: () => void) => {
   const guard = aiAgentPageRef.value;
   if (!guard) {
@@ -1303,10 +1284,6 @@ const requestAiAgentNavigation = (action: () => void) => {
     return;
   }
   guard.requestNavigation(action);
-};
-
-const handleCustomizeDirtyChange = (dirty: boolean) => {
-  customizeDirty.value = dirty;
 };
 
 const handleAiAgentDirtyChange = (dirty: boolean) => {
@@ -1341,12 +1318,6 @@ const openSettingsPage = () => {
 const handleSettingsNavSelect = (key: string) => {
   const nextKey = key as SettingsNavKey;
   if (activeSettingsNavKey.value === nextKey) {
-    return;
-  }
-  if (activeSettingsNavKey.value === "customize") {
-    requestCustomizeNavigation(() => {
-      activeSettingsNavKey.value = nextKey;
-    });
     return;
   }
   activeSettingsNavKey.value = nextKey;
@@ -1646,24 +1617,6 @@ const handleSend = () => {
   showTopToast("消息已发送");
 };
 
-const removeCustomizeRouteGuard = router.beforeEach((to, from) => {
-  if (allowCustomizeRouteLeaveOnce.value) {
-    allowCustomizeRouteLeaveOnce.value = false;
-    return true;
-  }
-  if (to.fullPath === from.fullPath) {
-    return true;
-  }
-  if (from.name !== "settings" || activeSettingsNavKey.value !== "customize" || !customizeDirty.value) {
-    return true;
-  }
-  requestCustomizeNavigation(() => {
-    allowCustomizeRouteLeaveOnce.value = true;
-    router.push(to.fullPath);
-  });
-  return false;
-});
-
 const removeAiAgentRouteGuard = router.beforeEach((to, from) => {
   if (allowAiAgentRouteLeaveOnce.value) {
     allowAiAgentRouteLeaveOnce.value = false;
@@ -1726,7 +1679,6 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  removeCustomizeRouteGuard();
   removeAiAgentRouteGuard();
   removeProactiveCampaignRouteGuard();
   if (toastTimer) {

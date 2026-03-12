@@ -55,7 +55,7 @@
               </div>
               <div class="wc-brand-input-group">
                 <label class="wc-label">品牌名称</label>
-                <input v-model="settings.brandName" class="agent-input wc-input" placeholder="输入品牌名称..." />
+                <input v-model="settings.brandName" class="agent-input wc-input" placeholder="输入品牌名称..." @blur="autoSave" />
               </div>
             </div>
           </div>
@@ -76,7 +76,7 @@
                 type="button"
                 class="wc-position-card"
                 :class="{ 'wc-position-card--active': settings.widgetPosition === 'bottom-left' }"
-                @click="settings.widgetPosition = 'bottom-left'"
+                @click="settings.widgetPosition = 'bottom-left'; autoSave()"
               >
                 <div class="wc-position-thumb"><span class="wc-position-dot wc-position-dot--left" /></div>
                 <span class="wc-position-card__label">左下角</span>
@@ -85,7 +85,7 @@
                 type="button"
                 class="wc-position-card"
                 :class="{ 'wc-position-card--active': settings.widgetPosition === 'bottom-right' }"
-                @click="settings.widgetPosition = 'bottom-right'"
+                @click="settings.widgetPosition = 'bottom-right'; autoSave()"
               >
                 <div class="wc-position-thumb"><span class="wc-position-dot wc-position-dot--right" /></div>
                 <span class="wc-position-card__label">右下角</span>
@@ -94,11 +94,11 @@
             <div class="wc-offset-row">
               <div class="wc-offset-field">
                 <label class="wc-label">距离底部 (px)</label>
-                <input v-model.number="settings.positionOffsetY" type="number" min="20" max="200" class="agent-input wc-input" />
+                <input v-model.number="settings.positionOffsetY" type="number" min="20" max="200" class="agent-input wc-input" @blur="autoSave" />
               </div>
               <div class="wc-offset-field">
                 <label class="wc-label">{{ settings.widgetPosition === 'bottom-left' ? '距离左边' : '距离右边' }} (px)</label>
-                <input v-model.number="settings.positionOffsetX" type="number" min="20" max="200" class="agent-input wc-input" />
+                <input v-model.number="settings.positionOffsetX" type="number" min="20" max="200" class="agent-input wc-input" @blur="autoSave" />
               </div>
             </div>
           </div>
@@ -150,12 +150,11 @@
               <div class="wc-switch-row__text">
                 <span class="wc-switch-label">隐藏官方标识</span>
               </div>
-              <AgentSwitch v-model="settings.hideBrandLogo" />
+              <AgentSwitch v-model="settings.hideBrandLogo" @update:model-value="autoSave" />
             </div>
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- Content Tab -->
@@ -166,7 +165,7 @@
               <h3 class="wc-card__title">{{ block.title }}</h3>
               <p class="wc-card__desc">{{ block.desc }}</p>
             </div>
-            <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop />
+            <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body">
@@ -175,6 +174,7 @@
                   v-model="autoReplyTexts[block.key][globalLang]"
                   class="wc-rich-editor__textarea"
                   rows="4"
+                  @blur="autoSave"
                 />
                 <div class="wc-rich-editor__images-area">
                   <div v-for="(img, idx) in autoReplyImages[block.key][globalLang]" :key="idx" class="wc-reply-images__item">
@@ -199,7 +199,7 @@
               <h3 class="wc-card__title">访客评价</h3>
               <p class="wc-card__desc">主动或自动关闭会话后，系统自动邀请访客评价</p>
             </div>
-            <AgentSwitch v-model="feedbackEnabled" @click.stop />
+            <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
@@ -209,12 +209,12 @@
                   class="wc-rich-editor__textarea"
                   rows="3"
                   placeholder="请输入评价标题..."
+                  @blur="autoSave"
                 />
               </div>
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- Form Tab -->
@@ -225,13 +225,13 @@
               <h3 class="wc-card__title">会话前表单</h3>
               <p class="wc-card__desc">在访客开始会话之前收集必要的信息，帮助客服更好地提供服务</p>
             </div>
-            <AgentSwitch v-model="settings.enableSessionForm" @click.stop />
+            <AgentSwitch v-model="settings.enableSessionForm" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
               <label class="wc-label">表单标题</label>
-              <input v-model="settings.formTitle[globalLang]" class="agent-input wc-input" placeholder="Welcome! Please fill in the information..." />
+              <input v-model="settings.formTitle[globalLang]" class="agent-input wc-input" placeholder="Welcome! Please fill in the information..." @blur="autoSave" />
             </div>
             <div class="wc-form-fields-section">
               <label class="wc-label">表单字段</label>
@@ -245,16 +245,25 @@
                     </svg>
                   </span>
                   <span class="wc-form-field-label">{{ field.label[globalLang] }}</span>
-                  <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." />
+                  <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." @blur="autoSave" />
                   <label class="wc-checkbox-label">
-                    <input type="checkbox" v-model="field.required" class="wc-checkbox" />
+                    <input type="checkbox" v-model="field.required" class="wc-checkbox" @change="autoSave" />
                     必填
                   </label>
-                  <button type="button" class="wc-form-field-delete" @click="removeFormField(idx)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </button>
+                  <div class="wc-form-field-delete-wrap">
+                    <button type="button" class="wc-form-field-delete" @click="toggleDeleteConfirm(idx)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                    <div v-if="deleteConfirmIdx === idx" class="wc-popconfirm">
+                      <p class="wc-popconfirm__text">确定删除该字段吗？</p>
+                      <div class="wc-popconfirm__actions">
+                        <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--cancel" @click="deleteConfirmIdx = null">取消</button>
+                        <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--confirm" @click="confirmRemoveFormField(idx)">确定</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <button type="button" class="wc-add-field-btn" @click="addFormField">
@@ -265,7 +274,6 @@
           </div>
         </article>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
 
       <!-- General Tab -->
@@ -284,11 +292,11 @@
                   <span class="wc-session-feature-card__title">发起会话</span>
                   <span class="wc-session-feature-card__desc">开启后，聊天小部件中显示新的会话按钮，访客可主动发起咨询；关闭后入口隐藏</span>
                 </div>
-                <AgentSwitch v-model="settings.enableStartSession" />
+                <AgentSwitch v-model="settings.enableStartSession" @update:model-value="autoSave" />
               </div>
               <div v-if="settings.enableStartSession" class="wc-session-feature-card__panel">
                 <label class="wc-session-feature-limit">
-                  <input v-model="settings.limitStartSessionCount" type="checkbox" class="wc-session-feature-limit__checkbox" />
+                  <input v-model="settings.limitStartSessionCount" type="checkbox" class="wc-session-feature-limit__checkbox" @change="autoSave" />
                   <div class="wc-session-feature-limit__text">
                     <span class="wc-session-feature-limit__title">限制访客发起会话数上限</span>
                     <span class="wc-session-feature-limit__desc">设置访客可同时发起的未结束会话的最大数量</span>
@@ -305,7 +313,7 @@
                           min="1"
                           max="99"
                           class="wc-session-feature-limit__input"
-                          @blur="normalizeStartSessionCount"
+                          @blur="normalizeStartSessionCount(); autoSave()"
                         />
                       </div>
                       <span class="wc-session-feature-limit__unit">个</span>
@@ -326,7 +334,7 @@
                 <span class="wc-switch-label">删除会话</span>
                 <span class="wc-switch-desc">开启后，访客会话列表显示删除按钮，访客可删除会话</span>
               </div>
-              <AgentSwitch v-model="settings.enableDeleteSession" />
+              <AgentSwitch v-model="settings.enableDeleteSession" @update:model-value="autoSave" />
             </div>
             <div class="wc-divider" />
             <div class="wc-switch-row">
@@ -334,7 +342,7 @@
                 <span class="wc-switch-label">主动结束会话</span>
                 <span class="wc-switch-desc">开启后，访客在删除会话时可选择主动结束会话</span>
               </div>
-              <AgentSwitch v-model="settings.enableEndSession" />
+              <AgentSwitch v-model="settings.enableEndSession" @update:model-value="autoSave" />
             </div>
           </div>
         </article>
@@ -344,14 +352,14 @@
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">访客不活跃</h3>
             </div>
-            <AgentSwitch v-model="settings.enableVisitorInactive" @click.stop />
+            <AgentSwitch v-model="settings.enableVisitorInactive" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'visitorInactive' && settings.enableVisitorInactive" class="wc-accordion__body">
             <div class="wc-visitor-inactive-row">
               <div class="wc-visitor-inactive-row__text">
                 <span>当访客超过</span>
-                <TimeDurationInput v-model="settings.visitorInactiveSeconds" />
+                <TimeDurationInput v-model="settings.visitorInactiveSeconds" @update:model-value="autoSave" />
                 <span>未回复客服消息时，会话将会自动关闭</span>
               </div>
             </div>
@@ -371,7 +379,7 @@
                 <span class="wc-switch-label">已读回执</span>
                 <span class="wc-switch-desc">访客可在会话和聊天中看到客服是否已读其消息</span>
               </div>
-              <AgentSwitch v-model="settings.enableReadReceipt" />
+              <AgentSwitch v-model="settings.enableReadReceipt" @update:model-value="autoSave" />
             </div>
             <div class="wc-divider" />
             <div class="wc-switch-row">
@@ -379,7 +387,7 @@
                 <span class="wc-switch-label">客服在线状态（聊天）</span>
                 <span class="wc-switch-desc">开启后，访客可在单聊中看到客服的在线状态</span>
               </div>
-              <AgentSwitch v-model="settings.showAgentOnlineStatus" />
+              <AgentSwitch v-model="settings.showAgentOnlineStatus" @update:model-value="autoSave" />
             </div>
           </div>
         </article>
@@ -389,10 +397,9 @@
             <span class="wc-switch-label">隐藏联系我们</span>
             <span class="wc-switch-desc">开启后，App 端我的页面将不显示"联系我们"入口</span>
           </div>
-          <AgentSwitch v-model="settings.hideContactUs" />
+          <AgentSwitch v-model="settings.hideContactUs" @update:model-value="autoSave" />
         </div>
 
-        <button type="button" class="agent-btn agent-btn--primary wc-save-btn" @click="handleSave()">保存</button>
       </div>
     </div>
 
@@ -617,8 +624,6 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
-    <UnsavedChangesModal :open="unsavedChangesModalOpen" @cancel="cancelPendingNavigation" @confirm="confirmPendingNavigation" />
-
     <!-- Image Crop Modal -->
     <teleport to="body">
       <div v-if="cropModalOpen" class="wc-crop-overlay" @click.self="cropModalOpen = false">
@@ -638,8 +643,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { AgentSwitch, BaseModal, UnsavedChangesModal, TimeDurationInput } from "@twt/ui-agent";
+import { reactive, ref, computed, watch } from "vue";
+import { AgentSwitch, TimeDurationInput } from "@twt/ui-agent";
 
 interface QuickAccessItem {
   id: string;
@@ -679,10 +684,13 @@ const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
-  (e: "dirty-change", dirty: boolean): void;
 }>();
 
 const emitToast = (msg: string) => emit("toast", msg);
+
+const autoSave = () => {
+  emitToast("保存成功");
+};
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "appearance", label: "外观" },
@@ -763,6 +771,7 @@ const handleReplyImageChange = (e: Event) => {
   const reader = new FileReader();
   reader.onload = () => {
     autoReplyImages[key][lang].push(reader.result as string);
+    autoSave();
   };
   reader.readAsDataURL(file);
   (e.target as HTMLInputElement).value = "";
@@ -770,6 +779,7 @@ const handleReplyImageChange = (e: Event) => {
 
 const removeReplyImage = (key: AutoReplyKey, lang: LangKey, idx: number) => {
   autoReplyImages[key][lang].splice(idx, 1);
+  autoSave();
 };
 
 const chatPreviewImages = computed(() => {
@@ -826,7 +836,7 @@ const switchTab = (key: TabKey) => {
   if (activeTab.value === key) {
     return;
   }
-  requestNavigation(() => applyTabSwitch(key));
+  applyTabSwitch(key);
 };
 
 // Computed: which auto-reply message to show in chat preview
@@ -1011,205 +1021,40 @@ const applyCrop = () => {
   ctx.drawImage(img, sx, sy, size, size, 0, 0, 128, 128);
   settings.brandLogoUrl = canvas.toDataURL("image/png");
   cropModalOpen.value = false;
-  emitToast("Logo 已更新");
+  autoSave();
 };
 
 let qaCounter = 3;
 const addQuickAccess = () => {
   const id = `qa-${qaCounter++}`;
   settings.quickAccessItems.push({ id, label: `入口${settings.quickAccessItems.length + 1}`, url: "#" });
+  autoSave();
 };
 
 const removeQuickAccess = (id: string) => {
   settings.quickAccessItems = settings.quickAccessItems.filter(i => i.id !== id);
+  autoSave();
 };
 
 let fieldCounter = 4;
 const addFormField = () => {
   const id = `f-${fieldCounter++}`;
   settings.formFields.push({ id, type: "text", label: { en: "Custom Field", "zh-cn": "自定义字段", "zh-tw": "自定義欄位" }, placeholder: { en: "Please enter...", "zh-cn": "请输入...", "zh-tw": "請輸入..." }, required: false });
+  autoSave();
 };
 
-const removeFormField = (idx: number) => {
+const deleteConfirmIdx = ref<number | null>(null);
+
+const toggleDeleteConfirm = (idx: number) => {
+  deleteConfirmIdx.value = deleteConfirmIdx.value === idx ? null : idx;
+};
+
+const confirmRemoveFormField = (idx: number) => {
   settings.formFields.splice(idx, 1);
+  deleteConfirmIdx.value = null;
+  autoSave();
 };
 
-const unsavedChangesModalOpen = ref(false);
-const pendingNavigationAction = ref<(() => void) | null>(null);
-
-const getConfigSnapshot = () => JSON.stringify({
-  settings: {
-    brandName: settings.brandName,
-    brandLogoUrl: settings.brandLogoUrl,
-    widgetPosition: settings.widgetPosition,
-    positionOffsetX: settings.positionOffsetX,
-    positionOffsetY: settings.positionOffsetY,
-    hideBrandLogo: settings.hideBrandLogo,
-    quickAccessItems: settings.quickAccessItems.map((item) => ({ ...item })),
-    enableSessionForm: settings.enableSessionForm,
-    formTitle: { ...settings.formTitle },
-    formFields: settings.formFields.map((field) => ({ ...field, label: { ...field.label }, placeholder: { ...field.placeholder } })),
-    enableReadReceipt: settings.enableReadReceipt,
-    showAgentOnlineStatus: settings.showAgentOnlineStatus,
-    hideContactUs: settings.hideContactUs,
-    enableStartSession: settings.enableStartSession,
-    limitStartSessionCount: settings.limitStartSessionCount,
-    maxStartSessionCount: settings.maxStartSessionCount,
-    enableDeleteSession: settings.enableDeleteSession,
-    enableEndSession: settings.enableEndSession,
-    enableVisitorInactive: settings.enableVisitorInactive,
-    visitorInactiveSeconds: settings.visitorInactiveSeconds
-  },
-  autoReplyToggles: { ...autoReplyToggles },
-  autoReplyTexts: {
-    welcome: { ...autoReplyTexts.welcome },
-    end: { ...autoReplyTexts.end },
-    sessionOffline: { ...autoReplyTexts.sessionOffline },
-    chatOffline: { ...autoReplyTexts.chatOffline }
-  },
-  autoReplyImages: {
-    welcome: {
-      en: [...autoReplyImages.welcome.en],
-      "zh-cn": [...autoReplyImages.welcome["zh-cn"]],
-      "zh-tw": [...autoReplyImages.welcome["zh-tw"]]
-    },
-    end: {
-      en: [...autoReplyImages.end.en],
-      "zh-cn": [...autoReplyImages.end["zh-cn"]],
-      "zh-tw": [...autoReplyImages.end["zh-tw"]]
-    },
-    sessionOffline: {
-      en: [...autoReplyImages.sessionOffline.en],
-      "zh-cn": [...autoReplyImages.sessionOffline["zh-cn"]],
-      "zh-tw": [...autoReplyImages.sessionOffline["zh-tw"]]
-    },
-    chatOffline: {
-      en: [...autoReplyImages.chatOffline.en],
-      "zh-cn": [...autoReplyImages.chatOffline["zh-cn"]],
-      "zh-tw": [...autoReplyImages.chatOffline["zh-tw"]]
-    }
-  },
-  feedbackEnabled: feedbackEnabled.value,
-  feedbackTitles: { ...feedbackTitles }
-});
-
-const savedSnapshot = ref("");
-savedSnapshot.value = getConfigSnapshot();
-
-const hasUnsavedChanges = computed(() => getConfigSnapshot() !== savedSnapshot.value);
-
-const restoreSavedSnapshot = () => {
-  const snapshot = JSON.parse(savedSnapshot.value) as {
-    settings: {
-      brandName: string;
-      brandLogoUrl: string;
-      widgetPosition: "bottom-right" | "bottom-left";
-      positionOffsetX: number;
-      positionOffsetY: number;
-      hideBrandLogo: boolean;
-      quickAccessItems: QuickAccessItem[];
-      enableSessionForm: boolean;
-      formTitle: Record<LangKey, string>;
-      formFields: FormField[];
-      enableReadReceipt: boolean;
-      showAgentOnlineStatus: boolean;
-      hideContactUs: boolean;
-      enableStartSession: boolean;
-      limitStartSessionCount: boolean;
-      maxStartSessionCount: number;
-      enableDeleteSession: boolean;
-      enableEndSession: boolean;
-      enableVisitorInactive: boolean;
-      visitorInactiveSeconds: number;
-    };
-    autoReplyToggles: Record<AutoReplyKey, boolean>;
-    autoReplyTexts: Record<AutoReplyKey, Record<LangKey, string>>;
-    autoReplyImages: Record<AutoReplyKey, Record<LangKey, string[]>>;
-    feedbackEnabled: boolean;
-    feedbackTitles: Record<LangKey, string>;
-  };
-
-  settings.brandName = snapshot.settings.brandName;
-  settings.brandLogoUrl = snapshot.settings.brandLogoUrl;
-  settings.widgetPosition = snapshot.settings.widgetPosition;
-  settings.positionOffsetX = snapshot.settings.positionOffsetX;
-  settings.positionOffsetY = snapshot.settings.positionOffsetY;
-  settings.hideBrandLogo = snapshot.settings.hideBrandLogo;
-  settings.quickAccessItems = snapshot.settings.quickAccessItems.map((item) => ({ ...item }));
-  settings.enableSessionForm = snapshot.settings.enableSessionForm;
-  settings.formTitle = { ...snapshot.settings.formTitle };
-  settings.formFields = snapshot.settings.formFields.map((field) => ({ ...field, label: { ...field.label }, placeholder: { ...field.placeholder } }));
-  settings.enableReadReceipt = snapshot.settings.enableReadReceipt;
-  settings.showAgentOnlineStatus = snapshot.settings.showAgentOnlineStatus;
-  settings.hideContactUs = snapshot.settings.hideContactUs;
-  settings.enableStartSession = snapshot.settings.enableStartSession;
-  settings.limitStartSessionCount = snapshot.settings.limitStartSessionCount;
-  settings.maxStartSessionCount = snapshot.settings.maxStartSessionCount;
-  settings.enableDeleteSession = snapshot.settings.enableDeleteSession;
-  settings.enableEndSession = snapshot.settings.enableEndSession;
-  settings.enableVisitorInactive = snapshot.settings.enableVisitorInactive;
-  settings.visitorInactiveSeconds = snapshot.settings.visitorInactiveSeconds;
-
-  autoReplyKeys.forEach((key) => {
-    autoReplyToggles[key] = snapshot.autoReplyToggles[key];
-    Object.keys(snapshot.autoReplyTexts[key]).forEach((lang) => {
-      const langKey = lang as LangKey;
-      autoReplyTexts[key][langKey] = snapshot.autoReplyTexts[key][langKey];
-      autoReplyImages[key][langKey] = [...snapshot.autoReplyImages[key][langKey]];
-    });
-  });
-
-  feedbackEnabled.value = snapshot.feedbackEnabled;
-  Object.keys(snapshot.feedbackTitles).forEach((lang) => {
-    const langKey = lang as LangKey;
-    feedbackTitles[langKey] = snapshot.feedbackTitles[langKey];
-  });
-};
-
-const handleSave = (message = "保存成功") => {
-  normalizeStartSessionCount();
-  savedSnapshot.value = getConfigSnapshot();
-  emit("dirty-change", false);
-  emitToast(message);
-};
-
-const requestNavigation = (action: () => void) => {
-  if (!hasUnsavedChanges.value) {
-    action();
-    return true;
-  }
-  pendingNavigationAction.value = action;
-  unsavedChangesModalOpen.value = true;
-  return false;
-};
-
-const cancelPendingNavigation = () => {
-  pendingNavigationAction.value = null;
-  unsavedChangesModalOpen.value = false;
-};
-
-const confirmPendingNavigation = () => {
-  const action = pendingNavigationAction.value;
-  restoreSavedSnapshot();
-  cancelPendingNavigation();
-  action?.();
-};
-
-const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-  if (!hasUnsavedChanges.value) {
-    return;
-  }
-  event.preventDefault();
-  event.returnValue = "";
-};
-
-watch(
-  hasUnsavedChanges,
-  (dirty) => {
-    emit("dirty-change", dirty);
-  },
-  { immediate: true }
-);
 
 watch(
   () => settings.enableDeleteSession,
@@ -1236,19 +1081,6 @@ watch(previewMode, (mode) => {
   if (mode !== "minimized") {
     previewModeBeforeMinimize.value = mode;
   }
-});
-
-onMounted(() => {
-  window.addEventListener("beforeunload", handleBeforeUnload);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("beforeunload", handleBeforeUnload);
-});
-
-defineExpose({
-  requestNavigation,
-  hasUnsavedChanges: () => hasUnsavedChanges.value
 });
 </script>
 
@@ -1895,13 +1727,6 @@ defineExpose({
   background: #9ca3af;
 }
 
-/* Save button */
-.wc-save-btn {
-  align-self: flex-start;
-  margin-top: var(--agent-space-4);
-  padding: 8px 32px;
-}
-
 /* Reply section */
 .wc-reply-section {
   display: flex;
@@ -2082,6 +1907,63 @@ defineExpose({
 }
 
 .wc-form-field-delete:hover { color: var(--agent-color-status-error); }
+
+.wc-form-field-delete-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wc-popconfirm {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: var(--agent-z-dropdown, 100);
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+
+.wc-popconfirm__text {
+  margin: 0 0 10px;
+  font-size: var(--agent-font-size-sm);
+  color: var(--agent-color-text-primary);
+}
+
+.wc-popconfirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.wc-popconfirm__btn {
+  border: 0;
+  border-radius: var(--agent-radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 12px;
+}
+
+.wc-popconfirm__btn--cancel {
+  background: var(--agent-color-bg-secondary, #f5f5f5);
+  color: var(--agent-color-text-secondary);
+}
+
+.wc-popconfirm__btn--cancel:hover {
+  background: var(--agent-color-bg-tertiary, #e8e8e8);
+}
+
+.wc-popconfirm__btn--confirm {
+  background: var(--agent-color-status-error, #e53e3e);
+  color: #fff;
+}
+
+.wc-popconfirm__btn--confirm:hover {
+  opacity: 0.9;
+}
 
 .wc-add-field-btn {
   align-items: center;
