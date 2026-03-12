@@ -40,8 +40,8 @@
             <template v-if="card.key === 'entry-routing'">
               <div class="form-row">
                 <div class="form-row__label">
-                  <span class="form-row__name">访客类型</span>
-                  <span class="form-row__desc">哪些访客由 AI Agent 回复</span>
+                  <span class="form-row__name">访客范围</span>
+                  <span class="form-row__desc">AI Agent 回复的访客类型</span>
                 </div>
                 <div class="form-row__control">
                   <div class="pill-group">
@@ -60,12 +60,12 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">回复时机</span>
-                  <span class="form-row__desc">设置 AI Agent 在首条消息后何时接管回复</span>
+                  <span class="form-row__desc">AI Agent 在首条消息后何时接管回复</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
                     <option value="always">始终由 AI Agent 回复</option>
-                    <option value="offline-only">仅客服离线时</option>
+                    <option value="offline-only">仅客服不在线时</option>
                   </select>
                 </div>
               </div>
@@ -77,7 +77,7 @@
                   <div class="form-row form-row--single">
                     <div class="form-row__label">
                       <span class="form-row__name">显示 AI Agent 标签</span>
-                      <span class="form-row__desc">开启后，访客会在消息气泡中看到 AI Agent 标签</span>
+                      <span class="form-row__desc">是否在消息气泡上显示 AI Agent 标识</span>
                     </div>
                     <div class="form-row__control">
                       <label class="agent-switch">
@@ -206,7 +206,7 @@
               <div class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">回复模式</span>
-                  <span class="form-row__desc">定义 AI 是严格依赖知识库回答，还是允许更主动地推理生成内容</span>
+                  <span class="form-row__desc">AI Agent 的回复策略</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
@@ -222,7 +222,7 @@
 
                 <div v-if="knowledgeDocCount <= 10" class="knowledge-card__tip">
                   <p class="knowledge-card__tip-text">
-                    AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关文档
+                    AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关内容
                   </p>
                 </div>
 
@@ -230,7 +230,7 @@
                   <span class="knowledge-card__stats-label">AI Agent 将使用：</span>
                   <span class="knowledge-card__stats-item">
                     <AgentIcon name="file" :size="16" />
-                    {{ knowledgeDocCount }} 篇知识库文档
+                    {{ knowledgeDocCount }} 篇知识库内容
                   </span>
                 </div>
 
@@ -274,8 +274,8 @@
             <template v-else-if="card.key === 'fallback-transfer'">
               <div class="form-row form-row--single">
                 <div class="form-row__label">
-                  <span class="form-row__name">允许转接人工客服</span>
-                  <span class="form-row__desc">当访客请求人工客服时 AI Agent 如何处理</span>
+                  <span class="form-row__name">允许转接人工</span>
+                  <span class="form-row__desc">是否允许 AI Agent 主动转接人工客服</span>
                 </div>
                 <div class="form-row__control">
                   <label class="agent-switch">
@@ -294,8 +294,8 @@
 
                 <div class="form-row form-row--single">
                   <div class="form-row__label">
-                    <span class="form-row__name">转接人工客服提示</span>
-                    <span class="form-row__desc">当 AI Agent 准备把会话移交给人工客服时，向访客展示的提示文案</span>
+                    <span class="form-row__name">转接提示语</span>
+                    <span class="form-row__desc">转接人工时向访客展示的提示</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -314,7 +314,7 @@
                 <div class="form-row form-row--single">
                   <div class="form-row__label">
                     <span class="form-row__name">客服离线提示</span>
-                    <span class="form-row__desc">当人工客服团队不在线时，向访客说明当前服务状态</span>
+                    <span class="form-row__desc">转接时所有人工客服不在线的提示</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -340,8 +340,8 @@
 
                 <div class="form-row form-row--single">
                   <div class="form-row__label">
-                    <span class="form-row__name">不转接人工客服提示</span>
-                    <span class="form-row__desc">未开启人工转接时，访客请求人工客服将看到此提示</span>
+                    <span class="form-row__name">不转人工提示</span>
+                    <span class="form-row__desc">转接人工关闭时，AI Agent 无法解决时的提示</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -402,14 +402,14 @@
             <template v-else-if="card.key === 'idle-autoclose'">
               <div class="setting-helper-stack">
                 <div class="setting-callout setting-callout--soft">
-                  <p class="setting-callout__text">若开启跟进消息，空闲计时将从跟进消息发送后开始计算</p>
+                  <p class="setting-callout__text">若开启跟进消息，关闭时间将从跟进消息发送后开始计算</p>
                 </div>
               </div>
 
               <div class="form-row form-row--single">
                 <div class="form-row__label">
-                  <span class="form-row__name">空闲计时</span>
-                  <span class="form-row__desc">AI Agent 应该等待多长时间关闭会话</span>
+                  <span class="form-row__name">关闭时间</span>
+                  <span class="form-row__desc">访客持续不活跃后自动关闭会话的等待时长</span>
                 </div>
                 <div class="form-row__control">
                   <div class="inactive-setting">
@@ -472,8 +472,8 @@ export interface LifecycleSection {
 
 const audienceOptions: Array<{ label: string; value: AudienceType }> = [
   { label: "全部", value: "all" },
-  { label: "访客", value: "visitor" },
-  { label: "客户", value: "customer" }
+  { label: "仅访客", value: "visitor" },
+  { label: "仅客户", value: "customer" }
 ];
 
 const toneOptions = [

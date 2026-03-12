@@ -474,7 +474,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         },
         {
           key: "answering-mode",
-          title: "如何回复",
+          title: "回复模式",
           summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict
         },
         {
@@ -498,7 +498,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         },
         {
           key: "fallback-transfer",
-          title: "转接人工客服",
+          title: "转人工",
           summary: transferEnabled.value
             ? (hasTransferReply ? "允许" : "不允许")
             : (hasOfflineReply ? "不允许" : "允许"),

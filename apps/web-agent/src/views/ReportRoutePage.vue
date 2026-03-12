@@ -286,7 +286,6 @@
               </div>
             </div>
           </div>
-          <a class="ai-report-link" href="javascript:void(0)">查看会话</a>
         </div>
       </div>
 
