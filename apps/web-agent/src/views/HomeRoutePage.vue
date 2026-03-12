@@ -174,7 +174,7 @@
           <div class="home-section__title-row home-section__title-row--with-hint">
             <div class="home-section__heading">
               <h2 class="home-section__title">AI Agent 概览</h2>
-              <span class="home-section__hint">i</span>
+              <span class="home-section__hint" title="近7日 AI Agent 会话数据概览">i</span>
             </div>
           </div>
 
@@ -501,13 +501,13 @@ const activeAiTab = ref(0);
 
 const aiAgentOverview: ChartStatItem[] = [
   { key: "total", label: "总会话数", value: 126 },
-  { key: "resolved", label: "已解决会话", value: 98 },
+  { key: "resolved", label: "解决率", value: 77.8, unit: "%" },
   { key: "transfer", label: "转人工", value: 28 }
 ];
 
 const aiChartDataSets = [
   [12, 18, 22, 15, 28, 35, 126],
-  [8, 14, 17, 11, 22, 28, 98],
+  [66.7, 77.8, 77.3, 73.3, 78.6, 80.0, 77.8],
   [4, 4, 5, 4, 6, 7, 28]
 ];
 
