@@ -71,25 +71,12 @@
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'position'" class="wc-accordion__body">
-            <div class="wc-position-choices">
-              <button
-                type="button"
-                class="wc-position-card"
-                :class="{ 'wc-position-card--active': settings.widgetPosition === 'bottom-left' }"
-                @click="settings.widgetPosition = 'bottom-left'; autoSave()"
-              >
-                <div class="wc-position-thumb"><span class="wc-position-dot wc-position-dot--left" /></div>
-                <span class="wc-position-card__label">左下角</span>
-              </button>
-              <button
-                type="button"
-                class="wc-position-card"
-                :class="{ 'wc-position-card--active': settings.widgetPosition === 'bottom-right' }"
-                @click="settings.widgetPosition = 'bottom-right'; autoSave()"
-              >
-                <div class="wc-position-thumb"><span class="wc-position-dot wc-position-dot--right" /></div>
-                <span class="wc-position-card__label">右下角</span>
-              </button>
+            <div class="wc-field-row">
+              <label class="wc-label">小部件位置</label>
+              <select v-model="settings.widgetPosition" class="agent-input wc-input wc-select" @change="autoSave">
+                <option value="bottom-right">右下角</option>
+                <option value="bottom-left">左下角</option>
+              </select>
             </div>
             <div class="wc-offset-row">
               <div class="wc-offset-field">
@@ -360,7 +347,7 @@
               <div class="wc-visitor-inactive-row__text">
                 <span>当访客超过</span>
                 <TimeDurationInput v-model="settings.visitorInactiveSeconds" @update:model-value="autoSave" />
-                <span>未回复客服消息时，会话将会自动关闭</span>
+                <span>未回复客服消息时，会话会自动关闭</span>
               </div>
             </div>
           </div>
@@ -700,7 +687,7 @@ const tabs: { key: TabKey; label: string }[] = [
 ];
 
 const contentLangTabs = [
-  { key: "en", label: "英文" },
+  { key: "en", label: "English" },
   { key: "zh-cn", label: "简体中文" },
   { key: "zh-tw", label: "繁体中文" }
 ];
@@ -1340,57 +1327,22 @@ watch(previewMode, (mode) => {
 }
 
 /* Position */
-.wc-position-choices {
-  display: grid;
-  gap: var(--agent-space-12);
-  grid-template-columns: 1fr 1fr;
-}
-
-.wc-position-card {
+.wc-field-row {
   align-items: center;
-  background: var(--agent-color-bg-panel);
-  border: 2px solid var(--agent-color-border-default);
-  border-radius: 12px;
-  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  transition: border-color 0.15s, background 0.15s;
+  gap: var(--agent-space-12);
 }
 
-.wc-position-card:hover {
-  border-color: var(--agent-color-brand-primary);
+.wc-field-row .wc-label {
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
-.wc-position-card--active {
-  background: rgba(47, 107, 255, 0.06);
-  border-color: var(--agent-color-brand-primary);
-}
-
-.wc-position-thumb {
-  background: var(--agent-color-bg-muted);
-  border-radius: 6px;
-  height: 48px;
-  position: relative;
-  width: 100%;
-}
-
-.wc-position-dot {
-  background: var(--agent-color-brand-primary);
-  border-radius: 50%;
-  bottom: 6px;
-  height: 8px;
-  position: absolute;
-  width: 8px;
-}
-
-.wc-position-dot--left { left: 6px; }
-.wc-position-dot--right { right: 6px; }
-
-.wc-position-card__label {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
+.wc-select {
+  flex: 1;
+  max-width: 200px;
+  cursor: pointer;
+  appearance: auto;
 }
 
 .wc-offset-row {

@@ -56,13 +56,13 @@
           class="config-tabs__item"
           :class="{ 'config-tabs__item--active': configTab === 'deploy' }"
           @click="configTab = 'deploy'"
-        >AI Agent 部署</button>
+        >部署</button>
         <button
           type="button"
           class="config-tabs__item"
           :class="{ 'config-tabs__item--active': configTab === 'settings' }"
           @click="configTab = 'settings'"
-        >AI Agent 设置</button>
+        >设置</button>
       </nav>
 
       <AiAgentDeployFlow
@@ -406,7 +406,7 @@ const followUpMessage = ref("你好，请问还有什么可以帮你的吗？如
 const followUpMessageTouched = ref(false);
 const replyMode = ref("strict");
 const transferEnabled = ref(false);
-const offlineMessage = ref("当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。");
+const offlineMessage = ref("当前客服不在线。你可以先留下问题或联系方式，我们会尽快与你联系。");
 const transferMessage = ref("正在为你转接人工客服，请稍候");
 const unsupportedQuestionMessage = ref("抱歉，我暂时无法处理这类内容，请用文字描述或换个问题");
 
@@ -525,7 +525,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "answering-unsupported",
-          title: "特殊场景",
+          title: "兜底回复",
           summary: hasUnsupportedReply ? " " : " ",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
@@ -534,8 +534,8 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           key: "fallback-transfer",
           title: "转接人工客服",
           summary: transferEnabled.value
-            ? (hasTransferReply ? "转接人工客服" : "不转接人工客服")
-            : (hasOfflineReply ? "不转接人工客服" : "不转接人工客服"),
+            ? (hasTransferReply ? "允许" : "不允许")
+            : (hasOfflineReply ? "不允许" : "允许"),
           badge: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "需要补充" : undefined,
           badgeTone: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "warning" : undefined
         }
@@ -553,7 +553,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         },
         {
           key: "idle-autoclose",
-          title: "自动关闭空闲会话",
+          title: "自动关闭会话",
           summary: idleSummaryText.value
         }
       ]
@@ -665,7 +665,7 @@ const restoreSavedSnapshot = () => {
     followUpMessageTouched.value = false;
     replyMode.value = settings.replyMode ?? "strict";
     transferEnabled.value = typeof settings.transferEnabled === "boolean" ? settings.transferEnabled : false;
-    offlineMessage.value = settings.offlineMessage ?? "当前客服暂时不在线。你可以先留下问题或联系方式，我们会尽快与您联系。";
+    offlineMessage.value = settings.offlineMessage ?? "当前客服不在线。你可以先留下问题或联系方式，我们会尽快与你联系。";
     transferMessage.value = settings.transferMessage ?? "正在为你转接人工客服，请稍候";
     unsupportedQuestionMessage.value =
       settings.unsupportedQuestionMessage ??

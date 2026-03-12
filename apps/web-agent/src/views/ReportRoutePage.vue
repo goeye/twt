@@ -1,8 +1,8 @@
 <template>
   <section class="agent-content-page agent-content-page--hide-scrollbar report-page">
-    <!-- 数据概览 -->
+    <!-- 人工客服 -->
     <template v-if="activeKey === 'data-overview'">
-      <h1 class="report-page__title">数据概览</h1>
+      <h1 class="report-page__title">人工客服</h1>
 
       <div class="report-filter-bar">
         <div class="report-date-picker-wrap">

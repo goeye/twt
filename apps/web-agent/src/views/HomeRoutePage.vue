@@ -80,7 +80,7 @@
         <section class="home-section">
           <div class="home-section__title-row home-section__title-row--with-hint">
             <div class="home-section__heading">
-              <h2 class="home-section__title">会话概览</h2>
+              <h2 class="home-section__title">人工客服概览</h2>
               <span class="home-section__hint">i</span>
             </div>
           </div>

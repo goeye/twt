@@ -89,12 +89,11 @@
                 </div>
 
                 <div class="visibility-layout__preview">
-                  <p class="bubble-preview__label">预览效果</p>
                   <div class="bubble-preview">
                     <div class="bubble-preview__content">
                       <span class="bubble-preview__time">16:54</span>
                       <div class="bubble-preview__bubble">
-                        你好！有什么可以帮您的吗？
+                        你好！有什么可以帮你的吗？
                         <span v-if="localShowMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
                       </div>
                     </div>
@@ -247,8 +246,8 @@
             <template v-else-if="card.key === 'answering-unsupported'">
               <div class="form-row form-row--single">
                 <div class="form-row__label">
-                  <span class="form-row__name">特殊场景</span>
-                  <span class="form-row__desc">当访客发送图片、文件等内容或涉及敏感信息时，AI 如何回复</span>
+                  <span class="form-row__name">兜底回复</span>
+                  <span class="form-row__desc">当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复</span>
                 </div>
                 <div class="form-row__control">
                   <textarea
@@ -268,8 +267,8 @@
             <template v-else-if="card.key === 'fallback-transfer'">
               <div class="form-row form-row--single">
                 <div class="form-row__label">
-                  <span class="form-row__name">转接人工客服</span>
-                  <span class="form-row__desc">当访客请求人工客服时 AI Agent 的行为方式</span>
+                  <span class="form-row__name">允许转接人工客服</span>
+                  <span class="form-row__desc">当访客请求人工客服时 AI Agent 如何处理</span>
                 </div>
                 <div class="form-row__control">
                   <label class="agent-switch">
@@ -308,7 +307,7 @@
                 <div class="form-row form-row--single">
                   <div class="form-row__label">
                     <span class="form-row__name">客服离线提示</span>
-                    <span class="form-row__desc">当人工客服团队暂时离线时，向访客说明当前服务状态</span>
+                    <span class="form-row__desc">当人工客服团队不在线时，向访客说明当前服务状态</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -349,7 +348,7 @@
               <div class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">发送跟进消息</span>
-                  <span class="form-row__desc">当访客 5 分钟未回复时，AI 自动发送一条跟进消息，尝试挽回会话</span>
+                  <span class="form-row__desc">当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息</span>
                 </div>
                 <div class="form-row__control">
                   <label class="agent-switch">
@@ -362,7 +361,7 @@
               <div v-if="localFollowUpEnabled" class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">跟进消息内容</span>
-                  <span class="form-row__desc">自定义跟进消息的文案，引导访客继续对话或留下联系方式</span>
+                  <span class="form-row__desc">自定义跟进消息，引导访客继续对话或留下联系方式</span>
                 </div>
                 <div class="form-row__control">
                   <textarea
@@ -388,8 +387,8 @@
 
               <div class="form-row form-row--single">
                 <div class="form-row__label">
-                  <span class="form-row__name">自动关闭空闲会话</span>
-                  <span class="form-row__desc">避免访客长时间未响应时持续占用会话</span>
+                  <span class="form-row__name">空闲计时</span>
+                  <span class="form-row__desc">AI Agent 应该等待多长时间关闭会话</span>
                 </div>
                 <div class="form-row__control">
                   <div class="inactive-setting">
