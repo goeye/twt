@@ -66,7 +66,7 @@
                   <div v-if="!row.isInvite" class="settings-agents-table__name-cell">
                     <span class="settings-agents-table__avatar" :style="{ background: row.avatarColor }">{{ row.avatarText }}</span>
                     <span>{{ row.name }}</span>
-                    <span v-if="row.isOwner" class="settings-agents-table__owner-tag">所有者</span>
+                    <span v-if="row.isOwner" class="settings-agents-table__owner-tag">管理员</span>
                   </div>
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
@@ -139,12 +139,15 @@
                         >删除</button>
                       </template>
                       <template v-else>
-                        <button
-                          type="button"
-                          class="settings-agents-table__dropdown-item"
-                          :disabled="row.reinviteCooldown"
-                          @click="handleReinvite(row)"
-                        >重新邀请</button>
+                        <div class="settings-agents-table__reinvite-wrap">
+                          <button
+                            type="button"
+                            class="settings-agents-table__dropdown-item"
+                            :disabled="row.reinviteCooldown"
+                            @click="handleReinvite(row)"
+                          >重新邀请</button>
+                          <div v-if="row.reinviteCooldown" class="settings-agents-table__reinvite-tip">60s 后可重新发送</div>
+                        </div>
                         <button
                           type="button"
                           class="settings-agents-table__dropdown-item settings-agents-table__dropdown-item--danger"
@@ -474,10 +477,10 @@ const confirmDeleteAgent = () => {
   const target = deleteTargetAgent.value;
   if (target.isInvite) {
     inviteRecords.value = inviteRecords.value.filter((r) => r.id !== target.id);
-    emit("toast", "已删除");
+    emit("toast", "删除成功");
   } else {
     members.value = members.value.filter((m) => m.id !== target.id);
-    emit("toast", `已删除客服 ${target.name}`);
+    emit("toast", "删除成功");
   }
   deleteConfirmVisible.value = false;
   deleteTargetAgent.value = null;
@@ -516,7 +519,7 @@ const handleSendInvite = () => {
     existing.status = "待激活";
     existing.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
     existing.roleName = inviteRole.value;
-    emit("toast", `已重新发送邀请至 ${inviteEmail.value}`);
+    emit("toast", `已重新发送邀请至 ${record.email}`);
   } else {
     nextMemberId++;
     inviteRecords.value.push({
@@ -540,7 +543,7 @@ const handleReinvite = (row: DisplayRow) => {
   record.status = "待激活";
   record.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
   record.reinviteCooldown = true;
-  emit("toast", `已重新发送邀请至 ${record.email}`);
+  emit("toast", "邀请已发送");
   setTimeout(() => {
     record.reinviteCooldown = false;
   }, 60000);
@@ -928,6 +931,30 @@ const handleDeleteInvite = (row: DisplayRow) => {
 
 .settings-agents-table__dropdown-item--danger:disabled {
   color: #fca5a5;
+}
+
+.settings-agents-table__reinvite-wrap {
+  position: relative;
+}
+
+.settings-agents-table__reinvite-tip {
+  background: #222222;
+  border-radius: 6px;
+  color: #ffffff;
+  display: none;
+  font-size: 12px;
+  left: 50%;
+  line-height: 18px;
+  padding: 4px 10px;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.settings-agents-table__reinvite-wrap:hover .settings-agents-table__reinvite-tip {
+  display: block;
 }
 
 /* Pagination */

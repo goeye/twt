@@ -65,7 +65,7 @@ const toggleGroup = (key: string) => {
 };
 
 const shouldShowBadge = (itemKey: string, count?: number) => {
-  if (itemKey === "processing") {
+  if (itemKey === "resolved") {
     return false;
   }
   return Boolean(count && count > 0);

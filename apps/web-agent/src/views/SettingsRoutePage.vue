@@ -351,7 +351,7 @@ const handleViewAgentDetail = (agent: AgentDetailData) => {
 };
 
 const handleAgentDetailSave = (_data: { name: string; nickname: string; sessionLimit: string; email: string; project: string }) => {
-  agentDetailAgent.value = null;
+  // stay on detail page, user clicks back button to return
 };
 
 /* Role detail page */

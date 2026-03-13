@@ -47,6 +47,7 @@
           type="button"
           @click="handleTransfer"
         >转移会话</button>
+        <button class="conversation-header__dropdown-item" type="button" @click="handleMarkPending">标记为待处理</button>
         <button class="conversation-header__dropdown-item conversation-header__dropdown-item--danger" type="button" @click="handleClose">结束会话</button>
       </div>
     </div>
@@ -76,6 +77,7 @@ const emit = defineEmits<{
   (e: "transfer"): void;
   (e: "invite"): void;
   (e: "close"): void;
+  (e: "mark-pending"): void;
   (e: "update:title", value: string): void;
 }>();
 
@@ -131,6 +133,11 @@ const handleTransfer = () => {
   if (!props.canCollaborate) return;
   closeDropdown();
   emit("transfer");
+};
+
+const handleMarkPending = () => {
+  closeDropdown();
+  emit("mark-pending");
 };
 
 const handleClose = () => {

@@ -122,6 +122,7 @@
           :show-collaborate-actions="!isAiSession"
           @close="showTopToast('会话已标记为结束')"
           @invite="handleOpenInvite"
+          @mark-pending="handleMarkPending"
           @transfer="handleOpenTransfer"
           @update:title="updateSessionTitle"
         />
@@ -149,6 +150,10 @@
         <MessageComposer
           v-else
           v-model="composerText"
+          v-model:mark-pending="markPendingChecked"
+          v-model:mark-resolved="markResolvedChecked"
+          :show-mark-pending="!isProcessingSession"
+          :show-mark-resolved="isProcessingSession"
           class="chat-pane__composer"
           :disabled="composerText.trim().length === 0"
           placeholder="发送消息输入 / 选择快捷回复"
@@ -940,6 +945,8 @@ const activeQueueKey = ref("pending-reply");
 const activeSessionId = ref("s-6001");
 const searchKeyword = ref("");
 const composerText = ref("");
+const markPendingChecked = ref(false);
+const markResolvedChecked = ref(false);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
@@ -1031,6 +1038,7 @@ const isCampaignRoute = computed(() => currentRouteName.value === "campaign");
 const isReportRoute = computed(() => currentRouteName.value === "report");
 
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
+const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 
 const currentModuleLabel = computed(() => {
   if (isSettingsRoute.value) {
@@ -1579,7 +1587,36 @@ const handleSend = () => {
   };
 
   composerText.value = "";
-  showTopToast("消息已发送");
+
+  if (markPendingChecked.value) {
+    markSessionAsPending();
+    markPendingChecked.value = false;
+  } else if (markResolvedChecked.value) {
+    markSessionAsResolved();
+    markResolvedChecked.value = false;
+  }
+};
+
+const markSessionAsPending = () => {
+  if (!activeSession.value || activeSession.value.queueKey === "processing") return;
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== activeSession.value!.id) return s;
+    return { ...s, queueKey: "processing" };
+  });
+  activeQueueKey.value = "processing";
+};
+
+const markSessionAsResolved = () => {
+  if (!activeSession.value || activeSession.value.queueKey !== "processing") return;
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== activeSession.value!.id) return s;
+    return { ...s, queueKey: "resolved" };
+  });
+  activeQueueKey.value = "resolved";
+};
+
+const handleMarkPending = () => {
+  markSessionAsPending();
 };
 
 
