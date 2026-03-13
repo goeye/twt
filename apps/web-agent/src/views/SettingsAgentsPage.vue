@@ -20,9 +20,9 @@
           </div>
         </div>
 
-        <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="openInviteModal">
+        <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="handleHeaderAction">
           <span class="settings-agents-panel__invite-icon">+</span>
-          <span>邀请成员</span>
+          <span>{{ activeTab === 'roles' ? '新增角色' : '邀请成员' }}</span>
         </button>
       </header>
 
@@ -43,7 +43,7 @@
       </nav>
 
       <!-- 客服 Tab Content -->
-      <template v-if="activeTab === 'agents' && !agentDetailVisible">
+      <template v-if="activeTab === 'agents'">
         <div class="settings-agents-panel__table-area">
           <table class="settings-agents-table">
             <thead>
@@ -168,82 +168,15 @@
         </footer>
       </template>
 
-      <!-- Agent Detail (inline) -->
-      <template v-if="activeTab === 'agents' && agentDetailVisible">
-        <div class="agent-detail-view">
-          <header class="agent-detail-view__header">
-            <button type="button" class="agent-detail-view__back" @click="agentDetailVisible = false">
-              <span class="agent-detail-view__back-arrow">‹</span>
-              <span>返回列表</span>
-            </button>
-            <h2 class="agent-detail-view__title">成员详情</h2>
-          </header>
-          <div class="agent-detail-view__body agent-scroll">
-            <div class="agent-detail-view__field">
-              <label class="agent-detail-view__label">姓名</label>
-              <span class="agent-detail-view__value">{{ selectedAgent?.name }}</span>
-            </div>
-            <div class="agent-detail-view__field">
-              <label class="agent-detail-view__label">昵称</label>
-              <span class="agent-detail-view__value">{{ selectedAgent?.nickname }}</span>
-            </div>
-            <div class="agent-detail-view__field">
-              <label class="agent-detail-view__label">邮箱</label>
-              <span class="agent-detail-view__value">{{ selectedAgent?.email }}</span>
-            </div>
-            <div class="agent-detail-view__field">
-              <label class="agent-detail-view__label">角色</label>
-              <div class="agent-detail-view__role-select">
-                <select
-                  v-model="selectedAgentRole"
-                  class="agent-input agent-detail-view__select"
-                  :disabled="selectedAgent?.isOwner"
-                >
-                  <option value="管理员">管理员</option>
-                  <option value="客服">客服</option>
-                  <option value="高级客服">高级客服</option>
-                  <option value="主管">主管</option>
-                </select>
-                <span v-if="selectedAgent?.isOwner" class="agent-detail-view__creator-tag">项目所有者，不可修改</span>
-              </div>
-            </div>
-            <div class="agent-detail-view__field">
-              <label class="agent-detail-view__label">会话限制</label>
-              <span class="agent-detail-view__value">{{ selectedAgent?.sessionLimit }}</span>
-            </div>
-            <div class="agent-detail-view__actions">
-              <button type="button" class="agent-btn agent-btn--ghost" @click="agentDetailVisible = false">取消</button>
-              <button type="button" class="agent-btn agent-btn--primary" @click="handleSaveAgentRole">保存</button>
-            </div>
-          </div>
-        </div>
-      </template>
-
       <!-- 角色 Tab Content -->
-      <template v-if="activeTab === 'roles' && !roleDetailMode">
+      <template v-if="activeTab === 'roles'">
         <div class="settings-agents-panel__roles-area">
           <SettingsRolesPage
             @toast="(msg: string) => emit('toast', msg)"
-            @view-role="handleViewRole"
-            @edit-role="handleEditRole"
-            @create-role="handleCreateRole"
+            @view-role="(roleId: string) => emit('view-role', roleId)"
+            @edit-role="(roleId: string) => emit('edit-role', roleId)"
           />
         </div>
-      </template>
-
-      <!-- Role Detail/Create/Edit -->
-      <template v-if="activeTab === 'roles' && roleDetailMode">
-        <SettingsRoleDetailPage
-          :mode="roleDetailMode"
-          :role-id="roleDetailId"
-          :initial-name="roleDetailName"
-          :is-system-role="roleDetailIsSystem"
-          :bound-member-count="roleDetailMemberCount"
-          :initial-perms="roleDetailPerms"
-          @back="roleDetailMode = ''"
-          @save="handleRoleSave"
-          @toast="(msg: string) => emit('toast', msg)"
-        />
       </template>
     </article>
 
@@ -288,7 +221,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import SettingsRolesPage from "./SettingsRolesPage.vue";
-import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
 
 interface DisplayRow {
   id: string;
@@ -310,6 +242,10 @@ interface DisplayRow {
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "view-agent-detail", agent: DisplayRow): void;
+  (e: "view-role", roleId: string): void;
+  (e: "edit-role", roleId: string): void;
+  (e: "create-role"): void;
 }>();
 
 /* Current logged-in user */
@@ -319,8 +255,6 @@ const activeTab = ref<"agents" | "roles">("agents");
 
 const switchTab = (tab: "agents" | "roles") => {
   activeTab.value = tab;
-  agentDetailVisible.value = false;
-  roleDetailMode.value = "";
 };
 
 // ---- Dropdown menu ----
@@ -513,25 +447,18 @@ const handleDeleteAgent = (row: DisplayRow) => {
 };
 
 // ---- Agent detail ----
-const agentDetailVisible = ref(false);
-const selectedAgent = ref<DisplayRow | null>(null);
-const selectedAgentRole = ref("");
-
 const openAgentDetail = (row: DisplayRow) => {
   closeDropdown();
-  selectedAgent.value = row;
-  selectedAgentRole.value = row.roleName;
-  agentDetailVisible.value = true;
+  emit("view-agent-detail", row);
 };
 
-const handleSaveAgentRole = () => {
-  if (!selectedAgent.value) return;
-  const member = members.value.find((m) => m.id === selectedAgent.value!.id);
-  if (member) {
-    member.roleName = selectedAgentRole.value;
+// ---- Header action ----
+const handleHeaderAction = () => {
+  if (activeTab.value === "roles") {
+    emit("create-role");
+  } else {
+    openInviteModal();
   }
-  agentDetailVisible.value = false;
-  emit("toast", "保存成功");
 };
 
 // ---- Invite modal ----
@@ -586,68 +513,6 @@ const handleDeleteInvite = (row: DisplayRow) => {
   closeDropdown();
   inviteRecords.value = inviteRecords.value.filter((r) => r.id !== row.id);
   emit("toast", "已删除");
-};
-
-// ---- Role detail ----
-const roleDetailMode = ref<"" | "view" | "create" | "edit">("");
-const roleDetailId = ref("");
-const roleDetailName = ref("");
-const roleDetailIsSystem = ref(false);
-const roleDetailMemberCount = ref(0);
-const roleDetailPerms = ref<string[]>([]);
-
-const handleViewRole = (roleId: string) => {
-  roleDetailId.value = roleId;
-  if (roleId === "role-admin") {
-    roleDetailName.value = "管理员";
-    roleDetailIsSystem.value = true;
-    roleDetailMemberCount.value = 1;
-    roleDetailPerms.value = [];
-  } else if (roleId === "role-agent") {
-    roleDetailName.value = "客服";
-    roleDetailIsSystem.value = true;
-    roleDetailMemberCount.value = 4;
-    roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
-      "visitor-view",
-      "archive-view",
-      "personal-reply-view", "personal-reply-edit",
-      "public-reply-view",
-      "agent-list-view"
-    ];
-  } else {
-    roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
-    roleDetailIsSystem.value = false;
-    roleDetailMemberCount.value = roleId === "role-senior" ? 2 : 1;
-    roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
-      "visitor-view",
-      "archive-view",
-      "report-view",
-      "personal-reply-view", "personal-reply-edit",
-      "public-reply-view"
-    ];
-  }
-  roleDetailMode.value = "view";
-};
-
-const handleEditRole = (roleId: string) => {
-  handleViewRole(roleId);
-  roleDetailMode.value = "edit";
-};
-
-const handleCreateRole = () => {
-  roleDetailId.value = "";
-  roleDetailName.value = "";
-  roleDetailIsSystem.value = false;
-  roleDetailMemberCount.value = 0;
-  roleDetailPerms.value = [];
-  roleDetailMode.value = "create";
-};
-
-const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
-  roleDetailMode.value = "";
-  emit("toast", "保存成功");
 };
 </script>
 
@@ -758,6 +623,7 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
   display: flex;
   flex-shrink: 0;
   gap: 0;
+  margin-bottom: 4px;
   padding: 0 18px;
 }
 
@@ -1074,96 +940,8 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
 .settings-agents-panel__roles-area {
   flex: 1;
   min-height: 0;
-  padding: 18px;
-}
-
-/* Agent detail view */
-.agent-detail-view {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.agent-detail-view__header {
-  align-items: center;
-  border-bottom: 1px solid #edf1f5;
-  display: flex;
-  gap: 12px;
-  padding: 14px 18px;
-}
-
-.agent-detail-view__back {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: #105eff;
-  cursor: pointer;
-  display: inline-flex;
-  font-size: 14px;
-  gap: 4px;
-  padding: 0;
-}
-
-.agent-detail-view__back-arrow {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.agent-detail-view__back:hover {
-  text-decoration: underline;
-}
-
-.agent-detail-view__title {
-  color: #252525;
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.agent-detail-view__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 24px 18px;
-}
-
-.agent-detail-view__field {
-  margin-bottom: 20px;
-}
-
-.agent-detail-view__label {
-  color: #75869c;
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.agent-detail-view__value {
-  color: #252525;
-  font-size: 14px;
-}
-
-.agent-detail-view__role-select {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.agent-detail-view__select {
-  max-width: 200px;
-}
-
-.agent-detail-view__creator-tag {
-  color: #f59e0b;
-  font-size: 12px;
-}
-
-.agent-detail-view__actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 32px;
+  overflow: auto;
+  padding: 0 18px;
 }
 
 /* Invite modal */

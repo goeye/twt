@@ -99,7 +99,33 @@
       </article>
     </section>
 
-    <SettingsAgentsPage v-else-if="activeKey === 'agents'" @toast="emitToast" />
+    <SettingsAgentDetailPage
+      v-if="activeKey === 'agents' && agentDetailAgent"
+      :agent="agentDetailAgent"
+      @back="agentDetailAgent = null"
+      @save="handleAgentDetailSave"
+      @toast="emitToast"
+    />
+    <SettingsRoleDetailPage
+      v-else-if="activeKey === 'agents' && roleDetailMode"
+      :mode="roleDetailMode"
+      :role-id="roleDetailId"
+      :initial-name="roleDetailName"
+      :is-system-role="roleDetailIsSystem"
+      :bound-member-count="roleDetailMemberCount"
+      :initial-perms="roleDetailPerms"
+      @back="roleDetailMode = ''"
+      @save="handleRoleSave"
+      @toast="emitToast"
+    />
+    <SettingsAgentsPage
+      v-else-if="activeKey === 'agents'"
+      @toast="emitToast"
+      @view-agent-detail="handleViewAgentDetail"
+      @view-role="handleViewRole"
+      @edit-role="handleEditRole"
+      @create-role="handleCreateRole"
+    />
 
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
       <article class="settings-card agent-panel">
@@ -265,6 +291,8 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
 import { computed, ref } from "vue";
 import { DataTable, TimeDurationInput, type TableColumn } from "@twt/ui-agent";
 import SettingsAgentsPage from "./SettingsAgentsPage.vue";
+import SettingsAgentDetailPage from "./SettingsAgentDetailPage.vue";
+import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
 
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
@@ -302,6 +330,91 @@ const emit = defineEmits<{
 
 const chatPageBaseUrl = "https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59";
 const htmlDeploymentFileName = "twt-chat.html";
+
+/* Agent detail page */
+interface AgentDetailData {
+  id: string;
+  name?: string;
+  nickname?: string;
+  email?: string;
+  roleName?: string;
+  sessionLimit?: number;
+  avatarColor?: string;
+  avatarText?: string;
+  isSelf?: boolean;
+}
+
+const agentDetailAgent = ref<AgentDetailData | null>(null);
+
+const handleViewAgentDetail = (agent: AgentDetailData) => {
+  agentDetailAgent.value = { ...agent, isSelf: agent.id === "agent-cafe" };
+};
+
+const handleAgentDetailSave = (_data: { name: string; nickname: string; sessionLimit: string; email: string; project: string }) => {
+  agentDetailAgent.value = null;
+};
+
+/* Role detail page */
+const roleDetailMode = ref<"" | "view" | "create" | "edit">("");
+const roleDetailId = ref("");
+const roleDetailName = ref("");
+const roleDetailIsSystem = ref(false);
+const roleDetailMemberCount = ref(0);
+const roleDetailPerms = ref<string[]>([]);
+
+const handleViewRole = (roleId: string) => {
+  roleDetailId.value = roleId;
+  if (roleId === "role-admin") {
+    roleDetailName.value = "管理员";
+    roleDetailIsSystem.value = true;
+    roleDetailMemberCount.value = 1;
+    roleDetailPerms.value = [];
+  } else if (roleId === "role-agent") {
+    roleDetailName.value = "客服";
+    roleDetailIsSystem.value = true;
+    roleDetailMemberCount.value = 4;
+    roleDetailPerms.value = [
+      "conv-view", "conv-transfer", "conv-invite", "conv-close",
+      "visitor-view",
+      "archive-view",
+      "personal-reply-view", "personal-reply-edit",
+      "public-reply-view",
+      "agent-list-view"
+    ];
+  } else {
+    roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
+    roleDetailIsSystem.value = false;
+    roleDetailMemberCount.value = roleId === "role-senior" ? 2 : 1;
+    roleDetailPerms.value = [
+      "conv-view", "conv-transfer", "conv-invite", "conv-close",
+      "visitor-view",
+      "archive-view",
+      "report-view",
+      "personal-reply-view", "personal-reply-edit",
+      "public-reply-view"
+    ];
+  }
+  roleDetailMode.value = "view";
+};
+
+const handleEditRole = (roleId: string) => {
+  handleViewRole(roleId);
+  roleDetailMode.value = "edit";
+};
+
+const handleCreateRole = () => {
+  roleDetailId.value = "";
+  roleDetailName.value = "";
+  roleDetailIsSystem.value = false;
+  roleDetailMemberCount.value = 0;
+  roleDetailPerms.value = [];
+  roleDetailMode.value = "create";
+};
+
+const handleRoleSave = (_payload: { name: string; permissions: string[] }) => {
+  roleDetailMode.value = "";
+  emitToast("保存成功");
+};
 
 const chatParamColumns: TableColumn<ChatParameterRow>[] = [
   { key: "param", title: "参数名", width: "32%" },

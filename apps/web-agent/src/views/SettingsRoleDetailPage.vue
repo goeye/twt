@@ -1,39 +1,39 @@
 <template>
-  <section class="role-detail">
-    <header class="role-detail__header">
-      <button type="button" class="role-detail__back" @click="emit('back')">
-        <span class="role-detail__back-arrow">‹</span>
-        <span>返回</span>
-      </button>
-      <h2 class="role-detail__title">{{ headerTitle }}</h2>
-    </header>
+  <section class="role-detail-page agent-content-page agent-content-page--hide-scrollbar">
+    <article class="role-detail-page__card agent-panel">
+      <header class="role-detail-page__header">
+        <button type="button" class="role-detail-page__back" @click="emit('back')">
+          <span class="role-detail-page__back-arrow">‹</span>
+        </button>
+        <h2 class="role-detail-page__title">{{ headerTitle }}</h2>
+      </header>
 
-    <div class="role-detail__body agent-scroll">
+      <div class="role-detail-page__body agent-scroll">
       <!-- Role name -->
-      <div class="role-detail__field">
-        <label class="role-detail__label">角色名称</label>
+      <div class="role-detail-page__field">
+        <label class="role-detail-page__label">角色名称</label>
         <input
           v-if="editable"
           v-model="roleName"
-          class="agent-input role-detail__name-input"
+          class="agent-input role-detail-page__name-input"
           placeholder="请输入角色名称"
           maxlength="20"
         />
-        <span v-else class="role-detail__value">
+        <span v-else class="role-detail-page__value">
           {{ roleName }}
-          <span v-if="isSystemRole" class="role-detail__system-badge">系统角色</span>
+          <span v-if="isSystemRole" class="role-detail-page__system-badge">系统角色</span>
         </span>
       </div>
 
       <!-- Bound members count (view mode) -->
-      <div v-if="mode === 'view'" class="role-detail__field">
-        <label class="role-detail__label">绑定成员数</label>
-        <span class="role-detail__value">{{ boundMemberCount }}</span>
+      <div v-if="mode === 'view'" class="role-detail-page__field">
+        <label class="role-detail-page__label">关联客服数</label>
+        <span class="role-detail-page__value">{{ boundMemberCount }}</span>
       </div>
 
       <!-- Permission tree -->
-      <div class="role-detail__field role-detail__field--tree">
-        <label class="role-detail__label">权限配置</label>
+      <div class="role-detail-page__field role-detail-page__field--tree">
+        <label class="role-detail-page__label">权限配置</label>
         <div class="perm-tree">
           <div v-for="group in permissionTree" :key="group.key" class="perm-group">
             <div class="perm-group__header">
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <footer v-if="editable" class="role-detail__footer">
+    <footer v-if="editable" class="role-detail-page__footer">
       <button type="button" class="agent-btn agent-btn--ghost" @click="emit('back')">取消</button>
       <button
         type="button"
@@ -98,6 +98,7 @@
         @click="handleSave"
       >保存</button>
     </footer>
+    </article>
   </section>
 </template>
 
@@ -450,65 +451,76 @@ const handleSave = () => {
 </script>
 
 <style scoped>
-.role-detail {
+.role-detail-page {
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.role-detail-page__card {
+  background: #ffffff;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 
-.role-detail__header {
+.role-detail-page__header {
   align-items: center;
   border-bottom: 1px solid #edf1f5;
   display: flex;
-  gap: 12px;
-  padding: 14px 18px;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 18px 28px;
 }
 
-.role-detail__back {
+.role-detail-page__back {
   align-items: center;
   background: transparent;
   border: 0;
-  color: #105eff;
+  color: #252525;
   cursor: pointer;
   display: inline-flex;
-  font-size: 14px;
-  gap: 4px;
   padding: 0;
 }
 
-.role-detail__back-arrow {
-  font-size: 18px;
+.role-detail-page__back-arrow {
+  color: #252525;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1;
 }
 
-.role-detail__back:hover {
-  text-decoration: underline;
+.role-detail-page__back:hover {
+  opacity: 0.7;
 }
 
-.role-detail__title {
+.role-detail-page__title {
   color: #252525;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
 }
 
-.role-detail__body {
+.role-detail-page__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 24px 18px;
+  padding: 28px 28px 40px;
 }
 
-.role-detail__field {
+.role-detail-page__field {
   margin-bottom: 24px;
 }
 
-.role-detail__field--tree {
+.role-detail-page__field--tree {
   margin-bottom: 0;
 }
 
-.role-detail__label {
+.role-detail-page__label {
   color: #75869c;
   display: block;
   font-size: 13px;
@@ -516,7 +528,7 @@ const handleSave = () => {
   margin-bottom: 8px;
 }
 
-.role-detail__value {
+.role-detail-page__value {
   align-items: center;
   color: #252525;
   display: inline-flex;
@@ -524,7 +536,7 @@ const handleSave = () => {
   gap: 8px;
 }
 
-.role-detail__system-badge {
+.role-detail-page__system-badge {
   background: #dce9ff;
   border-radius: 4px;
   color: #105eff;
@@ -533,7 +545,7 @@ const handleSave = () => {
   padding: 1px 6px;
 }
 
-.role-detail__name-input {
+.role-detail-page__name-input {
   max-width: 360px;
   width: 100%;
 }
@@ -647,12 +659,12 @@ const handleSave = () => {
   font-size: 13px;
 }
 
-.role-detail__footer {
+.role-detail-page__footer {
   align-items: center;
   border-top: 1px solid #edf1f5;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding: 14px 18px;
+  padding: 14px 28px;
 }
 </style>

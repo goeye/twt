@@ -1,25 +1,11 @@
 <template>
-  <section class="roles-page">
-    <header class="roles-page__header">
-      <h2 class="roles-page__title">角色管理</h2>
-      <button
-        type="button"
-        class="agent-btn agent-btn--primary roles-page__add-btn"
-        @click="emit('create-role')"
-      >
-        <span class="roles-page__add-icon">+</span>
-        <span>新增角色</span>
-      </button>
-    </header>
-
+  <section class="roles-page" @click="closeDropdown">
     <div class="roles-page__table-area agent-scroll">
       <table class="roles-table">
         <thead>
           <tr>
             <th>角色名称</th>
-            <th>角色类型</th>
-            <th>权限概览</th>
-            <th>绑定成员数</th>
+            <th>关联客服数</th>
             <th>创建人</th>
             <th>创建时间</th>
             <th>操作</th>
@@ -32,24 +18,6 @@
                 {{ role.name }}
               </button>
             </td>
-            <td>
-              <span
-                class="roles-table__type-badge"
-                :class="{ 'roles-table__type-badge--system': role.isSystem }"
-              >
-                {{ role.isSystem ? '系统角色' : '自定义角色' }}
-              </span>
-            </td>
-            <td>
-              <div class="roles-table__perm-tags">
-                <span
-                  v-for="perm in role.permissionSummary"
-                  :key="perm"
-                  class="roles-table__perm-tag"
-                >{{ perm }}</span>
-                <span v-if="role.permissionSummary.length === 0" class="roles-table__perm-empty">—</span>
-              </div>
-            </td>
             <td>{{ role.memberCount }}</td>
             <td>{{ role.creator }}</td>
             <td>{{ role.createdAt }}</td>
@@ -57,21 +25,31 @@
               <div class="roles-table__actions">
                 <button
                   type="button"
-                  class="roles-table__action-link"
-                  @click="emit('view-role', role.id)"
-                >查看</button>
-                <template v-if="!role.isSystem">
+                  class="roles-table__more-btn"
+                  @click.stop="toggleDropdown(role.id)"
+                >···</button>
+                <div
+                  v-if="activeDropdownId === role.id"
+                  class="roles-table__dropdown"
+                >
                   <button
                     type="button"
-                    class="roles-table__action-link"
-                    @click="emit('edit-role', role.id)"
-                  >编辑</button>
-                  <button
-                    type="button"
-                    class="roles-table__action-link roles-table__action-link--danger"
-                    @click="handleDeleteRole(role)"
-                  >删除</button>
-                </template>
+                    class="roles-table__dropdown-item"
+                    @click="handleAction('view', role)"
+                  >查看</button>
+                  <template v-if="!role.isSystem">
+                    <button
+                      type="button"
+                      class="roles-table__dropdown-item"
+                      @click="handleAction('edit', role)"
+                    >编辑</button>
+                    <button
+                      type="button"
+                      class="roles-table__dropdown-item roles-table__dropdown-item--danger"
+                      @click="handleAction('delete', role)"
+                    >删除</button>
+                  </template>
+                </div>
               </div>
             </td>
           </tr>
@@ -117,7 +95,6 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "view-role", roleId: string): void;
   (e: "edit-role", roleId: string): void;
-  (e: "create-role"): void;
 }>();
 
 const roles = ref<RoleItem[]>([
@@ -159,6 +136,25 @@ const roles = ref<RoleItem[]>([
   }
 ]);
 
+// ---- Dropdown ----
+const activeDropdownId = ref<string | null>(null);
+
+const toggleDropdown = (roleId: string) => {
+  activeDropdownId.value = activeDropdownId.value === roleId ? null : roleId;
+};
+
+const closeDropdown = () => {
+  activeDropdownId.value = null;
+};
+
+const handleAction = (action: "view" | "edit" | "delete", role: RoleItem) => {
+  closeDropdown();
+  if (action === "view") emit("view-role", role.id);
+  else if (action === "edit") emit("edit-role", role.id);
+  else handleDeleteRole(role);
+};
+
+// ---- Delete ----
 const deleteConfirmVisible = ref(false);
 const deleteTargetRole = ref<RoleItem | null>(null);
 
@@ -170,7 +166,7 @@ const canDeleteTarget = computed(() => {
 const deleteMessage = computed(() => {
   if (!deleteTargetRole.value) return "";
   if (deleteTargetRole.value.memberCount > 0) {
-    return `角色「${deleteTargetRole.value.name}」当前仍有 ${deleteTargetRole.value.memberCount} 位绑定成员，请先调整成员角色后再删除。`;
+    return `角色「${deleteTargetRole.value.name}」当前仍有 ${deleteTargetRole.value.memberCount} 位关联客服，请先调整成员角色后再删除。`;
   }
   return `确定要删除角色「${deleteTargetRole.value.name}」吗？删除后不可恢复。`;
 });
@@ -196,37 +192,6 @@ const confirmDelete = () => {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-}
-
-.roles-page__header {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 0 16px;
-}
-
-.roles-page__title {
-  color: #252525;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.roles-page__add-btn {
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  gap: 4px;
-  min-width: 96px;
-  padding: 7px 12px 7px 10px;
-}
-
-.roles-page__add-icon {
-  display: inline-block;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
-  transform: translateY(-0.5px);
 }
 
 .roles-page__table-area {
@@ -260,13 +225,11 @@ const confirmDelete = () => {
   padding-bottom: 8px;
 }
 
-.roles-table th:nth-child(1) { width: 12%; }
-.roles-table th:nth-child(2) { width: 10%; }
-.roles-table th:nth-child(3) { width: 30%; }
-.roles-table th:nth-child(4) { width: 10%; }
-.roles-table th:nth-child(5) { width: 10%; }
-.roles-table th:nth-child(6) { width: 14%; }
-.roles-table th:nth-child(7) { width: 14%; }
+.roles-table th:nth-child(1) { width: 18%; }
+.roles-table th:nth-child(2) { width: 12%; }
+.roles-table th:nth-child(3) { width: 12%; }
+.roles-table th:nth-child(4) { width: 18%; }
+.roles-table th:nth-child(5) { width: 6%; }
 
 .roles-table__name-link {
   background: transparent;
@@ -283,60 +246,67 @@ const confirmDelete = () => {
   text-decoration: underline;
 }
 
-.roles-table__type-badge {
-  background: #f0f3f7;
-  border-radius: 4px;
-  color: #75869c;
-  display: inline-flex;
-  font-size: 12px;
-  line-height: 18px;
-  padding: 1px 8px;
-}
-
-.roles-table__type-badge--system {
-  background: #dce9ff;
-  color: #105eff;
-}
-
-.roles-table__perm-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.roles-table__perm-tag {
-  background: #f5f7f9;
-  border-radius: 4px;
-  color: #4b5563;
-  font-size: 12px;
-  line-height: 18px;
-  padding: 1px 6px;
-}
-
-.roles-table__perm-empty {
-  color: #c7cdd8;
-}
-
+/* Dropdown actions */
 .roles-table__actions {
-  align-items: center;
-  display: flex;
-  gap: 12px;
+  position: relative;
 }
 
-.roles-table__action-link {
+.roles-table__more-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #dbe1ea;
+  border-radius: 6px;
+  color: #75869c;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding: 0 8px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.roles-table__more-btn:hover {
+  background: #f5f7f9;
+  border-color: #c7cdd8;
+}
+
+.roles-table__dropdown {
+  background: #ffffff;
+  border: 1px solid #edf1f5;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+}
+
+.roles-table__dropdown-item {
   background: transparent;
   border: 0;
-  color: #105eff;
+  color: #252525;
   cursor: pointer;
   font-size: 13px;
-  padding: 0;
+  line-height: 20px;
+  padding: 8px 16px;
+  text-align: left;
+  transition: background-color 0.1s;
+  white-space: nowrap;
 }
 
-.roles-table__action-link:hover {
-  text-decoration: underline;
+.roles-table__dropdown-item:hover {
+  background: #f5f7f9;
 }
 
-.roles-table__action-link--danger {
+.roles-table__dropdown-item--danger {
   color: #ef4444;
 }
 
