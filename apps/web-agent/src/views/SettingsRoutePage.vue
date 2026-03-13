@@ -112,14 +112,14 @@
       :role-id="roleDetailId"
       :initial-name="roleDetailName"
       :is-system-role="roleDetailIsSystem"
-      :bound-member-count="roleDetailMemberCount"
       :initial-perms="roleDetailPerms"
-      @back="roleDetailMode = ''"
+      @back="handleRoleBack"
       @save="handleRoleSave"
       @toast="emitToast"
     />
     <SettingsAgentsPage
       v-else-if="activeKey === 'agents'"
+      :initial-tab="agentsInitialTab"
       @toast="emitToast"
       @view-agent-detail="handleViewAgentDetail"
       @view-role="handleViewRole"
@@ -359,38 +359,40 @@ const roleDetailMode = ref<"" | "view" | "create" | "edit">("");
 const roleDetailId = ref("");
 const roleDetailName = ref("");
 const roleDetailIsSystem = ref(false);
-const roleDetailMemberCount = ref(0);
 const roleDetailPerms = ref<string[]>([]);
+const agentsInitialTab = ref<"agents" | "roles">("agents");
+
+const handleRoleBack = () => {
+  agentsInitialTab.value = "roles";
+  roleDetailMode.value = "";
+};
 
 const handleViewRole = (roleId: string) => {
   roleDetailId.value = roleId;
   if (roleId === "role-admin") {
     roleDetailName.value = "管理员";
     roleDetailIsSystem.value = true;
-    roleDetailMemberCount.value = 1;
     roleDetailPerms.value = [];
   } else if (roleId === "role-agent") {
     roleDetailName.value = "客服";
     roleDetailIsSystem.value = true;
-    roleDetailMemberCount.value = 4;
     roleDetailPerms.value = [
-      "files",
-      "visitors",
-      "customer",
-      "settings-agent-list", "settings-agent-list-view",
-      "settings-quick-reply"
+      "conv-view", "conv-transfer", "conv-invite", "conv-close",
+      "archive-view",
+      "visitor-manage",
+      "agent-list-view",
+      "reply-manage"
     ];
   } else {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
     roleDetailIsSystem.value = false;
-    roleDetailMemberCount.value = roleId === "role-senior" ? 2 : 1;
     roleDetailPerms.value = [
-      "files",
-      "visitors",
-      "customer",
-      "report",
-      "settings-agent-list", "settings-agent-list-view", "settings-agent-list-edit",
-      "settings-quick-reply"
+      "conv-view", "conv-transfer", "conv-invite", "conv-close",
+      "archive-view",
+      "visitor-manage",
+      "report-view",
+      "reply-manage",
+      ...(roleId === "role-supervisor" ? ["agent-list-view", "agent-manage"] : [])
     ];
   }
   roleDetailMode.value = "view";
@@ -405,14 +407,15 @@ const handleCreateRole = () => {
   roleDetailId.value = "";
   roleDetailName.value = "";
   roleDetailIsSystem.value = false;
-  roleDetailMemberCount.value = 0;
   roleDetailPerms.value = [];
   roleDetailMode.value = "create";
 };
 
 const handleRoleSave = (_payload: { name: string; permissions: string[] }) => {
+  const msg = roleDetailMode.value === "create" ? "新增成功" : "编辑成功";
+  agentsInitialTab.value = "roles";
   roleDetailMode.value = "";
-  emitToast("保存成功");
+  emitToast(msg);
 };
 
 const chatParamColumns: TableColumn<ChatParameterRow>[] = [

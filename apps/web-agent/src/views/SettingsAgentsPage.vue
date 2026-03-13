@@ -70,7 +70,7 @@
                   </div>
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
-                <td>{{ row.isInvite ? '待激活' : (row.nickname || '-') }}</td>
+                <td>{{ row.isInvite ? '-' : (row.nickname || '-') }}</td>
                 <td>
                   <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
                 </td>
@@ -254,6 +254,13 @@ interface DisplayRow {
   reinviteCooldown?: boolean;
 }
 
+const props = withDefaults(
+  defineProps<{
+    initialTab?: "agents" | "roles";
+  }>(),
+  { initialTab: "agents" }
+);
+
 const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "view-agent-detail", agent: DisplayRow): void;
@@ -265,7 +272,7 @@ const emit = defineEmits<{
 /* Current logged-in user */
 const currentUserId = "agent-cafe";
 
-const activeTab = ref<"agents" | "roles">("agents");
+const activeTab = ref<"agents" | "roles">(props.initialTab);
 
 const switchTab = (tab: "agents" | "roles") => {
   activeTab.value = tab;
@@ -385,7 +392,7 @@ const inviteRecords = ref([
     email: "expired@example.com",
     roleName: "高级客服",
     invitedAt: "2025-11-20 09:00",
-    status: "已过期",
+    status: "待激活",
     reinviteCooldown: false
   }
 ]);
@@ -438,8 +445,7 @@ const getOnlineStatusClass = (status?: string) => {
   return "";
 };
 
-const getInviteStatusClass = (status?: string) => {
-  if (status === "已过期") return "settings-agents-table__invite-status--expired";
+const getInviteStatusClass = (_status?: string) => {
   return "";
 };
 
@@ -850,11 +856,6 @@ const handleDeleteInvite = (row: DisplayRow) => {
   font-size: 12px;
   line-height: 18px;
   padding: 1px 8px;
-}
-
-.settings-agents-table__invite-status--expired {
-  background: #fee2e2;
-  color: #dc2626;
 }
 
 .settings-agents-table__actions {

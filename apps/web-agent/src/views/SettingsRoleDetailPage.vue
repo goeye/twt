@@ -19,16 +19,7 @@
           placeholder="请输入角色名称"
           maxlength="50"
         />
-        <span v-else class="role-detail-page__value">
-          {{ roleName }}
-          <span v-if="isSystemRole" class="role-detail-page__system-badge">系统角色</span>
-        </span>
-      </div>
-
-      <!-- Bound members count (view mode) -->
-      <div v-if="mode === 'view'" class="role-detail-page__field">
-        <label class="role-detail-page__label">关联客服数</label>
-        <span class="role-detail-page__value">{{ boundMemberCount }}</span>
+        <span v-else class="role-detail-page__value">{{ roleName }}</span>
       </div>
 
       <!-- Permission tree -->
@@ -88,8 +79,8 @@
       </div>
     </div>
 
-    <footer v-if="editable" class="role-detail-page__footer">
-      <button type="button" class="agent-btn agent-btn--ghost" @click="emit('back')">取消</button>
+    <footer v-if="editable" class="role-detail-page__footer" :class="{ 'role-detail-page__footer--start': mode === 'create' }">
+      <button v-if="mode !== 'create'" type="button" class="agent-btn agent-btn--ghost" @click="emit('back')">取消</button>
       <button
         type="button"
         class="agent-btn agent-btn--primary"
@@ -129,14 +120,12 @@ const props = withDefaults(
     roleId?: string;
     initialName?: string;
     isSystemRole?: boolean;
-    boundMemberCount?: number;
     initialPerms?: string[];
   }>(),
   {
     roleId: "",
     initialName: "",
     isSystemRole: false,
-    boundMemberCount: 0,
     initialPerms: () => []
   }
 );
@@ -158,33 +147,73 @@ const headerTitle = computed(() => {
 const roleName = ref(props.initialName);
 
 // Permission tree definition
-// 一级菜单可见权限 + 设置下的子页面权限 + 客服列表特殊处理（查看/编辑）
 const permissionTree: PermGroup[] = [
-  { key: "files", label: "档案" },
-  { key: "visitors", label: "访客" },
-  { key: "customer", label: "客户" },
-  { key: "campaign", label: "营销" },
-  { key: "report", label: "报表" },
-  { key: "ai-agent", label: "AI Agent" },
+  {
+    key: "archive",
+    label: "档案",
+    children: [
+      { key: "archive-view", label: "查看档案" },
+      { key: "archive-manage", label: "管理档案" }
+    ]
+  },
+  {
+    key: "visitor",
+    label: "访客",
+    children: [
+      { key: "visitor-manage", label: "管理访客" }
+    ]
+  },
+  {
+    key: "customer",
+    label: "客户",
+    children: [
+      { key: "customer-manage", label: "管理客户" }
+    ]
+  },
+  {
+    key: "report",
+    label: "报表",
+    children: [
+      { key: "report-view", label: "查看报表" }
+    ]
+  },
+  {
+    key: "campaign",
+    label: "营销",
+    children: [
+      { key: "campaign-manage", label: "管理营销" }
+    ]
+  },
+  {
+    key: "team",
+    label: "团队",
+    children: [
+      {
+        key: "agent",
+        label: "客服",
+        features: [
+          { key: "agent-list-view", label: "查看客服" },
+          { key: "agent-manage", label: "管理客服" }
+        ]
+      },
+      {
+        key: "team-settings",
+        label: "客服设置",
+        features: [
+          { key: "team-settings-manage", label: "管理客服设置" }
+        ]
+      }
+    ]
+  },
   {
     key: "settings",
     label: "设置",
     children: [
-      { key: "settings-install", label: "安装" },
-      { key: "settings-customize", label: "自定义" },
-      {
-        key: "settings-agent-list",
-        label: "客服列表",
-        features: [
-          { key: "settings-agent-list-view", label: "查看" },
-          { key: "settings-agent-list-edit", label: "编辑" }
-        ]
-      },
-      { key: "settings-agent-settings", label: "客服设置" },
-      { key: "settings-quick-reply", label: "快捷回复" },
-      { key: "settings-tags", label: "标签管理" },
-      { key: "settings-security", label: "安全设置" },
-      { key: "settings-dev", label: "开发设置" }
+      { key: "install-manage", label: "管理安装" },
+      { key: "reply-manage", label: "管理快捷回复" },
+      { key: "tags-manage", label: "管理标签" },
+      { key: "security-manage", label: "管理安全" },
+      { key: "dev-settings-manage", label: "管理开发设置" }
     ]
   }
 ];
@@ -193,9 +222,7 @@ const permissionTree: PermGroup[] = [
 const getAllKeys = (): string[] => {
   const keys: string[] = [];
   for (const group of permissionTree) {
-    if (!group.children || group.children.length === 0) {
-      keys.push(group.key);
-    } else {
+    if (group.children) {
       for (const child of group.children) {
         keys.push(child.key);
         if (child.features) {
@@ -215,16 +242,12 @@ const initPerms = (): Set<string> => {
     return new Set(props.initialPerms);
   }
   if (props.mode === "create") {
-    // Default: basic page permissions
-    return new Set([
-      "files",
-      "visitors",
-      "customer"
-    ]);
+    return new Set();
   }
   if (props.isSystemRole && props.initialName === "管理员") {
-    // Admin gets all permissions
-    return new Set(getAllKeys());
+    // Admin gets all permissions + conversation
+    const allKeys = getAllKeys();
+    return new Set([...allKeys, "conv-view", "conv-transfer", "conv-invite", "conv-close"]);
   }
   return new Set();
 };
@@ -233,15 +256,14 @@ const checkedPerms = ref<Set<string>>(initPerms());
 
 // Group-level check state
 const getGroupChildKeys = (group: PermGroup): string[] => {
-  if (!group.children || group.children.length === 0) {
-    return [group.key];
-  }
   const keys: string[] = [];
-  for (const child of group.children) {
-    keys.push(child.key);
-    if (child.features) {
-      for (const feat of child.features) {
-        keys.push(feat.key);
+  if (group.children) {
+    for (const child of group.children) {
+      keys.push(child.key);
+      if (child.features) {
+        for (const feat of child.features) {
+          keys.push(feat.key);
+        }
       }
     }
   }
@@ -422,15 +444,6 @@ const handleSave = () => {
   gap: 8px;
 }
 
-.role-detail-page__system-badge {
-  background: #dce9ff;
-  border-radius: 4px;
-  color: #105eff;
-  font-size: 11px;
-  line-height: 16px;
-  padding: 1px 6px;
-}
-
 .role-detail-page__name-input {
   max-width: 360px;
   width: 100%;
@@ -547,5 +560,9 @@ const handleSave = () => {
   gap: 12px;
   justify-content: flex-end;
   padding: 14px 28px;
+}
+
+.role-detail-page__footer--start {
+  justify-content: flex-start;
 }
 </style>

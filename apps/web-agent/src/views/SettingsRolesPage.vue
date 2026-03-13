@@ -14,9 +14,7 @@
         <tbody>
           <tr v-for="role in roles" :key="role.id">
             <td>
-              <button type="button" class="roles-table__name-link" @click="emit('view-role', role.id)">
-                {{ role.name }}
-              </button>
+              <span class="roles-table__name">{{ role.name }}</span>
             </td>
             <td>{{ role.memberCount }}</td>
             <td>{{ role.creator }}</td>
@@ -61,14 +59,13 @@
     <Teleport to="body">
       <div v-if="deleteConfirmVisible" class="roles-modal-overlay" @click.self="deleteConfirmVisible = false">
         <div class="roles-modal">
-          <h3 class="roles-modal__title">确认删除</h3>
-          <p class="roles-modal__desc">{{ deleteMessage }}</p>
+          <h3 class="roles-modal__title">删除角色</h3>
+          <p class="roles-modal__desc">删除后不可恢复、确认删除？</p>
           <div class="roles-modal__actions">
             <button type="button" class="agent-btn agent-btn--ghost" @click="deleteConfirmVisible = false">取消</button>
             <button
               type="button"
               class="agent-btn agent-btn--danger"
-              :disabled="!canDeleteTarget"
               @click="confirmDelete"
             >删除</button>
           </div>
@@ -79,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 
 interface RoleItem {
   id: string;
@@ -111,7 +108,7 @@ const roles = ref<RoleItem[]>([
     id: "role-agent",
     name: "客服",
     isSystem: true,
-    permissionSummary: ["档案", "访客", "客户", "客服列表(查看)", "快捷回复"],
+    permissionSummary: ["档案", "访客", "团队", "设置"],
     memberCount: 4,
     creator: "系统",
     createdAt: "2025-01-01 00:00"
@@ -120,7 +117,7 @@ const roles = ref<RoleItem[]>([
     id: "role-senior",
     name: "高级客服",
     isSystem: false,
-    permissionSummary: ["档案", "访客", "客户", "报表", "客服列表", "快捷回复"],
+    permissionSummary: ["档案", "访客", "报表", "设置"],
     memberCount: 2,
     creator: "Cafe",
     createdAt: "2025-06-15 14:30"
@@ -129,7 +126,7 @@ const roles = ref<RoleItem[]>([
     id: "role-supervisor",
     name: "主管",
     isSystem: false,
-    permissionSummary: ["档案", "访客", "客户", "报表", "客服列表", "快捷回复"],
+    permissionSummary: ["档案", "访客", "报表", "团队", "设置"],
     memberCount: 1,
     creator: "Cafe",
     createdAt: "2025-08-20 09:00"
@@ -158,31 +155,23 @@ const handleAction = (action: "view" | "edit" | "delete", role: RoleItem) => {
 const deleteConfirmVisible = ref(false);
 const deleteTargetRole = ref<RoleItem | null>(null);
 
-const canDeleteTarget = computed(() => {
-  if (!deleteTargetRole.value) return false;
-  return deleteTargetRole.value.memberCount === 0;
-});
-
-const deleteMessage = computed(() => {
-  if (!deleteTargetRole.value) return "";
-  if (deleteTargetRole.value.memberCount > 0) {
-    return `角色「${deleteTargetRole.value.name}」当前仍有 ${deleteTargetRole.value.memberCount} 位关联客服，请先调整成员角色后再删除。`;
-  }
-  return `确定要删除角色「${deleteTargetRole.value.name}」吗？删除后不可恢复。`;
-});
-
 const handleDeleteRole = (role: RoleItem) => {
   deleteTargetRole.value = role;
   deleteConfirmVisible.value = true;
 };
 
 const confirmDelete = () => {
-  if (!deleteTargetRole.value || !canDeleteTarget.value) return;
-  const name = deleteTargetRole.value.name;
+  if (!deleteTargetRole.value) return;
+  if (deleteTargetRole.value.memberCount > 0) {
+    deleteConfirmVisible.value = false;
+    emit("toast", `当前角色有 ${deleteTargetRole.value.memberCount} 个关联客服，暂无法删除`);
+    deleteTargetRole.value = null;
+    return;
+  }
   roles.value = roles.value.filter((r) => r.id !== deleteTargetRole.value!.id);
   deleteConfirmVisible.value = false;
   deleteTargetRole.value = null;
-  emit("toast", `角色「${name}」已删除`);
+  emit("toast", "删除成功");
 };
 </script>
 
@@ -231,19 +220,10 @@ const confirmDelete = () => {
 .roles-table th:nth-child(4) { width: 18%; }
 .roles-table th:nth-child(5) { width: 6%; }
 
-.roles-table__name-link {
-  background: transparent;
-  border: 0;
-  color: #105eff;
-  cursor: pointer;
+.roles-table__name {
+  color: #222222;
   font-size: 13px;
   font-weight: 500;
-  padding: 0;
-  text-decoration: none;
-}
-
-.roles-table__name-link:hover {
-  text-decoration: underline;
 }
 
 /* Dropdown actions */
@@ -338,7 +318,7 @@ const confirmDelete = () => {
 }
 
 .roles-modal__desc {
-  color: #4b5563;
+  color: #75869c;
   font-size: 14px;
   line-height: 1.5;
   margin: 0 0 20px;
