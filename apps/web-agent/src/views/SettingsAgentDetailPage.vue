@@ -33,22 +33,22 @@
         <div class="agent-detail-page__row">
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label"><span class="agent-detail-page__required">*</span> 姓名</label>
-            <input v-model="form.name" class="agent-input agent-detail-page__input" placeholder="请输入姓名" />
+            <input v-model="form.name" class="agent-input agent-detail-page__input" placeholder="请输入姓名" @blur="handleBlur('name')" />
           </div>
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label"><span class="agent-detail-page__required">*</span> 昵称</label>
-            <input v-model="form.nickname" class="agent-input agent-detail-page__input" placeholder="请输入昵称" />
+            <input v-model="form.nickname" class="agent-input agent-detail-page__input" placeholder="请输入昵称" @blur="handleBlur('nickname')" />
           </div>
         </div>
 
         <div class="agent-detail-page__row">
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label">会话限制</label>
-            <input v-model="form.sessionLimit" class="agent-input agent-detail-page__input" type="number" placeholder="请输入会话限制" />
+            <input v-model="form.sessionLimit" class="agent-input agent-detail-page__input" type="number" placeholder="请输入会话限制" @blur="handleBlur('sessionLimit')" />
           </div>
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label">角色</label>
-            <select v-model="form.roleName" class="agent-input agent-detail-page__input agent-detail-page__select" :disabled="agent.isSelf">
+            <select v-model="form.roleName" class="agent-input agent-detail-page__input agent-detail-page__select" :disabled="agent.isSelf" @change="handleAutoSave">
               <option value="管理员">管理员</option>
               <option value="客服">客服</option>
               <option value="高级客服">高级客服</option>
@@ -60,16 +60,12 @@
         <div class="agent-detail-page__row">
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label">邮箱</label>
-            <input v-model="form.email" class="agent-input agent-detail-page__input" :disabled="agent.isSelf" placeholder="请输入邮箱" />
+            <input v-model="form.email" class="agent-input agent-detail-page__input" :disabled="agent.isSelf" placeholder="请输入邮箱" @blur="handleBlur('email')" />
           </div>
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label">所属项目</label>
-            <input v-model="form.project" class="agent-input agent-detail-page__input" :disabled="agent.isSelf" placeholder="请输入所属项目" />
+            <input v-model="form.project" class="agent-input agent-detail-page__input" :disabled="agent.isSelf" placeholder="请输入所属项目" @blur="handleBlur('project')" />
           </div>
-        </div>
-
-        <div class="agent-detail-page__actions">
-          <button type="button" class="agent-btn agent-btn--primary" @click="handleSave">保存</button>
         </div>
       </div>
     </article>
@@ -110,7 +106,16 @@ const form = reactive({
   project: "Chat"
 });
 
-const handleSave = () => {
+const handleBlur = (field: keyof typeof form) => {
+  const value = String(form[field]).trim();
+  if (value === "") {
+    emit("toast", "输入内容不能为空");
+    return;
+  }
+  handleAutoSave();
+};
+
+const handleAutoSave = () => {
   emit("save", { ...form });
   emit("toast", "保存成功");
 };
@@ -328,7 +333,4 @@ const handleSave = () => {
   appearance: auto;
 }
 
-.agent-detail-page__actions {
-  margin-top: 12px;
-}
 </style>

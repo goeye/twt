@@ -17,7 +17,7 @@
           v-model="roleName"
           class="agent-input role-detail-page__name-input"
           placeholder="请输入角色名称"
-          maxlength="20"
+          maxlength="50"
         />
         <span v-else class="role-detail-page__value">
           {{ roleName }}
@@ -47,7 +47,6 @@
                 />
                 <span class="perm-group__title">{{ group.label }}</span>
               </label>
-              <span class="perm-group__desc">{{ group.desc }}</span>
             </div>
 
             <!-- Sub menus -->
@@ -121,7 +120,6 @@ interface PermItem {
 interface PermGroup {
   key: string;
   label: string;
-  desc?: string;
   children?: PermItem[];
 }
 
@@ -162,25 +160,8 @@ const roleName = ref(props.initialName);
 // Permission tree definition
 const permissionTree: PermGroup[] = [
   {
-    key: "conversation",
-    label: "会话",
-    desc: "管理和处理客服会话",
-    children: [
-      {
-        key: "conv-view",
-        label: "查看会话",
-        features: [
-          { key: "conv-transfer", label: "转移会话" },
-          { key: "conv-invite", label: "添加客服" },
-          { key: "conv-close", label: "结束会话" }
-        ]
-      }
-    ]
-  },
-  {
     key: "visitor",
     label: "访客",
-    desc: "查看和管理访客信息",
     children: [
       {
         key: "visitor-view",
@@ -195,7 +176,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "archive",
     label: "档案",
-    desc: "查看历史会话和聊天记录",
     children: [
       {
         key: "archive-view",
@@ -206,7 +186,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "team",
     label: "客服管理",
-    desc: "管理客服团队和角色",
     children: [
       {
         key: "agent-list-view",
@@ -247,7 +226,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "quick-reply",
     label: "快捷回复",
-    desc: "管理快捷回复模板",
     children: [
       {
         key: "personal-reply-view",
@@ -268,7 +246,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "settings",
     label: "设置",
-    desc: "系统安装与配置",
     children: [
       { key: "install-view", label: "安装" },
       { key: "customize-view", label: "自定义" },
@@ -280,7 +257,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "report",
     label: "报表",
-    desc: "查看统计数据和报表",
     children: [
       { key: "report-view", label: "查看报表" }
     ]
@@ -288,7 +264,6 @@ const permissionTree: PermGroup[] = [
   {
     key: "campaign",
     label: "营销",
-    desc: "管理营销活动",
     children: [
       { key: "campaign-view", label: "查看营销" },
       {
@@ -328,7 +303,7 @@ const initPerms = (): Set<string> => {
     return new Set(props.initialPerms);
   }
   if (props.mode === "create") {
-    // Default from 客服 template
+    // Default: all roles have conversation permissions
     return new Set([
       "conv-view", "conv-transfer", "conv-invite", "conv-close",
       "visitor-view",
@@ -339,7 +314,9 @@ const initPerms = (): Set<string> => {
     ]);
   }
   if (props.isSystemRole && props.initialName === "管理员") {
-    return new Set(getAllKeys());
+    // Admin gets all permissions + conversation
+    const allKeys = getAllKeys();
+    return new Set([...allKeys, "conv-view", "conv-transfer", "conv-invite", "conv-close"]);
   }
   return new Set();
 };
@@ -591,11 +568,6 @@ const handleSave = () => {
   color: #252525;
   font-size: 14px;
   font-weight: 600;
-}
-
-.perm-group__desc {
-  color: #9ca3af;
-  font-size: 12px;
 }
 
 .perm-group__children {

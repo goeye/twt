@@ -70,7 +70,7 @@
                   </div>
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
-                <td>{{ row.isInvite ? '待激活' : row.nickname }}</td>
+                <td>{{ row.isInvite ? '待激活' : (row.nickname || '-') }}</td>
                 <td>
                   <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
                 </td>
@@ -180,19 +180,30 @@
       </template>
     </article>
 
+    <!-- Delete confirmation modal -->
+    <Teleport to="body">
+      <div v-if="deleteConfirmVisible" class="delete-confirm-overlay" @click.self="deleteConfirmVisible = false">
+        <div class="delete-confirm">
+          <h3 class="delete-confirm__title">删除客服</h3>
+          <p class="delete-confirm__desc">删除后不可恢复，确认删除？</p>
+          <footer class="delete-confirm__footer">
+            <button type="button" class="agent-btn agent-btn--ghost delete-confirm__cancel" @click="deleteConfirmVisible = false">取 消</button>
+            <button type="button" class="agent-btn agent-btn--primary delete-confirm__ok" @click="confirmDeleteAgent">确认删除</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Invite modal -->
     <Teleport to="body">
       <div v-if="inviteModalVisible" class="invite-modal-overlay" @click.self="inviteModalVisible = false">
         <div class="invite-modal">
           <header class="invite-modal__header">
-            <h3 class="invite-modal__title">邀请成员</h3>
+            <h3 class="invite-modal__title">邀请客服加入你的团队</h3>
             <button type="button" class="invite-modal__close" @click="inviteModalVisible = false">×</button>
           </header>
           <div class="invite-modal__body">
-            <div class="invite-modal__field">
-              <label class="invite-modal__label">邮箱地址</label>
-              <input v-model="inviteEmail" class="agent-input" placeholder="请输入邮箱地址" />
-            </div>
+            <p class="invite-modal__desc">团队成员将通过电子邮件被邀请，最多一次可以发送 10 个邀请</p>
             <div class="invite-modal__field">
               <label class="invite-modal__label">角色</label>
               <select v-model="inviteRole" class="agent-input invite-modal__select">
@@ -202,16 +213,19 @@
                 <option value="主管">主管</option>
               </select>
             </div>
-          </div>
-          <footer class="invite-modal__footer">
-            <button type="button" class="agent-btn agent-btn--ghost" @click="inviteModalVisible = false">取消</button>
+            <textarea
+              v-model="inviteEmail"
+              class="agent-input invite-modal__textarea"
+              placeholder="请输入电子邮箱地址"
+              rows="5"
+            />
             <button
               type="button"
-              class="agent-btn agent-btn--primary"
+              class="agent-btn agent-btn--primary invite-modal__submit"
               :disabled="!inviteEmail.trim()"
               @click="handleSendInvite"
-            >发送邀请</button>
-          </footer>
+            >邀请</button>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -440,10 +454,27 @@ const handleResetPassword = (row: DisplayRow) => {
   emit("toast", `已向 ${row.email} 发送密码重置邮件`);
 };
 
+const deleteConfirmVisible = ref(false);
+const deleteTargetAgent = ref<DisplayRow | null>(null);
+
 const handleDeleteAgent = (row: DisplayRow) => {
   closeDropdown();
-  members.value = members.value.filter((m) => m.id !== row.id);
-  emit("toast", `已删除客服 ${row.name}`);
+  deleteTargetAgent.value = row;
+  deleteConfirmVisible.value = true;
+};
+
+const confirmDeleteAgent = () => {
+  if (!deleteTargetAgent.value) return;
+  const target = deleteTargetAgent.value;
+  if (target.isInvite) {
+    inviteRecords.value = inviteRecords.value.filter((r) => r.id !== target.id);
+    emit("toast", "已删除");
+  } else {
+    members.value = members.value.filter((m) => m.id !== target.id);
+    emit("toast", `已删除客服 ${target.name}`);
+  }
+  deleteConfirmVisible.value = false;
+  deleteTargetAgent.value = null;
 };
 
 // ---- Agent detail ----
@@ -511,8 +542,8 @@ const handleReinvite = (row: DisplayRow) => {
 
 const handleDeleteInvite = (row: DisplayRow) => {
   closeDropdown();
-  inviteRecords.value = inviteRecords.value.filter((r) => r.id !== row.id);
-  emit("toast", "已删除");
+  deleteTargetAgent.value = row;
+  deleteConfirmVisible.value = true;
 };
 </script>
 
@@ -944,6 +975,61 @@ const handleDeleteInvite = (row: DisplayRow) => {
   padding: 0 18px;
 }
 
+/* Delete confirmation modal */
+.delete-confirm-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 1000;
+}
+
+.delete-confirm {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  max-width: 400px;
+  padding: 28px 32px 24px;
+  width: 90%;
+}
+
+.delete-confirm__title {
+  color: #252525;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.delete-confirm__desc {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 22px;
+  margin: 0 0 28px;
+}
+
+.delete-confirm__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.delete-confirm__cancel {
+  border: 1px solid #dbe1ea;
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 72px;
+  padding: 8px 20px;
+}
+
+.delete-confirm__ok {
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 96px;
+  padding: 8px 20px;
+}
+
 /* Invite modal */
 .invite-modal-overlay {
   align-items: center;
@@ -959,21 +1045,20 @@ const handleDeleteInvite = (row: DisplayRow) => {
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  max-width: 480px;
+  max-width: 520px;
   width: 90%;
 }
 
 .invite-modal__header {
   align-items: center;
-  border-bottom: 1px solid #edf1f5;
   display: flex;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 28px 28px 0;
 }
 
 .invite-modal__title {
   color: #252525;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
@@ -981,18 +1066,51 @@ const handleDeleteInvite = (row: DisplayRow) => {
 .invite-modal__close {
   background: transparent;
   border: 0;
-  color: #75869c;
+  color: #252525;
   cursor: pointer;
   font-size: 22px;
   line-height: 1;
   padding: 0;
 }
 
+.invite-modal__close:hover {
+  opacity: 0.6;
+}
+
 .invite-modal__body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px;
+  padding: 16px 28px 28px;
+}
+
+.invite-modal__desc {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 22px;
+  margin: 0;
+}
+
+.invite-modal__textarea {
+  border: 1px solid #dbe1ea;
+  border-radius: 10px;
+  color: #252525;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 120px;
+  padding: 12px 14px;
+  resize: vertical;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.invite-modal__textarea:focus {
+  border-color: #105eff;
+  outline: none;
+}
+
+.invite-modal__textarea::placeholder {
+  color: #b0b8c8;
 }
 
 .invite-modal__field {
@@ -1011,12 +1129,12 @@ const handleDeleteInvite = (row: DisplayRow) => {
   max-width: 200px;
 }
 
-.invite-modal__footer {
-  border-top: 1px solid #edf1f5;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding: 14px 20px;
+.invite-modal__submit {
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px;
+  width: 100%;
 }
 
 @media (max-width: 1280px) {
