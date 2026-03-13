@@ -111,7 +111,7 @@ const roles = ref<RoleItem[]>([
     id: "role-agent",
     name: "客服",
     isSystem: true,
-    permissionSummary: ["会话", "访客", "档案", "个人资料", "快捷回复"],
+    permissionSummary: ["档案", "访客", "客户", "客服列表(查看)", "快捷回复"],
     memberCount: 4,
     creator: "系统",
     createdAt: "2025-01-01 00:00"
@@ -120,7 +120,7 @@ const roles = ref<RoleItem[]>([
     id: "role-senior",
     name: "高级客服",
     isSystem: false,
-    permissionSummary: ["会话", "访客", "档案", "报表", "快捷回复"],
+    permissionSummary: ["档案", "访客", "客户", "报表", "客服列表", "快捷回复"],
     memberCount: 2,
     creator: "Cafe",
     createdAt: "2025-06-15 14:30"
@@ -129,7 +129,7 @@ const roles = ref<RoleItem[]>([
     id: "role-supervisor",
     name: "主管",
     isSystem: false,
-    permissionSummary: ["会话", "访客", "档案", "报表", "客服管理", "快捷回复"],
+    permissionSummary: ["档案", "访客", "客户", "报表", "客服列表", "快捷回复"],
     memberCount: 1,
     creator: "Cafe",
     createdAt: "2025-08-20 09:00"

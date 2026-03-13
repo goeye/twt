@@ -158,123 +158,33 @@ const headerTitle = computed(() => {
 const roleName = ref(props.initialName);
 
 // Permission tree definition
+// 一级菜单可见权限 + 设置下的子页面权限 + 客服列表特殊处理（查看/编辑）
 const permissionTree: PermGroup[] = [
-  {
-    key: "visitor",
-    label: "访客",
-    children: [
-      {
-        key: "visitor-view",
-        label: "查看访客",
-        features: [
-          { key: "visitor-edit", label: "编辑访客信息" },
-          { key: "visitor-tag", label: "管理访客标签" }
-        ]
-      }
-    ]
-  },
-  {
-    key: "archive",
-    label: "档案",
-    children: [
-      {
-        key: "archive-view",
-        label: "查看档案"
-      }
-    ]
-  },
-  {
-    key: "team",
-    label: "客服管理",
-    children: [
-      {
-        key: "agent-list-view",
-        label: "查看客服列表",
-        features: [
-          { key: "agent-invite", label: "邀请客服" },
-          { key: "agent-edit", label: "编辑成员" },
-          { key: "agent-toggle", label: "启用/停用成员" },
-          { key: "agent-delete", label: "删除成员" },
-          { key: "agent-reset-pwd", label: "重置密码" },
-          { key: "agent-assign-role", label: "分配角色" }
-        ]
-      },
-      {
-        key: "invite-record-view",
-        label: "查看邀请记录",
-        features: [
-          { key: "invite-resend", label: "重新邀请" },
-          { key: "invite-delete", label: "删除邀请" }
-        ]
-      },
-      {
-        key: "role-view",
-        label: "查看角色",
-        features: [
-          { key: "role-create", label: "新增角色" },
-          { key: "role-edit", label: "编辑角色" },
-          { key: "role-perm-config", label: "配置角色权限" },
-          { key: "role-delete", label: "删除角色" }
-        ]
-      },
-      {
-        key: "team-settings",
-        label: "客服设置"
-      }
-    ]
-  },
-  {
-    key: "quick-reply",
-    label: "快捷回复",
-    children: [
-      {
-        key: "personal-reply-view",
-        label: "个人回复",
-        features: [
-          { key: "personal-reply-edit", label: "维护个人回复" }
-        ]
-      },
-      {
-        key: "public-reply-view",
-        label: "公共回复",
-        features: [
-          { key: "public-reply-edit", label: "维护公共回复" }
-        ]
-      }
-    ]
-  },
+  { key: "files", label: "档案" },
+  { key: "visitors", label: "访客" },
+  { key: "customer", label: "客户" },
+  { key: "campaign", label: "营销" },
+  { key: "report", label: "报表" },
+  { key: "ai-agent", label: "AI Agent" },
   {
     key: "settings",
     label: "设置",
     children: [
-      { key: "install-view", label: "安装" },
-      { key: "customize-view", label: "自定义" },
-      { key: "tags-view", label: "标签管理" },
-      { key: "security-view", label: "安全设置" },
-      { key: "dev-settings-view", label: "开发设置" }
-    ]
-  },
-  {
-    key: "report",
-    label: "报表",
-    children: [
-      { key: "report-view", label: "查看报表" }
-    ]
-  },
-  {
-    key: "campaign",
-    label: "营销",
-    children: [
-      { key: "campaign-view", label: "查看营销" },
+      { key: "settings-install", label: "安装" },
+      { key: "settings-customize", label: "自定义" },
       {
-        key: "campaign-manage",
-        label: "管理营销",
+        key: "settings-agent-list",
+        label: "客服列表",
         features: [
-          { key: "campaign-create", label: "创建活动" },
-          { key: "campaign-edit", label: "编辑活动" },
-          { key: "campaign-delete", label: "删除活动" }
+          { key: "settings-agent-list-view", label: "查看" },
+          { key: "settings-agent-list-edit", label: "编辑" }
         ]
-      }
+      },
+      { key: "settings-agent-settings", label: "客服设置" },
+      { key: "settings-quick-reply", label: "快捷回复" },
+      { key: "settings-tags", label: "标签管理" },
+      { key: "settings-security", label: "安全设置" },
+      { key: "settings-dev", label: "开发设置" }
     ]
   }
 ];
@@ -283,7 +193,9 @@ const permissionTree: PermGroup[] = [
 const getAllKeys = (): string[] => {
   const keys: string[] = [];
   for (const group of permissionTree) {
-    if (group.children) {
+    if (!group.children || group.children.length === 0) {
+      keys.push(group.key);
+    } else {
       for (const child of group.children) {
         keys.push(child.key);
         if (child.features) {
@@ -303,20 +215,16 @@ const initPerms = (): Set<string> => {
     return new Set(props.initialPerms);
   }
   if (props.mode === "create") {
-    // Default: all roles have conversation permissions
+    // Default: basic page permissions
     return new Set([
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
-      "visitor-view",
-      "archive-view",
-      "personal-reply-view", "personal-reply-edit",
-      "public-reply-view",
-      "agent-list-view"
+      "files",
+      "visitors",
+      "customer"
     ]);
   }
   if (props.isSystemRole && props.initialName === "管理员") {
-    // Admin gets all permissions + conversation
-    const allKeys = getAllKeys();
-    return new Set([...allKeys, "conv-view", "conv-transfer", "conv-invite", "conv-close"]);
+    // Admin gets all permissions
+    return new Set(getAllKeys());
   }
   return new Set();
 };
@@ -325,14 +233,15 @@ const checkedPerms = ref<Set<string>>(initPerms());
 
 // Group-level check state
 const getGroupChildKeys = (group: PermGroup): string[] => {
+  if (!group.children || group.children.length === 0) {
+    return [group.key];
+  }
   const keys: string[] = [];
-  if (group.children) {
-    for (const child of group.children) {
-      keys.push(child.key);
-      if (child.features) {
-        for (const feat of child.features) {
-          keys.push(feat.key);
-        }
+  for (const child of group.children) {
+    keys.push(child.key);
+    if (child.features) {
+      for (const feat of child.features) {
+        keys.push(feat.key);
       }
     }
   }

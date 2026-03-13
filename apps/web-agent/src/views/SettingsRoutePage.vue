@@ -374,24 +374,23 @@ const handleViewRole = (roleId: string) => {
     roleDetailIsSystem.value = true;
     roleDetailMemberCount.value = 4;
     roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
-      "visitor-view",
-      "archive-view",
-      "personal-reply-view", "personal-reply-edit",
-      "public-reply-view",
-      "agent-list-view"
+      "files",
+      "visitors",
+      "customer",
+      "settings-agent-list", "settings-agent-list-view",
+      "settings-quick-reply"
     ];
   } else {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
     roleDetailIsSystem.value = false;
     roleDetailMemberCount.value = roleId === "role-senior" ? 2 : 1;
     roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
-      "visitor-view",
-      "archive-view",
-      "report-view",
-      "personal-reply-view", "personal-reply-edit",
-      "public-reply-view"
+      "files",
+      "visitors",
+      "customer",
+      "report",
+      "settings-agent-list", "settings-agent-list-view", "settings-agent-list-edit",
+      "settings-quick-reply"
     ];
   }
   roleDetailMode.value = "view";
