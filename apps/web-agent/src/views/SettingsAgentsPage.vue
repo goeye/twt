@@ -1,7 +1,32 @@
 <template>
-  <section class="settings-agents-view">
+  <section class="settings-agents-view" @click="closeDropdown">
     <article class="settings-agents-panel agent-panel">
-      <!-- Tab bar: 客服 | 角色 -->
+      <!-- Header: title + seat summary + invite (always visible) -->
+      <header class="settings-agents-panel__header">
+        <div class="settings-agents-panel__title-block">
+          <h1 class="settings-agents-panel__title">客服</h1>
+          <div class="settings-agents-panel__summary">
+            <span class="settings-agents-panel__summary-pill">
+              当前服务包含坐席总数：<strong>{{ seatSummary.total }}</strong>
+            </span>
+            <span class="settings-agents-panel__summary-pill">
+              使用中：<strong>{{ seatSummary.used }}</strong>
+              <span class="settings-agents-panel__summary-divider">·</span>
+              剩余：<strong>{{ seatSummary.remaining }}</strong>
+            </span>
+            <button type="button" class="settings-agents-panel__summary-link" @click="emit('toast', '加购坐席功能开发中')">
+              加购坐席
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="openInviteModal">
+          <span class="settings-agents-panel__invite-icon">+</span>
+          <span>邀请成员</span>
+        </button>
+      </header>
+
+      <!-- Tab bar: below header -->
       <nav class="settings-agents-tabs">
         <button
           type="button"
@@ -19,30 +44,6 @@
 
       <!-- 客服 Tab Content -->
       <template v-if="activeTab === 'agents' && !agentDetailVisible">
-        <header class="settings-agents-panel__header">
-          <div class="settings-agents-panel__title-block">
-            <h1 class="settings-agents-panel__title">客服</h1>
-            <div class="settings-agents-panel__summary">
-              <span class="settings-agents-panel__summary-pill">
-                当前服务包含坐席总数：<strong>{{ seatSummary.total }}</strong>
-              </span>
-              <span class="settings-agents-panel__summary-pill">
-                使用中：<strong>{{ seatSummary.used }}</strong>
-                <span class="settings-agents-panel__summary-divider">·</span>
-                剩余：<strong>{{ seatSummary.remaining }}</strong>
-              </span>
-              <button type="button" class="settings-agents-panel__summary-link" @click="emit('toast', '加购坐席功能开发中')">
-                加购坐席
-              </button>
-            </div>
-          </div>
-
-          <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="openInviteModal">
-            <span class="settings-agents-panel__invite-icon">+</span>
-            <span>邀请成员</span>
-          </button>
-        </header>
-
         <div class="settings-agents-panel__table-area">
           <table class="settings-agents-table">
             <thead>
@@ -50,7 +51,7 @@
                 <th>ID</th>
                 <th>姓名</th>
                 <th>昵称</th>
-                <th>创建/邀请时间</th>
+                <th>角色</th>
                 <th>邮箱</th>
                 <th>会话限制</th>
                 <th>在线状态</th>
@@ -60,21 +61,19 @@
             </thead>
             <tbody>
               <tr v-for="row in displayList" :key="row.id" :class="{ 'settings-agents-table__row--invite': row.isInvite }">
-                <td>{{ row.isInvite ? '-' : row.memberId }}</td>
+                <td>{{ row.memberId }}</td>
                 <td>
                   <div v-if="!row.isInvite" class="settings-agents-table__name-cell">
                     <span class="settings-agents-table__avatar" :style="{ background: row.avatarColor }">{{ row.avatarText }}</span>
                     <span>{{ row.name }}</span>
+                    <span v-if="row.isOwner" class="settings-agents-table__owner-tag">所有者</span>
                   </div>
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
+                <td>{{ row.isInvite ? '待激活' : row.nickname }}</td>
                 <td>
-                  <div class="settings-agents-table__nick-cell">
-                    <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
-                    <span>{{ row.isInvite ? '待激活' : row.nickname }}</span>
-                  </div>
+                  <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
                 </td>
-                <td>{{ row.time }}</td>
                 <td>{{ row.email }}</td>
                 <td>{{ row.isInvite ? '-' : row.sessionLimit }}</td>
                 <td>
@@ -104,22 +103,55 @@
                   </span>
                 </td>
                 <td>
-                  <div v-if="!row.isInvite" class="settings-agents-table__actions">
-                    <button type="button" class="settings-agents-table__action-link" @click="openAgentDetail(row)">详情</button>
-                    <button type="button" class="settings-agents-table__action-link" @click="emit('toast', `${row.nickname} 的更多操作开发中`)">更多</button>
-                  </div>
-                  <div v-else class="settings-agents-table__actions">
+                  <div class="settings-agents-table__actions">
                     <button
                       type="button"
-                      class="settings-agents-table__action-link"
-                      :disabled="row.reinviteCooldown"
-                      @click="handleReinvite(row)"
-                    >重新邀请</button>
-                    <button
-                      type="button"
-                      class="settings-agents-table__action-link settings-agents-table__action-link--danger"
-                      @click="handleDeleteInvite(row)"
-                    >删除邀请</button>
+                      class="settings-agents-table__more-btn"
+                      @click.stop="toggleDropdown(row.id)"
+                    >···</button>
+                    <div
+                      v-if="activeDropdownId === row.id"
+                      class="settings-agents-table__dropdown"
+                    >
+                      <template v-if="!row.isInvite">
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item"
+                          :disabled="row.id === currentUserId"
+                          @click="handleStartChat(row)"
+                        >发起聊天</button>
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item"
+                          @click="openAgentDetail(row)"
+                        >账号详情</button>
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item"
+                          :disabled="row.id === currentUserId"
+                          @click="handleResetPassword(row)"
+                        >修改密码</button>
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item settings-agents-table__dropdown-item--danger"
+                          :disabled="row.id === currentUserId"
+                          @click="handleDeleteAgent(row)"
+                        >删除</button>
+                      </template>
+                      <template v-else>
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item"
+                          :disabled="row.reinviteCooldown"
+                          @click="handleReinvite(row)"
+                        >重新邀请</button>
+                        <button
+                          type="button"
+                          class="settings-agents-table__dropdown-item settings-agents-table__dropdown-item--danger"
+                          @click="handleDeleteInvite(row)"
+                        >删除</button>
+                      </template>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -165,14 +197,14 @@
                 <select
                   v-model="selectedAgentRole"
                   class="agent-input agent-detail-view__select"
-                  :disabled="selectedAgent?.isCreator"
+                  :disabled="selectedAgent?.isOwner"
                 >
                   <option value="管理员">管理员</option>
                   <option value="客服">客服</option>
                   <option value="高级客服">高级客服</option>
                   <option value="主管">主管</option>
                 </select>
-                <span v-if="selectedAgent?.isCreator" class="agent-detail-view__creator-tag">项目创建者，不可修改</span>
+                <span v-if="selectedAgent?.isOwner" class="agent-detail-view__creator-tag">项目所有者，不可修改</span>
               </div>
             </div>
             <div class="agent-detail-view__field">
@@ -180,7 +212,7 @@
               <span class="agent-detail-view__value">{{ selectedAgent?.sessionLimit }}</span>
             </div>
             <div class="agent-detail-view__actions">
-              <button type="button" class="agent-btn agent-btn--ghost" @click="emit('toast', '重置密码功能开发中')">重置密码</button>
+              <button type="button" class="agent-btn agent-btn--ghost" @click="agentDetailVisible = false">取消</button>
               <button type="button" class="agent-btn agent-btn--primary" @click="handleSaveAgentRole">保存</button>
             </div>
           </div>
@@ -261,7 +293,7 @@ import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
 interface DisplayRow {
   id: string;
   isInvite: boolean;
-  memberId?: string;
+  memberId: string;
   name?: string;
   avatarColor?: string;
   avatarText?: string;
@@ -271,8 +303,7 @@ interface DisplayRow {
   sessionLimit?: number;
   onlineStatus?: string;
   accountEnabled?: boolean;
-  isCreator?: boolean;
-  time: string;
+  isOwner?: boolean;
   inviteStatus?: string;
   reinviteCooldown?: boolean;
 }
@@ -281,12 +312,26 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
 
+/* Current logged-in user */
+const currentUserId = "agent-cafe";
+
 const activeTab = ref<"agents" | "roles">("agents");
 
 const switchTab = (tab: "agents" | "roles") => {
   activeTab.value = tab;
   agentDetailVisible.value = false;
   roleDetailMode.value = "";
+};
+
+// ---- Dropdown menu ----
+const activeDropdownId = ref<string | null>(null);
+
+const toggleDropdown = (rowId: string) => {
+  activeDropdownId.value = activeDropdownId.value === rowId ? null : rowId;
+};
+
+const closeDropdown = () => {
+  activeDropdownId.value = null;
 };
 
 // ---- Agent list data ----
@@ -301,6 +346,8 @@ const pagination = computed(() => ({
   total: members.value.length + inviteRecords.value.length
 }));
 
+let nextMemberId = 10006;
+
 const members = ref([
   {
     id: "agent-cafe",
@@ -314,8 +361,7 @@ const members = ref([
     sessionLimit: 10,
     onlineStatus: "在线",
     accountEnabled: true,
-    isCreator: true,
-    createdAt: "2025-01-01 10:00"
+    isOwner: true
   },
   {
     id: "agent-mike",
@@ -329,8 +375,7 @@ const members = ref([
     sessionLimit: 8,
     onlineStatus: "在线",
     accountEnabled: true,
-    isCreator: false,
-    createdAt: "2025-03-15 14:20"
+    isOwner: false
   },
   {
     id: "agent-lisa",
@@ -344,8 +389,7 @@ const members = ref([
     sessionLimit: 12,
     onlineStatus: "离开",
     accountEnabled: true,
-    isCreator: false,
-    createdAt: "2025-05-08 09:30"
+    isOwner: false
   },
   {
     id: "agent-tom",
@@ -359,8 +403,7 @@ const members = ref([
     sessionLimit: 8,
     onlineStatus: "离线",
     accountEnabled: false,
-    isCreator: false,
-    createdAt: "2025-07-20 16:00"
+    isOwner: false
   },
   {
     id: "agent-jenny",
@@ -374,14 +417,14 @@ const members = ref([
     sessionLimit: 15,
     onlineStatus: "在线",
     accountEnabled: true,
-    isCreator: false,
-    createdAt: "2025-09-01 11:00"
+    isOwner: false
   }
 ]);
 
 const inviteRecords = ref([
   {
     id: "invite-001",
+    memberId: "10006",
     email: "newagent@example.com",
     roleName: "客服",
     invitedAt: "2025-12-10 15:30",
@@ -390,6 +433,7 @@ const inviteRecords = ref([
   },
   {
     id: "invite-002",
+    memberId: "10007",
     email: "expired@example.com",
     roleName: "高级客服",
     invitedAt: "2025-11-20 09:00",
@@ -412,16 +456,15 @@ const displayList = computed<DisplayRow[]>(() => {
     sessionLimit: m.sessionLimit,
     onlineStatus: m.onlineStatus,
     accountEnabled: m.accountEnabled,
-    isCreator: m.isCreator,
-    time: m.createdAt
+    isOwner: m.isOwner
   }));
 
   const inviteRows: DisplayRow[] = inviteRecords.value.map((r) => ({
     id: r.id,
     isInvite: true,
+    memberId: r.memberId,
     roleName: r.roleName,
     email: r.email,
-    time: r.invitedAt,
     inviteStatus: r.status,
     reinviteCooldown: r.reinviteCooldown
   }));
@@ -452,12 +495,30 @@ const getInviteStatusClass = (status?: string) => {
   return "";
 };
 
+// ---- Action handlers ----
+const handleStartChat = (row: DisplayRow) => {
+  closeDropdown();
+  emit("toast", `正在发起与 ${row.nickname} 的聊天`);
+};
+
+const handleResetPassword = (row: DisplayRow) => {
+  closeDropdown();
+  emit("toast", `已向 ${row.email} 发送密码重置邮件`);
+};
+
+const handleDeleteAgent = (row: DisplayRow) => {
+  closeDropdown();
+  members.value = members.value.filter((m) => m.id !== row.id);
+  emit("toast", `已删除客服 ${row.name}`);
+};
+
 // ---- Agent detail ----
 const agentDetailVisible = ref(false);
 const selectedAgent = ref<DisplayRow | null>(null);
 const selectedAgentRole = ref("");
 
 const openAgentDetail = (row: DisplayRow) => {
+  closeDropdown();
   selectedAgent.value = row;
   selectedAgentRole.value = row.roleName;
   agentDetailVisible.value = true;
@@ -493,8 +554,10 @@ const handleSendInvite = () => {
     existing.roleName = inviteRole.value;
     emit("toast", `已重新发送邀请至 ${inviteEmail.value}`);
   } else {
+    nextMemberId++;
     inviteRecords.value.push({
       id: `invite-${Date.now()}`,
+      memberId: String(nextMemberId),
       email: inviteEmail.value.trim(),
       roleName: inviteRole.value,
       invitedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"),
@@ -507,6 +570,7 @@ const handleSendInvite = () => {
 };
 
 const handleReinvite = (row: DisplayRow) => {
+  closeDropdown();
   const record = inviteRecords.value.find((r) => r.id === row.id);
   if (!record) return;
   record.status = "待激活";
@@ -519,8 +583,9 @@ const handleReinvite = (row: DisplayRow) => {
 };
 
 const handleDeleteInvite = (row: DisplayRow) => {
+  closeDropdown();
   inviteRecords.value = inviteRecords.value.filter((r) => r.id !== row.id);
-  emit("toast", "邀请已删除");
+  emit("toast", "已删除");
 };
 
 // ---- Role detail ----
@@ -605,47 +670,6 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
   overflow: hidden;
 }
 
-/* Tabs */
-.settings-agents-tabs {
-  border-bottom: 1px solid #edf1f5;
-  display: flex;
-  flex-shrink: 0;
-  gap: 0;
-  padding: 0 18px;
-}
-
-.settings-agents-tabs__tab {
-  background: transparent;
-  border: 0;
-  color: #75869c;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  height: 44px;
-  padding: 0 16px;
-  position: relative;
-  transition: color 0.15s;
-}
-
-.settings-agents-tabs__tab:hover {
-  color: #252525;
-}
-
-.settings-agents-tabs__tab--active {
-  color: #105eff;
-}
-
-.settings-agents-tabs__tab--active::after {
-  background: #105eff;
-  border-radius: 2px 2px 0 0;
-  bottom: 0;
-  content: "";
-  height: 3px;
-  left: 16px;
-  position: absolute;
-  right: 16px;
-}
-
 /* Agent list header */
 .settings-agents-panel__header {
   align-items: flex-start;
@@ -728,6 +752,47 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
   transform: translateY(-0.5px);
 }
 
+/* Tabs */
+.settings-agents-tabs {
+  border-bottom: 1px solid #edf1f5;
+  display: flex;
+  flex-shrink: 0;
+  gap: 0;
+  padding: 0 18px;
+}
+
+.settings-agents-tabs__tab {
+  background: transparent;
+  border: 0;
+  color: #75869c;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  height: 44px;
+  padding: 0 16px;
+  position: relative;
+  transition: color 0.15s;
+}
+
+.settings-agents-tabs__tab:hover {
+  color: #252525;
+}
+
+.settings-agents-tabs__tab--active {
+  color: #105eff;
+}
+
+.settings-agents-tabs__tab--active::after {
+  background: #105eff;
+  border-radius: 2px 2px 0 0;
+  bottom: 0;
+  content: "";
+  height: 3px;
+  left: 16px;
+  position: absolute;
+  right: 16px;
+}
+
 /* Table */
 .settings-agents-panel__table-area {
   flex: 1;
@@ -762,14 +827,14 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
 }
 
 .settings-agents-table th:nth-child(1) { width: 7%; }
-.settings-agents-table th:nth-child(2) { width: 10%; }
-.settings-agents-table th:nth-child(3) { width: 14%; }
-.settings-agents-table th:nth-child(4) { width: 14%; }
-.settings-agents-table th:nth-child(5) { width: 16%; }
+.settings-agents-table th:nth-child(2) { width: 14%; }
+.settings-agents-table th:nth-child(3) { width: 10%; }
+.settings-agents-table th:nth-child(4) { width: 8%; }
+.settings-agents-table th:nth-child(5) { width: 18%; }
 .settings-agents-table th:nth-child(6) { width: 8%; }
 .settings-agents-table th:nth-child(7) { width: 8%; }
 .settings-agents-table th:nth-child(8) { width: 8%; }
-.settings-agents-table th:nth-child(9) { width: 15%; }
+.settings-agents-table th:nth-child(9) { width: 5%; }
 
 .settings-agents-table__row--invite {
   background: #fafbfc;
@@ -794,10 +859,16 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
   width: 28px;
 }
 
-.settings-agents-table__nick-cell {
-  align-items: center;
+.settings-agents-table__owner-tag {
+  background: #fef3c7;
+  border-radius: 4px;
+  color: #d97706;
   display: inline-flex;
-  gap: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  padding: 0 5px;
+  white-space: nowrap;
 }
 
 .settings-agents-table__role-badge {
@@ -890,31 +961,75 @@ const handleRoleSave = (payload: { name: string; permissions: string[] }) => {
 }
 
 .settings-agents-table__actions {
-  align-items: center;
-  display: flex;
-  gap: 10px;
+  position: relative;
 }
 
-.settings-agents-table__action-link {
+.settings-agents-table__more-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #dbe1ea;
+  border-radius: 6px;
+  color: #75869c;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding: 0 8px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.settings-agents-table__more-btn:hover {
+  background: #f5f7f9;
+  border-color: #c7cdd8;
+}
+
+.settings-agents-table__dropdown {
+  background: #ffffff;
+  border: 1px solid #edf1f5;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+}
+
+.settings-agents-table__dropdown-item {
   background: transparent;
   border: 0;
-  color: #105eff;
+  color: #252525;
   cursor: pointer;
   font-size: 13px;
-  padding: 0;
+  line-height: 20px;
+  padding: 8px 16px;
+  text-align: left;
+  transition: background-color 0.1s;
+  white-space: nowrap;
 }
 
-.settings-agents-table__action-link:hover {
-  text-decoration: underline;
+.settings-agents-table__dropdown-item:hover:not(:disabled) {
+  background: #f5f7f9;
 }
 
-.settings-agents-table__action-link:disabled {
+.settings-agents-table__dropdown-item:disabled {
   color: #c7cdd8;
   cursor: not-allowed;
 }
 
-.settings-agents-table__action-link--danger {
+.settings-agents-table__dropdown-item--danger {
   color: #ef4444;
+}
+
+.settings-agents-table__dropdown-item--danger:disabled {
+  color: #fca5a5;
 }
 
 /* Pagination */
