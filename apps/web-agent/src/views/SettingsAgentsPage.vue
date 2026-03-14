@@ -51,6 +51,7 @@
                 <th>ID</th>
                 <th>姓名</th>
                 <th>昵称</th>
+                <th>加入时间</th>
                 <th>角色</th>
                 <th>邮箱</th>
                 <th>会话限制</th>
@@ -70,6 +71,7 @@
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
                 <td>{{ row.isInvite ? '-' : (row.nickname || '-') }}</td>
+                <td>{{ row.isInvite ? '-' : (row.joinedAt || '-') }}</td>
                 <td>
                   <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
                 </td>
@@ -236,6 +238,7 @@ interface DisplayRow {
   avatarColor?: string;
   avatarText?: string;
   nickname?: string;
+  joinedAt?: string;
   roleName: string;
   email: string;
   sessionLimit?: number;
@@ -303,6 +306,7 @@ const members = ref([
     avatarText: "C",
     roleName: "超级管理员",
     nickname: "客服-莉莉",
+    joinedAt: "2025-06-15",
     email: "aidanswang@gmail.com",
     sessionLimit: 10,
     onlineStatus: "在线",
@@ -317,6 +321,7 @@ const members = ref([
     avatarText: "M",
     roleName: "客服",
     nickname: "客服-小明",
+    joinedAt: "2025-08-20",
     email: "mike@example.com",
     sessionLimit: 8,
     onlineStatus: "在线",
@@ -331,6 +336,7 @@ const members = ref([
     avatarText: "L",
     roleName: "高级客服",
     nickname: "客服-小丽",
+    joinedAt: "2025-09-10",
     email: "lisa@example.com",
     sessionLimit: 12,
     onlineStatus: "离开",
@@ -345,6 +351,7 @@ const members = ref([
     avatarText: "T",
     roleName: "客服",
     nickname: "客服-阿汤",
+    joinedAt: "2025-10-05",
     email: "tom@example.com",
     sessionLimit: 8,
     onlineStatus: "离线",
@@ -359,6 +366,7 @@ const members = ref([
     avatarText: "J",
     roleName: "主管",
     nickname: "客服-珍妮",
+    joinedAt: "2025-07-01",
     email: "jenny@example.com",
     sessionLimit: 15,
     onlineStatus: "在线",
@@ -395,6 +403,7 @@ const displayList = computed<DisplayRow[]>(() => {
     avatarColor: m.avatarColor,
     avatarText: m.avatarText,
     nickname: m.nickname,
+    joinedAt: m.joinedAt,
     roleName: m.roleName,
     email: m.email,
     sessionLimit: m.sessionLimit,
@@ -737,15 +746,16 @@ const handleDeleteInvite = (row: DisplayRow) => {
   padding-bottom: 8px;
 }
 
-.settings-agents-table th:nth-child(1) { width: 7%; }
-.settings-agents-table th:nth-child(2) { width: 14%; }
-.settings-agents-table th:nth-child(3) { width: 10%; }
-.settings-agents-table th:nth-child(4) { width: 8%; }
-.settings-agents-table th:nth-child(5) { width: 18%; }
-.settings-agents-table th:nth-child(6) { width: 8%; }
+.settings-agents-table th:nth-child(1) { width: 6%; }
+.settings-agents-table th:nth-child(2) { width: 12%; }
+.settings-agents-table th:nth-child(3) { width: 9%; }
+.settings-agents-table th:nth-child(4) { width: 10%; }
+.settings-agents-table th:nth-child(5) { width: 8%; }
+.settings-agents-table th:nth-child(6) { width: 16%; }
 .settings-agents-table th:nth-child(7) { width: 8%; }
 .settings-agents-table th:nth-child(8) { width: 8%; }
-.settings-agents-table th:nth-child(9) { width: 5%; }
+.settings-agents-table th:nth-child(9) { width: 7%; }
+.settings-agents-table th:nth-child(10) { width: 5%; }
 
 .settings-agents-table__row--invite {
   background: #fafbfc;
