@@ -69,8 +69,8 @@
                   >
                     <input
                       type="checkbox"
-                      :checked="checkedPerms.has(feat.key)"
-                      :disabled="!editable"
+                      :checked="feat.locked || checkedPerms.has(feat.key)"
+                      :disabled="feat.locked || !editable"
                       @change="toggleFeature(feat.key, child)"
                     />
                     <span class="perm-feature__label">{{ feat.label }}</span>
@@ -104,6 +104,7 @@ type DetailMode = "view" | "create" | "edit";
 interface PermFeature {
   key: string;
   label: string;
+  locked?: boolean;
 }
 
 interface PermItem {
@@ -209,8 +210,22 @@ const permissionTree: PermGroup[] = [
     key: "quick-reply",
     label: "快捷回复",
     children: [
-      { key: "reply-view", label: "查看个人回复", locked: true },
-      { key: "reply-manage", label: "管理个人回复" }
+      {
+        key: "public-reply",
+        label: "公共回复",
+        features: [
+          { key: "public-reply-view", label: "查看公共回复", locked: true },
+          { key: "public-reply-manage", label: "管理公共回复" }
+        ]
+      },
+      {
+        key: "personal-reply",
+        label: "个人回复",
+        features: [
+          { key: "personal-reply-view", label: "查看个人回复", locked: true },
+          { key: "personal-reply-manage", label: "管理个人回复" }
+        ]
+      }
     ]
   },
   {
@@ -272,7 +287,7 @@ const getAllKeys = (): string[] => {
         keys.push(child.key);
         if (child.features) {
           for (const feat of child.features) {
-            keys.push(feat.key);
+            if (!feat.locked) keys.push(feat.key);
           }
         }
       }

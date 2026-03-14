@@ -383,7 +383,10 @@ const handleViewRole = (roleId: string) => {
       "campaign-manage",
       "tags-manage",
       "agent-list-view",
-      "reply-manage"
+      "public-reply",
+      "public-reply-manage",
+      "personal-reply",
+      "personal-reply-manage"
     ];
   } else {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
@@ -392,7 +395,10 @@ const handleViewRole = (roleId: string) => {
       "archive-view",
       "visitor-manage",
       "report-view",
-      "reply-manage",
+      "public-reply",
+      "public-reply-manage",
+      "personal-reply",
+      "personal-reply-manage",
       ...(roleId === "role-supervisor" ? ["agent-list-view", "agent-manage"] : [])
     ];
   }
