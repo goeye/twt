@@ -116,13 +116,16 @@
       <section class="chat-pane agent-panel">
         <ConversationHeader
           class="chat-pane__header"
-          :editable="!isAiSession"
+          :closed="isClosedSession"
+          :editable="!isAiSession && !isClosedSession"
+          :is-processing="isProcessingSession"
           :title="activeSessionTitle"
           :can-collaborate="canCollaborate && !isAiSession"
           :show-collaborate-actions="!isAiSession"
-          @close="showTopToast('会话已标记为结束')"
+          @close="handleOpenCloseSession"
           @invite="handleOpenInvite"
           @mark-pending="handleMarkPending"
+          @remove-pending="handleRemovePending"
           @transfer="handleOpenTransfer"
           @update:title="updateSessionTitle"
         />
@@ -147,13 +150,13 @@
           <button type="button" class="agent-btn agent-btn--primary" @click="handleOpenTakeoverAiSession">接管会话</button>
         </div>
 
+        <div v-else-if="isClosedSession" class="chat-pane__closed">
+          <span class="chat-pane__closed-tag">会话已结束</span>
+        </div>
+
         <MessageComposer
           v-else
           v-model="composerText"
-          v-model:mark-pending="markPendingChecked"
-          v-model:mark-resolved="markResolvedChecked"
-          :show-mark-pending="!isProcessingSession"
-          :show-mark-resolved="isProcessingSession"
           class="chat-pane__composer"
           :disabled="composerText.trim().length === 0"
           placeholder="发送消息输入 / 选择快捷回复"
@@ -320,6 +323,26 @@
       @confirm="handleConfirmInvite"
     />
 
+    <BaseModal
+      :open="closeSessionModalOpen"
+      title="结束会话"
+      max-width="500px"
+      :show-close="false"
+      @close="closeSessionModalOpen = false"
+    >
+      <div class="confirm-close-modal">
+        <p class="confirm-close-modal__description">确认结束该会话吗？</p>
+      </div>
+
+      <template #footer>
+        <span />
+        <div class="confirm-close-modal__footer-actions">
+          <button class="agent-btn agent-btn--ghost" type="button" @click="closeSessionModalOpen = false">取消</button>
+          <button class="agent-btn agent-btn--danger" type="button" @click="handleConfirmCloseSession">确认结束</button>
+        </div>
+      </template>
+    </BaseModal>
+
     <AgentToast :message="toastMessage" :visible="showToast" />
   </AgentAppShell>
 </template>
@@ -419,6 +442,7 @@ interface ConversationSession extends SessionItem {
   acceptedAt: string;
   assignee: string;
   assistants: string[];
+  closed?: boolean;
 }
 
 interface DetailField {
@@ -945,8 +969,6 @@ const activeQueueKey = ref("pending-reply");
 const activeSessionId = ref("s-6001");
 const searchKeyword = ref("");
 const composerText = ref("");
-const markPendingChecked = ref(false);
-const markResolvedChecked = ref(false);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
@@ -970,6 +992,7 @@ const pendingTransferAgentId = ref<string | null>(null);
 
 const inviteModalOpen = ref(false);
 const inviteKeyword = ref("");
+const closeSessionModalOpen = ref(false);
 
 const queueGroups = computed(() =>
   queueGroupSeed.map((group) => ({
@@ -1039,6 +1062,7 @@ const isReportRoute = computed(() => currentRouteName.value === "report");
 
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
+const isClosedSession = computed(() => activeSession.value?.closed === true);
 
 const currentModuleLabel = computed(() => {
   if (isSettingsRoute.value) {
@@ -1587,14 +1611,6 @@ const handleSend = () => {
   };
 
   composerText.value = "";
-
-  if (markPendingChecked.value) {
-    markSessionAsPending();
-    markPendingChecked.value = false;
-  } else if (markResolvedChecked.value) {
-    markSessionAsResolved();
-    markResolvedChecked.value = false;
-  }
 };
 
 const markSessionAsPending = () => {
@@ -1606,17 +1622,37 @@ const markSessionAsPending = () => {
   activeQueueKey.value = "processing";
 };
 
-const markSessionAsResolved = () => {
+const removeSessionFromPending = () => {
   if (!activeSession.value || activeSession.value.queueKey !== "processing") return;
   allSessions.value = allSessions.value.map((s) => {
     if (s.id !== activeSession.value!.id) return s;
-    return { ...s, queueKey: "resolved" };
+    return { ...s, queueKey: "pending-reply" };
   });
-  activeQueueKey.value = "resolved";
+  activeQueueKey.value = "pending-reply";
 };
 
 const handleMarkPending = () => {
   markSessionAsPending();
+  showTopToast("已标记为待处理");
+};
+
+const handleRemovePending = () => {
+  removeSessionFromPending();
+  showTopToast("已取消待处理");
+};
+
+const handleOpenCloseSession = () => {
+  closeSessionModalOpen.value = true;
+};
+
+const handleConfirmCloseSession = () => {
+  if (!activeSession.value) return;
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== activeSession.value!.id) return s;
+    return { ...s, closed: true };
+  });
+  closeSessionModalOpen.value = false;
+  showTopToast("会话结束成功");
 };
 
 
@@ -1926,6 +1962,22 @@ onBeforeUnmount(() => {
   gap: var(--agent-space-16);
   justify-content: center;
   padding: var(--agent-space-20) var(--agent-space-16);
+}
+
+.chat-pane__closed {
+  align-items: center;
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  justify-content: center;
+  padding: var(--agent-space-24) var(--agent-space-16);
+}
+
+.chat-pane__closed-tag {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 20px;
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  padding: 6px 20px;
 }
 
 .ai-takeover-bar__text {
@@ -2262,6 +2314,30 @@ onBeforeUnmount(() => {
 .confirm-takeover-modal__footer-actions {
   display: flex;
   gap: var(--agent-space-8);
+}
+
+.confirm-close-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+}
+
+.confirm-close-modal__description {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.confirm-close-modal__footer-actions {
+  display: flex;
+  gap: var(--agent-space-8);
+}
+
+.confirm-close-modal__footer-actions .agent-btn--danger {
+  background: var(--agent-color-status-error);
+  border-color: var(--agent-color-status-error);
+  color: #ffffff;
 }
 
 .settings-page {

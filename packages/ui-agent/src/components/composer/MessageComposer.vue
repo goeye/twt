@@ -19,14 +19,6 @@
     />
 
     <div class="composer__footer">
-      <label v-if="showMarkPending" class="composer__mark">
-        <input class="composer__checkbox" type="checkbox" :checked="markPending" @change="$emit('update:markPending', ($event.target as HTMLInputElement).checked)" />
-        <span>标记为待处理</span>
-      </label>
-      <label v-if="showMarkResolved" class="composer__mark">
-        <input class="composer__checkbox" type="checkbox" :checked="markResolved" @change="$emit('update:markResolved', ($event.target as HTMLInputElement).checked)" />
-        <span>标记为已解决</span>
-      </label>
       <button class="composer__send-btn" type="button" :disabled="disabled" @click="$emit('send')">发送</button>
     </div>
   </section>
@@ -37,16 +29,10 @@ defineProps<{
   modelValue: string;
   placeholder?: string;
   disabled?: boolean;
-  markPending?: boolean;
-  markResolved?: boolean;
-  showMarkPending?: boolean;
-  showMarkResolved?: boolean;
 }>();
 
 defineEmits<{
   (e: "update:modelValue", value: string): void;
-  (e: "update:markPending", value: boolean): void;
-  (e: "update:markResolved", value: boolean): void;
   (e: "emoji"): void;
   (e: "attachment"): void;
   (e: "quick-reply"): void;
@@ -113,19 +99,6 @@ defineEmits<{
   align-items: center;
   display: flex;
   justify-content: flex-end;
-}
-
-.composer__mark {
-  align-items: center;
-  color: var(--agent-color-text-tertiary);
-  display: inline-flex;
-  font-size: var(--agent-font-size-sm);
-  gap: 6px;
-  margin-right: var(--agent-space-12);
-}
-
-.composer__checkbox {
-  margin: 0;
 }
 
 .composer__send-btn {

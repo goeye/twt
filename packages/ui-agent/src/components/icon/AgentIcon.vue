@@ -133,6 +133,37 @@
       <path d="M13.8 7.5l2.7 2.7" />
     </g>
 
+    <g v-else-if="name === 'user-plus'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10" cy="8.5" r="3" />
+      <path d="M4.8 19c.6-2.8 2.8-4.5 5.2-4.5c1.6 0 3 .7 4 1.8" />
+      <path d="M18 14v5" />
+      <path d="M15.5 16.5h5" />
+    </g>
+
+    <g v-else-if="name === 'transfer'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 17l-3-3l3-3" />
+      <path d="M4 14h12" />
+      <path d="M17 7l3 3l-3 3" />
+      <path d="M20 10H8" />
+    </g>
+
+    <g v-else-if="name === 'mark-pending'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
+    </g>
+
+    <g v-else-if="name === 'remove-pending'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
+      <path d="M9 9l6 6" stroke-width="2" />
+    </g>
+
+    <g v-else-if="name === 'close-session'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.5" y="4.5" width="15" height="15" rx="2.5" />
+      <path d="M9 9l6 6" />
+      <path d="M15 9l-6 6" />
+    </g>
+
     <circle v-else cx="12" cy="12" r="7.5" fill="currentColor" />
   </svg>
 </template>
