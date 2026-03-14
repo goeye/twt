@@ -114,7 +114,7 @@ const roles = ref<RoleItem[]>([
     isSystem: true,
     canEdit: true,
     canDelete: false,
-    permissionSummary: ["档案", "访客", "团队", "设置"],
+    permissionSummary: ["档案", "访客", "客户", "营销", "标签", "团队", "设置"],
     memberCount: 4,
     creator: "系统",
     createdAt: "2025-01-01 00:00"

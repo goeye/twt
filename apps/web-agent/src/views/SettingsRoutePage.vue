@@ -379,6 +379,9 @@ const handleViewRole = (roleId: string) => {
     roleDetailPerms.value = [
       "archive-view",
       "visitor-manage",
+      "customer-manage",
+      "campaign-manage",
+      "tags-manage",
       "agent-list-view",
       "reply-manage"
     ];
