@@ -35,18 +35,18 @@
                     class="roles-table__dropdown-item"
                     @click="handleAction('view', role)"
                   >查看</button>
-                  <template v-if="!role.isSystem">
-                    <button
-                      type="button"
-                      class="roles-table__dropdown-item"
-                      @click="handleAction('edit', role)"
-                    >编辑</button>
-                    <button
-                      type="button"
-                      class="roles-table__dropdown-item roles-table__dropdown-item--danger"
-                      @click="handleAction('delete', role)"
-                    >删除</button>
-                  </template>
+                  <button
+                    v-if="role.canEdit"
+                    type="button"
+                    class="roles-table__dropdown-item"
+                    @click="handleAction('edit', role)"
+                  >编辑</button>
+                  <button
+                    v-if="role.canDelete"
+                    type="button"
+                    class="roles-table__dropdown-item roles-table__dropdown-item--danger"
+                    @click="handleAction('delete', role)"
+                  >删除</button>
                 </div>
               </div>
             </td>
@@ -82,6 +82,8 @@ interface RoleItem {
   id: string;
   name: string;
   isSystem: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   permissionSummary: string[];
   memberCount: number;
   creator: string;
@@ -97,8 +99,10 @@ const emit = defineEmits<{
 const roles = ref<RoleItem[]>([
   {
     id: "role-admin",
-    name: "管理员",
+    name: "超级管理员",
     isSystem: true,
+    canEdit: false,
+    canDelete: false,
     permissionSummary: ["全部权限"],
     memberCount: 1,
     creator: "系统",
@@ -108,6 +112,8 @@ const roles = ref<RoleItem[]>([
     id: "role-agent",
     name: "客服",
     isSystem: true,
+    canEdit: true,
+    canDelete: false,
     permissionSummary: ["档案", "访客", "团队", "设置"],
     memberCount: 4,
     creator: "系统",
@@ -117,6 +123,8 @@ const roles = ref<RoleItem[]>([
     id: "role-senior",
     name: "高级客服",
     isSystem: false,
+    canEdit: true,
+    canDelete: true,
     permissionSummary: ["档案", "访客", "报表", "设置"],
     memberCount: 2,
     creator: "Cafe",
@@ -126,6 +134,8 @@ const roles = ref<RoleItem[]>([
     id: "role-supervisor",
     name: "主管",
     isSystem: false,
+    canEdit: true,
+    canDelete: true,
     permissionSummary: ["档案", "访客", "报表", "团队", "设置"],
     memberCount: 1,
     creator: "Cafe",

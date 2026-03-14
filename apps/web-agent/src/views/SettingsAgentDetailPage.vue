@@ -49,7 +49,7 @@
           <div class="agent-detail-page__field">
             <label class="agent-detail-page__label">角色</label>
             <select v-model="form.roleName" class="agent-input agent-detail-page__input agent-detail-page__select" :disabled="agent.isSelf" @change="handleAutoSave">
-              <option value="管理员">管理员</option>
+              <option v-if="form.roleName === '超级管理员'" value="超级管理员">超级管理员</option>
               <option value="客服">客服</option>
               <option value="高级客服">高级客服</option>
               <option value="主管">主管</option>

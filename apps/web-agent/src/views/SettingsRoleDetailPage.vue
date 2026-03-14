@@ -26,38 +26,42 @@
       <div class="role-detail-page__field role-detail-page__field--tree">
         <label class="role-detail-page__label">权限配置</label>
         <div class="perm-tree">
-          <div v-for="group in permissionTree" :key="group.key" class="perm-group">
+          <div v-for="group in permissionTree" :key="group.key" class="perm-group" :class="{ 'perm-group--locked': group.locked }">
             <div class="perm-group__header">
               <label class="perm-group__check">
                 <input
                   type="checkbox"
-                  :checked="isGroupChecked(group)"
-                  :indeterminate="isGroupIndeterminate(group)"
-                  :disabled="!editable"
+                  :checked="group.locked || isGroupChecked(group)"
+                  :indeterminate="!group.locked && isGroupIndeterminate(group)"
+                  :disabled="group.locked || !editable"
                   @change="toggleGroup(group)"
                 />
                 <span class="perm-group__title">{{ group.label }}</span>
               </label>
+              <span v-if="group.tooltip" class="perm-group__tooltip-wrap">
+                <span class="perm-group__tooltip-trigger">?</span>
+                <span class="perm-group__tooltip-content">{{ group.tooltip }}</span>
+              </span>
             </div>
 
-            <!-- Sub menus -->
-            <div v-if="group.children && group.children.length > 0" class="perm-group__children">
+            <!-- Sub menus (skip locked groups) -->
+            <div v-if="!group.locked && group.children && group.children.length > 0" class="perm-group__children">
               <div v-for="child in group.children" :key="child.key" class="perm-item">
                 <div class="perm-item__row">
                   <label class="perm-item__check">
                     <input
                       type="checkbox"
-                      :checked="isItemChecked(child)"
-                      :indeterminate="isItemIndeterminate(child)"
-                      :disabled="!editable"
+                      :checked="child.locked || isItemChecked(child)"
+                      :indeterminate="child.locked"
+                      :disabled="child.locked || !editable"
                       @change="toggleItem(child)"
                     />
                     <span class="perm-item__label">{{ child.label }}</span>
                   </label>
                 </div>
 
-                <!-- Feature permissions -->
-                <div v-if="child.features && child.features.length > 0" class="perm-item__features">
+                <!-- Feature permissions (skip locked items) -->
+                <div v-if="!child.locked && child.features && child.features.length > 0" class="perm-item__features">
                   <label
                     v-for="feat in child.features"
                     :key="feat.key"
@@ -105,12 +109,15 @@ interface PermFeature {
 interface PermItem {
   key: string;
   label: string;
+  locked?: boolean;
   features?: PermFeature[];
 }
 
 interface PermGroup {
   key: string;
   label: string;
+  locked?: boolean;
+  tooltip?: string;
   children?: PermItem[];
 }
 
@@ -149,6 +156,16 @@ const roleName = ref(props.initialName);
 // Permission tree definition
 const permissionTree: PermGroup[] = [
   {
+    key: "home",
+    label: "首页",
+    locked: true
+  },
+  {
+    key: "conversation",
+    label: "会话",
+    locked: true
+  },
+  {
     key: "archive",
     label: "档案",
     children: [
@@ -160,13 +177,16 @@ const permissionTree: PermGroup[] = [
     key: "visitor",
     label: "访客",
     children: [
+      { key: "visitor-view", label: "查看访客", locked: true },
       { key: "visitor-manage", label: "管理访客" }
     ]
   },
   {
     key: "customer",
     label: "客户",
+    tooltip: "仅在接入客户标识后启用客户模块",
     children: [
+      { key: "customer-view", label: "查看客户", locked: true },
       { key: "customer-manage", label: "管理客户" }
     ]
   },
@@ -181,7 +201,24 @@ const permissionTree: PermGroup[] = [
     key: "campaign",
     label: "营销",
     children: [
+      { key: "campaign-view", label: "查看营销", locked: true },
       { key: "campaign-manage", label: "管理营销" }
+    ]
+  },
+  {
+    key: "quick-reply",
+    label: "快捷回复",
+    children: [
+      { key: "reply-view", label: "查看个人回复", locked: true },
+      { key: "reply-manage", label: "管理个人回复" }
+    ]
+  },
+  {
+    key: "tags",
+    label: "标签",
+    children: [
+      { key: "tags-view", label: "查看标签", locked: true },
+      { key: "tags-manage", label: "管理标签" }
     ]
   },
   {
@@ -206,24 +243,32 @@ const permissionTree: PermGroup[] = [
     ]
   },
   {
+    key: "install",
+    label: "安装",
+    children: [
+      { key: "install-view-code", label: "查看网站代码" },
+      { key: "install-view-chat", label: "查看聊天页面" },
+      { key: "install-manage-custom", label: "管理自定义" }
+    ]
+  },
+  {
     key: "settings",
     label: "设置",
     children: [
-      { key: "install-manage", label: "管理安装" },
-      { key: "reply-manage", label: "管理快捷回复" },
-      { key: "tags-manage", label: "管理标签" },
       { key: "security-manage", label: "管理安全" },
       { key: "dev-settings-manage", label: "管理开发设置" }
     ]
   }
 ];
 
-// Collect all perm keys
+// Collect all toggleable perm keys (exclude locked)
 const getAllKeys = (): string[] => {
   const keys: string[] = [];
   for (const group of permissionTree) {
+    if (group.locked) continue;
     if (group.children) {
       for (const child of group.children) {
+        if (child.locked) continue;
         keys.push(child.key);
         if (child.features) {
           for (const feat of child.features) {
@@ -244,21 +289,22 @@ const initPerms = (): Set<string> => {
   if (props.mode === "create") {
     return new Set();
   }
-  if (props.isSystemRole && props.initialName === "管理员") {
-    // Admin gets all permissions + conversation
+  if (props.isSystemRole && props.initialName === "超级管理员") {
     const allKeys = getAllKeys();
-    return new Set([...allKeys, "conv-view", "conv-transfer", "conv-invite", "conv-close"]);
+    return new Set(allKeys);
   }
   return new Set();
 };
 
 const checkedPerms = ref<Set<string>>(initPerms());
 
-// Group-level check state
+// Group-level check state (only toggleable keys)
 const getGroupChildKeys = (group: PermGroup): string[] => {
   const keys: string[] = [];
+  if (group.locked) return keys;
   if (group.children) {
     for (const child of group.children) {
+      if (child.locked) continue;
       keys.push(child.key);
       if (child.features) {
         for (const feat of child.features) {
@@ -282,6 +328,7 @@ const isGroupIndeterminate = (group: PermGroup): boolean => {
 };
 
 const toggleGroup = (group: PermGroup) => {
+  if (group.locked) return;
   const keys = getGroupChildKeys(group);
   const allChecked = isGroupChecked(group);
   const next = new Set(checkedPerms.value);
@@ -295,8 +342,9 @@ const toggleGroup = (group: PermGroup) => {
   checkedPerms.value = next;
 };
 
-// Item-level check state
+// Item-level check state (only toggleable keys)
 const getItemKeys = (item: PermItem): string[] => {
+  if (item.locked) return [];
   const keys = [item.key];
   if (item.features) {
     for (const feat of item.features) {
@@ -308,7 +356,7 @@ const getItemKeys = (item: PermItem): string[] => {
 
 const isItemChecked = (item: PermItem): boolean => {
   const keys = getItemKeys(item);
-  return keys.every((k) => checkedPerms.value.has(k));
+  return keys.length > 0 && keys.every((k) => checkedPerms.value.has(k));
 };
 
 const isItemIndeterminate = (item: PermItem): boolean => {
@@ -318,6 +366,7 @@ const isItemIndeterminate = (item: PermItem): boolean => {
 };
 
 const toggleItem = (item: PermItem) => {
+  if (item.locked) return;
   const keys = getItemKeys(item);
   const allChecked = isItemChecked(item);
   const next = new Set(checkedPerms.value);
@@ -460,15 +509,17 @@ const handleSave = () => {
   border: 1px solid #edf1f5;
   border-radius: 12px;
   margin-bottom: 12px;
-  overflow: hidden;
+}
+
+.perm-group--locked {
+  opacity: 0.72;
 }
 
 .perm-group__header {
   align-items: center;
   background: #f8f9fb;
   display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  gap: 8px;
   padding: 12px 16px;
 }
 
@@ -486,10 +537,66 @@ const handleSave = () => {
   width: 16px;
 }
 
+.perm-group__check input[type="checkbox"]:disabled {
+  cursor: default;
+}
+
 .perm-group__title {
   color: #252525;
   font-size: 14px;
   font-weight: 600;
+}
+
+/* Tooltip */
+.perm-group__tooltip-wrap {
+  display: inline-flex;
+  position: relative;
+}
+
+.perm-group__tooltip-trigger {
+  align-items: center;
+  border: 1px solid #c7cdd8;
+  border-radius: 50%;
+  color: #75869c;
+  cursor: help;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  width: 16px;
+}
+
+.perm-group__tooltip-content {
+  background: #222222;
+  border-radius: 6px;
+  color: #ffffff;
+  display: none;
+  font-size: 12px;
+  left: 50%;
+  line-height: 18px;
+  padding: 6px 10px;
+  position: absolute;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.perm-group__tooltip-content::after {
+  border-bottom: 5px solid #222222;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: -5px;
+  transform: translateX(-50%);
+}
+
+.perm-group__tooltip-wrap:hover .perm-group__tooltip-content {
+  display: block;
 }
 
 .perm-group__children {
@@ -518,6 +625,10 @@ const handleSave = () => {
   cursor: pointer;
   height: 15px;
   width: 15px;
+}
+
+.perm-item__check input[type="checkbox"]:disabled {
+  cursor: default;
 }
 
 .perm-item__label {

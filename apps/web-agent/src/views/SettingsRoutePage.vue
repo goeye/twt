@@ -370,14 +370,13 @@ const handleRoleBack = () => {
 const handleViewRole = (roleId: string) => {
   roleDetailId.value = roleId;
   if (roleId === "role-admin") {
-    roleDetailName.value = "管理员";
+    roleDetailName.value = "超级管理员";
     roleDetailIsSystem.value = true;
     roleDetailPerms.value = [];
   } else if (roleId === "role-agent") {
     roleDetailName.value = "客服";
     roleDetailIsSystem.value = true;
     roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
       "archive-view",
       "visitor-manage",
       "agent-list-view",
@@ -387,7 +386,6 @@ const handleViewRole = (roleId: string) => {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
     roleDetailIsSystem.value = false;
     roleDetailPerms.value = [
-      "conv-view", "conv-transfer", "conv-invite", "conv-close",
       "archive-view",
       "visitor-manage",
       "report-view",

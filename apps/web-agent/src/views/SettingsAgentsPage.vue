@@ -61,12 +61,11 @@
             </thead>
             <tbody>
               <tr v-for="row in displayList" :key="row.id" :class="{ 'settings-agents-table__row--invite': row.isInvite }">
-                <td>{{ row.memberId }}</td>
+                <td>{{ row.isInvite ? '-' : row.memberId }}</td>
                 <td>
                   <div v-if="!row.isInvite" class="settings-agents-table__name-cell">
                     <span class="settings-agents-table__avatar" :style="{ background: row.avatarColor }">{{ row.avatarText }}</span>
                     <span>{{ row.name }}</span>
-                    <span v-if="row.isOwner" class="settings-agents-table__owner-tag">管理员</span>
                   </div>
                   <span v-else class="settings-agents-table__empty-dash">-</span>
                 </td>
@@ -139,15 +138,6 @@
                         >删除</button>
                       </template>
                       <template v-else>
-                        <div class="settings-agents-table__reinvite-wrap">
-                          <button
-                            type="button"
-                            class="settings-agents-table__dropdown-item"
-                            :disabled="row.reinviteCooldown"
-                            @click="handleReinvite(row)"
-                          >重新邀请</button>
-                          <div v-if="row.reinviteCooldown" class="settings-agents-table__reinvite-tip">60s 后可重新发送</div>
-                        </div>
                         <button
                           type="button"
                           class="settings-agents-table__dropdown-item settings-agents-table__dropdown-item--danger"
@@ -211,7 +201,6 @@
               <label class="invite-modal__label">角色</label>
               <select v-model="inviteRole" class="agent-input invite-modal__select">
                 <option value="客服">客服</option>
-                <option value="管理员">管理员</option>
                 <option value="高级客服">高级客服</option>
                 <option value="主管">主管</option>
               </select>
@@ -254,7 +243,6 @@ interface DisplayRow {
   accountEnabled?: boolean;
   isOwner?: boolean;
   inviteStatus?: string;
-  reinviteCooldown?: boolean;
 }
 
 const props = withDefaults(
@@ -313,7 +301,7 @@ const members = ref([
     name: "Cafe",
     avatarColor: "#105eff",
     avatarText: "C",
-    roleName: "管理员",
+    roleName: "超级管理员",
     nickname: "客服-莉莉",
     email: "aidanswang@gmail.com",
     sessionLimit: 10,
@@ -386,8 +374,7 @@ const inviteRecords = ref([
     email: "newagent@example.com",
     roleName: "客服",
     invitedAt: "2025-12-10 15:30",
-    status: "待激活",
-    reinviteCooldown: false
+    status: "待激活"
   },
   {
     id: "invite-002",
@@ -395,8 +382,7 @@ const inviteRecords = ref([
     email: "expired@example.com",
     roleName: "高级客服",
     invitedAt: "2025-11-20 09:00",
-    status: "待激活",
-    reinviteCooldown: false
+    status: "待激活"
   }
 ]);
 
@@ -423,8 +409,7 @@ const displayList = computed<DisplayRow[]>(() => {
     memberId: r.memberId,
     roleName: r.roleName,
     email: r.email,
-    inviteStatus: r.status,
-    reinviteCooldown: r.reinviteCooldown
+    inviteStatus: r.status
   }));
 
   return [...agentRows, ...inviteRows];
@@ -438,7 +423,7 @@ const toggleAccount = (rowId: string) => {
 };
 
 const getRoleBadgeClass = (roleName: string) => {
-  if (roleName === "管理员") return "settings-agents-table__role-badge--admin";
+  if (roleName === "超级管理员") return "settings-agents-table__role-badge--admin";
   return "";
 };
 
@@ -477,7 +462,7 @@ const confirmDeleteAgent = () => {
   const target = deleteTargetAgent.value;
   if (target.isInvite) {
     inviteRecords.value = inviteRecords.value.filter((r) => r.id !== target.id);
-    emit("toast", "删除成功");
+    emit("toast", "删除成功，邀请链接已失效");
   } else {
     members.value = members.value.filter((m) => m.id !== target.id);
     emit("toast", "删除成功");
@@ -505,6 +490,10 @@ const handleHeaderAction = () => {
 const inviteModalVisible = ref(false);
 const inviteEmail = ref("");
 const inviteRole = ref("客服");
+const dailyInviteCount = ref(0);
+
+const maxDailyInvites = computed(() => seatSummary.value.total * 2);
+const remainingDailyInvites = computed(() => maxDailyInvites.value - dailyInviteCount.value);
 
 const openInviteModal = () => {
   inviteEmail.value = "";
@@ -512,41 +501,57 @@ const openInviteModal = () => {
   inviteModalVisible.value = true;
 };
 
-const handleSendInvite = () => {
-  if (!inviteEmail.value.trim()) return;
-  const existing = inviteRecords.value.find((r) => r.email === inviteEmail.value.trim());
-  if (existing) {
-    existing.status = "待激活";
-    existing.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
-    existing.roleName = inviteRole.value;
-    emit("toast", `已重新发送邀请至 ${record.email}`);
-  } else {
-    nextMemberId++;
-    inviteRecords.value.push({
-      id: `invite-${Date.now()}`,
-      memberId: String(nextMemberId),
-      email: inviteEmail.value.trim(),
-      roleName: inviteRole.value,
-      invitedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"),
-      status: "待激活",
-      reinviteCooldown: false
-    });
-    emit("toast", `邀请已发送至 ${inviteEmail.value}`);
-  }
-  inviteModalVisible.value = false;
+const parseEmails = (raw: string): string[] => {
+  return raw
+    .split(/[\n,;]+/)
+    .map((e) => e.trim())
+    .filter((e) => e.length > 0);
 };
 
-const handleReinvite = (row: DisplayRow) => {
-  closeDropdown();
-  const record = inviteRecords.value.find((r) => r.id === row.id);
-  if (!record) return;
-  record.status = "待激活";
-  record.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
-  record.reinviteCooldown = true;
-  emit("toast", "邀请已发送");
-  setTimeout(() => {
-    record.reinviteCooldown = false;
-  }, 60000);
+const handleSendInvite = () => {
+  if (!inviteEmail.value.trim()) return;
+
+  const emails = parseEmails(inviteEmail.value);
+  if (emails.length === 0) return;
+
+  const maxCount = maxDailyInvites.value;
+  const remainCount = remainingDailyInvites.value;
+
+  // 已达上限
+  if (remainCount <= 0) {
+    emit("toast", `今日邀请次数已达 ${maxCount} 上限`);
+    return;
+  }
+
+  // 输入邮箱数大于剩余次数
+  if (emails.length > remainCount) {
+    emit("toast", `今天可邀请 ${maxCount} 次，还剩 ${remainCount} 次`);
+    return;
+  }
+
+  // 逐个处理邀请
+  for (const email of emails) {
+    const existing = inviteRecords.value.find((r) => r.email === email);
+    if (existing) {
+      existing.status = "待激活";
+      existing.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
+      existing.roleName = inviteRole.value;
+    } else {
+      nextMemberId++;
+      inviteRecords.value.push({
+        id: `invite-${Date.now()}-${nextMemberId}`,
+        memberId: String(nextMemberId),
+        email,
+        roleName: inviteRole.value,
+        invitedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"),
+        status: "待激活"
+      });
+    }
+    dailyInviteCount.value++;
+  }
+
+  emit("toast", emails.length === 1 ? `邀请已发送至 ${emails[0]}` : `邀请已发送至 ${emails.length} 个邮箱`);
+  inviteModalVisible.value = false;
 };
 
 const handleDeleteInvite = (row: DisplayRow) => {
@@ -765,18 +770,6 @@ const handleDeleteInvite = (row: DisplayRow) => {
   width: 28px;
 }
 
-.settings-agents-table__owner-tag {
-  background: #fef3c7;
-  border-radius: 4px;
-  color: #d97706;
-  display: inline-flex;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 14px;
-  padding: 0 5px;
-  white-space: nowrap;
-}
-
 .settings-agents-table__role-badge {
   background: #dce9ff;
   border-radius: 4px;
@@ -931,30 +924,6 @@ const handleDeleteInvite = (row: DisplayRow) => {
 
 .settings-agents-table__dropdown-item--danger:disabled {
   color: #fca5a5;
-}
-
-.settings-agents-table__reinvite-wrap {
-  position: relative;
-}
-
-.settings-agents-table__reinvite-tip {
-  background: #222222;
-  border-radius: 6px;
-  color: #ffffff;
-  display: none;
-  font-size: 12px;
-  left: 50%;
-  line-height: 18px;
-  padding: 4px 10px;
-  position: absolute;
-  top: 100%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  z-index: 10;
-}
-
-.settings-agents-table__reinvite-wrap:hover .settings-agents-table__reinvite-tip {
-  display: block;
 }
 
 /* Pagination */
