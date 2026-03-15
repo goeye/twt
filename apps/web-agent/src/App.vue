@@ -160,9 +160,11 @@
           class="chat-pane__composer"
           :disabled="composerText.trim().length === 0"
           placeholder="发送消息输入 / 选择快捷回复"
-          @attachment="showTopToast('附件功能开发中')"
-          @emoji="showTopToast('表情面板开发中')"
-          @quick-reply="showTopToast('快捷回复面板开发中')"
+          @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
+          @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+          @quick-reply="track(TrackEvent.QUICK_REPLY); showTopToast('快捷回复面板开发中')"
+          @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
+          @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSend"
         />
       </section>
@@ -360,6 +362,7 @@ import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
+import { track, TrackEvent } from "./lib/tracker";
 import {
   AgentAppShell,
   AiSettingsNav,
@@ -1489,6 +1492,7 @@ const handleConfirmTransfer = () => {
   const pendingId = pendingTransferAgentId.value;
   if (!session) return;
   if (!pendingId) return;
+  track(TrackEvent.TRANSFER_SESSION);
   const newOwner = agentPool.find((a) => a.id === pendingId);
   if (!newOwner) return;
 
@@ -1517,6 +1521,7 @@ const handleConfirmTransfer = () => {
 const handleConfirmInvite = (ids: string[]) => {
   const session = activeSession.value;
   if (!session || ids.length === 0) return;
+  track(TrackEvent.ADD_AGENT);
 
   const invitees = ids.map((id) => agentPool.find((a) => a.id === id)).filter((a): a is AgentEntry => !!a);
   if (invitees.length === 0) return;
@@ -1558,6 +1563,7 @@ const handleCloseTakeoverAiSession = () => {
 const handleConfirmTakeoverAiSession = () => {
   const session = activeSession.value;
   if (!session) return;
+  track(TrackEvent.TAKEOVER_AI);
 
   const now = new Date();
   const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -1588,6 +1594,7 @@ const handleSend = () => {
   if (!text || !activeSession.value) {
     return;
   }
+  track(TrackEvent.SEND_MESSAGE);
 
   const now = new Date();
   const time = now.toLocaleTimeString("zh-CN", {
@@ -1647,6 +1654,7 @@ const handleOpenCloseSession = () => {
 
 const handleConfirmCloseSession = () => {
   if (!activeSession.value) return;
+  track(TrackEvent.CLOSE_SESSION);
   allSessions.value = allSessions.value.map((s) => {
     if (s.id !== activeSession.value!.id) return s;
     return { ...s, closed: true };

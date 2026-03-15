@@ -11,6 +11,10 @@
     "dev:web-customer": "pnpm --filter web-customer dev",
     "build:web-customer": "pnpm --filter web-customer build",
     "upload:web-customer": "cd apps && bash upcode.sh web-customer",
-    "deploy:web-customer": "pnpm build:web-customer && pnpm upload:web-customer"
+    "deploy:web-customer": "pnpm build:web-customer && pnpm upload:web-customer",
+    "dev:web-admin": "pnpm --filter web-admin dev",
+    "build:web-admin": "pnpm --filter web-admin build",
+    "upload:web-admin": "cd apps && bash upcode.sh web-admin",
+    "deploy:web-admin": "pnpm build:web-admin && pnpm upload:web-admin"
   }
 }
