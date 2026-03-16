@@ -24,6 +24,10 @@ const router = createRouter({
       component: () => import("./views/SensitiveWordsPage.vue"),
     },
     {
+      path: "/compliance/sensitive-words/:id",
+      component: () => import("./views/DictDetailPage.vue"),
+    },
+    {
       path: "/compliance/alerts",
       component: () => import("./views/AlertsPage.vue"),
     },

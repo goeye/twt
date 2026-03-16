@@ -1,170 +1,32 @@
-/** 预警提示 Mock 数据 */
+/** 预警列表 Mock 数据 */
 
-export type AlertCategory = "fund" | "contract" | "personal_info";
+export type SenderRole = "visitor" | "agent";
 
 export interface AlertRecord {
   id: number;
-  sessionId: string;
-  visitor: string;
-  triggerRule: string;
-  category: AlertCategory;
+  content: string;
+  sender: string;
+  senderRole: SenderRole;
+  sessionTitle: string;
+  projectName: string;
+  projectId: number;
   triggerTime: string;
-  alertContent: string;
 }
 
-export const alertCategoryOptions = [
-  { label: "全部", value: "all" },
-  { label: "资金类", value: "fund" },
-  { label: "合同类", value: "contract" },
-  { label: "个人信息类", value: "personal_info" },
-];
-
-export const alertCategoryLabelMap: Record<AlertCategory, string> = {
-  fund: "资金类",
-  contract: "合同类",
-  personal_info: "个人信息类",
-};
-
-export const alertCategoryColorMap: Record<AlertCategory, string> = {
-  fund: "red",
-  contract: "orange",
-  personal_info: "blue",
-};
-
 export const alertsData: AlertRecord[] = [
-  {
-    id: 1,
-    sessionId: "S20260310001",
-    visitor: "访客_A8x3k",
-    triggerRule: "转账关键词检测",
-    category: "fund",
-    triggerTime: "2026-03-10 09:12:34",
-    alertContent: '消息中包含"转账"相关敏感词',
-  },
-  {
-    id: 2,
-    sessionId: "S20260310002",
-    visitor: "访客_B2m7p",
-    triggerRule: "银行卡号检测",
-    category: "fund",
-    triggerTime: "2026-03-10 10:45:12",
-    alertContent: '消息中包含"银行卡"相关敏感词',
-  },
-  {
-    id: 3,
-    sessionId: "S20260311001",
-    visitor: "访客_C9n1z",
-    triggerRule: "合同签署检测",
-    category: "contract",
-    triggerTime: "2026-03-11 14:23:08",
-    alertContent: '消息中包含"合同"相关敏感词',
-  },
-  {
-    id: 4,
-    sessionId: "S20260311002",
-    visitor: "访客_D4q8r",
-    triggerRule: "身份证信息检测",
-    category: "personal_info",
-    triggerTime: "2026-03-11 16:05:41",
-    alertContent: '消息中包含"身份证"相关敏感词',
-  },
-  {
-    id: 5,
-    sessionId: "S20260312001",
-    visitor: "访客_E7w2t",
-    triggerRule: "定金汇款检测",
-    category: "fund",
-    triggerTime: "2026-03-12 08:30:55",
-    alertContent: '消息中包含"定金"相关敏感词',
-  },
-  {
-    id: 6,
-    sessionId: "S20260312002",
-    visitor: "访客_F1y5h",
-    triggerRule: "护照信息检测",
-    category: "personal_info",
-    triggerTime: "2026-03-12 11:18:29",
-    alertContent: '消息中包含"护照"相关敏感词',
-  },
-  {
-    id: 7,
-    sessionId: "S20260313001",
-    visitor: "访客_G3u6k",
-    triggerRule: "支付账号检测",
-    category: "fund",
-    triggerTime: "2026-03-13 09:44:17",
-    alertContent: '消息中包含"账号"相关敏感词',
-  },
-  {
-    id: 8,
-    sessionId: "S20260313002",
-    visitor: "访客_H8i0m",
-    triggerRule: "签约协议检测",
-    category: "contract",
-    triggerTime: "2026-03-13 13:56:03",
-    alertContent: '消息中包含"签约"相关敏感词',
-  },
-  {
-    id: 9,
-    sessionId: "S20260314001",
-    visitor: "访客_I2o4n",
-    triggerRule: "押金保证金检测",
-    category: "fund",
-    triggerTime: "2026-03-14 10:22:48",
-    alertContent: '消息中包含"押金"相关敏感词',
-  },
-  {
-    id: 10,
-    sessionId: "S20260314002",
-    visitor: "访客_J5e9x",
-    triggerRule: "驾照信息检测",
-    category: "personal_info",
-    triggerTime: "2026-03-14 15:07:36",
-    alertContent: '消息中包含"驾照"相关敏感词',
-  },
-  {
-    id: 11,
-    sessionId: "S20260315001",
-    visitor: "访客_K6a1w",
-    triggerRule: "汇款转账检测",
-    category: "fund",
-    triggerTime: "2026-03-15 08:55:22",
-    alertContent: '消息中包含"汇款"相关敏感词',
-  },
-  {
-    id: 12,
-    sessionId: "S20260315002",
-    visitor: "访客_L0c3v",
-    triggerRule: "合同条款检测",
-    category: "contract",
-    triggerTime: "2026-03-15 14:33:19",
-    alertContent: '消息中包含"协议"相关敏感词',
-  },
-  {
-    id: 13,
-    sessionId: "S20260316001",
-    visitor: "访客_M7b8s",
-    triggerRule: "PayPal 账户检测",
-    category: "fund",
-    triggerTime: "2026-03-16 09:10:05",
-    alertContent: '消息中包含"PayPal"相关敏感词',
-  },
-  {
-    id: 14,
-    sessionId: "S20260316002",
-    visitor: "访客_N4d2f",
-    triggerRule: "社保号信息检测",
-    category: "personal_info",
-    triggerTime: "2026-03-16 11:42:51",
-    alertContent: '消息中包含"社保号"相关敏感词',
-  },
-  {
-    id: 15,
-    sessionId: "S20260316003",
-    visitor: "访客_O9g5j",
-    triggerRule: "预付款检测",
-    category: "fund",
-    triggerTime: "2026-03-16 14:28:37",
-    alertContent: '消息中包含"预付款"相关敏感词',
-  },
+  { id: 1, content: "我可以先转账给你，你把银行卡号发我", sender: "张伟", senderRole: "visitor", sessionTitle: "咨询产品退款流程", projectName: "延珠烧烤", projectId: 554, triggerTime: "2026-03-10 09:12:34" },
+  { id: 2, content: "你把银行卡信息发过来，我安排打款", sender: "傅晓康", senderRole: "agent", sessionTitle: "询问付款方式", projectName: "TWT Chat", projectId: 352, triggerTime: "2026-03-10 10:45:12" },
+  { id: 3, content: "合同我已经签好了，你看一下协议内容", sender: "林小雨", senderRole: "visitor", sessionTitle: "合同签署确认", projectName: "test3", projectId: 489, triggerTime: "2026-03-11 14:23:08" },
+  { id: 4, content: "麻烦把身份证正反面拍照发给我", sender: "马素强", senderRole: "agent", sessionTitle: "实名认证协助", projectName: "延珠烧烤", projectId: 554, triggerTime: "2026-03-11 16:05:41" },
+  { id: 5, content: "定金已经汇过去了，请确认收款", sender: "陈思远", senderRole: "visitor", sessionTitle: "订单定金支付", projectName: "测试app的项目", projectId: 538, triggerTime: "2026-03-12 08:30:55" },
+  { id: 6, content: "护照号码是 G12345678", sender: "王丽华", senderRole: "visitor", sessionTitle: "出境资料提交", projectName: "TWT Chat", projectId: 352, triggerTime: "2026-03-12 11:18:29" },
+  { id: 7, content: "用支付宝转到这个账号就行", sender: "赵明辉", senderRole: "visitor", sessionTitle: "线上支付咨询", projectName: "test3", projectId: 489, triggerTime: "2026-03-13 09:44:17" },
+  { id: 8, content: "签约协议需要盖章吗？", sender: "刘婷婷", senderRole: "visitor", sessionTitle: "企业合作签约", projectName: "延珠烧烤", projectId: 554, triggerTime: "2026-03-13 13:56:03" },
+  { id: 9, content: "押金和保证金一起付可以吗", sender: "孙浩然", senderRole: "visitor", sessionTitle: "租赁押金确认", projectName: "测试app的项目", projectId: 538, triggerTime: "2026-03-14 10:22:48" },
+  { id: 10, content: "驾照上面的地址需要更新", sender: "李四", senderRole: "agent", sessionTitle: "证件信息变更", projectName: "TWT Chat", projectId: 352, triggerTime: "2026-03-14 15:07:36" },
+  { id: 11, content: "汇款到你们公司的对公账户对吧", sender: "周敏", senderRole: "visitor", sessionTitle: "对公汇款咨询", projectName: "延珠烧烤", projectId: 554, triggerTime: "2026-03-15 08:55:22" },
+  { id: 12, content: "这份协议第三条有歧义", sender: "吴晓峰", senderRole: "visitor", sessionTitle: "协议条款疑问", projectName: "test3", projectId: 489, triggerTime: "2026-03-15 14:33:19" },
+  { id: 13, content: "PayPal 付款后截图给你", sender: "黄嘉琪", senderRole: "visitor", sessionTitle: "海外支付确认", projectName: "测试app的项目", projectId: 538, triggerTime: "2026-03-16 09:10:05" },
+  { id: 14, content: "社保号要提供完整的吗", sender: "杨文博", senderRole: "visitor", sessionTitle: "社保信息采集", projectName: "TWT Chat", projectId: 352, triggerTime: "2026-03-16 11:42:51" },
+  { id: 15, content: "预付款打了一半，剩下的月底结", sender: "傅晓康", senderRole: "agent", sessionTitle: "分期付款安排", projectName: "延珠烧烤", projectId: 554, triggerTime: "2026-03-16 14:28:37" },
 ];
