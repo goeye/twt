@@ -41,7 +41,14 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'action'">
-            <a style="color: #ff4d4f" @click="handleDeleteOne(record)">删除</a>
+            <a-popconfirm
+              title="确定删除吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="handleDeleteOne(record)"
+            >
+              <a style="color: #ff4d4f">删除</a>
+            </a-popconfirm>
           </template>
         </template>
       </a-table>
@@ -70,7 +77,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { message, Modal } from "ant-design-vue";
+import { message } from "ant-design-vue";
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import {
   dictionaryData,
@@ -155,21 +162,12 @@ function handleAddOk() {
 
 /* ---- 删除 ---- */
 function handleDeleteOne(record: WordRecord) {
-  Modal.confirm({
-    title: "确认删除",
-    content: `确定删除「${record.text}」吗？`,
-    okText: "确定",
-    cancelText: "取消",
-    okButtonProps: { danger: true },
-    onOk() {
-      dataSource.value = dataSource.value.filter((r) => r.id !== record.id);
-      if (dict) {
-        dict.words = [...dataSource.value];
-        dict.updatedAt = nowStr();
-      }
-      message.success("删除成功");
-    },
-  });
+  dataSource.value = dataSource.value.filter((r) => r.id !== record.id);
+  if (dict) {
+    dict.words = [...dataSource.value];
+    dict.updatedAt = nowStr();
+  }
+  message.success("删除成功");
 }
 
 /* ---- 表格列 ---- */

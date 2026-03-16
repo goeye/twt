@@ -22,7 +22,14 @@
           </template>
           <template v-if="column.dataIndex === 'action'">
             <a style="margin-right: 12px" @click="handleManage(record)">管理</a>
-            <a style="color: #ff4d4f" @click="handleClear(record)">清空</a>
+            <a-popconfirm
+              title="确定清空吗？"
+              ok-text="确定"
+              cancel-text="取消"
+              @confirm="handleClear(record)"
+            >
+              <a style="color: #ff4d4f">清空</a>
+            </a-popconfirm>
           </template>
         </template>
       </a-table>
@@ -54,7 +61,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { message, Modal } from "ant-design-vue";
+import { message } from "ant-design-vue";
 import { PlusOutlined } from "@ant-design/icons-vue";
 import {
   dictionaryData as initialData,
@@ -127,20 +134,11 @@ function handleManage(record: DictionaryRecord) {
 
 /* ---- 清空 ---- */
 function handleClear(record: DictionaryRecord) {
-  Modal.confirm({
-    title: "确认清空",
-    content: `确定清空词库「${record.name}」中的所有词吗？`,
-    okText: "确定",
-    cancelText: "取消",
-    okButtonProps: { danger: true },
-    onOk() {
-      const idx = dataSource.value.findIndex((r) => r.id === record.id);
-      if (idx !== -1) {
-        dataSource.value[idx] = { ...dataSource.value[idx], words: [], updatedAt: nowStr() };
-      }
-      message.success("清空成功");
-    },
-  });
+  const idx = dataSource.value.findIndex((r) => r.id === record.id);
+  if (idx !== -1) {
+    dataSource.value[idx] = { ...dataSource.value[idx], words: [], updatedAt: nowStr() };
+  }
+  message.success("清空成功");
 }
 
 /* ---- 表格列 ---- */
