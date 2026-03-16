@@ -49,6 +49,11 @@
           :class="{ 'cw-chat-float-tools__chip--active': floatingToggles.inactivity }"
           @click="toggleFloatingAction('inactivity')"
         >模拟不活跃关闭</button>
+        <button
+          type="button"
+          class="cw-chat-float-tools__chip"
+          @click="simulateRiskMessage"
+        >模拟风控触发</button>
       </div>
     </div>
 
@@ -75,7 +80,18 @@
 
     <template v-else>
       <div class="cw-messages">
-        <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="msg.role === 'visitor' ? 'cw-msg--visitor' : 'cw-msg--agent'">
+        <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
+          <template v-if="msg.role === 'risk-alert'">
+            <div class="cw-msg__risk-alert">
+              <svg class="cw-msg__risk-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span>{{ msg.text }}</span>
+            </div>
+          </template>
+          <template v-else>
           <span class="cw-msg__time">{{ msg.time }}</span>
           <div class="cw-msg__bubble" :class="[{ 'cw-msg__bubble--visitor': msg.role === 'visitor' }, { 'cw-msg__bubble--typing': msg.pending }]">
             <template v-if="msg.pending">
@@ -90,6 +106,7 @@
               <span v-if="msg.role === 'ai' && showAgentLabel" class="cw-msg__bubble-label">AI Agent</span>
             </template>
           </div>
+          </template>
         </div>
       </div>
 
@@ -131,8 +148,9 @@ import {
   loadAiAgentDemoSettings,
   type AiAgentDemoSettings
 } from "../lib/aiAgentDemo";
+import { detectRisk, resetRiskAlerts } from "../lib/riskControl";
 
-type MessageRole = "visitor" | "ai" | "human";
+type MessageRole = "visitor" | "ai" | "human" | "risk-alert";
 
 interface Message {
   id: string;
@@ -188,6 +206,11 @@ const pushMessage = (role: MessageRole, text: string, readReceipt = false, pendi
     readReceipt: role === "visitor" ? readReceipt : undefined
   });
 
+  // 文本消息风控检测（risk-alert 和 pending 消息不检测）
+  if (role !== "risk-alert" && !pending && text.trim()) {
+    checkRisk(text);
+  }
+
   return id;
 };
 
@@ -221,11 +244,19 @@ const scheduleAiMessage = (text: string, afterDeliver?: () => void, delay = 900)
 
 const resetConversation = () => {
   clearAiReplyTimers();
+  resetRiskAlerts();
   sessionEnded.value = false;
   selectedFeedback.value = null;
   endedText.value = "会话已结束，请重新咨询";
   msgCounter = 1;
   messages.value = [];
+};
+
+const checkRisk = async (text: string) => {
+  const result = await detectRisk(text);
+  if (result.hit && result.alertMessage) {
+    pushMessage("risk-alert", result.alertMessage);
+  }
 };
 
 const shouldUseHumanReply = () => {
@@ -312,6 +343,12 @@ const simulateInactivity = () => {
   clearAiReplyTimers();
   sessionEnded.value = true;
   endedText.value = "会话已结束，请重新咨询";
+};
+
+const simulateRiskMessage = () => {
+  if (sessionEnded.value) return;
+  resetRiskAlerts();
+  pushMessage("visitor", "请把钱转账到我的银行卡账号 6228 **** **** 1234", true);
 };
 
 const toggleHumanAvailability = () => {
@@ -494,6 +531,30 @@ resetConversation();
 
 .cw-msg--visitor {
   align-items: flex-end;
+}
+
+.cw-msg--risk-alert {
+  align-items: center;
+}
+
+.cw-msg__risk-alert {
+  align-items: flex-start;
+  background: #fef3cd;
+  border: 1px solid #f0d78c;
+  border-radius: 8px;
+  color: #856404;
+  display: flex;
+  font-size: 11px;
+  gap: 6px;
+  line-height: 1.5;
+  max-width: 320px;
+  padding: 8px 12px;
+}
+
+.cw-msg__risk-icon {
+  color: #d4920a;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 

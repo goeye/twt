@@ -12,6 +12,16 @@
             :disabled-date="disabledDate"
             style="width: 280px"
           />
+          <a-select
+            v-model:value="projectFilter"
+            show-search
+            :filter-option="filterProjectOption"
+            placeholder="全部项目"
+            style="width: 140px"
+          >
+            <a-select-option value="all">全部项目</a-select-option>
+            <a-select-option v-for="p in projectList" :key="p" :value="p">{{ p }}</a-select-option>
+          </a-select>
           <a-button type="primary" @click="handleQuery">查询</a-button>
         </div>
       </div>
@@ -23,14 +33,7 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'rank'">
-            <span
-              class="rank-badge"
-              :class="{
-                'rank-badge--gold': record.rank === 1,
-                'rank-badge--silver': record.rank === 2,
-                'rank-badge--bronze': record.rank === 3,
-              }"
-            >{{ record.rank }}</span>
+            <span class="rank-number">{{ record.rank }}</span>
           </template>
           <template v-if="column.dataIndex === 'name'">
             <span class="feature-name">{{ record.name }}</span>
@@ -129,6 +132,11 @@ import {
 /* ---- 筛选 ---- */
 const today = dayjs();
 const dateRange = ref<[Dayjs, Dayjs]>([today.subtract(6, "d"), today]);
+const projectFilter = ref("all");
+const projectList = ["qwe", "测试app的项目", "撒打算大", "阿德巴约", "电饭锅电饭锅"];
+const filterProjectOption = (input: string, option: any) => {
+  return (option?.children?.toString() ?? "").toLowerCase().includes(input.toLowerCase());
+};
 const handleQuery = () => {};
 
 const rangePresets = ref([
@@ -244,32 +252,11 @@ const trendPoints = computed(() => {
 }
 
 /* ---- 排行榜 ---- */
-.rank-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-size: 12px;
+.rank-number {
+  font-size: 14px;
   font-weight: 600;
-  color: #999;
-  background: #f5f5f5;
-}
-
-.rank-badge--gold {
-  background: #fff1e6;
-  color: #d4380d;
-}
-
-.rank-badge--silver {
-  background: #fff7e6;
-  color: #d48806;
-}
-
-.rank-badge--bronze {
-  background: #fffbe6;
-  color: #d4b106;
+  color: #333;
+  font-variant-numeric: tabular-nums;
 }
 
 .feature-name {
