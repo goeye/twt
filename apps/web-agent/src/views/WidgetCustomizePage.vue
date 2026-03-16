@@ -350,12 +350,14 @@
                 <span>未回复客服消息时，会话会自动关闭</span>
               </div>
             </div>
-            <div class="wc-switch-row" style="margin-top: 12px;">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">包含待处理会话</span>
-                <span class="wc-switch-desc">开启后，待处理状态的会话也会因访客不活跃而自动关闭</span>
-              </div>
-              <AgentSwitch v-model="settings.visitorInactiveIncludePending" @update:model-value="autoSave" />
+            <div class="wc-inactive-pending-panel">
+              <label class="wc-session-feature-limit">
+                <input v-model="settings.visitorInactiveIncludePending" type="checkbox" class="wc-session-feature-limit__checkbox" @change="autoSave" />
+                <div class="wc-session-feature-limit__text">
+                  <span class="wc-session-feature-limit__title">包含待处理会话</span>
+                  <span class="wc-session-feature-limit__desc">开启后，待处理状态的会话也会因访客不活跃而自动关闭</span>
+                </div>
+              </label>
             </div>
           </div>
         </article>
@@ -1438,6 +1440,13 @@ watch(previewMode, (mode) => {
   flex-direction: column;
   gap: 20px;
   padding: 18px 18px 24px;
+}
+
+.wc-inactive-pending-panel {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 18px;
+  margin-top: 12px;
+  padding: 18px 18px 20px;
 }
 
 .wc-session-feature-limit {
