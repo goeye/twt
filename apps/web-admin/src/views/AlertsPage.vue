@@ -25,6 +25,12 @@
             style="width: 140px"
             allow-clear
           />
+          <span class="filter-label">类型</span>
+          <a-select v-model:value="typeFilter" style="width: 100px">
+            <a-select-option v-for="opt in alertTypeOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </a-select-option>
+          </a-select>
         </div>
         <div class="filter-right">
           <a-button type="primary" @click="handleSearch">
@@ -47,6 +53,9 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'type'">
+            {{ record.type === 'session' ? '会话' : '聊天' }}
+          </template>
           <template v-if="column.dataIndex === 'sender'">
             <a-tag :color="record.senderRole === 'visitor' ? 'green' : 'blue'" :bordered="false">
               {{ record.senderRole === 'visitor' ? '访客' : '客服' }}
@@ -65,6 +74,7 @@ import { SearchOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import dayjs, { type Dayjs } from "dayjs";
 import {
   alertsData,
+  alertTypeOptions,
   type AlertRecord,
 } from "../mock/alertsData";
 
@@ -72,6 +82,7 @@ const today = dayjs();
 const dateRange = ref<[Dayjs, Dayjs]>([today.subtract(6, "d"), today]);
 const projectNameFilter = ref("");
 const projectIdFilter = ref("");
+const typeFilter = ref("all");
 
 const rangePresets = ref([
   { label: "昨天", value: [today.subtract(1, "d"), today.subtract(1, "d")] as [Dayjs, Dayjs] },
@@ -103,6 +114,9 @@ const filteredData = computed(() => {
   if (pid) {
     data = data.filter((r) => String(r.projectId).includes(pid));
   }
+  if (typeFilter.value !== "all") {
+    data = data.filter((r) => r.type === typeFilter.value);
+  }
   return data;
 });
 
@@ -128,13 +142,15 @@ const handleReset = () => {
   dateRange.value = [today.subtract(6, "d"), today];
   projectNameFilter.value = "";
   projectIdFilter.value = "";
+  typeFilter.value = "all";
   pagination.value.current = 1;
 };
 
 const columns = [
   { title: "文本内容", dataIndex: "content" },
+  { title: "类型", dataIndex: "type", width: 80 },
   { title: "发送人", dataIndex: "sender", width: 120 },
-  { title: "会话标题", dataIndex: "sessionTitle", width: 160 },
+  { title: "会话/聊天标题", dataIndex: "sessionTitle", width: 160 },
   { title: "项目名称", dataIndex: "projectName", width: 120 },
   { title: "项目ID", dataIndex: "projectId", width: 100 },
   { title: "触发时间", dataIndex: "triggerTime", width: 180 },
