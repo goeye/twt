@@ -73,7 +73,7 @@
                 <td>{{ row.isInvite ? '-' : (row.nickname || '-') }}</td>
                 <td>{{ row.isInvite ? '-' : (row.joinedAt || '-') }}</td>
                 <td>
-                  <span class="settings-agents-table__role-badge" :class="getRoleBadgeClass(row.roleName)">{{ row.roleName }}</span>
+                  <span class="settings-agents-table__role-text">{{ row.roleName }}</span>
                 </td>
                 <td>{{ row.email }}</td>
                 <td>{{ row.isInvite ? '-' : row.sessionLimit }}</td>
@@ -99,7 +99,7 @@
                       <span class="settings-agents-table__switch-thumb" />
                     </button>
                   </template>
-                  <span v-else class="settings-agents-table__invite-status" :class="getInviteStatusClass(row.inviteStatus)">
+                  <span v-else class="settings-agents-table__invite-text">
                     {{ row.inviteStatus }}
                   </span>
                 </td>
@@ -142,9 +142,9 @@
                       <template v-else>
                         <button
                           type="button"
-                          class="settings-agents-table__dropdown-item settings-agents-table__dropdown-item--danger"
-                          @click="handleDeleteInvite(row)"
-                        >删除</button>
+                          class="settings-agents-table__dropdown-item"
+                          @click="handleCancelInvite(row)"
+                        >取消邀请</button>
                       </template>
                     </div>
                   </div>
@@ -184,6 +184,20 @@
           <footer class="delete-confirm__footer">
             <button type="button" class="agent-btn agent-btn--ghost delete-confirm__cancel" @click="deleteConfirmVisible = false">取 消</button>
             <button type="button" class="agent-btn agent-btn--primary delete-confirm__ok" @click="confirmDeleteAgent">确认删除</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Cancel invite confirmation modal -->
+    <Teleport to="body">
+      <div v-if="cancelInviteConfirmVisible" class="delete-confirm-overlay" @click.self="cancelInviteConfirmVisible = false">
+        <div class="delete-confirm">
+          <h3 class="delete-confirm__title">取消邀请</h3>
+          <p class="delete-confirm__desc">取消后本次邀请将失效，是否取消？</p>
+          <footer class="delete-confirm__footer">
+            <button type="button" class="agent-btn agent-btn--ghost delete-confirm__cancel" @click="cancelInviteConfirmVisible = false">取 消</button>
+            <button type="button" class="agent-btn agent-btn--primary delete-confirm__ok" @click="confirmCancelInvite">确 定</button>
           </footer>
         </div>
       </div>
@@ -286,8 +300,8 @@ const closeDropdown = () => {
 // ---- Agent list data ----
 const seatSummary = computed(() => ({
   total: 10,
-  used: members.value.length + inviteRecords.value.filter((r) => r.status === "待激活").length,
-  remaining: 10 - members.value.length - inviteRecords.value.filter((r) => r.status === "待激活").length
+  used: members.value.length + inviteRecords.value.filter((r) => r.status === "邀请中").length,
+  remaining: 10 - members.value.length - inviteRecords.value.filter((r) => r.status === "邀请中").length
 }));
 
 const pagination = computed(() => ({
@@ -382,7 +396,7 @@ const inviteRecords = ref([
     email: "newagent@example.com",
     roleName: "客服",
     invitedAt: "2025-12-10 15:30",
-    status: "待激活"
+    status: "邀请中"
   },
   {
     id: "invite-002",
@@ -390,7 +404,7 @@ const inviteRecords = ref([
     email: "expired@example.com",
     roleName: "高级客服",
     invitedAt: "2025-11-20 09:00",
-    status: "待激活"
+    status: "邀请中"
   }
 ]);
 
@@ -431,18 +445,9 @@ const toggleAccount = (rowId: string) => {
   emit("toast", `${member.nickname} 账号已${member.accountEnabled ? "启用" : "停用"}`);
 };
 
-const getRoleBadgeClass = (roleName: string) => {
-  if (roleName === "超级管理员") return "settings-agents-table__role-badge--admin";
-  return "";
-};
-
 const getOnlineStatusClass = (status?: string) => {
   if (status === "离线") return "settings-agents-table__status--offline";
   if (status === "离开") return "settings-agents-table__status--away";
-  return "";
-};
-
-const getInviteStatusClass = (_status?: string) => {
   return "";
 };
 
@@ -469,13 +474,8 @@ const handleDeleteAgent = (row: DisplayRow) => {
 const confirmDeleteAgent = () => {
   if (!deleteTargetAgent.value) return;
   const target = deleteTargetAgent.value;
-  if (target.isInvite) {
-    inviteRecords.value = inviteRecords.value.filter((r) => r.id !== target.id);
-    emit("toast", "删除成功，邀请链接已失效");
-  } else {
-    members.value = members.value.filter((m) => m.id !== target.id);
-    emit("toast", "删除成功");
-  }
+  members.value = members.value.filter((m) => m.id !== target.id);
+  emit("toast", "删除成功");
   deleteConfirmVisible.value = false;
   deleteTargetAgent.value = null;
 };
@@ -542,7 +542,7 @@ const handleSendInvite = () => {
   for (const email of emails) {
     const existing = inviteRecords.value.find((r) => r.email === email);
     if (existing) {
-      existing.status = "待激活";
+      existing.status = "邀请中";
       existing.invitedAt = new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
       existing.roleName = inviteRole.value;
     } else {
@@ -553,7 +553,7 @@ const handleSendInvite = () => {
         email,
         roleName: inviteRole.value,
         invitedAt: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"),
-        status: "待激活"
+        status: "邀请中"
       });
     }
     dailyInviteCount.value++;
@@ -563,10 +563,21 @@ const handleSendInvite = () => {
   inviteModalVisible.value = false;
 };
 
-const handleDeleteInvite = (row: DisplayRow) => {
+const cancelInviteConfirmVisible = ref(false);
+const cancelInviteTarget = ref<DisplayRow | null>(null);
+
+const handleCancelInvite = (row: DisplayRow) => {
   closeDropdown();
-  deleteTargetAgent.value = row;
-  deleteConfirmVisible.value = true;
+  cancelInviteTarget.value = row;
+  cancelInviteConfirmVisible.value = true;
+};
+
+const confirmCancelInvite = () => {
+  if (!cancelInviteTarget.value) return;
+  inviteRecords.value = inviteRecords.value.filter((r) => r.id !== cancelInviteTarget.value!.id);
+  emit("toast", "邀请已取消");
+  cancelInviteConfirmVisible.value = false;
+  cancelInviteTarget.value = null;
 };
 </script>
 
@@ -780,21 +791,9 @@ const handleDeleteInvite = (row: DisplayRow) => {
   width: 28px;
 }
 
-.settings-agents-table__role-badge {
-  background: #dce9ff;
-  border-radius: 4px;
-  color: #105eff;
-  display: inline-flex;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 14px;
-  padding: 0 5px;
-  white-space: nowrap;
-}
-
-.settings-agents-table__role-badge--admin {
-  background: #fef3c7;
-  color: #d97706;
+.settings-agents-table__role-text {
+  color: #222222;
+  font-size: 13px;
 }
 
 .settings-agents-table__empty-dash {
@@ -855,13 +854,9 @@ const handleDeleteInvite = (row: DisplayRow) => {
   transform: translateX(12px);
 }
 
-.settings-agents-table__invite-status {
-  background: #dbeafe;
-  border-radius: 4px;
-  color: #2563eb;
-  font-size: 12px;
-  line-height: 18px;
-  padding: 1px 8px;
+.settings-agents-table__invite-text {
+  color: #9ca3af;
+  font-size: 13px;
 }
 
 .settings-agents-table__actions {
