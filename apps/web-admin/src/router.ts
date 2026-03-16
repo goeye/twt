@@ -15,6 +15,18 @@ const router = createRouter({
       path: "/feature-stats",
       component: () => import("./views/FeatureStatsPage.vue"),
     },
+    {
+      path: "/compliance/agreements",
+      component: () => import("./views/AgreementsPage.vue"),
+    },
+    {
+      path: "/compliance/sensitive-words",
+      component: () => import("./views/SensitiveWordsPage.vue"),
+    },
+    {
+      path: "/compliance/alerts",
+      component: () => import("./views/AlertsPage.vue"),
+    },
   ],
 });
 

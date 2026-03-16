@@ -33,9 +33,12 @@
           <template #title>项目管理</template>
         </a-sub-menu>
 
-        <a-sub-menu key="compliance" disabled>
+        <a-sub-menu key="compliance">
           <template #icon><SafetyOutlined /></template>
           <template #title>合规管理</template>
+          <a-menu-item key="agreements" @click="$router.push('/compliance/agreements')">协议管理</a-menu-item>
+          <a-menu-item key="sensitive-words" @click="$router.push('/compliance/sensitive-words')">敏感词管理</a-menu-item>
+          <a-menu-item key="alerts" @click="$router.push('/compliance/alerts')">预警提示</a-menu-item>
         </a-sub-menu>
 
         <a-sub-menu key="resource" disabled>
@@ -81,21 +84,33 @@ import {
 } from "@ant-design/icons-vue";
 
 const collapsed = ref(false);
-const openKeys = ref<string[]>(["data"]);
 
 const route = useRoute();
 
 function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
+  if (path === "/compliance/agreements") return "agreements";
+  if (path === "/compliance/sensitive-words") return "sensitive-words";
+  if (path === "/compliance/alerts") return "alerts";
   return "dashboard";
 }
 
+function routeToOpenKeys(path: string): string[] {
+  if (path.startsWith("/compliance")) return ["compliance"];
+  return ["data"];
+}
+
 const selectedKeys = ref<string[]>([routeToKey(route.path)]);
+const openKeys = ref<string[]>(routeToOpenKeys(route.path));
 
 watch(
   () => route.path,
   (path) => {
     selectedKeys.value = [routeToKey(path)];
+    const needed = routeToOpenKeys(path);
+    if (!openKeys.value.includes(needed[0])) {
+      openKeys.value = [...openKeys.value, ...needed];
+    }
   }
 );
 </script>

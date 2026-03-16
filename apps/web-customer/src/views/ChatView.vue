@@ -82,14 +82,7 @@
       <div class="cw-messages">
         <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
           <template v-if="msg.role === 'risk-alert'">
-            <div class="cw-msg__risk-alert">
-              <svg class="cw-msg__risk-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              </svg>
-              <span>{{ msg.text }}</span>
-            </div>
+            <div class="cw-msg__system-text">{{ msg.text }}</div>
           </template>
           <template v-else>
           <span class="cw-msg__time">{{ msg.time }}</span>
@@ -537,24 +530,13 @@ resetConversation();
   align-items: center;
 }
 
-.cw-msg__risk-alert {
-  align-items: flex-start;
-  background: #fef3cd;
-  border: 1px solid #f0d78c;
-  border-radius: 8px;
-  color: #856404;
-  display: flex;
+.cw-msg__system-text {
+  color: #999;
   font-size: 11px;
-  gap: 6px;
-  line-height: 1.5;
-  max-width: 320px;
-  padding: 8px 12px;
-}
-
-.cw-msg__risk-icon {
-  color: #d4920a;
-  flex-shrink: 0;
-  margin-top: 1px;
+  line-height: 1.6;
+  max-width: 280px;
+  padding: 4px 0;
+  text-align: center;
 }
 
 

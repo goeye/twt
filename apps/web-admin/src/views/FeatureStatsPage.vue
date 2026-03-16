@@ -2,9 +2,9 @@
   <div class="feature-stats-page">
     <!-- ========== 功能使用排行 ========== -->
     <div class="section-block">
-      <div class="section-header">
-        <h3 class="section-heading" style="margin-bottom: 0">会话功能统计</h3>
-        <div class="section-filters">
+      <div class="filter-bar">
+        <div class="filter-left">
+          <span class="filter-label">日期范围</span>
           <a-range-picker
             v-model:value="dateRange"
             format="YYYY-MM-DD"
@@ -12,6 +12,7 @@
             :disabled-date="disabledDate"
             style="width: 280px"
           />
+          <span class="filter-label">项目</span>
           <a-select
             v-model:value="projectFilter"
             show-search
@@ -22,7 +23,16 @@
             <a-select-option value="all">全部项目</a-select-option>
             <a-select-option v-for="p in projectList" :key="p" :value="p">{{ p }}</a-select-option>
           </a-select>
-          <a-button type="primary" @click="handleQuery">查询</a-button>
+        </div>
+        <div class="filter-right">
+          <a-button type="primary" @click="handleQuery">
+            <template #icon><SearchOutlined /></template>
+            搜索
+          </a-button>
+          <a-button @click="handleReset">
+            <template #icon><ReloadOutlined /></template>
+            重置
+          </a-button>
         </div>
       </div>
       <a-table
@@ -120,6 +130,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import dayjs, { type Dayjs } from "dayjs";
 import {
   featureRanking,
@@ -138,6 +149,10 @@ const filterProjectOption = (input: string, option: any) => {
   return (option?.children?.toString() ?? "").toLowerCase().includes(input.toLowerCase());
 };
 const handleQuery = () => {};
+const handleReset = () => {
+  dateRange.value = [today.subtract(6, "d"), today];
+  projectFilter.value = "all";
+};
 
 const rangePresets = ref([
   { label: "昨天", value: [today.subtract(1, "d"), today.subtract(1, "d")] as [Dayjs, Dayjs] },
@@ -238,14 +253,26 @@ const trendPoints = computed(() => {
 }
 
 /* ---- 标题行 + 筛选 ---- */
-.section-header {
+.filter-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.section-filters {
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.filter-right {
   display: flex;
   align-items: center;
   gap: 12px;

@@ -21,7 +21,13 @@ export const featureRanking: FeatureStatRow[] = [
   { key: "9",  rank: 9,  name: "结束会话",        eventKey: "close_session",     count: 682,   ratio: "3.6%" },
   { key: "10", rank: 10, name: "发起聊天",        eventKey: "start_chat",        count: 612,   ratio: "3.3%" },
   { key: "11", rank: 11, name: "标记为待处理",    eventKey: "mark_pending",      count: 548,   ratio: "2.9%" },
-  { key: "12", rank: 12, name: "移出待处理",      eventKey: "unmark_pending",    count: 421,   ratio: "2.2%" },
+  { key: "12", rank: 12, name: "取消待处理",      eventKey: "cancel_pending",    count: 421,   ratio: "2.2%" },
+  { key: "13", rank: 13, name: "上传文件",        eventKey: "upload_file",       count: 386,   ratio: "2.1%" },
+  { key: "14", rank: 14, name: "编辑备注名",      eventKey: "edit_remark_name",  count: 324,   ratio: "1.7%" },
+  { key: "15", rank: 15, name: "编辑电话",        eventKey: "edit_phone",        count: 298,   ratio: "1.6%" },
+  { key: "16", rank: 16, name: "编辑邮箱",        eventKey: "edit_email",        count: 275,   ratio: "1.5%" },
+  { key: "17", rank: 17, name: "访客标签",        eventKey: "visitor_tag",       count: 246,   ratio: "1.3%" },
+  { key: "18", rank: 18, name: "会话标签",        eventKey: "session_tag",       count: 218,   ratio: "1.2%" },
 ];
 
 /** 功能趋势时间序列（近 7 天，前 5 功能） */

@@ -66,12 +66,12 @@
           class="conversation-header__icon-btn"
           :class="{ 'conversation-header__icon-btn--disabled': closed }"
           type="button"
-          :aria-label="isProcessing ? '移出待处理' : '标记为待处理'"
+          :aria-label="isProcessing ? '取消待处理' : '标记为待处理'"
           @click="handleMarkPending"
         >
           <AgentIcon :name="isProcessing ? 'remove-pending' : 'mark-pending'" :size="16" />
         </button>
-        <span class="conversation-header__tooltip">{{ isProcessing ? '移出待处理' : '标记为待处理' }}</span>
+        <span class="conversation-header__tooltip">{{ isProcessing ? '取消待处理' : '标记为待处理' }}</span>
       </div>
 
       <div class="conversation-header__icon-btn-wrap">

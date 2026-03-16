@@ -25,6 +25,10 @@ export interface RiskDetectionResult {
   alertMessage?: string;
 }
 
+/** 统一风控提示文案 */
+const RISK_ALERT_MESSAGE =
+  "在聊天过程中，涉及合同汇款、转账、资金、中奖、回款等信息，请仔细核实对方身份，以避免被骗导致钱款损失。";
+
 /** 风控规则定义 */
 const riskRules: RiskRule[] = [
   {
@@ -32,16 +36,14 @@ const riskRules: RiskRule[] = [
     category: "fund",
     keywords:
       /转账|汇款|打款|付款|收款|付钱|打钱|银行卡|bank\s*card|wire\s*transfer|remittance|payment/i,
-    alertMessage:
-      "风控提醒：检测到涉及资金转账的内容，请注意核实对方身份，谨防诈骗。",
+    alertMessage: RISK_ALERT_MESSAGE,
     enabled: true,
   },
   {
     id: "fund_deposit",
     category: "fund",
     keywords: /定金|预付款|押金|保证金|deposit|advance\s*payment|down\s*payment/i,
-    alertMessage:
-      "风控提醒：检测到涉及预付款/定金的内容，请通过官方渠道完成支付，切勿私下转账。",
+    alertMessage: RISK_ALERT_MESSAGE,
     enabled: true,
   },
   {
@@ -49,24 +51,21 @@ const riskRules: RiskRule[] = [
     category: "fund",
     keywords:
       /账号|账户|卡号|account\s*number|card\s*number|IBAN|SWIFT|收款码|支付宝|微信支付|PayPal/i,
-    alertMessage:
-      "风控提醒：检测到涉及账户/支付信息的内容，请勿在聊天中直接发送敏感账户信息。",
+    alertMessage: RISK_ALERT_MESSAGE,
     enabled: true,
   },
   {
     id: "contract_sign",
     category: "contract",
     keywords: /合同|签约|协议|签署|contract|agreement|sign/i,
-    alertMessage:
-      "风控提醒：检测到涉及合同/协议的内容，请确认通过正规流程签署，注意条款细节。",
+    alertMessage: RISK_ALERT_MESSAGE,
     enabled: true,
   },
   {
     id: "personal_id",
     category: "personal_info",
     keywords: /身份证|护照|驾照|ID\s*card|passport|driver.?s?\s*licen[sc]e|SSN|社保号/i,
-    alertMessage:
-      "风控提醒：检测到涉及身份证件信息的内容，请勿在聊天中发送证件号码等敏感信息。",
+    alertMessage: RISK_ALERT_MESSAGE,
     enabled: true,
   },
 ];
