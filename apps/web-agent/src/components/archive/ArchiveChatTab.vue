@@ -202,7 +202,7 @@
               <td class="archive-staff-cell">
                 <div v-if="row.visitorMembers.length > 0" class="archive-staff-avatars" @click.stop="toggleChatMemberPanel(row.id)">
                   <span
-                    v-for="(member, idx) in row.visitorMembers.slice(0, 4)"
+                    v-for="(member, idx) in row.visitorMembers.slice(0, 3)"
                     :key="member.name"
                     class="archive-staff-avatars__item"
                     :style="{ background: member.avatarColor, zIndex: 10 - idx }"
@@ -211,13 +211,12 @@
                     <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-avatars__img" />
                     <span v-else>{{ member.avatarText }}</span>
                   </span>
-                  <span v-if="row.visitorMembers.length > 4" class="archive-staff-avatars__overflow">+{{ row.visitorMembers.length - 4 }}</span>
+                  <span v-if="row.visitorMembers.length > 3" class="archive-staff-avatars__overflow">
+                    <span class="archive-staff-avatars__dot" /><span class="archive-staff-avatars__dot" />
+                  </span>
                 </div>
                 <span v-else class="archive-table__number">–</span>
                 <div v-if="chatMemberPanelRowId === row.id" class="archive-staff-panel" @click.stop>
-                  <div class="archive-staff-panel__header">
-                    <span class="archive-staff-panel__title">成员列表</span>
-                  </div>
                   <ul class="archive-staff-panel__list">
                     <li v-if="row.ownerMember" class="archive-staff-panel__item">
                       <span class="archive-staff-panel__avatar" :style="{ background: row.ownerMember.avatarColor }">
@@ -249,7 +248,7 @@
               <td class="archive-staff-cell">
                 <div v-if="row.staffMembers.length > 0" class="archive-staff-avatars" @click.stop="toggleChatMemberPanel(row.id)">
                   <span
-                    v-for="(member, idx) in row.staffMembers.slice(0, 4)"
+                    v-for="(member, idx) in row.staffMembers.slice(0, 3)"
                     :key="member.name"
                     class="archive-staff-avatars__item"
                     :style="{ background: member.avatarColor, zIndex: 10 - idx }"
@@ -258,7 +257,9 @@
                     <img v-if="member.avatarUrl" :src="member.avatarUrl" class="archive-staff-avatars__img" />
                     <span v-else>{{ member.avatarText }}</span>
                   </span>
-                  <span v-if="row.staffMembers.length > 4" class="archive-staff-avatars__overflow">+{{ row.staffMembers.length - 4 }}</span>
+                  <span v-if="row.staffMembers.length > 3" class="archive-staff-avatars__overflow">
+                    <span class="archive-staff-avatars__dot" /><span class="archive-staff-avatars__dot" />
+                  </span>
                 </div>
                 <span v-else class="archive-table__number">{{ row.staffCount }}</span>
               </td>
@@ -1388,15 +1389,21 @@ onMounted(() => {
   background: #e8ecf1;
   border: 2px solid #ffffff;
   border-radius: 50%;
-  color: #4c5563;
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 3px;
   height: 28px;
   justify-content: center;
   margin-left: -8px;
   width: 28px;
+}
+
+.archive-staff-avatars__dot {
+  background: #8d99ab;
+  border-radius: 50%;
+  display: block;
+  height: 4px;
+  width: 4px;
 }
 
 /* Staff cell with inline panel */

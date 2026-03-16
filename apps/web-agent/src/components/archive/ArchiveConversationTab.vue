@@ -149,24 +149,9 @@
               <td colspan="14" class="archive-table__empty">暂无符合条件的会话</td>
             </tr>
             <tr v-for="row in visibleRows" v-else :key="row.id">
-              <!-- 2a. 会话标题列: inline edit -->
+              <!-- 2a. 会话标题列 -->
               <td>
-                <div v-if="editingRowId === row.id" class="archive-title-edit">
-                  <input
-                    ref="editTitleInputRef"
-                    v-model="editDraftTitle"
-                    class="agent-input archive-title-edit__input"
-                    @blur="confirmEditTitle"
-                    @keydown.enter.prevent="confirmEditTitle"
-                    @keydown.esc.prevent="cancelEditTitle"
-                  />
-                </div>
-                <span v-else class="archive-title-cell">
-                  <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
-                  <button type="button" class="archive-title-cell__edit-btn" aria-label="编辑标题" @click.stop="startEditTitle(row)">
-                    <AgentIcon name="edit" :size="13" />
-                  </button>
-                </span>
+                <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
               </td>
               <td>{{ row.visitorName }}</td>
               <td>{{ row.customerIdentifier }}</td>
@@ -193,7 +178,7 @@
               <td class="archive-staff-cell">
                 <div v-if="row.staffAgents.length > 0" class="archive-staff-avatars" @click.stop="toggleStaffPanel(row.id)">
                   <span
-                    v-for="(agent, idx) in row.staffAgents.slice(0, 4)"
+                    v-for="(agent, idx) in row.staffAgents.slice(0, 3)"
                     :key="agent.name"
                     class="archive-staff-avatars__item"
                     :style="{ background: agent.avatarColor, zIndex: 10 - idx }"
@@ -202,14 +187,13 @@
                     <img v-if="agent.avatarUrl" :src="agent.avatarUrl" class="archive-staff-avatars__img" />
                     <span v-else>{{ agent.avatarText }}</span>
                   </span>
-                  <span v-if="row.staffAgents.length > 4" class="archive-staff-avatars__overflow">+{{ row.staffAgents.length - 4 }}</span>
+                  <span v-if="row.staffAgents.length > 3" class="archive-staff-avatars__overflow">
+                    <span class="archive-staff-avatars__dot" /><span class="archive-staff-avatars__dot" />
+                  </span>
                 </div>
                 <span v-else>–</span>
                 <!-- Staff panel (inline below cell) -->
                 <div v-if="staffPanelRowId === row.id" class="archive-staff-panel" @click.stop>
-                  <div class="archive-staff-panel__header">
-                    <span class="archive-staff-panel__title">服务客服列表</span>
-                  </div>
                   <ul class="archive-staff-panel__list">
                     <li v-for="agent in row.staffAgents" :key="agent.name" class="archive-staff-panel__item">
                       <span class="archive-staff-panel__avatar" :style="{ background: agent.avatarColor }">
@@ -297,11 +281,9 @@
     :title="previewConversation?.title ?? ''"
     :messages="previewConversationMessages"
     :assign-label="previewConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
-    :editable="true"
+    :editable="false"
     @assign="previewConversation && assignConversation(previewConversation)"
     @close="closeConversationDrawer"
-    @edit-title="previewConversation && startEditTitle(previewConversation)"
-    @update:title="handleDrawerTitleUpdate"
   />
 
   <ArchiveAssignModal
@@ -318,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveAssignModal from "./ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
@@ -856,11 +838,6 @@ const assignModalOpen = ref(false);
 const assignKeyword = ref("");
 const pendingAssignConversationId = ref<string | null>(null);
 
-// Title inline editing
-const editingRowId = ref<string | null>(null);
-const editDraftTitle = ref("");
-const editTitleInputRef = ref<HTMLInputElement | null>(null);
-
 // Tag popover
 const tagPopoverRowId = ref<string | null>(null);
 const tagSearchKeyword = ref("");
@@ -1187,42 +1164,6 @@ const assignConversation = (row: ConversationRecord) => {
 const openConversation = (row: ConversationRecord) => {
   closeActionMenu();
   previewConversationId.value = row.id;
-};
-
-// Title editing methods
-const startEditTitle = (row: ConversationRecord) => {
-  editingRowId.value = row.id;
-  editDraftTitle.value = row.title;
-  nextTick(() => {
-    editTitleInputRef.value?.focus();
-  });
-};
-
-const confirmEditTitle = () => {
-  const nextTitle = editDraftTitle.value.trim();
-  if (!nextTitle || !editingRowId.value) {
-    cancelEditTitle();
-    return;
-  }
-  allRows.value = allRows.value.map((row) =>
-    row.id === editingRowId.value ? { ...row, title: nextTitle } : row
-  );
-  editingRowId.value = null;
-  editDraftTitle.value = "";
-  emit("toast", "保存成功");
-};
-
-const cancelEditTitle = () => {
-  editingRowId.value = null;
-  editDraftTitle.value = "";
-};
-
-const handleDrawerTitleUpdate = (newTitle: string) => {
-  if (!previewConversationId.value) return;
-  allRows.value = allRows.value.map((row) =>
-    row.id === previewConversationId.value ? { ...row, title: newTitle } : row
-  );
-  emit("toast", "保存成功");
 };
 
 // Tag popover methods
@@ -1845,64 +1786,6 @@ onMounted(() => {
   background: #f7f9fc;
 }
 
-/* Title cell with hover edit */
-.archive-title-cell {
-  align-items: center;
-  display: inline-flex;
-  gap: 6px;
-}
-
-.archive-title-cell__edit-btn {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  color: #97a3b4;
-  cursor: pointer;
-  display: inline-flex;
-  height: 24px;
-  justify-content: center;
-  opacity: 0;
-  padding: 0;
-  transition: opacity var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
-  width: 24px;
-}
-
-.archive-title-cell:hover .archive-title-cell__edit-btn {
-  opacity: 1;
-}
-
-.archive-title-cell__edit-btn:hover {
-  color: var(--agent-color-brand-primary);
-}
-
-.archive-title-edit {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.archive-title-edit__input {
-  border: 1px solid #dce3ed;
-  border-radius: 8px;
-  font-size: 14px;
-  height: 32px;
-  min-width: 140px;
-  outline: none;
-  padding: 0 10px;
-}
-
-.archive-title-edit__input:focus {
-  border-color: var(--agent-color-brand-primary);
-  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.08);
-}
-
-.archive-title-edit__action {
-  font-size: 13px;
-  height: 30px;
-  padding: 0 12px;
-}
-
 /* Tag chip styles */
 .archive-tag-cell {
   position: relative;
@@ -2045,15 +1928,21 @@ onMounted(() => {
   background: #e8ecf1;
   border: 2px solid #ffffff;
   border-radius: 50%;
-  color: #4c5563;
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 3px;
   height: 28px;
   justify-content: center;
   margin-left: -8px;
   width: 28px;
+}
+
+.archive-staff-avatars__dot {
+  background: #8d99ab;
+  border-radius: 50%;
+  display: block;
+  height: 4px;
+  width: 4px;
 }
 
 /* Staff cell with inline panel */
