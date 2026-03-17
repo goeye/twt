@@ -19,6 +19,7 @@
           v-for="item in copilotSettings"
           :key="item.key"
           :description="item.description"
+          :locked="!!copilotFeatureMap[item.key] && !canUse(copilotFeatureMap[item.key])"
           :model-value="item.enabled"
           :title="item.title"
           @update:model-value="updateCopilotSetting(item.key, $event)"
@@ -250,6 +251,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 import {
   type StoredAiAgentSettings,
   loadStoredAiAgentSettings,
@@ -314,6 +317,16 @@ const showBanner = ref(true);
 const configTab = ref<ConfigTab>("deploy");
 const openLifecycleCard = ref<LifecycleCardKey | null>(null);
 const agentEnabled = ref(true);
+
+const { canUse, guardFeature } = usePlan();
+
+/** Copilot 设置项 key → 功能 key 映射 */
+const copilotFeatureMap: Record<string, string> = {
+  "auto-suggest": FEATURES.COPILOT_SMART_REPLY,
+  "chat-translation": FEATURES.CHAT_TRANSLATE,
+  "side-translation": FEATURES.WRITE_TRANSLATE,
+  "text-polish": FEATURES.TEXT_POLISH,
+};
 
 const copilotSettings = ref<CopilotSetting[]>([
   { key: "auto-suggest", title: "自动推荐回复", description: "针对访客咨询，自动生成推荐回复。", enabled: true },
@@ -616,6 +629,8 @@ const toggleAgentLiveStatus = () => {
 };
 
 const updateCopilotSetting = (key: string, next: boolean) => {
+  const featureKey = copilotFeatureMap[key];
+  if (featureKey && !guardFeature(featureKey)) return;
   copilotSettings.value = copilotSettings.value.map((item) => {
     if (item.key !== key) return item;
     return { ...item, enabled: next };

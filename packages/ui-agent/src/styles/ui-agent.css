@@ -158,6 +158,20 @@
   margin: 0;
 }
 
+/* Feature lock icon */
+.agent-feature-lock {
+  color: var(--agent-color-text-tertiary);
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.agent-feature-lock svg {
+  height: 14px;
+  width: 14px;
+}
+
 @media (max-width: 1280px) {
   .agent-content-page {
     padding: var(--agent-space-16);

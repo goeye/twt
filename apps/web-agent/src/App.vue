@@ -243,7 +243,10 @@
                 </div>
               </div>
 
-              <button v-else-if="section.type === 'tags'" type="button" class="detail-section__add-tag">+</button>
+              <button v-else-if="section.type === 'tags'" type="button" class="detail-section__add-tag" @click="guardFeature(FEATURES.VISITOR_TAGS)">
+                <template v-if="!canUse(FEATURES.VISITOR_TAGS)"><span class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></template>
+                <template v-else>+</template>
+              </button>
 
               <ul v-else class="detail-section__timeline">
                 <li v-for="item in section.timeline" :key="item.key" class="timeline-item">
@@ -346,6 +349,14 @@
     </BaseModal>
 
     <AgentToast :message="toastMessage" :visible="showToast" />
+
+    <FeatureLockedModal
+      :open="upgradeModalState.visible"
+      :is-admin="upgradeModalState.isAdmin"
+      :feature-name="upgradeModalState.featureName"
+      :feature-description="upgradeModalState.featureDescription"
+      @close="closeUpgradeModal"
+    />
   </AgentAppShell>
 </template>
 
@@ -363,10 +374,13 @@ import SettingsRoutePage from "./views/SettingsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import { track, TrackEvent } from "./lib/tracker";
+import { FEATURES } from "./lib/plan";
+import { usePlan } from "./composables/usePlan";
 import {
   AgentAppShell,
   AiSettingsNav,
   BaseModal,
+  FeatureLockedModal,
   AgentIcon,
   AgentToast,
   ConversationHeader,
@@ -382,6 +396,8 @@ import {
   type SessionItem,
   type SessionQueueGroup
 } from "@twt/ui-agent";
+
+const { canUse, guardFeature, upgradeModalState, closeUpgradeModal, showUpgradePrompt } = usePlan();
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";

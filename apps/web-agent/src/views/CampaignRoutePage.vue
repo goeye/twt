@@ -3,8 +3,9 @@
     <div class="agent-panel campaign-card">
       <header class="campaign-header">
         <h1 class="agent-content-title">群发消息</h1>
-        <button type="button" class="agent-btn agent-btn--primary" @click="emit('toast', '新建功能开发中')">
+        <button type="button" class="agent-btn agent-btn--primary" @click="handleCreate">
           + 新建
+          <span v-if="!canUse(FEATURES.MASS_MESSAGE)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
         </button>
       </header>
       <DataTable bare :columns="columns" :rows="rows">
@@ -19,6 +20,8 @@
 
 <script setup lang="ts">
 import { DataTable, type TableColumn } from "@twt/ui-agent";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 interface CampaignRow extends Record<string, unknown> {
   content: string;
@@ -32,6 +35,13 @@ interface CampaignRow extends Record<string, unknown> {
 }
 
 const emit = defineEmits<{ toast: [msg: string] }>();
+
+const { canUse, guardFeature } = usePlan();
+
+const handleCreate = () => {
+  if (!guardFeature(FEATURES.MASS_MESSAGE)) return;
+  emit("toast", "新建功能开发中");
+};
 
 const columns: TableColumn<CampaignRow>[] = [
   { key: "content", title: "消息内容", width: "22%" },

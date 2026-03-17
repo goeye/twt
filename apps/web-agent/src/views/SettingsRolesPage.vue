@@ -77,6 +77,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 interface RoleItem {
   id: string;
@@ -154,10 +156,15 @@ const closeDropdown = () => {
   activeDropdownId.value = null;
 };
 
+const { guardFeature } = usePlan();
+
 const handleAction = (action: "view" | "edit" | "delete", role: RoleItem) => {
   closeDropdown();
   if (action === "view") emit("view-role", role.id);
-  else if (action === "edit") emit("edit-role", role.id);
+  else if (action === "edit") {
+    if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
+    emit("edit-role", role.id);
+  }
   else handleDeleteRole(role);
 };
 

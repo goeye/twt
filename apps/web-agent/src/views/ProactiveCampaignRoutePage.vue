@@ -11,7 +11,10 @@
               <option v-for="lang in contentLangTabs" :key="lang.key" :value="lang.key">{{ lang.label }}</option>
             </select>
           </div>
-          <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">+ 新建</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">
+            + 新建
+            <span v-if="!canUse(FEATURES.PROACTIVE_MARKETING)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          </button>
         </div>
       </header>
 
@@ -20,7 +23,10 @@
           <div class="list-empty">
             <p class="list-empty__title">暂无主动营销任务</p>
             <p class="list-empty__desc">先选择一个模板快速创建任务</p>
-            <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">使用模板新建</button>
+            <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">
+              使用模板新建
+              <span v-if="!canUse(FEATURES.PROACTIVE_MARKETING)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </button>
           </div>
         </template>
 
@@ -553,6 +559,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { AgentSwitch, BaseModal, DataTable, UnsavedChangesModal, type TableColumn } from "@twt/ui-agent";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
 type ViewMode = "list" | "editor";
@@ -1539,7 +1547,10 @@ const confirmCropImage = async () => {
   }
 };
 
+const { canUse, guardFeature } = usePlan();
+
 const openTemplateSelector = () => {
+  if (!guardFeature(FEATURES.PROACTIVE_MARKETING)) return;
   templateModalOpen.value = true;
 };
 

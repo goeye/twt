@@ -363,6 +363,18 @@
     <template v-else-if="activeKey === 'evaluation-analysis'">
       <h1 class="report-page__title">会话评价分析</h1>
 
+      <div v-if="!canUse(FEATURES.EVALUATION_ANALYSIS)" class="report-locked-state">
+        <div class="report-locked-state__icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#75869c" stroke-width="1.5" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#75869c" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </div>
+        <p class="report-locked-state__text">会话评价分析为专业版功能</p>
+        <button type="button" class="agent-btn agent-btn--primary" @click="showUpgradePrompt(FEATURES.EVALUATION_ANALYSIS)">了解详情</button>
+      </div>
+
+      <template v-else>
       <div class="report-filter-bar">
         <div class="report-date-picker-wrap">
           <div class="report-date-picker" @click="showDatePicker = !showDatePicker">
@@ -541,6 +553,7 @@
           </div>
         </div>
       </div>
+      </template>
     </template>
   </section>
 
@@ -555,12 +568,15 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from "vue";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 const props = defineProps<{
   activeKey: string;
 }>();
 
 // ── Shared state ──
+const { canUse, showUpgradePrompt } = usePlan();
 const showDatePicker = ref(false);
 const showAgentDropdown = ref(false);
 
@@ -1543,6 +1559,26 @@ const agentDetailRows = [
   font-size: var(--agent-font-size-sm);
   color: var(--agent-color-text-secondary);
   white-space: nowrap;
+}
+
+.report-locked-state {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.report-locked-state__icon {
+  color: var(--agent-color-text-tertiary);
+}
+
+.report-locked-state__text {
+  color: #75869c;
+  font-size: 15px;
+  margin: 0;
 }
 </style>
 
