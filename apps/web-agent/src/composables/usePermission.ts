@@ -38,7 +38,7 @@ const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
 
 const MOCK_ROLE_LABELS: Record<MockRole, string> = {
   admin: '管理员',
-  agent: '客服',
+  agent: '成员',
   limited: '受限',
 }
 

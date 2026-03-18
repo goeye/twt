@@ -4,7 +4,7 @@
       <!-- Header: title + seat summary + invite (always visible) -->
       <header class="settings-agents-panel__header">
         <div class="settings-agents-panel__title-block">
-          <h1 class="settings-agents-panel__title">客服</h1>
+          <h1 class="settings-agents-panel__title">成员</h1>
           <div class="settings-agents-panel__summary">
             <span class="settings-agents-panel__summary-pill">
               当前服务包含坐席总数：<strong>{{ seatSummary.total }}</strong>
@@ -20,30 +20,13 @@
           </div>
         </div>
 
-        <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="handleHeaderAction">
+        <button type="button" class="agent-btn agent-btn--primary settings-agents-panel__invite-btn" @click="openInviteModal">
           <span class="settings-agents-panel__invite-icon">+</span>
-          <span>{{ activeTab === 'roles' ? '新增角色' : '邀请成员' }}</span>
+          <span>邀请成员</span>
         </button>
       </header>
 
-      <!-- Tab bar: below header -->
-      <nav class="settings-agents-tabs">
-        <button
-          type="button"
-          class="settings-agents-tabs__tab"
-          :class="{ 'settings-agents-tabs__tab--active': activeTab === 'agents' }"
-          @click="switchTab('agents')"
-        >客服</button>
-        <button
-          type="button"
-          class="settings-agents-tabs__tab"
-          :class="{ 'settings-agents-tabs__tab--active': activeTab === 'roles' }"
-          @click="switchTab('roles')"
-        >角色</button>
-      </nav>
-
-      <!-- 客服 Tab Content -->
-      <template v-if="activeTab === 'agents'">
+      <!-- Agent list content -->
         <div class="settings-agents-panel__table-area">
           <table class="settings-agents-table">
             <thead>
@@ -161,25 +144,13 @@
           <span class="settings-agents-pagination__meta">{{ pagination.pageSize }}/Page</span>
           <span class="settings-agents-pagination__meta">Total: {{ pagination.total }}</span>
         </footer>
-      </template>
-
-      <!-- 角色 Tab Content -->
-      <template v-if="activeTab === 'roles'">
-        <div class="settings-agents-panel__roles-area">
-          <SettingsRolesPage
-            @toast="(msg: string) => emit('toast', msg)"
-            @view-role="(roleId: string) => emit('view-role', roleId)"
-            @edit-role="(roleId: string) => emit('edit-role', roleId)"
-          />
-        </div>
-      </template>
     </article>
 
     <!-- Delete confirmation modal -->
     <Teleport to="body">
       <div v-if="deleteConfirmVisible" class="delete-confirm-overlay" @click.self="deleteConfirmVisible = false">
         <div class="delete-confirm">
-          <h3 class="delete-confirm__title">删除客服</h3>
+          <h3 class="delete-confirm__title">删除成员</h3>
           <p class="delete-confirm__desc">删除后不可恢复，确认删除？</p>
           <footer class="delete-confirm__footer">
             <button type="button" class="agent-btn agent-btn--ghost delete-confirm__cancel" @click="deleteConfirmVisible = false">取 消</button>
@@ -208,7 +179,7 @@
       <div v-if="inviteModalVisible" class="invite-modal-overlay" @click.self="inviteModalVisible = false">
         <div class="invite-modal">
           <header class="invite-modal__header">
-            <h3 class="invite-modal__title">邀请客服加入你的团队</h3>
+            <h3 class="invite-modal__title">邀请成员加入你的团队</h3>
             <button type="button" class="invite-modal__close" @click="inviteModalVisible = false">×</button>
           </header>
           <div class="invite-modal__body">
@@ -242,9 +213,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import SettingsRolesPage from "./SettingsRolesPage.vue";
-import { FEATURES } from "../lib/plan";
-import { usePlan } from "../composables/usePlan";
 
 interface DisplayRow {
   id: string;
@@ -264,29 +232,13 @@ interface DisplayRow {
   inviteStatus?: string;
 }
 
-const props = withDefaults(
-  defineProps<{
-    initialTab?: "agents" | "roles";
-  }>(),
-  { initialTab: "agents" }
-);
-
 const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "view-agent-detail", agent: DisplayRow): void;
-  (e: "view-role", roleId: string): void;
-  (e: "edit-role", roleId: string): void;
-  (e: "create-role"): void;
 }>();
 
 /* Current logged-in user */
 const currentUserId = "agent-cafe";
-
-const activeTab = ref<"agents" | "roles">(props.initialTab);
-
-const switchTab = (tab: "agents" | "roles") => {
-  activeTab.value = tab;
-};
 
 // ---- Dropdown menu ----
 const activeDropdownId = ref<string | null>(null);
@@ -454,8 +406,6 @@ const getOnlineStatusClass = (status?: string) => {
 };
 
 // ---- Action handlers ----
-const { canUse, guardFeature } = usePlan();
-
 const handleStartChat = (row: DisplayRow) => {
   closeDropdown();
   emit("toast", `正在发起与 ${row.nickname} 的聊天`);
@@ -488,16 +438,6 @@ const confirmDeleteAgent = () => {
 const openAgentDetail = (row: DisplayRow) => {
   closeDropdown();
   emit("view-agent-detail", row);
-};
-
-// ---- Header action ----
-const handleHeaderAction = () => {
-  if (activeTab.value === "roles") {
-    if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
-    emit("create-role");
-  } else {
-    openInviteModal();
-  }
 };
 
 // ---- Invite modal ----
@@ -685,48 +625,6 @@ const confirmCancelInvite = () => {
   font-weight: 600;
   line-height: 1;
   transform: translateY(-0.5px);
-}
-
-/* Tabs */
-.settings-agents-tabs {
-  border-bottom: 1px solid #edf1f5;
-  display: flex;
-  flex-shrink: 0;
-  gap: 0;
-  margin-bottom: 4px;
-  padding: 0 18px;
-}
-
-.settings-agents-tabs__tab {
-  background: transparent;
-  border: 0;
-  color: #75869c;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  height: 44px;
-  padding: 0 16px;
-  position: relative;
-  transition: color 0.15s;
-}
-
-.settings-agents-tabs__tab:hover {
-  color: #252525;
-}
-
-.settings-agents-tabs__tab--active {
-  color: #105eff;
-}
-
-.settings-agents-tabs__tab--active::after {
-  background: #105eff;
-  border-radius: 2px 2px 0 0;
-  bottom: 0;
-  content: "";
-  height: 3px;
-  left: 16px;
-  position: absolute;
-  right: 16px;
 }
 
 /* Table */
@@ -972,14 +870,6 @@ const confirmCancelInvite = () => {
   color: #4b5563;
   font-size: 13px;
   line-height: 20px;
-}
-
-/* Roles area */
-.settings-agents-panel__roles-area {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 0 18px;
 }
 
 /* Delete confirmation modal */

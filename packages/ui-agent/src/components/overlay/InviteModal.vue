@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :open="open" title="添加客服" @close="handleClose">
+  <BaseModal :open="open" title="添加成员" @close="handleClose">
     <div class="invite-modal">
       <div class="invite-modal__left-pane">
         <div class="invite-modal__search-wrap">
@@ -16,7 +16,7 @@
         </div>
 
         <div class="invite-modal__list agent-scroll">
-          <div v-if="agents.length === 0" class="invite-modal__empty">暂无可邀请的客服</div>
+          <div v-if="agents.length === 0" class="invite-modal__empty">暂无可邀请的成员</div>
           <label
             v-for="agent in agents"
             :key="agent.id"

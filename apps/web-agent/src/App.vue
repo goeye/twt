@@ -54,7 +54,7 @@
                   </button>
                   <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'agent' }" @click="switchPermRole('agent')">
                     <span class="plan-switcher-option__badge plan-switcher-option__badge--free">CS</span>
-                    <span class="plan-switcher-option__label">客服</span>
+                    <span class="plan-switcher-option__label">成员</span>
                     <span class="plan-switcher-option__hint">基础权限</span>
                   </button>
                   <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'limited' }" @click="switchPermRole('limited')">
@@ -560,7 +560,7 @@ const switchPermRole = (role: 'admin' | 'agent' | 'limited') => {
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
-type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
@@ -714,8 +714,9 @@ const settingsNavGroupsBase = [
     title: "团队",
     leadingEmoji: "👩‍💻",
     items: [
-      { key: "agents", label: "客服" },
-      { key: "team", label: "客服设置" }
+      { key: "agents", label: "成员" },
+      { key: "roles", label: "角色" },
+      { key: "team", label: "成员设置" }
     ]
   },
   {

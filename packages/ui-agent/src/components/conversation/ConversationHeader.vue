@@ -39,12 +39,12 @@
             class="conversation-header__icon-btn"
             :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
             type="button"
-            aria-label="添加客服"
+            aria-label="添加成员"
             @click="handleInvite"
           >
             <AgentIcon name="user-plus" :size="16" />
           </button>
-          <span class="conversation-header__tooltip">添加客服</span>
+          <span class="conversation-header__tooltip">添加成员</span>
         </div>
 
         <div

@@ -5,7 +5,7 @@
         <thead>
           <tr>
             <th>角色名称</th>
-            <th>关联客服数</th>
+            <th>关联成员数</th>
             <th>创建人</th>
             <th>创建时间</th>
             <th>操作</th>
@@ -184,7 +184,7 @@ const confirmDelete = () => {
   if (!deleteTargetRole.value) return;
   if (deleteTargetRole.value.memberCount > 0) {
     deleteConfirmVisible.value = false;
-    emit("toast", `当前角色有 ${deleteTargetRole.value.memberCount} 个关联客服，暂无法删除`);
+    emit("toast", `当前角色有 ${deleteTargetRole.value.memberCount} 个关联成员，暂无法删除`);
     deleteTargetRole.value = null;
     return;
   }

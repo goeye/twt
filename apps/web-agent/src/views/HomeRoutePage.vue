@@ -38,7 +38,7 @@
       <div class="home-main">
         <section class="home-section">
           <div class="home-section__title-row">
-            <h2 class="home-section__title">客服概览</h2>
+            <h2 class="home-section__title">成员概览</h2>
           </div>
           <div class="home-summary-card agent-panel">
             <article v-for="item in serviceOverview" :key="item.key" class="home-summary-card__item">
@@ -80,7 +80,7 @@
         <section class="home-section">
           <div class="home-section__title-row home-section__title-row--with-hint">
             <div class="home-section__heading">
-              <h2 class="home-section__title">人工客服概览</h2>
+              <h2 class="home-section__title">成员概览</h2>
               <span class="home-section__hint">i</span>
             </div>
           </div>
@@ -412,7 +412,7 @@ const serviceOverview: SummaryItem[] = [
   { key: "online", label: "在线", value: 1, dotColor: "#43c568" },
   { key: "away", label: "离开", value: 2, dotColor: "#ff5b57" },
   { key: "offline", label: "离线", value: 1, dotColor: "#c3cad7" },
-  { key: "total", label: "总计", value: 4, actionLabel: "邀请客服", actionRoute: "/settings" }
+  { key: "total", label: "总计", value: 4, actionLabel: "邀请成员", actionRoute: "/settings" }
 ];
 
 const realtimeConversationStats: SummaryItem[] = [
@@ -429,7 +429,7 @@ const conversationOverview: ChartStatItem[] = [
 ];
 
 const guideItems: GuideItem[] = [
-  { key: "invite-team", title: "添加团队成员", description: "邀请客服人员加入，一起接待访客" },
+  { key: "invite-team", title: "添加团队成员", description: "邀请成员加入，一起接待访客" },
   {
     key: "install-widget",
     title: "安装小组件",
@@ -450,7 +450,7 @@ const quickLinks: QuickLinkItem[] = [
   { key: "files", label: "档案", icon: "files", route: "/files", bgColor: "rgba(255, 128, 26, 0.12)", color: "#ff801a" },
   { key: "knowledge", label: "知识库", icon: "book", route: "/ai-agent", bgColor: "rgba(16, 94, 255, 0.12)", color: "#105eff" },
   { key: "campaign", label: "群发消息", icon: "campaign", route: "/campaign", bgColor: "rgba(42, 178, 96, 0.12)", color: "#2ab260" },
-  { key: "service", label: "客服", icon: "service", route: "/settings", bgColor: "rgba(103, 109, 255, 0.12)", color: "#676dff" },
+  { key: "service", label: "成员", icon: "service", route: "/settings", bgColor: "rgba(103, 109, 255, 0.12)", color: "#676dff" },
   { key: "session-setting", label: "会话设置", icon: "settings", route: "/settings", bgColor: "rgba(255, 152, 46, 0.12)", color: "#ff982e" }
 ];
 

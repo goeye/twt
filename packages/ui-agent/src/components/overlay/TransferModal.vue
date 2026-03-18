@@ -15,9 +15,9 @@
       </div>
 
       <div class="transfer-modal__section">
-        <p class="transfer-modal__section-label">客服</p>
+        <p class="transfer-modal__section-label">成员</p>
         <div class="transfer-modal__list agent-scroll">
-          <div v-if="agents.length === 0" class="transfer-modal__empty">暂无可转移的客服</div>
+          <div v-if="agents.length === 0" class="transfer-modal__empty">暂无可转移的成员</div>
           <div v-for="agent in agents" :key="agent.id" class="transfer-modal__row">
             <div class="transfer-modal__agent">
               <span class="transfer-modal__avatar-wrap">

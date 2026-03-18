@@ -107,7 +107,7 @@
       @toast="emitToast"
     />
     <SettingsRoleDetailPage
-      v-else-if="activeKey === 'agents' && roleDetailMode"
+      v-else-if="activeKey === 'roles' && roleDetailMode"
       :mode="roleDetailMode"
       :role-id="roleDetailId"
       :initial-name="roleDetailName"
@@ -119,18 +119,27 @@
     />
     <SettingsAgentsPage
       v-else-if="activeKey === 'agents'"
-      :initial-tab="agentsInitialTab"
       @toast="emitToast"
       @view-agent-detail="handleViewAgentDetail"
-      @view-role="handleViewRole"
-      @edit-role="handleEditRole"
-      @create-role="handleCreateRole"
     />
+
+    <section v-else-if="activeKey === 'roles'" class="settings-roles-page">
+      <SettingsRolesPage
+        @toast="emitToast"
+        @view-role="handleViewRole"
+        @edit-role="handleEditRole"
+      />
+      <div class="settings-roles-page__create">
+        <button type="button" class="agent-btn agent-btn--primary" @click="handleCreateRole">
+          <span style="font-weight:600; margin-right:4px">+</span> 新增角色
+        </button>
+      </div>
+    </section>
 
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
-          <h2 class="agent-settings-feature-title">客服不活跃</h2>
+          <h2 class="agent-settings-feature-title">成员不活跃</h2>
           <button
             type="button"
             role="switch"
@@ -143,7 +152,7 @@
           </button>
         </div>
         <p class="settings-card__inline-desc">
-          当客服超过
+          当成员超过
           <TimeDurationInput v-model="agentIdleSeconds" />
           未进行操作，自动将其状态更改为离开
         </p>
@@ -164,9 +173,9 @@
           </button>
         </div>
         <p class="settings-card__inline-desc">
-          当客服超过
+          当成员超过
           <TimeDurationInput v-model="sessionTimeoutSeconds" />
-          未回复访客消息时，会话将自动进入排队中（会话中所有服务客服将会自动释放）
+          未回复访客消息时，会话将自动进入排队中（会话中所有服务成员将会自动释放）
         </p>
       </article>
     </section>
@@ -295,8 +304,9 @@ import { usePlan } from "../composables/usePlan";
 import SettingsAgentsPage from "./SettingsAgentsPage.vue";
 import SettingsAgentDetailPage from "./SettingsAgentDetailPage.vue";
 import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
+import SettingsRolesPage from "./SettingsRolesPage.vue";
 
-type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
 interface ChatParameterRow extends Record<string, unknown> {
   param: string;
@@ -311,8 +321,9 @@ const pageTitleMap: Record<SettingsNavKey, string> = {
   install: "聊天页面",
   "website-code": "网站代码",
   customize: "自定义",
-  agents: "客服",
-  team: "客服设置",
+  agents: "成员",
+  roles: "角色",
+  team: "成员设置",
   "quick-reply": "公共回复",
   "personal-reply": "个人回复",
   "idle-conversation": "闲置会话",
@@ -364,10 +375,8 @@ const roleDetailId = ref("");
 const roleDetailName = ref("");
 const roleDetailIsSystem = ref(false);
 const roleDetailPerms = ref<string[]>([]);
-const agentsInitialTab = ref<"agents" | "roles">("agents");
 
 const handleRoleBack = () => {
-  agentsInitialTab.value = "roles";
   roleDetailMode.value = "";
 };
 
@@ -424,7 +433,6 @@ const handleCreateRole = () => {
 
 const handleRoleSave = (_payload: { name: string; permissions: string[] }) => {
   const msg = roleDetailMode.value === "create" ? "新增成功" : "编辑成功";
-  agentsInitialTab.value = "roles";
   roleDetailMode.value = "";
   emitToast(msg);
 };
@@ -820,6 +828,18 @@ const removeQuickReply = (target: string) => {
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-16);
+}
+
+.settings-roles-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+}
+
+.settings-roles-page__create {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0;
 }
 
 .settings-card__inline-desc {

@@ -117,17 +117,24 @@ export const PERMISSION_TREE: PermGroup[] = [
     children: [
       {
         key: 'agent',
-        label: '客服',
+        label: '成员',
         features: [
-          { key: 'agent-list-view', label: '查看客服' },
-          { key: 'agent-manage', label: '管理客服' },
+          { key: 'agent-list-view', label: '查看成员' },
+          { key: 'agent-manage', label: '管理成员' },
+        ],
+      },
+      {
+        key: 'role',
+        label: '角色',
+        features: [
+          { key: 'role-manage', label: '管理角色' },
         ],
       },
       {
         key: 'team-settings',
-        label: '客服设置',
+        label: '成员设置',
         features: [
-          { key: 'team-settings-manage', label: '管理客服设置' },
+          { key: 'team-settings-manage', label: '管理成员设置' },
         ],
       },
     ],
