@@ -179,11 +179,11 @@
       <div v-if="inviteModalVisible" class="invite-modal-overlay" @click.self="inviteModalVisible = false">
         <div class="invite-modal">
           <header class="invite-modal__header">
-            <h3 class="invite-modal__title">邀请成员加入你的团队</h3>
+            <h3 class="invite-modal__title">邀请成员加入团队</h3>
             <button type="button" class="invite-modal__close" @click="inviteModalVisible = false">×</button>
           </header>
           <div class="invite-modal__body">
-            <p class="invite-modal__desc">团队成员将通过电子邮件被邀请，最多一次可以发送 10 个邀请</p>
+            <p class="invite-modal__desc">团队成员将通过电子邮件被邀请，最多一次可以发送10张邀请。</p>
             <div class="invite-modal__field">
               <label class="invite-modal__label">角色</label>
               <select v-model="inviteRole" class="agent-input invite-modal__select">
@@ -192,12 +192,15 @@
                 <option value="主管">主管</option>
               </select>
             </div>
-            <textarea
-              v-model="inviteEmail"
-              class="agent-input invite-modal__textarea"
-              placeholder="请输入电子邮箱地址"
-              rows="5"
-            />
+            <div class="invite-modal__field">
+              <label class="invite-modal__label">邮箱</label>
+              <textarea
+                v-model="inviteEmail"
+                class="agent-input invite-modal__textarea"
+                placeholder="请输入电子邮箱地址"
+                rows="5"
+              />
+            </div>
             <button
               type="button"
               class="agent-btn agent-btn--primary invite-modal__submit"
@@ -1018,12 +1021,12 @@ const confirmCancelInvite = () => {
 
 .invite-modal__label {
   color: #252525;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .invite-modal__select {
-  max-width: 200px;
+  width: 100%;
 }
 
 .invite-modal__submit {

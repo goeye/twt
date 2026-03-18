@@ -2,7 +2,7 @@
   <section class="role-detail-page agent-content-page agent-content-page--hide-scrollbar">
     <article class="role-detail-page__card agent-panel">
       <header class="role-detail-page__header">
-        <button type="button" class="role-detail-page__back" @click="emit('back')">
+        <button type="button" class="role-detail-page__back" @click="handleBack">
           <span class="role-detail-page__back-arrow">‹</span>
         </button>
         <h2 class="role-detail-page__title">{{ headerTitle }}</h2>
@@ -12,42 +12,68 @@
       <!-- Role name -->
       <div class="role-detail-page__field">
         <label class="role-detail-page__label">角色名称</label>
-        <input
-          v-if="editable"
-          v-model="roleName"
-          class="agent-input role-detail-page__name-input"
-          placeholder="请输入角色名称"
-          maxlength="50"
-        />
-        <span v-else class="role-detail-page__value">{{ roleName }}</span>
+        <div class="role-detail-page__input-wrap">
+          <input
+            v-if="editable"
+            v-model="roleName"
+            class="agent-input role-detail-page__name-input"
+            :class="{ 'role-detail-page__name-input--error': nameSubmitted && !roleName.trim() }"
+            placeholder="请输入角色名称"
+            maxlength="50"
+          />
+          <span v-else class="role-detail-page__value">{{ roleName }}</span>
+          <span v-if="editable && nameSubmitted && !roleName.trim()" class="role-detail-page__name-error">请输入角色名称</span>
+        </div>
       </div>
 
       <!-- Permission table -->
       <div class="perm-table">
-        <template v-for="(row, idx) in flatRows" :key="row.rowKey">
-          <!-- Group header row (simple group without children, or group with children as section title) -->
+        <template v-for="(group, gIdx) in permissionTree" :key="group.key">
+          <!-- Locked group: single row -->
           <div
-            v-if="row.type === 'group'"
-            class="perm-row"
-            :class="{ 'perm-row--alt': idx % 2 === 1 }"
+            v-if="group.locked"
+            class="perm-group"
+            :class="{ 'perm-group--alt': gIdx % 2 === 1 }"
           >
-            <div class="perm-row__label">
-              <span class="perm-row__title">{{ row.label }}</span>
-              <span v-if="row.tooltip" class="perm-row__tooltip-wrap">
-                <span class="perm-row__tooltip-trigger">?</span>
-                <span class="perm-row__tooltip-content">{{ row.tooltip }}</span>
+            <div class="perm-locked-row">
+              <span class="perm-locked-row__title">{{ group.label }}</span>
+              <label class="perm-check perm-check--locked">
+                <input type="checkbox" checked disabled />
+                <span class="perm-check__label">{{ group.lockedLabel }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Section group: header + child rows -->
+          <div
+            v-else
+            class="perm-group"
+            :class="{ 'perm-group--alt': gIdx % 2 === 1 }"
+          >
+            <div class="perm-section-header">
+              <span class="perm-section-header__title">{{ group.label }}</span>
+              <span v-if="group.tooltip" class="perm-section-header__tooltip-wrap">
+                <span class="perm-section-header__tooltip-trigger">?</span>
+                <span class="perm-section-header__tooltip-content">{{ group.tooltip }}</span>
               </span>
             </div>
-            <div class="perm-row__checks">
-              <template v-if="row.locked">
-                <label class="perm-check">
-                  <input type="checkbox" checked disabled />
-                  <span class="perm-check__label">{{ row.lockedLabel }}</span>
-                </label>
-              </template>
-              <template v-else-if="row.features && row.features.length > 0">
+            <div
+              v-for="child in group.children"
+              :key="child.key"
+              class="perm-child-row"
+            >
+              <label class="perm-check perm-child-row__item">
+                <input
+                  type="checkbox"
+                  :checked="checkedPerms.has(child.key)"
+                  :disabled="!editable"
+                  @change="toggleItemWithFeatures(child)"
+                />
+                <span class="perm-child-row__name">{{ child.label }}</span>
+              </label>
+              <div class="perm-child-row__perms">
                 <label
-                  v-for="feat in row.features"
+                  v-for="feat in (child.features || [])"
                   :key="feat.key"
                   class="perm-check"
                 >
@@ -55,56 +81,11 @@
                     type="checkbox"
                     :checked="checkedPerms.has(feat.key)"
                     :disabled="!editable"
-                    @change="togglePerm(feat.key)"
+                    @change="toggleFeature(feat.key, child.key)"
                   />
                   <span class="perm-check__label">{{ feat.label }}</span>
                 </label>
-              </template>
-            </div>
-          </div>
-
-          <!-- Section header row (group with children) -->
-          <div
-            v-else-if="row.type === 'section'"
-            class="perm-row perm-row--section"
-            :class="{ 'perm-row--alt': idx % 2 === 1 }"
-          >
-            <div class="perm-row__label">
-              <span class="perm-row__title">{{ row.label }}</span>
-            </div>
-          </div>
-
-          <!-- Child item row -->
-          <div
-            v-else-if="row.type === 'child'"
-            class="perm-row perm-row--child"
-            :class="{ 'perm-row--alt': idx % 2 === 1 }"
-          >
-            <div class="perm-row__label">
-              <label class="perm-check">
-                <input
-                  type="checkbox"
-                  :checked="isItemChecked(row.itemKey!)"
-                  :disabled="!editable"
-                  @change="toggleItemWithFeatures(row.itemKey!, row.features || [])"
-                />
-                <span class="perm-row__child-label">{{ row.label }}</span>
-              </label>
-            </div>
-            <div class="perm-row__checks">
-              <label
-                v-for="feat in row.features"
-                :key="feat.key"
-                class="perm-check"
-              >
-                <input
-                  type="checkbox"
-                  :checked="checkedPerms.has(feat.key)"
-                  :disabled="!editable"
-                  @change="togglePerm(feat.key)"
-                />
-                <span class="perm-check__label">{{ feat.label }}</span>
-              </label>
+              </div>
             </div>
           </div>
         </template>
@@ -112,7 +93,7 @@
     </div>
 
     <footer v-if="editable" class="role-detail-page__footer">
-      <button type="button" class="agent-btn agent-btn--ghost" @click="emit('back')">取消</button>
+      <button type="button" class="agent-btn agent-btn--ghost" @click="handleBack">取消</button>
       <button
         type="button"
         class="agent-btn agent-btn--primary"
@@ -121,25 +102,28 @@
       >保存</button>
     </footer>
     </article>
+
+    <!-- Unsaved changes confirmation modal -->
+    <Teleport to="body">
+      <div v-if="leaveConfirmVisible" class="leave-confirm-overlay" @click.self="leaveConfirmVisible = false">
+        <div class="leave-confirm">
+          <h3 class="leave-confirm__title">未保存的更改</h3>
+          <p class="leave-confirm__desc">当前页面有未保存的修改，确定要离开吗？</p>
+          <footer class="leave-confirm__footer">
+            <button type="button" class="agent-btn agent-btn--ghost leave-confirm__cancel" @click="confirmLeave">放弃</button>
+            <button type="button" class="agent-btn leave-confirm__ok leave-confirm__ok--danger" @click="leaveConfirmVisible = false">继续编辑</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { PERMISSION_TREE, type PermGroup, type PermItem } from "../lib/permission";
+import { PERMISSION_TREE, type PermItem } from "../lib/permission";
 
 type DetailMode = "view" | "create" | "edit";
-
-interface FlatRow {
-  rowKey: string;
-  type: "group" | "section" | "child";
-  label: string;
-  tooltip?: string;
-  locked?: boolean;
-  lockedLabel?: string;
-  itemKey?: string;
-  features?: { key: string; label: string }[];
-}
 
 const props = withDefaults(
   defineProps<{
@@ -148,12 +132,14 @@ const props = withDefaults(
     initialName?: string;
     isSystemRole?: boolean;
     initialPerms?: string[];
+    existingRoleNames?: string[];
   }>(),
   {
     roleId: "",
     initialName: "",
     isSystemRole: false,
-    initialPerms: () => []
+    initialPerms: () => [],
+    existingRoleNames: () => []
   }
 );
 
@@ -172,97 +158,19 @@ const headerTitle = computed(() => {
 });
 
 const roleName = ref(props.initialName);
-
-// Build flat rows from permission tree
-const flatRows = computed<FlatRow[]>(() => {
-  const rows: FlatRow[] = [];
-  for (const group of PERMISSION_TREE) {
-    // Filter out locked children
-    const visibleChildren = (group.children || []).filter(c => !c.locked);
-
-    if (group.locked) {
-      // Locked group (e.g. 首页, 会话) — show as single row with checked disabled
-      rows.push({
-        rowKey: group.key,
-        type: "group",
-        label: group.label,
-        locked: true,
-        lockedLabel: `查看${group.label}`,
-      });
-    } else if (!group.children || group.children.length === 0) {
-      // Group with no children — shouldn't happen but handle gracefully
-      rows.push({
-        rowKey: group.key,
-        type: "group",
-        label: group.label,
-        tooltip: group.tooltip,
-        features: [],
-      });
-    } else if (visibleChildren.length === 0) {
-      // All children are locked — show as locked row
-      rows.push({
-        rowKey: group.key,
-        type: "group",
-        label: group.label,
-        locked: true,
-        lockedLabel: `查看${group.label}`,
-      });
-    } else if (visibleChildren.length === 1 && !visibleChildren[0].features) {
-      // Simple group with one visible child and no sub-features
-      const child = visibleChildren[0];
-      const allFeatures = [{ key: child.key, label: child.label }];
-      rows.push({
-        rowKey: group.key,
-        type: "group",
-        label: group.label,
-        tooltip: group.tooltip,
-        features: allFeatures,
-      });
-    } else if (visibleChildren.every(c => !c.features || c.features.filter(f => !f.locked).length === 0)) {
-      // Group where all visible children have no sub-features — flat row with all children as checkboxes
-      const allFeatures = visibleChildren.map(c => ({ key: c.key, label: c.label }));
-      rows.push({
-        rowKey: group.key,
-        type: "group",
-        label: group.label,
-        tooltip: group.tooltip,
-        features: allFeatures,
-      });
-    } else {
-      // Complex group (has children with features) — section header + child rows
-      rows.push({
-        rowKey: `${group.key}-section`,
-        type: "section",
-        label: group.label,
-        tooltip: group.tooltip,
-      });
-      for (const child of visibleChildren) {
-        const visibleFeatures = (child.features || []).filter(f => !f.locked);
-        rows.push({
-          rowKey: child.key,
-          type: "child",
-          label: child.label,
-          itemKey: child.key,
-          features: visibleFeatures,
-        });
-      }
-    }
-  }
-  return rows;
-});
+const permissionTree = PERMISSION_TREE;
 
 // Collect all toggleable perm keys (exclude locked)
 const getAllKeys = (): string[] => {
   const keys: string[] = [];
-  for (const group of PERMISSION_TREE) {
+  for (const group of permissionTree) {
     if (group.locked) continue;
     if (group.children) {
       for (const child of group.children) {
-        if (child.locked) continue;
         keys.push(child.key);
         if (child.features) {
           for (const feat of child.features) {
-            if (!feat.locked) keys.push(feat.key);
+            keys.push(feat.key);
           }
         }
       }
@@ -280,48 +188,101 @@ const initPerms = (): Set<string> => {
     return new Set();
   }
   if (props.isSystemRole && props.initialName === "超级管理员") {
-    const allKeys = getAllKeys();
-    return new Set(allKeys);
+    return new Set(getAllKeys());
   }
   return new Set();
 };
 
 const checkedPerms = ref<Set<string>>(initPerms());
+const initialPermsSnapshot = new Set(initPerms());
 
-const togglePerm = (key: string) => {
+// Track if form has been modified
+const isDirty = computed(() => {
+  if (roleName.value !== props.initialName) return true;
+  if (checkedPerms.value.size !== initialPermsSnapshot.size) return true;
+  for (const k of checkedPerms.value) {
+    if (!initialPermsSnapshot.has(k)) return true;
+  }
+  return false;
+});
+
+const toggleFeature = (featKey: string, itemKey: string) => {
   const next = new Set(checkedPerms.value);
-  if (next.has(key)) {
-    next.delete(key);
+  if (next.has(featKey)) {
+    next.delete(featKey);
+    // Auto-uncheck parent item when unchecking the last sub-feature
+    const group = permissionTree.find(g => g.children?.some(c => c.key === itemKey));
+    const item = group?.children?.find(c => c.key === itemKey);
+    if (item?.features) {
+      const hasAnyFeature = item.features.some(f => f.key !== featKey && next.has(f.key));
+      if (!hasAnyFeature) {
+        next.delete(itemKey);
+      }
+    }
   } else {
-    next.add(key);
+    next.add(featKey);
+    // Auto-check parent item when checking a feature
+    if (!next.has(itemKey)) {
+      next.add(itemKey);
+    }
   }
   checkedPerms.value = next;
 };
 
-const isItemChecked = (itemKey: string): boolean => {
-  return checkedPerms.value.has(itemKey);
-};
-
-const toggleItemWithFeatures = (itemKey: string, features: { key: string; label: string }[]) => {
+const toggleItemWithFeatures = (child: PermItem) => {
   const next = new Set(checkedPerms.value);
-  const isChecked = next.has(itemKey);
+  const isChecked = next.has(child.key);
   if (isChecked) {
-    next.delete(itemKey);
-    for (const f of features) next.delete(f.key);
+    next.delete(child.key);
+    if (child.features) {
+      for (const f of child.features) next.delete(f.key);
+    }
   } else {
-    next.add(itemKey);
+    next.add(child.key);
+    // Auto-check all sub-features when checking parent
+    if (child.features) {
+      for (const f of child.features) next.add(f.key);
+    }
   }
   checkedPerms.value = next;
 };
+
+// Leave confirmation
+const leaveConfirmVisible = ref(false);
+
+const handleBack = () => {
+  if (editable.value && isDirty.value) {
+    leaveConfirmVisible.value = true;
+  } else {
+    emit("back");
+  }
+};
+
+const confirmLeave = () => {
+  leaveConfirmVisible.value = false;
+  emit("back");
+};
+
+const nameSubmitted = ref(false);
 
 const canSave = computed(() => {
   return roleName.value.trim().length > 0;
 });
 
 const handleSave = () => {
+  nameSubmitted.value = true;
   if (!canSave.value) return;
+  const name = roleName.value.trim();
+  // Check duplicate name only on save
+  const isDuplicate = props.mode === "edit" && name === props.initialName
+    ? false
+    : props.existingRoleNames.includes(name);
+  if (isDuplicate) {
+    emit("toast", "角色名称已存在，请使用其他名称");
+    return;
+  }
   emit("save", {
-    name: roleName.value.trim(),
+    name,
     permissions: Array.from(checkedPerms.value)
   });
 };
@@ -417,65 +378,161 @@ const handleSave = () => {
   width: 100%;
 }
 
+.role-detail-page__input-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.role-detail-page__name-input--error {
+  border-color: #ef4444;
+}
+
+.role-detail-page__name-error {
+  color: #ef4444;
+  font-size: 12px;
+}
+
 /* Permission table */
 .perm-table {
   display: flex;
   flex-direction: column;
 }
 
-.perm-row {
-  align-items: center;
-  display: flex;
-  gap: 24px;
-  min-height: 48px;
-  padding: 12px 16px;
+.perm-group {
+  padding: 0;
 }
 
-.perm-row--alt {
+.perm-group--alt {
   background: #f8f9fb;
   border-radius: 8px;
 }
 
-.perm-row--section {
-  padding-bottom: 4px;
-}
-
-.perm-row--child {
-  padding-left: 32px;
-}
-
-.perm-row__label {
+/* Locked row (首页 / 会话) */
+.perm-locked-row {
   align-items: center;
   display: flex;
-  flex-shrink: 0;
-  gap: 6px;
-  min-width: 100px;
+  gap: 24px;
+  min-height: 44px;
+  padding: 10px 16px;
 }
 
-.perm-row__title {
+.perm-locked-row__title {
+  color: #252525;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+/* Section header */
+.perm-section-header {
+  align-items: center;
+  border-bottom: 1px solid #edf1f5;
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px 8px;
+}
+
+.perm-section-header__title {
   color: #252525;
   font-size: 14px;
   font-weight: 600;
 }
 
-.perm-row__child-label {
+/* Tooltip */
+.perm-section-header__tooltip-wrap {
+  display: inline-flex;
+  position: relative;
+}
+
+.perm-section-header__tooltip-trigger {
+  align-items: center;
+  border: 1px solid #c7cdd8;
+  border-radius: 50%;
+  color: #75869c;
+  cursor: help;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  width: 16px;
+}
+
+.perm-section-header__tooltip-content {
+  background: #222222;
+  border-radius: 6px;
+  color: #ffffff;
+  display: none;
+  font-size: 12px;
+  left: 50%;
+  line-height: 18px;
+  padding: 6px 10px;
+  position: absolute;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.perm-section-header__tooltip-content::after {
+  border-bottom: 5px solid #222222;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: -5px;
+  transform: translateX(-50%);
+}
+
+.perm-section-header__tooltip-wrap:hover .perm-section-header__tooltip-content {
+  display: block;
+}
+
+/* Child row */
+.perm-child-row {
+  align-items: center;
+  border-bottom: 1px solid #edf1f5;
+  display: flex;
+  gap: 16px;
+  min-height: 44px;
+  padding: 8px 16px 8px 24px;
+}
+
+.perm-child-row:last-child {
+  border-bottom: 0;
+}
+
+.perm-child-row__item {
+  min-width: 140px;
+}
+
+.perm-child-row__name {
   color: #252525;
   font-size: 13px;
   font-weight: 500;
 }
 
-.perm-row__checks {
+.perm-child-row__perms {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
+  gap: 24px;
 }
 
+/* Checkbox */
 .perm-check {
   align-items: center;
   cursor: pointer;
   display: inline-flex;
   gap: 6px;
+}
+
+.perm-check--locked {
+  cursor: default;
 }
 
 .perm-check input[type="checkbox"] {
@@ -495,58 +552,6 @@ const handleSave = () => {
   white-space: nowrap;
 }
 
-/* Tooltip */
-.perm-row__tooltip-wrap {
-  display: inline-flex;
-  position: relative;
-}
-
-.perm-row__tooltip-trigger {
-  align-items: center;
-  border: 1px solid #c7cdd8;
-  border-radius: 50%;
-  color: #75869c;
-  cursor: help;
-  display: inline-flex;
-  font-size: 11px;
-  font-weight: 600;
-  height: 16px;
-  justify-content: center;
-  line-height: 1;
-  width: 16px;
-}
-
-.perm-row__tooltip-content {
-  background: #222222;
-  border-radius: 6px;
-  color: #ffffff;
-  display: none;
-  font-size: 12px;
-  left: 50%;
-  line-height: 18px;
-  padding: 6px 10px;
-  position: absolute;
-  top: calc(100% + 8px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  z-index: 10;
-}
-
-.perm-row__tooltip-content::after {
-  border-bottom: 5px solid #222222;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  content: "";
-  left: 50%;
-  position: absolute;
-  top: -5px;
-  transform: translateX(-50%);
-}
-
-.perm-row__tooltip-wrap:hover .perm-row__tooltip-content {
-  display: block;
-}
-
 .role-detail-page__footer {
   align-items: center;
   border-top: 1px solid #edf1f5;
@@ -554,5 +559,66 @@ const handleSave = () => {
   gap: 12px;
   justify-content: flex-start;
   padding: 14px 28px;
+}
+
+/* Leave confirmation modal */
+.leave-confirm-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 1000;
+}
+
+.leave-confirm {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  max-width: 400px;
+  padding: 28px 32px 24px;
+  width: 90%;
+}
+
+.leave-confirm__title {
+  color: #252525;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.leave-confirm__desc {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 22px;
+  margin: 0 0 28px;
+}
+
+.leave-confirm__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.leave-confirm__cancel {
+  border: 1px solid #dbe1ea;
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 72px;
+  padding: 8px 20px;
+}
+
+.leave-confirm__ok {
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 96px;
+  padding: 8px 20px;
+}
+
+.leave-confirm__ok--danger {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
 }
 </style>

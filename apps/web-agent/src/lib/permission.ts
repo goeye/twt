@@ -10,13 +10,11 @@
 export interface PermFeature {
   key: string
   label: string
-  locked?: boolean
 }
 
 export interface PermItem {
   key: string
   label: string
-  locked?: boolean
   features?: PermFeature[]
 }
 
@@ -24,6 +22,7 @@ export interface PermGroup {
   key: string
   label: string
   locked?: boolean
+  lockedLabel?: string
   tooltip?: string
   children?: PermItem[]
 }
@@ -35,26 +34,28 @@ export const PERMISSION_TREE: PermGroup[] = [
     key: 'home',
     label: '首页',
     locked: true,
+    lockedLabel: '查看',
   },
   {
     key: 'conversation',
     label: '会话',
     locked: true,
+    lockedLabel: '管理',
   },
   {
     key: 'archive',
     label: '档案',
     children: [
-      { key: 'archive-view', label: '查看档案' },
-      { key: 'archive-manage', label: '管理档案' },
+      { key: 'archive-conversation', label: '会话记录', features: [{ key: 'archive-conversation-manage', label: '管理' }] },
+      { key: 'archive-chat', label: '聊天记录', features: [{ key: 'archive-chat-manage', label: '管理' }] },
     ],
   },
   {
     key: 'visitor',
     label: '访客',
     children: [
-      { key: 'visitor-view', label: '查看访客', locked: true },
-      { key: 'visitor-manage', label: '管理访客' },
+      { key: 'visitor-online', label: '在线访客', features: [{ key: 'visitor-online-manage', label: '管理' }] },
+      { key: 'visitor-all', label: '全部访客', features: [{ key: 'visitor-all-manage', label: '管理' }] },
     ],
   },
   {
@@ -62,98 +63,83 @@ export const PERMISSION_TREE: PermGroup[] = [
     label: '客户',
     tooltip: '仅在接入客户标识后启用客户模块',
     children: [
-      { key: 'customer-view', label: '查看客户', locked: true },
-      { key: 'customer-manage', label: '管理客户' },
-    ],
-  },
-  {
-    key: 'report',
-    label: '报表',
-    children: [
-      { key: 'report-view', label: '查看报表' },
+      { key: 'customer-online', label: '在线客户', features: [{ key: 'customer-online-manage', label: '管理' }] },
+      { key: 'customer-all', label: '全部客户', features: [{ key: 'customer-all-manage', label: '管理' }] },
     ],
   },
   {
     key: 'campaign',
     label: '营销',
     children: [
-      { key: 'campaign-view', label: '查看营销', locked: true },
-      { key: 'campaign-manage', label: '管理营销' },
+      { key: 'campaign-mass', label: '群发消息', features: [{ key: 'campaign-mass-manage', label: '管理' }] },
+      { key: 'campaign-proactive', label: '主动营销', features: [{ key: 'campaign-proactive-manage', label: '管理' }] },
     ],
   },
   {
-    key: 'quick-reply',
-    label: '快捷回复',
+    key: 'report',
+    label: '报表',
     children: [
-      {
-        key: 'public-reply',
-        label: '公共回复',
-        features: [
-          { key: 'public-reply-view', label: '查看公共回复', locked: true },
-          { key: 'public-reply-manage', label: '管理公共回复' },
-        ],
-      },
-      {
-        key: 'personal-reply',
-        label: '个人回复',
-        features: [
-          { key: 'personal-reply-view', label: '查看个人回复', locked: true },
-          { key: 'personal-reply-manage', label: '管理个人回复' },
-        ],
-      },
+      { key: 'report-overview', label: '会话概览', features: [{ key: 'report-overview-view', label: '查看' }] },
+      { key: 'report-evaluation', label: '会话评价分析', features: [{ key: 'report-evaluation-view', label: '查看' }] },
     ],
   },
   {
-    key: 'tags',
-    label: '标签',
+    key: 'ai-agent',
+    label: 'AI Agent',
     children: [
-      { key: 'tags-view', label: '查看标签', locked: true },
-      { key: 'tags-manage', label: '管理标签' },
+      { key: 'ai-doc', label: '文档知识', features: [{ key: 'ai-doc-manage', label: '管理' }] },
+      { key: 'ai-faq', label: '常见问题', features: [{ key: 'ai-faq-manage', label: '管理' }] },
+      { key: 'ai-copilot', label: 'Copilot设置', features: [{ key: 'ai-copilot-manage', label: '管理' }] },
     ],
   },
   {
     key: 'team',
     label: '团队',
     children: [
-      {
-        key: 'agent',
-        label: '成员',
-        features: [
-          { key: 'agent-list-view', label: '查看成员' },
-          { key: 'agent-manage', label: '管理成员' },
-        ],
-      },
-      {
-        key: 'role',
-        label: '角色',
-        features: [
-          { key: 'role-manage', label: '管理角色' },
-        ],
-      },
-      {
-        key: 'team-settings',
-        label: '成员设置',
-        features: [
-          { key: 'team-settings-manage', label: '管理成员设置' },
-        ],
-      },
+      { key: 'agent', label: '成员', features: [{ key: 'agent-manage', label: '管理' }] },
+      { key: 'role', label: '角色', features: [{ key: 'role-manage', label: '管理' }] },
+      { key: 'team-settings', label: '成员设置', features: [{ key: 'team-settings-manage', label: '管理' }] },
+    ],
+  },
+  {
+    key: 'quick-reply',
+    label: '快捷回复',
+    children: [
+      { key: 'public-reply', label: '公共回复', features: [{ key: 'public-reply-manage', label: '管理' }] },
+      { key: 'personal-reply', label: '个人回复', features: [{ key: 'personal-reply-manage', label: '管理' }] },
+    ],
+  },
+  {
+    key: 'tags',
+    label: '标签',
+    children: [
+      { key: 'visitor-tags', label: '访客标签', features: [{ key: 'visitor-tags-manage', label: '管理' }] },
+      { key: 'conversation-tags', label: '会话标签', features: [{ key: 'conversation-tags-manage', label: '管理' }] },
     ],
   },
   {
     key: 'install',
     label: '安装',
     children: [
-      { key: 'install-view-code', label: '查看网站代码' },
-      { key: 'install-view-chat', label: '查看聊天页面' },
-      { key: 'install-manage-custom', label: '管理自定义' },
+      { key: 'website-code', label: '网站代码', features: [{ key: 'website-code-view', label: '查看' }] },
+      { key: 'chat-page', label: '聊天页面', features: [{ key: 'chat-page-view', label: '查看' }] },
+      { key: 'customize', label: '自定义', features: [{ key: 'customize-manage', label: '管理' }] },
     ],
   },
   {
-    key: 'settings',
-    label: '设置',
+    key: 'security',
+    label: '安全',
     children: [
-      { key: 'security-manage', label: '管理安全' },
-      { key: 'dev-settings-manage', label: '管理开发设置' },
+      { key: 'blacklist', label: '黑名单', features: [{ key: 'blacklist-manage', label: '管理' }] },
+      { key: 'trusted-domains', label: '信任域名', features: [{ key: 'trusted-domains-manage', label: '管理' }] },
+    ],
+  },
+  {
+    key: 'dev-settings',
+    label: '开发设置',
+    children: [
+      { key: 'dev-settings-page', label: '开发设置', features: [{ key: 'dev-settings-page-manage', label: '管理' }] },
+      { key: 'webhooks', label: 'Webhooks', features: [{ key: 'webhooks-manage', label: '管理' }] },
     ],
   },
 ]
@@ -170,8 +156,8 @@ export const ROUTE_PERMISSION_MAP: Record<string, string> = {
   customer: 'customer',
   campaign: 'campaign',
   report: 'report',
-  'ai-agent': 'settings',
-  settings: 'settings',
+  'ai-agent': 'ai-agent',
+  settings: 'team',
 }
 
 // ---- 侧边栏导航 key → 权限 key 映射（导航过滤查此表） ----
@@ -182,7 +168,7 @@ export const NAV_PERMISSION_MAP: Record<string, string> = {
   customer: 'customer',
   campaign: 'campaign',
   report: 'report',
-  'ai-agent': 'settings',
+  'ai-agent': 'ai-agent',
 }
 
 // ---- 设置页子导航 group key → 权限 key 映射 ----
@@ -191,10 +177,10 @@ export const SETTINGS_NAV_PERMISSION_MAP: Record<string, string> = {
   'install-group': 'install',
   'team-group': 'team',
   'quick-reply-group': 'quick-reply',
+  'idle-conversation-group': 'team',
   'tags-group': 'tags',
-  'security-group': 'settings',
-  'dev-settings-group': 'settings',
-  'roles-group': 'team',
+  'security-group': 'security',
+  'dev-settings-group': 'dev-settings',
 }
 
 // ---- 工具函数 ----
@@ -204,13 +190,12 @@ export function getAllToggleableKeys(): string[] {
   const keys: string[] = []
   for (const group of PERMISSION_TREE) {
     if (group.locked) continue
-    keys.push(group.key)
     if (group.children) {
       for (const item of group.children) {
-        if (!item.locked) keys.push(item.key)
+        keys.push(item.key)
         if (item.features) {
           for (const feat of item.features) {
-            if (!feat.locked) keys.push(feat.key)
+            keys.push(feat.key)
           }
         }
       }

@@ -1,9 +1,9 @@
 <template>
   <section
     class="agent-content-page agent-content-page--hide-scrollbar settings-page"
-    :class="{ 'settings-page--agents': activeKey === 'agents' }"
+    :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' }"
   >
-    <header v-if="activeKey !== 'agents'" class="agent-content-header">
+    <header v-if="activeKey !== 'agents' && activeKey !== 'roles'" class="agent-content-header">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
     </header>
 
@@ -113,6 +113,7 @@
       :initial-name="roleDetailName"
       :is-system-role="roleDetailIsSystem"
       :initial-perms="roleDetailPerms"
+      :existing-role-names="existingRoleNames"
       @back="handleRoleBack"
       @save="handleRoleSave"
       @toast="emitToast"
@@ -123,18 +124,13 @@
       @view-agent-detail="handleViewAgentDetail"
     />
 
-    <section v-else-if="activeKey === 'roles'" class="settings-roles-page">
-      <SettingsRolesPage
-        @toast="emitToast"
-        @view-role="handleViewRole"
-        @edit-role="handleEditRole"
-      />
-      <div class="settings-roles-page__create">
-        <button type="button" class="agent-btn agent-btn--primary" @click="handleCreateRole">
-          <span style="font-weight:600; margin-right:4px">+</span> 新增角色
-        </button>
-      </div>
-    </section>
+    <SettingsRolesPage
+      v-else-if="activeKey === 'roles' && !roleDetailMode"
+      @toast="emitToast"
+      @view-role="handleViewRole"
+      @edit-role="handleEditRole"
+      @create-role="handleCreateRole"
+    />
 
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
       <article class="settings-card agent-panel">
@@ -375,6 +371,7 @@ const roleDetailId = ref("");
 const roleDetailName = ref("");
 const roleDetailIsSystem = ref(false);
 const roleDetailPerms = ref<string[]>([]);
+const existingRoleNames = ["超级管理员", "客服", "高级客服", "主管"];
 
 const handleRoleBack = () => {
   roleDetailMode.value = "";
@@ -390,29 +387,31 @@ const handleViewRole = (roleId: string) => {
     roleDetailName.value = "客服";
     roleDetailIsSystem.value = true;
     roleDetailPerms.value = [
-      "archive-view",
-      "visitor-manage",
-      "customer-manage",
-      "campaign-manage",
-      "tags-manage",
-      "agent-list-view",
-      "public-reply",
-      "public-reply-manage",
-      "personal-reply",
-      "personal-reply-manage"
+      "archive-conversation", "archive-conversation-manage",
+      "archive-chat", "archive-chat-manage",
+      "visitor-online", "visitor-online-manage",
+      "visitor-all", "visitor-all-manage",
+      "customer-online", "customer-online-manage",
+      "customer-all", "customer-all-manage",
+      "campaign-mass", "campaign-mass-manage",
+      "campaign-proactive", "campaign-proactive-manage",
+      "visitor-tags", "visitor-tags-manage",
+      "conversation-tags", "conversation-tags-manage",
+      "agent", "agent-manage",
+      "public-reply", "public-reply-manage",
+      "personal-reply", "personal-reply-manage"
     ];
   } else {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
     roleDetailIsSystem.value = false;
     roleDetailPerms.value = [
-      "archive-view",
-      "visitor-manage",
-      "report-view",
-      "public-reply",
-      "public-reply-manage",
-      "personal-reply",
-      "personal-reply-manage",
-      ...(roleId === "role-supervisor" ? ["agent-list-view", "agent-manage"] : [])
+      "archive-conversation", "archive-conversation-manage",
+      "visitor-online", "visitor-online-manage",
+      "report-overview", "report-overview-view",
+      "report-evaluation", "report-evaluation-view",
+      "public-reply", "public-reply-manage",
+      "personal-reply", "personal-reply-manage",
+      ...(roleId === "role-supervisor" ? ["agent", "agent-manage", "role", "role-manage"] : [])
     ];
   }
   roleDetailMode.value = "view";
@@ -828,18 +827,6 @@ const removeQuickReply = (target: string) => {
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-16);
-}
-
-.settings-roles-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-16);
-}
-
-.settings-roles-page__create {
-  display: flex;
-  justify-content: flex-start;
-  padding: 0;
 }
 
 .settings-card__inline-desc {

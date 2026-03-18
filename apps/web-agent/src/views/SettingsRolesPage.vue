@@ -1,59 +1,87 @@
 <template>
-  <section class="roles-page" @click="closeDropdown">
-    <div class="roles-page__table-area agent-scroll">
-      <table class="roles-table">
-        <thead>
-          <tr>
-            <th>角色名称</th>
-            <th>关联成员数</th>
-            <th>创建人</th>
-            <th>创建时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="role in roles" :key="role.id">
-            <td>
-              <span class="roles-table__name">{{ role.name }}</span>
-            </td>
-            <td>{{ role.memberCount }}</td>
-            <td>{{ role.creator }}</td>
-            <td>{{ role.createdAt }}</td>
-            <td>
-              <div class="roles-table__actions">
-                <button
-                  type="button"
-                  class="roles-table__more-btn"
-                  @click.stop="toggleDropdown(role.id)"
-                >···</button>
-                <div
-                  v-if="activeDropdownId === role.id"
-                  class="roles-table__dropdown"
-                >
-                  <button
-                    type="button"
-                    class="roles-table__dropdown-item"
-                    @click="handleAction('view', role)"
-                  >查看</button>
-                  <button
-                    v-if="role.canEdit"
-                    type="button"
-                    class="roles-table__dropdown-item"
-                    @click="handleAction('edit', role)"
-                  >编辑</button>
-                  <button
-                    v-if="role.canDelete"
-                    type="button"
-                    class="roles-table__dropdown-item roles-table__dropdown-item--danger"
-                    @click="handleAction('delete', role)"
-                  >删除</button>
+  <section class="roles-view" @click="closeDropdown">
+    <article class="roles-panel agent-panel">
+      <header class="roles-panel__header">
+        <h1 class="roles-panel__title">角色</h1>
+        <button type="button" class="agent-btn agent-btn--primary roles-panel__create-btn" @click="emit('create-role')">
+          <span class="roles-panel__create-icon">+</span>
+          <span>新增角色</span>
+        </button>
+      </header>
+
+      <div class="roles-panel__table-area">
+        <table class="roles-table">
+          <thead>
+            <tr>
+              <th>角色名称</th>
+              <th>关联成员数</th>
+              <th>创建人</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="role in roles" :key="role.id">
+              <td>
+                <span class="roles-table__name">{{ role.name }}</span>
+              </td>
+              <td>{{ role.memberCount }}</td>
+              <td>
+                <div class="roles-table__creator">
+                  <span class="roles-table__creator-avatar" :style="{ background: role.avatarColor }">{{ role.avatarText }}</span>
+                  <span>{{ role.creator }}</span>
                 </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td>{{ role.createdAt }}</td>
+              <td>
+                <div class="roles-table__actions">
+                  <button
+                    type="button"
+                    class="roles-table__more-btn"
+                    @click.stop="toggleDropdown(role.id)"
+                  >···</button>
+                  <div
+                    v-if="activeDropdownId === role.id"
+                    class="roles-table__dropdown"
+                  >
+                    <button
+                      type="button"
+                      class="roles-table__dropdown-item"
+                      @click="handleAction('view', role)"
+                    >查看</button>
+                    <button
+                      v-if="role.canEdit"
+                      type="button"
+                      class="roles-table__dropdown-item"
+                      @click="handleAction('edit', role)"
+                    >编辑</button>
+                    <button
+                      v-if="role.canDelete"
+                      type="button"
+                      class="roles-table__dropdown-item roles-table__dropdown-item--danger"
+                      @click="handleAction('delete', role)"
+                    >删除</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="roles-panel__pagination">
+        <button type="button" class="roles-panel__page roles-panel__page--active">1</button>
+        <button type="button" class="roles-panel__page">2</button>
+        <button type="button" class="roles-panel__page">3</button>
+        <button type="button" class="roles-panel__page">4</button>
+        <button type="button" class="roles-panel__page">5</button>
+        <span class="roles-panel__page-ellipsis">...</span>
+        <button type="button" class="roles-panel__page">20</button>
+        <button type="button" class="roles-panel__page roles-panel__page-arrow">›</button>
+        <span class="roles-panel__page-meta">9/Page</span>
+        <span class="roles-panel__page-meta">Total: {{ roles.length }}</span>
+      </footer>
+    </article>
 
     <!-- Delete confirmation modal -->
     <Teleport to="body">
@@ -89,6 +117,8 @@ interface RoleItem {
   permissionSummary: string[];
   memberCount: number;
   creator: string;
+  avatarText: string;
+  avatarColor: string;
   createdAt: string;
 }
 
@@ -96,6 +126,7 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "view-role", roleId: string): void;
   (e: "edit-role", roleId: string): void;
+  (e: "create-role"): void;
 }>();
 
 const roles = ref<RoleItem[]>([
@@ -108,7 +139,9 @@ const roles = ref<RoleItem[]>([
     permissionSummary: ["全部权限"],
     memberCount: 1,
     creator: "系统",
-    createdAt: "2025-01-01 00:00"
+    avatarText: "系",
+    avatarColor: "#6b7280",
+    createdAt: "2025-01-01"
   },
   {
     id: "role-agent",
@@ -117,9 +150,11 @@ const roles = ref<RoleItem[]>([
     canEdit: true,
     canDelete: false,
     permissionSummary: ["档案", "访客", "客户", "营销", "标签", "团队", "设置"],
-    memberCount: 4,
-    creator: "系统",
-    createdAt: "2025-01-01 00:00"
+    memberCount: 12,
+    creator: "Cafe",
+    avatarText: "C",
+    avatarColor: "#105eff",
+    createdAt: "2025-12-30"
   },
   {
     id: "role-senior",
@@ -130,7 +165,9 @@ const roles = ref<RoleItem[]>([
     permissionSummary: ["档案", "访客", "报表", "设置"],
     memberCount: 2,
     creator: "Cafe",
-    createdAt: "2025-06-15 14:30"
+    avatarText: "C",
+    avatarColor: "#105eff",
+    createdAt: "2025-06-15"
   },
   {
     id: "role-supervisor",
@@ -141,7 +178,9 @@ const roles = ref<RoleItem[]>([
     permissionSummary: ["档案", "访客", "报表", "团队", "设置"],
     memberCount: 1,
     creator: "Cafe",
-    createdAt: "2025-08-20 09:00"
+    avatarText: "C",
+    avatarColor: "#105eff",
+    createdAt: "2025-08-20"
   }
 ]);
 
@@ -196,17 +235,63 @@ const confirmDelete = () => {
 </script>
 
 <style scoped>
-.roles-page {
-  display: flex;
-  flex-direction: column;
+.roles-view {
   height: 100%;
   min-height: 0;
+  padding: 12px;
 }
 
-.roles-page__table-area {
+.roles-panel {
+  background: #ffffff;
+  border-color: #dbe1ea;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.roles-panel__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 12px;
+}
+
+.roles-panel__title {
+  color: #252525;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  margin: 0;
+}
+
+.roles-panel__create-btn {
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 4px;
+  min-width: 96px;
+  padding: 7px 12px 7px 10px;
+}
+
+.roles-panel__create-icon {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(-0.5px);
+}
+
+/* Table */
+.roles-panel__table-area {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding: 0 18px;
 }
 
 .roles-table {
@@ -234,16 +319,35 @@ const confirmDelete = () => {
   padding-bottom: 8px;
 }
 
-.roles-table th:nth-child(1) { width: 18%; }
-.roles-table th:nth-child(2) { width: 12%; }
-.roles-table th:nth-child(3) { width: 12%; }
-.roles-table th:nth-child(4) { width: 18%; }
-.roles-table th:nth-child(5) { width: 6%; }
+.roles-table th:nth-child(1) { width: 22%; }
+.roles-table th:nth-child(2) { width: 16%; }
+.roles-table th:nth-child(3) { width: 16%; }
+.roles-table th:nth-child(4) { width: 20%; }
+.roles-table th:nth-child(5) { width: 8%; }
 
 .roles-table__name {
   color: #222222;
   font-size: 13px;
   font-weight: 500;
+}
+
+.roles-table__creator {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.roles-table__creator-avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
 }
 
 /* Dropdown actions */
@@ -308,6 +412,54 @@ const confirmDelete = () => {
 
 .roles-table__dropdown-item--danger {
   color: #ef4444;
+}
+
+/* Pagination */
+.roles-panel__pagination {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: auto;
+  padding: 16px 18px 24px;
+}
+
+.roles-panel__page {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  color: #4b5563;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  height: 24px;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 6px;
+}
+
+.roles-panel__page--active {
+  background: #105eff;
+  border-color: #105eff;
+  color: #ffffff;
+}
+
+.roles-panel__page-arrow {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.roles-panel__page-ellipsis {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.roles-panel__page-meta {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 20px;
 }
 
 /* Delete confirmation modal */

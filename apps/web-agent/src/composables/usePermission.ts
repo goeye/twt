@@ -21,18 +21,18 @@ const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
   admin: () => getAllPermissionKeys(),
   agent: () => [
     'home', 'conversation',
-    'archive', 'archive-view',
-    'visitor', 'visitor-view',
-    'customer', 'customer-view',
-    'campaign', 'campaign-view',
+    'archive', 'archive-conversation', 'archive-conversation-manage',
+    'visitor', 'visitor-online', 'visitor-online-manage',
+    'customer', 'customer-online', 'customer-online-manage',
+    'campaign', 'campaign-mass', 'campaign-mass-manage',
     'quick-reply',
-    'public-reply', 'public-reply-view', 'public-reply-manage',
-    'personal-reply', 'personal-reply-view', 'personal-reply-manage',
-    'tags', 'tags-view',
+    'public-reply', 'public-reply-manage',
+    'personal-reply', 'personal-reply-manage',
+    'tags', 'visitor-tags', 'visitor-tags-manage',
   ],
   limited: () => [
     'home', 'conversation',
-    'archive', 'archive-view',
+    'archive', 'archive-conversation', 'archive-conversation-manage',
   ],
 }
 
