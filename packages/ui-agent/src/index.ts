@@ -25,6 +25,7 @@ export { default as UnsavedChangesModal } from "./components/overlay/UnsavedChan
 export { default as TransferModal } from "./components/overlay/TransferModal.vue";
 export { default as InviteModal } from "./components/overlay/InviteModal.vue";
 export { default as FeatureLockedModal } from "./components/overlay/FeatureLockedModal.vue";
+export { default as PermissionChangedModal } from "./components/overlay/PermissionChangedModal.vue";
 
 export { default as EmptyState } from "./components/feedback/EmptyState.vue";
 export { default as LoadingSpinner } from "./components/feedback/LoadingSpinner.vue";

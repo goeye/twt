@@ -1,6 +1,6 @@
 <template>
   <section class="agent-content-page ai-agent-page">
-    <template v-if="activeKey === 'copilot-settings'">
+    <template v-if="resolvedActiveKey === 'copilot-settings'">
       <header class="agent-content-header">
         <h1 class="agent-content-title">Copilot设置</h1>
         <p class="agent-content-subtitle">使用 Copilot 工具在客服对话中提供智能辅助功能。</p>
@@ -27,7 +27,7 @@
       </div>
     </template>
 
-    <template v-else-if="activeKey === 'ai-agent-config'">
+    <template v-else-if="resolvedActiveKey === 'ai-agent-config'">
       <header class="agent-content-header agent-config-header">
         <div class="agent-config-header__content">
           <div class="agent-config-header__title-row">
@@ -230,7 +230,7 @@
 
     </template>
 
-    <template v-else-if="activeKey === 'doc-knowledge'">
+    <template v-else-if="resolvedActiveKey === 'doc-knowledge'">
       <header class="agent-content-header doc-knowledge-header">
         <h1 class="agent-content-title">文档知识</h1>
         <button type="button" class="agent-btn agent-btn--primary" @click="guardedDocAdd">
@@ -336,7 +336,7 @@
       </div>
     </template>
 
-    <template v-else-if="activeKey === 'faq'">
+    <template v-else-if="resolvedActiveKey === 'faq'">
       <header class="agent-content-header doc-knowledge-header">
         <h1 class="agent-content-title">常见问题</h1>
         <button type="button" class="agent-btn agent-btn--primary" @click="guardedFaqAdd">
@@ -563,11 +563,11 @@ const filteredFaqList = computed(() => {
   return faqList.value.filter((item) => item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query));
 });
 
+const { canUse, guardFeature } = usePlan();
+
 const configTab = ref<ConfigTab>("deploy");
 const openLifecycleCard = ref<LifecycleCardKey | null>(null);
 const agentEnabled = ref(canUse(FEATURES.AI_AGENT));
-
-const { canUse, guardFeature } = usePlan();
 
 /** 知识库门控 */
 const guardedDocAdd = () => {
@@ -681,9 +681,16 @@ const emitToast = (message: string) => {
   emit("toast", message);
 };
 
+const resolvedActiveKey = computed<AiAgentNavKey>(() => {
+  if (props.activeKey === "doc-knowledge" || props.activeKey === "faq" || props.activeKey === "ai-agent-config") {
+    return props.activeKey;
+  }
+  return "copilot-settings";
+});
+
 const activeSectionLabel = computed(() => {
-  if (props.activeKey === "doc-knowledge") return "文档知识";
-  if (props.activeKey === "faq") return "常见问题";
+  if (resolvedActiveKey.value === "doc-knowledge") return "文档知识";
+  if (resolvedActiveKey.value === "faq") return "常见问题";
   return "Copilot设置";
 });
 

@@ -36,6 +36,35 @@
                 </div>
               </div>
             </div>
+            <div class="perm-switcher-wrap">
+              <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="permSwitcherOpen = !permSwitcherOpen">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
+                </svg>
+              </button>
+              <span class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
+              <div v-if="permSwitcherOpen" class="perm-switcher-panel" @click.stop>
+                <h4 class="perm-switcher-panel__title">切换角色权限</h4>
+                <p class="perm-switcher-panel__desc">仅供开发调试，模拟不同角色的权限</p>
+                <div class="perm-switcher-panel__options">
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'admin' }" @click="switchPermRole('admin')">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">ALL</span>
+                    <span class="plan-switcher-option__label">管理员</span>
+                    <span class="plan-switcher-option__hint">所有权限</span>
+                  </button>
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'agent' }" @click="switchPermRole('agent')">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--free">CS</span>
+                    <span class="plan-switcher-option__label">客服</span>
+                    <span class="plan-switcher-option__hint">基础权限</span>
+                  </button>
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'limited' }" @click="switchPermRole('limited')">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">LT</span>
+                    <span class="plan-switcher-option__label">受限</span>
+                    <span class="plan-switcher-option__hint">仅档案查看</span>
+                  </button>
+                </div>
+              </div>
+            </div>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
               <AgentIcon name="help" :size="16" />
             </button>
@@ -51,6 +80,7 @@
     <template #sub-nav>
       <SessionQueueNav
         v-if="isConversationRoute"
+        :key="currentSubnavRenderKey"
         title="会话"
         :active-key="activeQueueKey"
         :groups="queueGroups"
@@ -58,6 +88,7 @@
       />
       <ArchiveSubNav
         v-else-if="isFilesRoute"
+        :key="currentSubnavRenderKey"
         title="档案"
         :active-key="activeFilesNavKey"
         :items="filesNavItems"
@@ -65,6 +96,7 @@
       />
       <ArchiveSubNav
         v-else-if="isVisitorsRoute"
+        :key="currentSubnavRenderKey"
         title="访客"
         :active-key="activeVisitorsNavKey"
         :items="visitorsNavItems"
@@ -72,6 +104,7 @@
       />
       <ArchiveSubNav
         v-else-if="isCustomerRoute"
+        :key="currentSubnavRenderKey"
         title="客户"
         :active-key="activeCustomerNavKey"
         :items="customerNavItems"
@@ -79,6 +112,7 @@
       />
       <AiSettingsNav
         v-else-if="isAiAgentRoute"
+        :key="currentSubnavRenderKey"
         title="AI Agent"
         :active-key="activeAiNavKey"
         :groups="aiNavGroups"
@@ -86,6 +120,7 @@
       />
       <AiSettingsNav
         v-else-if="isSettingsRoute"
+        :key="currentSubnavRenderKey"
         title="设置"
         variant="settings"
         :active-key="activeSettingsNavKey"
@@ -94,6 +129,7 @@
       />
       <AiSettingsNav
         v-else-if="isReportRoute"
+        :key="currentSubnavRenderKey"
         title="报表"
         :active-key="activeReportNavKey"
         :groups="reportNavGroups"
@@ -101,6 +137,7 @@
       />
       <AiSettingsNav
         v-else-if="isCampaignRoute"
+        :key="currentSubnavRenderKey"
         title="营销"
         :active-key="activeCampaignNavKey"
         :groups="campaignNavGroups"
@@ -112,7 +149,7 @@
       </section>
     </template>
 
-    <section v-if="isConversationRoute" class="session-page">
+    <section v-if="isConversationRoute" :key="currentContentRenderKey" class="session-page">
       <aside class="inbox-pane agent-panel">
         <header class="inbox-pane__header">
           <div class="inbox-pane__title-row">
@@ -217,31 +254,33 @@
       </section>
     </section>
 
-    <HomeRoutePage v-else-if="isHomeRoute" />
-    <FilesRoutePage v-else-if="isFilesRoute" :active-key="activeFilesNavKey" @toast="showTopToast" />
-    <VisitorsRoutePage v-else-if="isVisitorsRoute" :active-key="activeVisitorsNavKey" @toast="showTopToast" />
-    <CustomerRoutePage v-else-if="isCustomerRoute" :active-key="activeCustomerNavKey" @toast="showTopToast" />
+    <HomeRoutePage v-else-if="isHomeRoute" :key="currentContentRenderKey" />
+    <FilesRoutePage v-else-if="isFilesRoute" :key="currentContentRenderKey" :active-key="activeFilesNavKey" @toast="showTopToast" />
+    <VisitorsRoutePage v-else-if="isVisitorsRoute" :key="currentContentRenderKey" :active-key="activeVisitorsNavKey" @toast="showTopToast" />
+    <CustomerRoutePage v-else-if="isCustomerRoute" :key="currentContentRenderKey" :active-key="activeCustomerNavKey" @toast="showTopToast" />
 
     <template v-else-if="isSettingsRoute">
       <WidgetCustomizePage
         v-if="activeSettingsNavKey === 'customize'"
+        :key="currentContentRenderKey"
         @toast="showTopToast"
       />
-      <SettingsRoutePage v-else :active-key="activeSettingsNavKey" @toast="showTopToast" />
+      <SettingsRoutePage v-else :key="currentContentRenderKey" :active-key="activeSettingsNavKey" @toast="showTopToast" />
     </template>
     <AiAgentRoutePage
       v-else-if="isAiAgentRoute"
+      :key="currentContentRenderKey"
       :active-key="activeAiNavKey"
       @toast="showTopToast"
       @nav-change="handleAiNavSelect"
     />
-    <ReportRoutePage v-else-if="isReportRoute" :active-key="activeReportNavKey" />
+    <ReportRoutePage v-else-if="isReportRoute" :key="currentContentRenderKey" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">
-      <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" @toast="showTopToast" />
-      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
+      <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" :key="`${currentContentRenderKey}-chatting`" @toast="showTopToast" />
+      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" :key="`${currentContentRenderKey}-proactive`" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
     </template>
 
-    <section v-else class="agent-content-page module-page">
+    <section v-else :key="currentContentRenderKey" class="agent-content-page module-page">
       <header class="agent-content-header">
         <h1 class="agent-content-title">{{ currentModuleLabel }}</h1>
         <p class="agent-content-subtitle">该模块页面开发中，已可通过左侧导航进行路由切换。</p>
@@ -252,7 +291,7 @@
     </section>
 
     <template #detail-pane>
-      <section v-if="isConversationRoute" class="detail-pane">
+      <section v-if="isConversationRoute" :key="currentDetailRenderKey" class="detail-pane">
         <header class="detail-pane__topbar">
           <div class="detail-pane__tabs">
             <button
@@ -405,6 +444,11 @@
       :feature-description="upgradeModalState.featureDescription"
       @close="closeUpgradeModal"
     />
+
+    <PermissionChangedModal
+      :open="permModalState.visible"
+      @confirm="handlePermissionChangedConfirm"
+    />
   </AgentAppShell>
 </template>
 
@@ -425,11 +469,13 @@ import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import { track, TrackEvent } from "./lib/tracker";
 import { usePlan } from "./composables/usePlan";
+import { usePermission } from "./composables/usePermission";
 import {
   AgentAppShell,
   AiSettingsNav,
   BaseModal,
   FeatureLockedModal,
+  PermissionChangedModal,
   AgentIcon,
   AgentToast,
   ConversationHeader,
@@ -447,6 +493,29 @@ import {
 } from "@twt/ui-agent";
 
 const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired } = usePlan();
+
+const {
+  modalState: permModalState,
+  permissions: currentPermissions,
+  currentMockRole,
+  currentMockRoleLabel,
+  canShowNavItem,
+  canShowSettingsGroup,
+  canAccessRoute,
+  closePermissionChangedModal,
+  showPermissionChangedModal,
+  setMockRole,
+} = usePermission();
+
+const permSwitcherOpen = ref(false);
+
+// 权限变化时，如果当前页面已无权限，立即弹窗
+watch(currentPermissions, () => {
+  const routeName = typeof route.name === "string" ? route.name : "";
+  if (!canAccessRoute(routeName)) {
+    showPermissionChangedModal();
+  }
+});
 
 const planSwitcherOpen = ref(false);
 
@@ -474,6 +543,16 @@ const switchToExpired = () => {
   setPlanLevel('pro');
   setExpired(true);
   planSwitcherOpen.value = false;
+};
+
+const handlePermissionChangedConfirm = () => {
+  closePermissionChangedModal();
+  router.push({ name: "home" });
+};
+
+const switchPermRole = (role: 'admin' | 'agent' | 'limited') => {
+  setMockRole(role);
+  permSwitcherOpen.value = false;
 };
 
 type DetailTabKey = "visitor" | "session";
@@ -600,7 +679,23 @@ const navRoutePathMap: Record<string, string> = {
   "ai-agent": "/ai-agent"
 };
 
-const settingsNavGroups = [
+const defaultQueueKey = "pending-reply";
+const defaultAiNavKey: AiAgentNavKey = "copilot-settings";
+const defaultSettingsNavKey: SettingsNavKey = "install";
+const defaultCampaignNavKey: CampaignNavKey = "campaign-chatting";
+const defaultReportNavKey: ReportNavKey = "data-overview";
+const defaultFilesNavKey: FilesNavKey = "all-conversations";
+const defaultVisitorsNavKey: VisitorsNavKey = "online-visitors";
+const defaultCustomerNavKey: CustomerNavKey = "online-customer";
+
+const validAiNavKeys: AiAgentNavKey[] = ["doc-knowledge", "faq", "copilot-settings", "ai-agent-config"];
+const validCampaignNavKeys: CampaignNavKey[] = ["campaign-chatting", "campaign-proactive"];
+const validReportNavKeys: ReportNavKey[] = ["data-overview", "ai-agent-report", "evaluation-analysis"];
+const validFilesNavKeys: FilesNavKey[] = ["all-conversations", "all-chats"];
+const validVisitorsNavKeys: VisitorsNavKey[] = ["online-visitors", "all-visitors"];
+const validCustomerNavKeys: CustomerNavKey[] = ["online-customer", "all-customer"];
+
+const settingsNavGroupsBase = [
   {
     key: "install-group",
     title: "安装",
@@ -657,6 +752,14 @@ const settingsNavGroups = [
     ]
   }
 ];
+
+const settingsNavGroups = computed(() =>
+  settingsNavGroupsBase.filter((group) => canShowSettingsGroup(group.key))
+);
+
+const validSettingsNavKeys = computed<SettingsNavKey[]>(() =>
+  settingsNavGroups.value.flatMap((group) => group.items.map((item) => item.key as SettingsNavKey))
+);
 
 const campaignNavGroups = [
   {
@@ -1115,6 +1218,8 @@ const queueGroups = computed(() =>
   }))
 );
 
+const validQueueKeys = queueGroupSeed.flatMap((group) => group.items.map((item) => item.key));
+
 const canCollaborate = computed(() => activeSession.value?.queueKey !== "queueing");
 
 const transferableAgents = computed(() => {
@@ -1151,18 +1256,20 @@ const conversationBadgeCount = computed(() => {
 });
 
 const mainNavItems = computed<NavItem[]>(() =>
-  mainNavItemsBase.map((item) => {
-    if (item.key !== "conversation") {
-      return item;
-    }
-    return {
-      ...item,
-      badge: conversationBadgeCount.value
-    };
-  })
+  mainNavItemsBase
+    .filter((item) => canShowNavItem(item.key))
+    .map((item) => {
+      if (item.key !== "conversation") {
+        return item;
+      }
+      return {
+        ...item,
+        badge: conversationBadgeCount.value
+      };
+    })
 );
 
-const currentRouteName = computed(() => (typeof route.name === "string" ? route.name : "conversation"));
+const currentRouteName = computed(() => (typeof route.name === "string" ? route.name : ""));
 const isHomeRoute = computed(() => currentRouteName.value === "home");
 const isConversationRoute = computed(() => currentRouteName.value === "conversation");
 const isFilesRoute = computed(() => currentRouteName.value === "files");
@@ -1177,6 +1284,22 @@ const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-q
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
+
+const currentSubnavRenderKey = computed(() => `subnav-${currentRouteName.value}`);
+
+const currentContentRenderKey = computed(() => {
+  if (isConversationRoute.value) return `view-conversation-${activeQueueKey.value}`;
+  if (isFilesRoute.value) return `view-files-${activeFilesNavKey.value}`;
+  if (isVisitorsRoute.value) return `view-visitors-${activeVisitorsNavKey.value}`;
+  if (isCustomerRoute.value) return `view-customer-${activeCustomerNavKey.value}`;
+  if (isSettingsRoute.value) return `view-settings-${activeSettingsNavKey.value}`;
+  if (isAiAgentRoute.value) return `view-ai-agent-${activeAiNavKey.value}`;
+  if (isReportRoute.value) return `view-report-${activeReportNavKey.value}`;
+  if (isCampaignRoute.value) return `view-campaign-${activeCampaignNavKey.value}`;
+  return `view-${currentRouteName.value}`;
+});
+
+const currentDetailRenderKey = computed(() => `detail-${activeQueueKey.value}-${activeSessionId.value}-${activeDetailTab.value}`);
 
 const chatHeaderMode = computed<"conversation" | "single-chat" | "group-chat">(() => {
   if (!isChatRoom.value) return "conversation";
@@ -1431,20 +1554,98 @@ const requestProactiveCampaignNavigation = (action: () => void) => {
   guard.requestNavigation(action);
 };
 
+const resolveScopedKey = <T extends string>(current: string, validKeys: readonly T[], fallback: T): T => (
+  validKeys.includes(current as T) ? (current as T) : fallback
+);
+
+const getDefaultSettingsKey = () => validSettingsNavKeys.value[0] ?? defaultSettingsNavKey;
+
+const syncRouteScopedState = (
+  routeName: string,
+  options: { forceDefault?: boolean } = {}
+) => {
+  if (routeName === "conversation") {
+    activeQueueKey.value = options.forceDefault
+      ? defaultQueueKey
+      : resolveScopedKey(activeQueueKey.value, validQueueKeys, defaultQueueKey);
+    if (options.forceDefault) {
+      searchKeyword.value = "";
+    }
+    return;
+  }
+
+  if (routeName === "files") {
+    activeFilesNavKey.value = options.forceDefault
+      ? defaultFilesNavKey
+      : resolveScopedKey(activeFilesNavKey.value, validFilesNavKeys, defaultFilesNavKey);
+    return;
+  }
+
+  if (routeName === "visitors") {
+    activeVisitorsNavKey.value = options.forceDefault
+      ? defaultVisitorsNavKey
+      : resolveScopedKey(activeVisitorsNavKey.value, validVisitorsNavKeys, defaultVisitorsNavKey);
+    return;
+  }
+
+  if (routeName === "customer") {
+    activeCustomerNavKey.value = options.forceDefault
+      ? defaultCustomerNavKey
+      : resolveScopedKey(activeCustomerNavKey.value, validCustomerNavKeys, defaultCustomerNavKey);
+    return;
+  }
+
+  if (routeName === "ai-agent") {
+    activeAiNavKey.value = options.forceDefault
+      ? defaultAiNavKey
+      : resolveScopedKey(activeAiNavKey.value, validAiNavKeys, defaultAiNavKey);
+    return;
+  }
+
+  if (routeName === "settings") {
+    const fallbackKey = getDefaultSettingsKey();
+    activeSettingsNavKey.value = options.forceDefault
+      ? fallbackKey
+      : resolveScopedKey(activeSettingsNavKey.value, validSettingsNavKeys.value, fallbackKey);
+    return;
+  }
+
+  if (routeName === "report") {
+    activeReportNavKey.value = options.forceDefault
+      ? defaultReportNavKey
+      : resolveScopedKey(activeReportNavKey.value, validReportNavKeys, defaultReportNavKey);
+    return;
+  }
+
+  if (routeName === "campaign") {
+    activeCampaignNavKey.value = options.forceDefault
+      ? defaultCampaignNavKey
+      : resolveScopedKey(activeCampaignNavKey.value, validCampaignNavKeys, defaultCampaignNavKey);
+  }
+};
+
 const handleMainNavSelect = (key: string) => {
   const nextPath = navRoutePathMap[key];
   if (!nextPath) {
+    return;
+  }
+  syncRouteScopedState(key, { forceDefault: true });
+  if (route.path === nextPath) {
     return;
   }
   router.push(nextPath);
 };
 
 const openSettingsPage = () => {
+  syncRouteScopedState("settings", { forceDefault: true });
   router.push("/settings");
 };
 
 const handleSettingsNavSelect = (key: string) => {
   const nextKey = key as SettingsNavKey;
+  if (!validSettingsNavKeys.value.includes(nextKey)) {
+    return;
+  }
   if (activeSettingsNavKey.value === nextKey) {
     return;
   }
@@ -1452,8 +1653,7 @@ const handleSettingsNavSelect = (key: string) => {
 };
 
 const handleAiNavSelect = (key: string) => {
-  const validKeys: AiAgentNavKey[] = ["doc-knowledge", "faq", "copilot-settings", "ai-agent-config"];
-  if (!validKeys.includes(key as AiAgentNavKey)) {
+  if (!validAiNavKeys.includes(key as AiAgentNavKey)) {
     return;
   }
 
@@ -1461,45 +1661,44 @@ const handleAiNavSelect = (key: string) => {
 };
 
 const handleCampaignNavSelect = (key: string) => {
-  if (key === "campaign-chatting" || key === "campaign-proactive") {
+  if (validCampaignNavKeys.includes(key as CampaignNavKey)) {
     if (activeCampaignNavKey.value === key) return;
     if (activeCampaignNavKey.value === "campaign-proactive") {
       requestProactiveCampaignNavigation(() => {
-        activeCampaignNavKey.value = key;
+        activeCampaignNavKey.value = key as CampaignNavKey;
       });
       return;
     }
-    activeCampaignNavKey.value = key;
+    activeCampaignNavKey.value = key as CampaignNavKey;
   }
 };
 
 const handleReportNavSelect = (key: string) => {
-  const validKeys: ReportNavKey[] = ["data-overview", "ai-agent-report", "evaluation-analysis"];
-  if (validKeys.includes(key as ReportNavKey)) {
+  if (validReportNavKeys.includes(key as ReportNavKey)) {
     activeReportNavKey.value = key as ReportNavKey;
   }
 };
 
 const handleQueueSelect = (key: string) => {
-  activeQueueKey.value = key;
+  activeQueueKey.value = resolveScopedKey(key, validQueueKeys, defaultQueueKey);
   searchKeyword.value = "";
 };
 
 const handleFilesNavSelect = (key: string) => {
-  if (key === "all-conversations" || key === "all-chats") {
-    activeFilesNavKey.value = key;
+  if (validFilesNavKeys.includes(key as FilesNavKey)) {
+    activeFilesNavKey.value = key as FilesNavKey;
   }
 };
 
 const handleVisitorsNavSelect = (key: string) => {
-  if (key === "online-visitors" || key === "all-visitors") {
-    activeVisitorsNavKey.value = key;
+  if (validVisitorsNavKeys.includes(key as VisitorsNavKey)) {
+    activeVisitorsNavKey.value = key as VisitorsNavKey;
   }
 };
 
 const handleCustomerNavSelect = (key: string) => {
-  if (key === "online-customer" || key === "all-customer") {
-    activeCustomerNavKey.value = key;
+  if (validCustomerNavKeys.includes(key as CustomerNavKey)) {
+    activeCustomerNavKey.value = key as CustomerNavKey;
   }
 };
 
@@ -1835,8 +2034,21 @@ watch(
 watch(
   () => route.name,
   (name) => {
-    if (typeof name === "string" && name in navRoutePathMap) {
-      activeMainNav.value = name;
+    if (typeof name === "string") {
+      if (name in navRoutePathMap) {
+        activeMainNav.value = name;
+      }
+      syncRouteScopedState(name);
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  validSettingsNavKeys,
+  () => {
+    if (isSettingsRoute.value) {
+      syncRouteScopedState("settings");
     }
   },
   { immediate: true }
@@ -2053,6 +2265,82 @@ onBeforeUnmount(() => {
   color: #75869c;
   font-size: 11px;
   line-height: 1.3;
+}
+
+/* 权限切换器 */
+.perm-switcher-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.perm-switcher-trigger {
+  color: #43a047;
+}
+
+.perm-switcher__badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-align: center;
+  pointer-events: none;
+  max-width: 36px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perm-switcher__badge--admin {
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  color: #fff;
+}
+
+.perm-switcher__badge--agent {
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-secondary);
+}
+
+.perm-switcher__badge--limited {
+  background: #fff0f0;
+  color: #e53e3e;
+}
+
+.perm-switcher-panel {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  left: calc(100% + 8px);
+  padding: 16px;
+  position: absolute;
+  bottom: -20px;
+  width: 220px;
+  z-index: var(--agent-z-dropdown);
+}
+
+.perm-switcher-panel__title {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.perm-switcher-panel__desc {
+  color: #75869c;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.perm-switcher-panel__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .session-page {

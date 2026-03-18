@@ -98,29 +98,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { PERMISSION_TREE, type PermGroup, type PermItem, type PermFeature } from "../lib/permission";
 
 type DetailMode = "view" | "create" | "edit";
-
-interface PermFeature {
-  key: string;
-  label: string;
-  locked?: boolean;
-}
-
-interface PermItem {
-  key: string;
-  label: string;
-  locked?: boolean;
-  features?: PermFeature[];
-}
-
-interface PermGroup {
-  key: string;
-  label: string;
-  locked?: boolean;
-  tooltip?: string;
-  children?: PermItem[];
-}
 
 const props = withDefaults(
   defineProps<{
@@ -155,126 +135,7 @@ const headerTitle = computed(() => {
 const roleName = ref(props.initialName);
 
 // Permission tree definition
-const permissionTree: PermGroup[] = [
-  {
-    key: "home",
-    label: "首页",
-    locked: true
-  },
-  {
-    key: "conversation",
-    label: "会话",
-    locked: true
-  },
-  {
-    key: "archive",
-    label: "档案",
-    children: [
-      { key: "archive-view", label: "查看档案" },
-      { key: "archive-manage", label: "管理档案" }
-    ]
-  },
-  {
-    key: "visitor",
-    label: "访客",
-    children: [
-      { key: "visitor-view", label: "查看访客", locked: true },
-      { key: "visitor-manage", label: "管理访客" }
-    ]
-  },
-  {
-    key: "customer",
-    label: "客户",
-    tooltip: "仅在接入客户标识后启用客户模块",
-    children: [
-      { key: "customer-view", label: "查看客户", locked: true },
-      { key: "customer-manage", label: "管理客户" }
-    ]
-  },
-  {
-    key: "report",
-    label: "报表",
-    children: [
-      { key: "report-view", label: "查看报表" }
-    ]
-  },
-  {
-    key: "campaign",
-    label: "营销",
-    children: [
-      { key: "campaign-view", label: "查看营销", locked: true },
-      { key: "campaign-manage", label: "管理营销" }
-    ]
-  },
-  {
-    key: "quick-reply",
-    label: "快捷回复",
-    children: [
-      {
-        key: "public-reply",
-        label: "公共回复",
-        features: [
-          { key: "public-reply-view", label: "查看公共回复", locked: true },
-          { key: "public-reply-manage", label: "管理公共回复" }
-        ]
-      },
-      {
-        key: "personal-reply",
-        label: "个人回复",
-        features: [
-          { key: "personal-reply-view", label: "查看个人回复", locked: true },
-          { key: "personal-reply-manage", label: "管理个人回复" }
-        ]
-      }
-    ]
-  },
-  {
-    key: "tags",
-    label: "标签",
-    children: [
-      { key: "tags-view", label: "查看标签", locked: true },
-      { key: "tags-manage", label: "管理标签" }
-    ]
-  },
-  {
-    key: "team",
-    label: "团队",
-    children: [
-      {
-        key: "agent",
-        label: "客服",
-        features: [
-          { key: "agent-list-view", label: "查看客服" },
-          { key: "agent-manage", label: "管理客服" }
-        ]
-      },
-      {
-        key: "team-settings",
-        label: "客服设置",
-        features: [
-          { key: "team-settings-manage", label: "管理客服设置" }
-        ]
-      }
-    ]
-  },
-  {
-    key: "install",
-    label: "安装",
-    children: [
-      { key: "install-view-code", label: "查看网站代码" },
-      { key: "install-view-chat", label: "查看聊天页面" },
-      { key: "install-manage-custom", label: "管理自定义" }
-    ]
-  },
-  {
-    key: "settings",
-    label: "设置",
-    children: [
-      { key: "security-manage", label: "管理安全" },
-      { key: "dev-settings-manage", label: "管理开发设置" }
-    ]
-  }
-];
+const permissionTree = PERMISSION_TREE;
 
 // Collect all toggleable perm keys (exclude locked)
 const getAllKeys = (): string[] => {

@@ -1,5 +1,6 @@
 import { h } from "vue";
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { usePermission } from "./composables/usePermission";
 
 const EmptyRouteView = {
   name: "EmptyRouteView",
@@ -20,7 +21,22 @@ const routes: RouteRecordRaw[] = [
   { path: "/:pathMatch(.*)*", redirect: "/conversation" }
 ];
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
+
+// 路由守卫：同步检查目标路由权限（权限数据已在内存中，无需异步刷新）
+router.beforeEach((to) => {
+  const { canAccessRoute, showPermissionChangedModal } = usePermission();
+
+  const routeName = typeof to.name === "string" ? to.name : "";
+  if (!canAccessRoute(routeName)) {
+    showPermissionChangedModal();
+    return { name: "home" };
+  }
+
+  return true;
+});
+
+export default router;
