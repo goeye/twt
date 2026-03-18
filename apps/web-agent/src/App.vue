@@ -31,7 +31,7 @@
                   <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentPlan.isExpired }" @click="switchToExpired">
                     <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">过期</span>
                     <span class="plan-switcher-option__label">专业版已过期</span>
-                    <span class="plan-switcher-option__hint">回退至免费版</span>
+                    <span class="plan-switcher-option__hint">部分功能受限</span>
                   </button>
                 </div>
               </div>
@@ -165,12 +165,16 @@
           :title="activeSessionTitle"
           :can-collaborate="canCollaborate && !isAiSession"
           :show-collaborate-actions="!isAiSession"
+          :mode="chatHeaderMode"
           @close="handleOpenCloseSession"
           @invite="handleOpenInvite"
           @mark-pending="handleMarkPending"
           @remove-pending="handleRemovePending"
           @transfer="handleOpenTransfer"
           @update:title="updateSessionTitle"
+          @start-group-chat="showTopToast('发起群聊功能开发中')"
+          @add-member="showTopToast('添加成员功能开发中')"
+          @delete-chat="showTopToast('删除聊天功能开发中')"
         />
 
         <div class="chat-pane__stream agent-scroll">
@@ -537,6 +541,7 @@ interface ConversationSession extends SessionItem {
   assignee: string;
   assistants: string[];
   closed?: boolean;
+  isGroupChat?: boolean;
 }
 
 interface DetailField {
@@ -1171,6 +1176,12 @@ const isCustomerRoute = computed(() => currentRouteName.value === "customer");
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
+const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
+
+const chatHeaderMode = computed<"conversation" | "single-chat" | "group-chat">(() => {
+  if (!isChatRoom.value) return "conversation";
+  return activeSession.value?.isGroupChat ? "group-chat" : "single-chat";
+});
 
 const currentModuleLabel = computed(() => {
   if (isSettingsRoute.value) {

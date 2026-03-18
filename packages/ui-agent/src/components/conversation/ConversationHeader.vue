@@ -29,63 +29,120 @@
     </div>
 
     <div class="conversation-header__actions">
-      <div
-        v-if="showCollaborateActions"
-        class="conversation-header__icon-btn-wrap"
-      >
-        <button
-          class="conversation-header__icon-btn"
-          :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
-          type="button"
-          aria-label="添加客服"
-          @click="handleInvite"
+      <!-- 会话模式 -->
+      <template v-if="mode === 'conversation'">
+        <div
+          v-if="showCollaborateActions"
+          class="conversation-header__icon-btn-wrap"
         >
-          <AgentIcon name="user-plus" :size="16" />
-        </button>
-        <span class="conversation-header__tooltip">添加客服</span>
-      </div>
+          <button
+            class="conversation-header__icon-btn"
+            :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
+            type="button"
+            aria-label="添加客服"
+            @click="handleInvite"
+          >
+            <AgentIcon name="user-plus" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">添加客服</span>
+        </div>
 
-      <div
-        v-if="showCollaborateActions"
-        class="conversation-header__icon-btn-wrap"
-      >
-        <button
-          class="conversation-header__icon-btn"
-          :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
-          type="button"
-          aria-label="转移会话"
-          @click="handleTransfer"
+        <div
+          v-if="showCollaborateActions"
+          class="conversation-header__icon-btn-wrap"
         >
-          <AgentIcon name="transfer" :size="16" />
-        </button>
-        <span class="conversation-header__tooltip">转移会话</span>
-      </div>
+          <button
+            class="conversation-header__icon-btn"
+            :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
+            type="button"
+            aria-label="转移会话"
+            @click="handleTransfer"
+          >
+            <AgentIcon name="transfer" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">转移会话</span>
+        </div>
 
-      <div class="conversation-header__icon-btn-wrap">
-        <button
-          class="conversation-header__icon-btn"
-          :class="{ 'conversation-header__icon-btn--disabled': closed }"
-          type="button"
-          :aria-label="isProcessing ? '取消待处理' : '标记为待处理'"
-          @click="handleMarkPending"
-        >
-          <AgentIcon :name="isProcessing ? 'remove-pending' : 'mark-pending'" :size="16" />
-        </button>
-        <span class="conversation-header__tooltip">{{ isProcessing ? '取消待处理' : '标记为待处理' }}</span>
-      </div>
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn"
+            :class="{ 'conversation-header__icon-btn--disabled': closed }"
+            type="button"
+            :aria-label="isProcessing ? '取消待处理' : '标记为待处理'"
+            @click="handleMarkPending"
+          >
+            <AgentIcon :name="isProcessing ? 'remove-pending' : 'mark-pending'" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">{{ isProcessing ? '取消待处理' : '标记为待处理' }}</span>
+        </div>
 
-      <div class="conversation-header__icon-btn-wrap">
-        <button
-          class="conversation-header__icon-btn conversation-header__icon-btn--danger"
-          :class="{ 'conversation-header__icon-btn--disabled': closed }"
-          type="button"
-          aria-label="结束会话"
-          @click="handleClose"
-        >
-          <AgentIcon name="close-session" :size="16" />
-        </button>
-        <span class="conversation-header__tooltip">结束会话</span>
-      </div>
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn conversation-header__icon-btn--danger"
+            :class="{ 'conversation-header__icon-btn--disabled': closed }"
+            type="button"
+            aria-label="结束会话"
+            @click="handleClose"
+          >
+            <AgentIcon name="close-session" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">结束会话</span>
+        </div>
+      </template>
+
+      <!-- 单聊模式 -->
+      <template v-else-if="mode === 'single-chat'">
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn"
+            type="button"
+            aria-label="发起群聊"
+            @click="$emit('start-group-chat')"
+          >
+            <AgentIcon name="group-chat" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">发起群聊</span>
+        </div>
+
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn conversation-header__icon-btn--danger"
+            type="button"
+            aria-label="删除聊天"
+            @click="$emit('delete-chat')"
+          >
+            <AgentIcon name="delete" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">删除聊天</span>
+        </div>
+      </template>
+
+      <!-- 群聊模式 -->
+      <template v-else-if="mode === 'group-chat'">
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn"
+            type="button"
+            aria-label="添加成员"
+            @click="$emit('add-member')"
+          >
+            <AgentIcon name="add-member" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">添加成员</span>
+        </div>
+
+        <div class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn conversation-header__icon-btn--danger"
+            type="button"
+            aria-label="删除聊天"
+            @click="$emit('delete-chat')"
+          >
+            <AgentIcon name="delete" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">删除聊天</span>
+        </div>
+      </template>
     </div>
   </header>
 </template>
@@ -103,13 +160,15 @@ const props = withDefaults(
     showCollaborateActions?: boolean;
     isProcessing?: boolean;
     closed?: boolean;
+    mode?: "conversation" | "single-chat" | "group-chat";
   }>(),
   {
     editable: false,
     canCollaborate: true,
     showCollaborateActions: true,
     isProcessing: false,
-    closed: false
+    closed: false,
+    mode: "conversation"
   }
 );
 
@@ -120,6 +179,9 @@ const emit = defineEmits<{
   (e: "mark-pending"): void;
   (e: "remove-pending"): void;
   (e: "update:title", value: string): void;
+  (e: "start-group-chat"): void;
+  (e: "add-member"): void;
+  (e: "delete-chat"): void;
 }>();
 
 const isEditing = ref(false);

@@ -164,6 +164,28 @@
       <path d="M15 9l-6 6" />
     </g>
 
+    <g v-else-if="name === 'group-chat'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16.5 13.5a3.5 3.5 0 1 0-1.3-6.7" />
+      <path d="M17.8 19.5c.6-1.8 1.8-3 3.2-3" />
+      <circle cx="9.5" cy="8.5" r="3.5" />
+      <path d="M3 19.5c.8-3 3-5 6.5-5s5.7 2 6.5 5" />
+    </g>
+
+    <g v-else-if="name === 'add-member'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10" cy="8.5" r="3" />
+      <path d="M4.8 19c.6-2.8 2.8-4.5 5.2-4.5c1.6 0 3 .7 4 1.8" />
+      <path d="M18 14v5" />
+      <path d="M15.5 16.5h5" />
+    </g>
+
+    <g v-else-if="name === 'delete'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 7h14" />
+      <path d="M8 7V5.5a1.5 1.5 0 0 1 1.5-1.5h5A1.5 1.5 0 0 1 16 5.5V7" />
+      <path d="M6.5 7l.8 12.5a1.5 1.5 0 0 0 1.5 1.5h6.4a1.5 1.5 0 0 0 1.5-1.5L17.5 7" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </g>
+
     <circle v-else cx="12" cy="12" r="7.5" fill="currentColor" />
   </svg>
 </template>
