@@ -7,6 +7,35 @@
         </template>
         <template #footer>
           <div class="rail-footer">
+            <div class="plan-switcher-wrap">
+              <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="planSwitcherOpen = !planSwitcherOpen">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
+                </svg>
+              </button>
+              <span class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
+              <div v-if="planSwitcherOpen" class="plan-switcher-panel" @click.stop>
+                <h4 class="plan-switcher-panel__title">切换服务版本</h4>
+                <p class="plan-switcher-panel__desc">仅供开发调试，快速预览不同版本下的功能限制</p>
+                <div class="plan-switcher-panel__options">
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'pro' && !currentPlan.isExpired }" @click="switchToPro">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">PRO</span>
+                    <span class="plan-switcher-option__label">专业版</span>
+                    <span class="plan-switcher-option__hint">所有功能可用</span>
+                  </button>
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'free' && !currentPlan.isExpired }" @click="switchToFree">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--free">FREE</span>
+                    <span class="plan-switcher-option__label">免费版</span>
+                    <span class="plan-switcher-option__hint">部分功能受限</span>
+                  </button>
+                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentPlan.isExpired }" @click="switchToExpired">
+                    <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">过期</span>
+                    <span class="plan-switcher-option__label">专业版已过期</span>
+                    <span class="plan-switcher-option__hint">回退至免费版</span>
+                  </button>
+                </div>
+              </div>
+            </div>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
               <AgentIcon name="help" :size="16" />
             </button>
@@ -33,6 +62,20 @@
         :active-key="activeFilesNavKey"
         :items="filesNavItems"
         @select="handleFilesNavSelect"
+      />
+      <ArchiveSubNav
+        v-else-if="isVisitorsRoute"
+        title="访客"
+        :active-key="activeVisitorsNavKey"
+        :items="visitorsNavItems"
+        @select="handleVisitorsNavSelect"
+      />
+      <ArchiveSubNav
+        v-else-if="isCustomerRoute"
+        title="客户"
+        :active-key="activeCustomerNavKey"
+        :items="customerNavItems"
+        @select="handleCustomerNavSelect"
       />
       <AiSettingsNav
         v-else-if="isAiAgentRoute"
@@ -172,6 +215,8 @@
 
     <HomeRoutePage v-else-if="isHomeRoute" />
     <FilesRoutePage v-else-if="isFilesRoute" :active-key="activeFilesNavKey" @toast="showTopToast" />
+    <VisitorsRoutePage v-else-if="isVisitorsRoute" :active-key="activeVisitorsNavKey" @toast="showTopToast" />
+    <CustomerRoutePage v-else-if="isCustomerRoute" :active-key="activeCustomerNavKey" @toast="showTopToast" />
 
     <template v-else-if="isSettingsRoute">
       <WidgetCustomizePage
@@ -243,9 +288,8 @@
                 </div>
               </div>
 
-              <button v-else-if="section.type === 'tags'" type="button" class="detail-section__add-tag" @click="guardFeature(FEATURES.VISITOR_TAGS)">
-                <template v-if="!canUse(FEATURES.VISITOR_TAGS)"><span class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></template>
-                <template v-else>+</template>
+              <button v-else-if="section.type === 'tags'" type="button" class="detail-section__add-tag">
+                +
               </button>
 
               <ul v-else class="detail-section__timeline">
@@ -366,15 +410,16 @@ import { useRoute, useRouter } from "vue-router";
 import ArchiveSubNav from "./components/ArchiveSubNav.vue";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
+import CustomerRoutePage from "./views/CustomerRoutePage.vue";
 import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
+import VisitorsRoutePage from "./views/VisitorsRoutePage.vue";
 import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import { track, TrackEvent } from "./lib/tracker";
-import { FEATURES } from "./lib/plan";
 import { usePlan } from "./composables/usePlan";
 import {
   AgentAppShell,
@@ -397,7 +442,35 @@ import {
   type SessionQueueGroup
 } from "@twt/ui-agent";
 
-const { canUse, guardFeature, upgradeModalState, closeUpgradeModal, showUpgradePrompt } = usePlan();
+const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired } = usePlan();
+
+const planSwitcherOpen = ref(false);
+
+const planSwitcherLabel = computed(() => {
+  if (currentPlan.isExpired) return '过期';
+  return currentPlan.level === 'pro' ? 'PRO' : 'FREE';
+});
+
+const planSwitcherClass = computed(() => {
+  if (currentPlan.isExpired) return 'plan-switcher__badge--expired';
+  return currentPlan.level === 'pro' ? 'plan-switcher__badge--pro' : 'plan-switcher__badge--free';
+});
+
+const switchToPro = () => {
+  setPlanLevel('pro');
+  planSwitcherOpen.value = false;
+};
+
+const switchToFree = () => {
+  setPlanLevel('free');
+  planSwitcherOpen.value = false;
+};
+
+const switchToExpired = () => {
+  setPlanLevel('pro');
+  setExpired(true);
+  planSwitcherOpen.value = false;
+};
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
@@ -405,6 +478,8 @@ type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "tea
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
+type VisitorsNavKey = "online-visitors" | "all-visitors";
+type CustomerNavKey = "online-customer" | "all-customer";
 
 type ProactiveCampaignPageExpose = {
   requestNavigation: (action: () => void) => boolean;
@@ -592,6 +667,16 @@ const campaignNavGroups = [
 const filesNavItems = [
   { key: "all-conversations", label: "会话记录", icon: "book" },
   { key: "all-chats", label: "聊天记录", icon: "conversation" }
+];
+
+const visitorsNavItems = [
+  { key: "online-visitors", label: "在线访客", icon: "visitors" },
+  { key: "all-visitors", label: "全部访客", icon: "customer" }
+];
+
+const customerNavItems = [
+  { key: "online-customer", label: "在线客户", icon: "visitors" },
+  { key: "all-customer", label: "全部客户", icon: "customer" }
 ];
 
 const aiNavGroups = [
@@ -995,6 +1080,8 @@ const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
 const activeReportNavKey = ref<ReportNavKey>("data-overview");
 const activeFilesNavKey = ref<FilesNavKey>("all-conversations");
+const activeVisitorsNavKey = ref<VisitorsNavKey>("online-visitors");
+const activeCustomerNavKey = ref<CustomerNavKey>("online-customer");
 const proactiveCampaignPageRef = ref<ProactiveCampaignPageExpose | null>(null);
 const aiAgentProfile = ref(resolveAiAgentProfile());
 const proactiveCampaignDirty = ref(false);
@@ -1078,6 +1165,8 @@ const isAiAgentRoute = computed(() => currentRouteName.value === "ai-agent");
 const isSettingsRoute = computed(() => currentRouteName.value === "settings");
 const isCampaignRoute = computed(() => currentRouteName.value === "campaign");
 const isReportRoute = computed(() => currentRouteName.value === "report");
+const isVisitorsRoute = computed(() => currentRouteName.value === "visitors");
+const isCustomerRoute = computed(() => currentRouteName.value === "customer");
 
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
@@ -1391,6 +1480,18 @@ const handleFilesNavSelect = (key: string) => {
   }
 };
 
+const handleVisitorsNavSelect = (key: string) => {
+  if (key === "online-visitors" || key === "all-visitors") {
+    activeVisitorsNavKey.value = key;
+  }
+};
+
+const handleCustomerNavSelect = (key: string) => {
+  if (key === "online-customer" || key === "all-customer") {
+    activeCustomerNavKey.value = key;
+  }
+};
+
 const getFilterCount = () => queueSessionList.value.length;
 
 const refreshAiAgentProfile = () => {
@@ -1457,7 +1558,14 @@ onMounted(() => {
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
+  document.addEventListener("click", closePlanSwitcher);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closePlanSwitcher);
+});
+
+const closePlanSwitcher = () => { planSwitcherOpen.value = false; };
 
 watch(
   () => route.fullPath,
@@ -1799,6 +1907,141 @@ onBeforeUnmount(() => {
   position: absolute;
   right: -1px;
   width: 9px;
+}
+
+/* 版本切换器 */
+.plan-switcher-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.plan-switcher-trigger {
+  color: #f5a623;
+}
+
+.plan-switcher__badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.plan-switcher__badge--pro {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.plan-switcher__badge--free {
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-secondary);
+}
+
+.plan-switcher__badge--expired {
+  background: #fff0f0;
+  color: #e53e3e;
+}
+
+.plan-switcher-panel {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  left: calc(100% + 8px);
+  padding: 16px;
+  position: absolute;
+  bottom: -20px;
+  width: 220px;
+  z-index: var(--agent-z-dropdown);
+}
+
+.plan-switcher-panel__title {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.plan-switcher-panel__desc {
+  color: #75869c;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.plan-switcher-panel__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-switcher-option {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1.5px solid transparent;
+  border-radius: var(--agent-radius-md);
+  cursor: pointer;
+  display: grid;
+  gap: 0 8px;
+  grid-template-columns: 40px 1fr;
+  grid-template-rows: auto auto;
+  padding: 8px 10px;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.plan-switcher-option:hover {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.plan-switcher-option--active {
+  background: #eef3ff;
+  border-color: var(--agent-color-brand-primary);
+}
+
+.plan-switcher-option__badge {
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  grid-row: 1 / 3;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  padding: 4px 6px;
+  text-align: center;
+}
+
+.plan-switcher-option__badge--pro {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.plan-switcher-option__badge--free {
+  background: #e8ecf1;
+  color: #5a6a7e;
+}
+
+.plan-switcher-option__badge--expired {
+  background: #fff0f0;
+  color: #e53e3e;
+}
+
+.plan-switcher-option__label {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.plan-switcher-option__hint {
+  color: #75869c;
+  font-size: 11px;
+  line-height: 1.3;
 }
 
 .session-page {

@@ -13,7 +13,6 @@
           </div>
           <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">
             + 新建
-            <span v-if="!canUse(FEATURES.PROACTIVE_MARKETING)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
           </button>
         </div>
       </header>
@@ -25,7 +24,6 @@
             <p class="list-empty__desc">先选择一个模板快速创建任务</p>
             <button type="button" class="agent-btn agent-btn--primary" @click.stop="openTemplateSelector">
               使用模板新建
-              <span v-if="!canUse(FEATURES.PROACTIVE_MARKETING)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
             </button>
           </div>
         </template>
@@ -35,7 +33,7 @@
         </template>
 
         <template #cell-status="{ row }">
-          <AgentSwitch :model-value="Boolean(row.status)" @update:model-value="toggleTaskStatus(String(row.id), $event)" />
+          <AgentSwitch :model-value="canUse(FEATURES.PROACTIVE_MARKETING) && Boolean(row.status)" @update:model-value="toggleTaskStatus(String(row.id), $event)" />
         </template>
 
         <template #cell-action="{ row }">
@@ -1571,6 +1569,7 @@ const createFromTemplate = (templateId: string) => {
 };
 
 const toggleTaskStatus = (taskId: string, status: boolean) => {
+  if (!guardFeature(FEATURES.PROACTIVE_MARKETING)) return;
   tasks.value = tasks.value.map((task) => {
     if (task.id !== taskId) return task;
     return { ...task, status };
@@ -1582,6 +1581,7 @@ const toggleActionMenu = (taskId: string) => {
 };
 
 const startEdit = (taskId: string) => {
+  if (!guardFeature(FEATURES.PROACTIVE_MARKETING)) return;
   const task = tasks.value.find((item) => item.id === taskId);
   if (!task) {
     emit("toast", "任务不存在");
@@ -1597,6 +1597,7 @@ const startEdit = (taskId: string) => {
 };
 
 const promptDelete = (taskId: string) => {
+  if (!guardFeature(FEATURES.PROACTIVE_MARKETING)) return;
   deleteTaskId.value = taskId;
   closeActionMenu();
 };
@@ -1887,6 +1888,9 @@ defineExpose({
 
 <style scoped>
 .proactive-page {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-xl);
   padding: 10px !important;
 }
 
@@ -1895,6 +1899,8 @@ defineExpose({
 }
 
 .proactive-list-card {
+  border: none;
+  border-radius: var(--agent-radius-xl);
   display: flex;
   flex: 1;
   flex-direction: column;

@@ -230,14 +230,217 @@
 
     </template>
 
-    <!-- 原有的占位页面 -->
-    <section v-else class="ai-agent-page__placeholder agent-panel">
-      <h2 class="agent-settings-feature-title">{{ activeSectionLabel }}</h2>
-      <p class="agent-settings-feature-description">
-        {{ activeKey === "doc-knowledge" ? "文档知识管理页面建设中。" : "常见问题管理页面建设中。" }}
-      </p>
-      <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('功能开发中')">了解更多</button>
-    </section>
+    <template v-else-if="activeKey === 'doc-knowledge'">
+      <header class="agent-content-header doc-knowledge-header">
+        <h1 class="agent-content-title">文档知识</h1>
+        <button type="button" class="agent-btn agent-btn--primary" @click="guardedDocAdd">
+          <span class="doc-knowledge-header__add-icon">+</span>
+          添加
+        </button>
+      </header>
+
+      <div v-if="showDocBanner" class="doc-banner">
+        <button type="button" class="doc-banner__close" @click="showDocBanner = false">&times;</button>
+        <div class="doc-banner__content">
+          <h3 class="doc-banner__title">搭建专属业务知识库</h3>
+          <p class="doc-banner__desc">将分散的文档集中沉淀。Copilot 将学习这些知识并自动生成回复建议，确保团队对外口径一致，提升服务效率。</p>
+          <a class="doc-banner__link" href="javascript:void(0)" @click.prevent="emitToast('文档功能开发中')">
+            <span class="doc-banner__link-icon">&#x1F4D6;</span>
+            学习使用知识库
+          </a>
+        </div>
+        <div class="doc-banner__illustration">
+          <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+            <circle cx="110" cy="50" r="50" fill="#d4e4ff" opacity="0.5"/>
+            <circle cx="130" cy="70" r="35" fill="#b8d4ff" opacity="0.4"/>
+            <rect x="30" y="30" width="60" height="70" rx="8" fill="#e0ecff" stroke="#a0c4ff" stroke-width="1.5"/>
+            <rect x="40" y="45" width="40" height="4" rx="2" fill="#7aafff"/>
+            <rect x="40" y="55" width="30" height="4" rx="2" fill="#a0c4ff"/>
+            <rect x="40" y="65" width="35" height="4" rx="2" fill="#a0c4ff"/>
+            <circle cx="120" cy="40" r="18" fill="#e8f0ff" stroke="#7aafff" stroke-width="1.5"/>
+            <path d="M114 40l4 4 8-8" stroke="#2f6bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="doc-search">
+        <div class="doc-search__input-wrap">
+          <input
+            v-model="docSearchQuery"
+            class="agent-input doc-search__input"
+            placeholder="搜索名称"
+          />
+          <span class="doc-search__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th class="doc-table__th doc-table__th--name">名称</th>
+              <th class="doc-table__th doc-table__th--type">类型</th>
+              <th class="doc-table__th doc-table__th--time">更新时间</th>
+              <th class="doc-table__th doc-table__th--status">训练状态</th>
+              <th class="doc-table__th doc-table__th--action">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in filteredDocList" :key="item.id" class="doc-table__row">
+              <td class="doc-table__td doc-table__td--name">{{ item.name }}</td>
+              <td class="doc-table__td">{{ item.type }}</td>
+              <td class="doc-table__td">{{ item.updatedAt }}</td>
+              <td class="doc-table__td">
+                <span class="doc-status">
+                  <span class="doc-status__dot" :class="'doc-status__dot--' + item.statusType"></span>
+                  {{ item.statusLabel }}
+                </span>
+              </td>
+              <td class="doc-table__td doc-table__td--action">
+                <button type="button" class="doc-action-btn" @click="guardedDocAction">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="8" cy="3" r="1.5"/>
+                    <circle cx="8" cy="8" r="1.5"/>
+                    <circle cx="8" cy="13" r="1.5"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="filteredDocList.length === 0">
+              <td colspan="5" class="doc-table__empty">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-pagination">
+        <span class="doc-pagination__total">总条数：{{ filteredDocList.length }}</span>
+        <div class="doc-pagination__pages">
+          <button type="button" class="doc-pagination__btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="doc-pagination__current">1</span>
+          <button type="button" class="doc-pagination__btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="doc-pagination__size">
+          20 条/页
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="activeKey === 'faq'">
+      <header class="agent-content-header doc-knowledge-header">
+        <h1 class="agent-content-title">常见问题</h1>
+        <button type="button" class="agent-btn agent-btn--primary" @click="guardedFaqAdd">
+          <span class="doc-knowledge-header__add-icon">+</span>
+          添加
+        </button>
+      </header>
+
+      <div v-if="showFaqBanner" class="doc-banner">
+        <button type="button" class="doc-banner__close" @click="showFaqBanner = false">&times;</button>
+        <div class="doc-banner__content">
+          <h3 class="doc-banner__title">搭建专属业务知识库</h3>
+          <p class="doc-banner__desc">将分散的常见问题集中沉淀。Copilot 将学习这些知识并自动生成回复建议，确保团队对外口径一致，提升服务效率。</p>
+          <a class="doc-banner__link" href="javascript:void(0)" @click.prevent="emitToast('文档功能开发中')">
+            <span class="doc-banner__link-icon">&#x1F4D6;</span>
+            学习使用知识库
+          </a>
+        </div>
+        <div class="doc-banner__illustration">
+          <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+            <circle cx="110" cy="50" r="50" fill="#d4e4ff" opacity="0.5"/>
+            <circle cx="130" cy="70" r="35" fill="#b8d4ff" opacity="0.4"/>
+            <rect x="30" y="30" width="60" height="70" rx="8" fill="#e0ecff" stroke="#a0c4ff" stroke-width="1.5"/>
+            <rect x="40" y="45" width="40" height="4" rx="2" fill="#7aafff"/>
+            <rect x="40" y="55" width="30" height="4" rx="2" fill="#a0c4ff"/>
+            <rect x="40" y="65" width="35" height="4" rx="2" fill="#a0c4ff"/>
+            <circle cx="120" cy="40" r="18" fill="#e8f0ff" stroke="#7aafff" stroke-width="1.5"/>
+            <path d="M114 40l4 4 8-8" stroke="#2f6bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="doc-search">
+        <div class="doc-search__input-wrap">
+          <input
+            v-model="faqSearchQuery"
+            class="agent-input doc-search__input"
+            placeholder="搜索问题"
+          />
+          <span class="doc-search__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th class="doc-table__th faq-table__th--question">问题</th>
+              <th class="doc-table__th faq-table__th--answer">回答内容</th>
+              <th class="doc-table__th faq-table__th--time">更新时间</th>
+              <th class="doc-table__th faq-table__th--status">训练状态</th>
+              <th class="doc-table__th doc-table__th--action">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in filteredFaqList" :key="item.id" class="doc-table__row">
+              <td class="doc-table__td doc-table__td--name">{{ item.question }}</td>
+              <td class="doc-table__td doc-table__td--name">{{ item.answer }}</td>
+              <td class="doc-table__td">{{ item.updatedAt }}</td>
+              <td class="doc-table__td">
+                <span class="doc-status">
+                  <span class="doc-status__dot" :class="'doc-status__dot--' + item.statusType"></span>
+                  {{ item.statusLabel }}
+                </span>
+              </td>
+              <td class="doc-table__td doc-table__td--action">
+                <button type="button" class="doc-action-btn" @click="guardedFaqAction">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="8" cy="3" r="1.5"/>
+                    <circle cx="8" cy="8" r="1.5"/>
+                    <circle cx="8" cy="13" r="1.5"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="filteredFaqList.length === 0">
+              <td colspan="5" class="doc-table__empty">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-pagination">
+        <span class="doc-pagination__total">总条数：{{ filteredFaqList.length }}</span>
+        <div class="doc-pagination__pages">
+          <button type="button" class="doc-pagination__btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="doc-pagination__current">1</span>
+          <button type="button" class="doc-pagination__btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="doc-pagination__size">
+          20 条/页
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+    </template>
 
     <AiAgentImageCropModal
       :open="cropModalOpen"
@@ -314,11 +517,75 @@ const AVATAR_MAX_SIZE = 10 * 1024 * 1024; // 10MB
 type ConfigTab = "deploy" | "settings";
 
 const showBanner = ref(true);
+const showDocBanner = ref(true);
+const docSearchQuery = ref("");
+
+interface DocKnowledgeItem {
+  id: number;
+  name: string;
+  type: string;
+  updatedAt: string;
+  statusType: "success" | "pending" | "error";
+  statusLabel: string;
+}
+
+const docKnowledgeList = ref<DocKnowledgeItem[]>([
+  { id: 1, name: "word修订记录.docx", type: "文件", updatedAt: "2026-01-28 11:48", statusType: "success", statusLabel: "已完成" },
+  { id: 2, name: "SaaS 行业自动回复 FAQ 模板.docx", type: "文件", updatedAt: "2026-01-12 19:19", statusType: "success", statusLabel: "已完成" },
+  { id: 3, name: "https://www.baidu.com", type: "网页", updatedAt: "2025-12-31 16:26", statusType: "success", statusLabel: "已完成" }
+]);
+
+const filteredDocList = computed(() => {
+  const query = docSearchQuery.value.trim().toLowerCase();
+  if (!query) return docKnowledgeList.value;
+  return docKnowledgeList.value.filter((item) => item.name.toLowerCase().includes(query));
+});
+
+const showFaqBanner = ref(true);
+const faqSearchQuery = ref("");
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+  updatedAt: string;
+  statusType: "success" | "pending" | "error";
+  statusLabel: string;
+}
+
+const faqList = ref<FaqItem[]>([
+  { id: 1, question: "退款吗?", answer: "不退款", updatedAt: "2026-03-17 15:12", statusType: "pending", statusLabel: "待训练" }
+]);
+
+const filteredFaqList = computed(() => {
+  const query = faqSearchQuery.value.trim().toLowerCase();
+  if (!query) return faqList.value;
+  return faqList.value.filter((item) => item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query));
+});
+
 const configTab = ref<ConfigTab>("deploy");
 const openLifecycleCard = ref<LifecycleCardKey | null>(null);
-const agentEnabled = ref(true);
+const agentEnabled = ref(canUse(FEATURES.AI_AGENT));
 
 const { canUse, guardFeature } = usePlan();
+
+/** 知识库门控 */
+const guardedDocAdd = () => {
+  if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
+  emitToast('功能开发中');
+};
+const guardedDocAction = () => {
+  if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
+  emitToast('功能开发中');
+};
+const guardedFaqAdd = () => {
+  if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
+  emitToast('功能开发中');
+};
+const guardedFaqAction = () => {
+  if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
+  emitToast('功能开发中');
+};
 
 /** Copilot 设置项 key → 功能 key 映射 */
 const copilotFeatureMap: Record<string, string> = {
@@ -329,14 +596,14 @@ const copilotFeatureMap: Record<string, string> = {
 };
 
 const copilotSettings = ref<CopilotSetting[]>([
-  { key: "auto-suggest", title: "自动推荐回复", description: "针对访客咨询，自动生成推荐回复。", enabled: true },
-  { key: "chat-translation", title: "聊天翻译", description: "访客发送的消息将被自动翻译。", enabled: true },
-  { key: "side-translation", title: "边写边译", description: "客服发送的消息将被自动翻译。", enabled: true },
+  { key: "auto-suggest", title: "自动推荐回复", description: "针对访客咨询，自动生成推荐回复。", enabled: canUse(FEATURES.COPILOT_SMART_REPLY) },
+  { key: "chat-translation", title: "聊天翻译", description: "访客发送的消息将被自动翻译。", enabled: canUse(FEATURES.CHAT_TRANSLATE) },
+  { key: "side-translation", title: "边写边译", description: "客服发送的消息将被自动翻译。", enabled: canUse(FEATURES.WRITE_TRANSLATE) },
   {
     key: "text-polish",
     title: "文本润色",
     description: "借助 AI 优化客服回复内容，支持润色、丰富内容、精简内容等。",
-    enabled: true
+    enabled: canUse(FEATURES.TEXT_POLISH)
   }
 ]);
 
@@ -621,6 +888,7 @@ const toggleLifecycleCard = (key: LifecycleCardKey) => {
 };
 
 const toggleAgentLiveStatus = () => {
+  if (!guardFeature(FEATURES.AI_AGENT)) return;
   agentEnabled.value = !agentEnabled.value;
   const settings = getCurrentSettings();
   persistStoredAiAgentSettings(settings);
@@ -691,6 +959,7 @@ const handleCroppedImage = (dataUrl: string) => {
 };
 
 const handleDeployFieldUpdate = (field: string, value: unknown) => {
+  if (!guardFeature(FEATURES.AI_AGENT)) return;
   const fieldMap: Record<string, { ref: { value: unknown } }> = {
     visitorAudience: { ref: visitorAudience },
     agentResponseMode: { ref: agentResponseMode },
@@ -734,12 +1003,13 @@ onMounted(() => {
 
 <style scoped>
 .ai-agent-page {
-  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-xl);
   gap: var(--agent-space-16);
 }
 
 .ai-agent-page > * {
-  max-width: 1080px;
   width: 100%;
 }
 
@@ -1061,6 +1331,321 @@ onMounted(() => {
   border-color: var(--agent-color-brand-primary);
   color: var(--agent-color-brand-primary);
   font-weight: var(--agent-font-weight-medium);
+}
+
+/* ─── 文档知识页面 ─── */
+.doc-knowledge-header {
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.doc-knowledge-header .agent-btn--primary {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.doc-knowledge-header__add-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.doc-banner {
+  background: linear-gradient(135deg, #eef4ff 0%, #f0f4ff 60%, #e8ecff 100%);
+  border-radius: var(--agent-radius-lg);
+  display: flex;
+  overflow: hidden;
+  padding: 24px 28px;
+  position: relative;
+}
+
+.doc-banner__close {
+  background: none;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 16px;
+  top: 12px;
+}
+
+.doc-banner__close:hover {
+  color: var(--agent-color-text-secondary);
+}
+
+.doc-banner__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.doc-banner__title {
+  color: var(--agent-color-text-primary);
+  font-size: 16px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.doc-banner__desc {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.doc-banner__link {
+  align-items: center;
+  color: var(--agent-color-brand-primary);
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 4px;
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+.doc-banner__link:hover {
+  text-decoration: underline;
+}
+
+.doc-banner__link-icon {
+  font-size: 16px;
+}
+
+.doc-banner__illustration {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  width: 180px;
+}
+
+.doc-search {
+  display: flex;
+}
+
+.doc-search__input-wrap {
+  position: relative;
+  width: 280px;
+}
+
+.doc-search__input {
+  padding-right: 36px;
+  width: 100%;
+}
+
+.doc-search__icon {
+  align-items: center;
+  color: var(--agent-color-text-tertiary);
+  display: flex;
+  height: 100%;
+  pointer-events: none;
+  position: absolute;
+  right: 12px;
+  top: 0;
+}
+
+.doc-table-wrap {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  overflow: hidden;
+}
+
+.doc-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.doc-table__th {
+  background: #fafbfc;
+  border-bottom: 1px solid var(--agent-color-border-default);
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.doc-table__th--name {
+  width: 40%;
+}
+
+.doc-table__th--type {
+  width: 12%;
+}
+
+.doc-table__th--time {
+  width: 18%;
+}
+
+.doc-table__th--status {
+  width: 18%;
+}
+
+.doc-table__th--action {
+  text-align: center;
+  width: 12%;
+}
+
+.doc-table__row:not(:last-child) .doc-table__td {
+  border-bottom: 1px solid var(--agent-color-border-default);
+}
+
+.doc-table__td {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  padding: 14px 16px;
+}
+
+.doc-table__td--name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-table__td--action {
+  text-align: center;
+}
+
+.doc-table__empty {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-sm);
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.doc-status {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.doc-status__dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.doc-status__dot--success {
+  background: #52c41a;
+}
+
+.doc-status__dot--pending {
+  background: #faad14;
+}
+
+.doc-status__dot--error {
+  background: #ff4d4f;
+}
+
+.doc-action-btn {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: 4px;
+}
+
+.doc-action-btn:hover {
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-secondary);
+}
+
+.faq-table__th--question {
+  width: 22%;
+}
+
+.faq-table__th--answer {
+  width: 30%;
+}
+
+.faq-table__th--time {
+  width: 20%;
+}
+
+.faq-table__th--status {
+  width: 16%;
+}
+
+.doc-pagination {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.doc-pagination__total {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+}
+
+.doc-pagination__pages {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.doc-pagination__btn {
+  align-items: center;
+  background: none;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.doc-pagination__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.doc-pagination__btn:not(:disabled):hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.doc-pagination__current {
+  align-items: center;
+  background: var(--agent-color-brand-primary);
+  border-radius: var(--agent-radius-sm);
+  color: #fff;
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  height: 32px;
+  justify-content: center;
+  min-width: 32px;
+  padding: 0 8px;
+}
+
+.doc-pagination__size {
+  align-items: center;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 4px;
+  height: 32px;
+  padding: 0 10px;
 }
 
 @media (max-width: 1280px) {

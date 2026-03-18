@@ -212,7 +212,7 @@
               :aria-checked="unrepliedEventEnabled"
               class="settings-toggle"
               :class="{ 'settings-toggle--on': unrepliedEventEnabled }"
-              @click="unrepliedEventEnabled = !unrepliedEventEnabled"
+              @click="toggleUnrepliedEvent"
             >
               <span class="settings-toggle__thumb" />
             </button>
@@ -290,6 +290,8 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { DataTable, TimeDurationInput, type TableColumn } from "@twt/ui-agent";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 import SettingsAgentsPage from "./SettingsAgentsPage.vue";
 import SettingsAgentDetailPage from "./SettingsAgentDetailPage.vue";
 import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
@@ -327,6 +329,8 @@ const pageTitle = computed(() => pageTitleMap[props.activeKey]);
 const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
+
+const { canUse, guardFeature } = usePlan();
 
 const chatPageBaseUrl = "https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59";
 const htmlDeploymentFileName = "twt-chat.html";
@@ -555,9 +559,15 @@ interface WebhookTableRow extends Record<string, unknown> {
 }
 
 const webhookUrl = ref("");
-const unrepliedEventEnabled = ref(true);
+const unrepliedEventEnabled = ref(canUse(FEATURES.WEBHOOKS));
 const unrepliedFirstSeconds = ref(60);
 const unrepliedRepeatSeconds = ref(600);
+
+const toggleUnrepliedEvent = () => {
+  const next = !unrepliedEventEnabled.value;
+  if (next && !guardFeature(FEATURES.WEBHOOKS)) return;
+  unrepliedEventEnabled.value = next;
+};
 
 const webhookBodyColumns: TableColumn<WebhookTableRow>[] = [
   { key: "param", title: "参数名", width: "25%" },

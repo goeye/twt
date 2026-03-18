@@ -137,7 +137,7 @@
               <div class="wc-switch-row__text">
                 <span class="wc-switch-label">隐藏官方标识</span>
               </div>
-              <AgentSwitch v-model="settings.hideBrandLogo" @update:model-value="autoSave" />
+              <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
             </div>
           </div>
         </article>
@@ -393,7 +393,7 @@
             <span class="wc-switch-label">隐藏联系我们</span>
             <span class="wc-switch-desc">开启后，App 端我的页面将不显示"联系我们"入口</span>
           </div>
-          <AgentSwitch v-model="settings.hideContactUs" @update:model-value="autoSave" />
+          <AgentSwitch :model-value="settings.hideContactUs" @update:model-value="toggleHideContactUs" />
         </div>
 
       </div>
@@ -641,6 +641,8 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from "vue";
 import { AgentSwitch, TimeDurationInput } from "@twt/ui-agent";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 interface QuickAccessItem {
   id: string;
@@ -686,6 +688,20 @@ const emitToast = (msg: string) => emit("toast", msg);
 
 const autoSave = () => {
   emitToast("保存成功");
+};
+
+const { guardFeature } = usePlan();
+
+const toggleHideBrandLogo = (val: boolean) => {
+  if (val && !guardFeature(FEATURES.HIDE_BRANDING)) return;
+  settings.hideBrandLogo = val;
+  autoSave();
+};
+
+const toggleHideContactUs = (val: boolean) => {
+  if (val && !guardFeature(FEATURES.HIDE_CONTACT)) return;
+  settings.hideContactUs = val;
+  autoSave();
 };
 
 const tabs: { key: TabKey; label: string }[] = [

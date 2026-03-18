@@ -5,7 +5,6 @@
         <h1 class="agent-content-title">群发消息</h1>
         <button type="button" class="agent-btn agent-btn--primary" @click="handleCreate">
           + 新建
-          <span v-if="!canUse(FEATURES.MASS_MESSAGE)" class="agent-feature-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
         </button>
       </header>
       <DataTable bare :columns="columns" :rows="rows">
@@ -70,10 +69,14 @@ const rows: CampaignRow[] = [
 
 <style scoped>
 .agent-content-page {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-xl);
   padding: 10px !important;
 }
 
 .campaign-card {
+  border: none;
   border-radius: var(--agent-radius-xl);
   display: flex;
   flex-direction: column;

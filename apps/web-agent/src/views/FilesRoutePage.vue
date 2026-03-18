@@ -27,6 +27,7 @@ const emit = defineEmits<{
 
 <style scoped>
 .files-page {
+  background: #fff;
   height: 100%;
 }
 </style>

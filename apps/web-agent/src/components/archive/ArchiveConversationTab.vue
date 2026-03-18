@@ -1331,7 +1331,7 @@ onMounted(() => {
 .files-page__card,
 .files-page__placeholder {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: var(--agent-radius-xl);
   display: flex;
   flex-direction: column;
   gap: 22px;

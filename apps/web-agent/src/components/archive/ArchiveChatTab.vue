@@ -815,7 +815,7 @@ onMounted(() => {
 <style scoped>
 .files-page__card {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: var(--agent-radius-xl);
   display: flex;
   flex-direction: column;
   gap: 22px;

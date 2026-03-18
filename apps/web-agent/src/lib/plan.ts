@@ -7,56 +7,52 @@ export type PlanLevel = 'free' | 'pro'
 
 /** 所有受版本限制的功能 key */
 export const FEATURES = {
-  AI_TITLE: 'ai-title',
   COPILOT_SMART_REPLY: 'copilot-smart-reply',
   TEXT_POLISH: 'text-polish',
   WRITE_TRANSLATE: 'write-translate',
   REMOTE_ASSIST: 'remote-assist',
   CHAT_TRANSLATE: 'chat-translate',
-  VISITOR_TAGS: 'visitor-tags',
-  SESSION_TAGS: 'session-tags',
-  KNOWLEDGE_ADD: 'knowledge-add',
+  DOC_KNOWLEDGE: 'doc-knowledge',
+  FAQ_KNOWLEDGE: 'faq-knowledge',
   MASS_MESSAGE: 'mass-message',
   PROACTIVE_MARKETING: 'proactive-marketing',
-  INITIATE_CHAT: 'initiate-chat',
-  CREATE_SESSION: 'create-session',
   ROLES_MANAGE: 'roles-manage',
   HIDE_BRANDING: 'hide-branding',
   HIDE_CONTACT: 'hide-contact',
   EVALUATION_ANALYSIS: 'evaluation-analysis',
   TRUSTED_DOMAINS: 'trusted-domains',
+  BLACKLIST: 'blacklist',
+  DEV_APP_SECRET: 'dev-app-secret',
+  WEBHOOKS: 'webhooks',
+  AI_AGENT: 'ai-agent',
 } as const
 
 export type FeatureKey = (typeof FEATURES)[keyof typeof FEATURES]
 
 /** 功能 → 所需版本（不在此表中的功能默认为 free） */
 export const FEATURE_PLAN_MAP: Record<string, PlanLevel> = {
-  [FEATURES.AI_TITLE]: 'pro',
   [FEATURES.COPILOT_SMART_REPLY]: 'pro',
   [FEATURES.TEXT_POLISH]: 'pro',
   [FEATURES.WRITE_TRANSLATE]: 'pro',
   [FEATURES.REMOTE_ASSIST]: 'pro',
   [FEATURES.CHAT_TRANSLATE]: 'pro',
-  [FEATURES.VISITOR_TAGS]: 'pro',
-  [FEATURES.SESSION_TAGS]: 'pro',
-  [FEATURES.KNOWLEDGE_ADD]: 'pro',
+  [FEATURES.DOC_KNOWLEDGE]: 'pro',
+  [FEATURES.FAQ_KNOWLEDGE]: 'pro',
   [FEATURES.MASS_MESSAGE]: 'pro',
   [FEATURES.PROACTIVE_MARKETING]: 'pro',
-  [FEATURES.INITIATE_CHAT]: 'pro',
-  [FEATURES.CREATE_SESSION]: 'pro',
   [FEATURES.ROLES_MANAGE]: 'pro',
   [FEATURES.HIDE_BRANDING]: 'pro',
   [FEATURES.HIDE_CONTACT]: 'pro',
   [FEATURES.EVALUATION_ANALYSIS]: 'pro',
   [FEATURES.TRUSTED_DOMAINS]: 'pro',
+  [FEATURES.BLACKLIST]: 'pro',
+  [FEATURES.DEV_APP_SECRET]: 'pro',
+  [FEATURES.WEBHOOKS]: 'pro',
+  [FEATURES.AI_AGENT]: 'pro',
 }
 
 /** 功能描述（升级弹窗中展示给超级管理员） */
 export const FEATURE_INFO: Record<string, { name: string; description: string }> = {
-  [FEATURES.AI_TITLE]: {
-    name: 'AI 生成会话标题',
-    description: 'AI 根据会话内容自动生成标题，客服端和访客端同步展示并支持二次修改',
-  },
   [FEATURES.COPILOT_SMART_REPLY]: {
     name: 'Copilot 智能回复',
     description: 'AI 智能推荐回复内容，提升客服响应速度和服务质量',
@@ -77,17 +73,13 @@ export const FEATURE_INFO: Record<string, { name: string; description: string }>
     name: '聊天翻译',
     description: '自动翻译访客消息，消除语言障碍，无缝沟通',
   },
-  [FEATURES.VISITOR_TAGS]: {
-    name: '访客标签',
-    description: '为访客添加自定义标签，精准分类和管理访客群体',
+  [FEATURES.DOC_KNOWLEDGE]: {
+    name: '文档知识',
+    description: '添加文档知识内容，构建智能客服知识体系',
   },
-  [FEATURES.SESSION_TAGS]: {
-    name: '会话标签',
-    description: '为会话添加分类标签，便于归档检索和数据分析',
-  },
-  [FEATURES.KNOWLEDGE_ADD]: {
-    name: '知识库管理',
-    description: '添加常见问题和文档知识，构建智能客服知识体系',
+  [FEATURES.FAQ_KNOWLEDGE]: {
+    name: '常见问题',
+    description: '添加常见问题内容，快速解答访客高频疑问',
   },
   [FEATURES.MASS_MESSAGE]: {
     name: '群发消息',
@@ -96,14 +88,6 @@ export const FEATURE_INFO: Record<string, { name: string; description: string }>
   [FEATURES.PROACTIVE_MARKETING]: {
     name: '主动营销',
     description: '基于访客行为主动发起营销对话，提升转化率',
-  },
-  [FEATURES.INITIATE_CHAT]: {
-    name: '发起聊天',
-    description: '主动向访客、客户或客服发起聊天会话',
-  },
-  [FEATURES.CREATE_SESSION]: {
-    name: '创建会话',
-    description: '手动创建新的客服会话，灵活管理服务流程',
   },
   [FEATURES.ROLES_MANAGE]: {
     name: '角色管理',
@@ -124,5 +108,21 @@ export const FEATURE_INFO: Record<string, { name: string; description: string }>
   [FEATURES.TRUSTED_DOMAINS]: {
     name: '信任域名',
     description: '配置信任域名白名单，增强安全防护',
+  },
+  [FEATURES.BLACKLIST]: {
+    name: '黑名单',
+    description: '管理访客黑名单，屏蔽恶意用户，保障服务质量',
+  },
+  [FEATURES.DEV_APP_SECRET]: {
+    name: '开发设置',
+    description: '生成或重置 AppSecret，对接第三方系统和自定义开发',
+  },
+  [FEATURES.WEBHOOKS]: {
+    name: 'Webhooks',
+    description: '配置 Webhook 回调，实现事件驱动的系统集成',
+  },
+  [FEATURES.AI_AGENT]: {
+    name: 'AI Agent',
+    description: '启用 AI 智能客服，自动处理访客咨询，提升服务效率',
   },
 }

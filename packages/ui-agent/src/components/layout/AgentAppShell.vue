@@ -73,6 +73,7 @@ defineProps<{
 }
 
 .agent-shell__main {
+  background: var(--agent-color-bg-muted);
   overflow: hidden;
   padding: var(--agent-space-12);
   position: relative;

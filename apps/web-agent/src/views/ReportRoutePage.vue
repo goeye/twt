@@ -364,14 +364,28 @@
       <h1 class="report-page__title">会话评价分析</h1>
 
       <div v-if="!canUse(FEATURES.EVALUATION_ANALYSIS)" class="report-locked-state">
-        <div class="report-locked-state__icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#75869c" stroke-width="1.5" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#75869c" stroke-width="1.5" stroke-linecap="round" />
+        <div class="report-locked-state__illustration">
+          <svg width="200" height="120" viewBox="0 0 200 120" fill="none">
+            <rect x="30" y="10" width="140" height="90" rx="12" fill="#fff" fill-opacity="0.9" />
+            <rect x="30" y="10" width="140" height="90" rx="12" stroke="#e0e7ef" stroke-width="0.5" />
+            <circle cx="18" cy="35" r="14" fill="#fde4cf" />
+            <circle cx="18" cy="30" r="5" fill="#e8a87c" />
+            <ellipse cx="18" cy="39" rx="7" ry="5" fill="#e8a87c" />
+            <circle cx="182" cy="55" r="14" fill="#d4e5f7" />
+            <circle cx="182" cy="50" r="5" fill="#7bafd4" />
+            <ellipse cx="182" cy="59" rx="7" ry="5" fill="#7bafd4" />
+            <rect x="48" y="28" width="14" height="14" rx="3" fill="#e8f0fe" />
+            <rect x="68" y="32" width="50" height="6" rx="3" fill="#d0dce8" />
+            <rect x="43" y="48" width="114" height="22" rx="5" fill="#f0f6ff" stroke="#4080ff" stroke-width="1.2" />
+            <circle cx="56" cy="59" r="7" fill="#4080ff" />
+            <path d="M53 59l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <rect x="68" y="56" width="44" height="6" rx="3" fill="#4080ff" fill-opacity="0.3" />
+            <rect x="48" y="78" width="14" height="14" rx="3" fill="#e8f0fe" />
+            <rect x="68" y="82" width="36" height="6" rx="3" fill="#d0dce8" />
           </svg>
         </div>
         <p class="report-locked-state__text">会话评价分析为专业版功能</p>
-        <button type="button" class="agent-btn agent-btn--primary" @click="showUpgradePrompt(FEATURES.EVALUATION_ANALYSIS)">了解详情</button>
+        <button type="button" class="agent-btn agent-btn--primary" @click="showUpgradePrompt(FEATURES.EVALUATION_ANALYSIS)">立即升级</button>
       </div>
 
       <template v-else>
@@ -841,6 +855,9 @@ const agentDetailRows = [
 
 <style scoped>
 .report-page {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-xl);
   gap: var(--agent-space-20);
   padding: var(--agent-space-24);
   padding-bottom: 48px;
@@ -1571,8 +1588,13 @@ const agentDetailRows = [
   padding: 60px 0;
 }
 
-.report-locked-state__icon {
-  color: var(--agent-color-text-tertiary);
+.report-locked-state__illustration {
+  background: linear-gradient(135deg, #eef3ff 0%, #f5f0ff 50%, #fff0f6 100%);
+  border-radius: var(--agent-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 24px;
 }
 
 .report-locked-state__text {

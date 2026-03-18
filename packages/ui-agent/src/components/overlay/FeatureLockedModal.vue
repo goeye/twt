@@ -1,36 +1,61 @@
 <template>
-  <BaseModal :open="open" :title="isAdmin ? '升级到专业版' : '功能受限'" max-width="420px" @close="$emit('close')">
-    <div class="feature-locked-content">
-      <div class="feature-locked-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="11" width="18" height="11" rx="2" stroke="#75869c" stroke-width="1.5" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#75869c" stroke-width="1.5" stroke-linecap="round" />
-        </svg>
-      </div>
-      <p v-if="isAdmin" class="feature-locked-desc">
-        <strong>{{ featureName }}</strong>
-        <br />
-        {{ featureDescription }}
-      </p>
-      <p v-else class="feature-locked-desc">
-        「{{ featureName }}」需要专业版支持，请联系管理员开通
-      </p>
+  <teleport to="body">
+    <div v-if="open" class="feature-upgrade-mask" @click.self="$emit('close')">
+      <section class="feature-upgrade-card" role="dialog" aria-modal="true">
+        <!-- 顶部插画区 -->
+        <div class="feature-upgrade-hero">
+          <button type="button" class="feature-upgrade-close" aria-label="Close" @click="$emit('close')">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+          <!-- 装饰性 SVG 插画 -->
+          <svg class="feature-upgrade-illustration" width="280" height="140" viewBox="0 0 280 140" fill="none">
+            <!-- 背景卡片 -->
+            <rect x="60" y="20" width="160" height="100" rx="12" fill="#fff" fill-opacity="0.9" />
+            <rect x="60" y="20" width="160" height="100" rx="12" stroke="#e0e7ef" stroke-width="0.5" />
+            <!-- 头像 1 -->
+            <circle cx="42" cy="50" r="18" fill="#fde4cf" />
+            <circle cx="42" cy="44" r="6" fill="#e8a87c" />
+            <ellipse cx="42" cy="56" rx="9" ry="6" fill="#e8a87c" />
+            <!-- 头像 2 -->
+            <circle cx="238" cy="70" r="18" fill="#d4e5f7" />
+            <circle cx="238" cy="64" r="6" fill="#7bafd4" />
+            <ellipse cx="238" cy="76" rx="9" ry="6" fill="#7bafd4" />
+            <!-- 卡片内文字行 -->
+            <rect x="80" y="38" width="16" height="16" rx="4" fill="#e8f0fe" />
+            <rect x="102" y="42" width="60" height="8" rx="4" fill="#d0dce8" />
+            <!-- 高亮行 -->
+            <rect x="75" y="62" width="130" height="26" rx="6" fill="#f0f6ff" stroke="#4080ff" stroke-width="1.5" />
+            <circle cx="92" cy="75" r="8" fill="#4080ff" />
+            <path d="M89 75l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <rect x="106" y="71" width="50" height="8" rx="4" fill="#4080ff" fill-opacity="0.3" />
+            <!-- 底部行 -->
+            <rect x="80" y="96" width="16" height="16" rx="4" fill="#e8f0fe" />
+            <rect x="102" y="100" width="40" height="8" rx="4" fill="#d0dce8" />
+          </svg>
+        </div>
+
+        <!-- 文字内容区 -->
+        <div class="feature-upgrade-body">
+          <h3 class="feature-upgrade-title">升级到专业版</h3>
+          <p class="feature-upgrade-desc">该功能在当前服务版本不可用，请升级到专业版</p>
+        </div>
+
+        <!-- 按钮区 -->
+        <div class="feature-upgrade-footer">
+          <template v-if="isAdmin">
+            <button type="button" class="agent-btn agent-btn--ghost feature-upgrade-btn-cancel" @click="$emit('close')">取 消</button>
+            <button type="button" class="agent-btn agent-btn--primary feature-upgrade-btn-primary" @click="$emit('close')">立即升级</button>
+          </template>
+          <button v-else type="button" class="agent-btn agent-btn--primary feature-upgrade-btn-primary" @click="$emit('close')">我知道了</button>
+        </div>
+      </section>
     </div>
-    <template #footer>
-      <div v-if="isAdmin" class="feature-locked-footer">
-        <button type="button" class="agent-btn agent-btn--ghost" @click="$emit('close')">关闭</button>
-        <button type="button" class="agent-btn agent-btn--primary" @click="$emit('close')">联系客服升级</button>
-      </div>
-      <div v-else class="feature-locked-footer">
-        <button type="button" class="agent-btn agent-btn--primary" @click="$emit('close')">我知道了</button>
-      </div>
-    </template>
-  </BaseModal>
+  </teleport>
 </template>
 
 <script setup lang="ts">
-import BaseModal from './BaseModal.vue'
-
 defineProps<{
   open: boolean
   isAdmin: boolean
@@ -44,35 +69,104 @@ defineEmits<{
 </script>
 
 <style scoped>
-.feature-locked-content {
-  display: flex;
-  flex-direction: column;
+.feature-upgrade-mask {
   align-items: center;
-  gap: var(--agent-space-16);
-  padding: var(--agent-space-12) 0;
-  text-align: center;
+  background: var(--agent-color-overlay-mask);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--agent-space-24);
+  position: fixed;
+  z-index: var(--agent-z-modal);
 }
 
-.feature-locked-icon {
-  color: var(--agent-color-text-tertiary);
+.feature-upgrade-card {
+  background: #fff;
+  border-radius: var(--agent-radius-xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-width: 460px;
+  overflow: hidden;
+  width: 100%;
 }
 
-.feature-locked-desc {
+/* 顶部插画区 */
+.feature-upgrade-hero {
+  background: linear-gradient(135deg, #eef3ff 0%, #f5f0ff 50%, #fff0f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  position: relative;
+  padding: 20px;
+}
+
+.feature-upgrade-illustration {
+  display: block;
+}
+
+/* 关闭按钮 */
+.feature-upgrade-close {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #75869c;
+  cursor: pointer;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 32px;
+  transition: color 0.15s, box-shadow 0.15s;
+}
+
+.feature-upgrade-close:hover {
+  color: #222;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 文字内容区 */
+.feature-upgrade-body {
+  padding: 24px 32px 0;
+}
+
+.feature-upgrade-title {
+  color: #1a1a1a;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.feature-upgrade-desc {
   color: #75869c;
   font-size: 14px;
   line-height: 1.6;
   margin: 0;
 }
 
-.feature-locked-desc strong {
-  color: var(--agent-color-text-primary);
-  font-size: 15px;
+/* 按钮区 */
+.feature-upgrade-footer {
+  display: flex;
+  gap: var(--agent-space-12);
+  justify-content: flex-end;
+  padding: 24px 32px 28px;
 }
 
-.feature-locked-footer {
-  display: flex;
-  gap: var(--agent-space-8);
-  justify-content: flex-end;
-  width: 100%;
+.feature-upgrade-btn-cancel {
+  min-width: 100px;
+  height: 40px;
+  border-radius: var(--agent-radius-lg);
+  font-size: 14px;
+}
+
+.feature-upgrade-btn-primary {
+  min-width: 120px;
+  height: 40px;
+  border-radius: var(--agent-radius-lg);
+  font-size: 14px;
 }
 </style>

@@ -165,7 +165,10 @@ const handleAction = (action: "view" | "edit" | "delete", role: RoleItem) => {
     if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
     emit("edit-role", role.id);
   }
-  else handleDeleteRole(role);
+  else {
+    if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
+    handleDeleteRole(role);
+  }
 };
 
 // ---- Delete ----
