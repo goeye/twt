@@ -385,7 +385,7 @@
           </svg>
         </div>
         <p class="report-locked-state__text">会话评价分析为专业版功能</p>
-        <button type="button" class="agent-btn agent-btn--primary" @click="showUpgradePrompt(FEATURES.EVALUATION_ANALYSIS)">立即升级</button>
+        <button type="button" class="agent-btn agent-btn--primary" @click="openConsole">立即升级</button>
       </div>
 
       <template v-else>
@@ -591,6 +591,10 @@ const props = defineProps<{
 
 // ── Shared state ──
 const { canUse, showUpgradePrompt } = usePlan();
+
+function openConsole() {
+  window.open('about:blank', '_blank');
+}
 const showDatePicker = ref(false);
 const showAgentDropdown = ref(false);
 

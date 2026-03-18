@@ -243,6 +243,8 @@
           v-model="composerText"
           class="chat-pane__composer"
           :disabled="composerText.trim().length === 0"
+          :show-polish="canUse(FEATURES.TEXT_POLISH)"
+          :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           placeholder="发送消息输入 / 选择快捷回复"
           @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
@@ -469,6 +471,7 @@ import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import { track, TrackEvent } from "./lib/tracker";
 import { usePlan } from "./composables/usePlan";
+import { FEATURES } from "./lib/plan";
 import { usePermission } from "./composables/usePermission";
 import {
   AgentAppShell,
@@ -492,7 +495,7 @@ import {
   type SessionQueueGroup
 } from "@twt/ui-agent";
 
-const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired } = usePlan();
+const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired, canUse } = usePlan();
 
 const {
   modalState: permModalState,

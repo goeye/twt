@@ -1,14 +1,9 @@
 <template>
   <teleport to="body">
-    <div v-if="open" class="feature-upgrade-mask" @click.self="$emit('close')">
+    <div v-if="open" class="feature-upgrade-mask">
       <section class="feature-upgrade-card" role="dialog" aria-modal="true">
         <!-- 顶部插画区 -->
         <div class="feature-upgrade-hero">
-          <button type="button" class="feature-upgrade-close" aria-label="Close" @click="$emit('close')">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-          </button>
           <!-- 装饰性 SVG 插画 -->
           <svg class="feature-upgrade-illustration" width="280" height="140" viewBox="0 0 280 140" fill="none">
             <!-- 背景卡片 -->
@@ -102,30 +97,6 @@ defineEmits<{
 
 .feature-upgrade-illustration {
   display: block;
-}
-
-/* 关闭按钮 */
-.feature-upgrade-close {
-  align-items: center;
-  background: #fff;
-  border: 0;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: #75869c;
-  cursor: pointer;
-  display: flex;
-  height: 32px;
-  justify-content: center;
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  width: 32px;
-  transition: color 0.15s, box-shadow 0.15s;
-}
-
-.feature-upgrade-close:hover {
-  color: #222;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 文字内容区 */

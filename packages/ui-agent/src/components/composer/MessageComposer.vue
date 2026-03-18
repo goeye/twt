@@ -5,9 +5,9 @@
         <button class="tool-icon" type="button" aria-label="表情" @click="$emit('emoji')">☺</button>
         <button class="tool-icon" type="button" aria-label="快捷回复" @click="$emit('quick-reply')">💬</button>
         <button class="tool-icon" type="button" aria-label="附件" @click="$emit('attachment')">📎</button>
-        <button class="tool-icon" type="button" aria-label="润色" @click="$emit('polish')">✨</button>
+        <button v-if="showPolish" class="tool-icon" type="button" aria-label="润色" @click="$emit('polish')">✨</button>
         <button class="tool-icon" type="button" aria-label="机器人">🤖</button>
-        <button class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">🌐</button>
+        <button v-if="showTranslate" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">🌐</button>
       </div>
     </div>
 
@@ -25,11 +25,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+withDefaults(defineProps<{
   modelValue: string;
   placeholder?: string;
   disabled?: boolean;
-}>();
+  showPolish?: boolean;
+  showTranslate?: boolean;
+}>(), {
+  showPolish: true,
+  showTranslate: true,
+});
 
 defineEmits<{
   (e: "update:modelValue", value: string): void;

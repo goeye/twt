@@ -32,8 +32,8 @@
         <div class="agent-config-header__content">
           <div class="agent-config-header__title-row">
             <h1 class="agent-content-title">AI Agent</h1>
-            <span class="agent-config-header__status" :class="agentEnabled ? 'agent-config-header__status--active' : 'agent-config-header__status--inactive'">
-              {{ agentEnabled ? '已开启' : '已关闭' }}
+            <span class="agent-config-header__status" :class="agentEnabled && agentFeatureAvailable ? 'agent-config-header__status--active' : 'agent-config-header__status--inactive'">
+              {{ agentEnabled && agentFeatureAvailable ? '已开启' : '已关闭' }}
             </span>
           </div>
           <p class="agent-content-subtitle">开启后，AI Agent 将自动回复访客咨询，根据知识库内容智能回复，并在需要时转接人工客服</p>
@@ -43,13 +43,19 @@
           <button
             type="button"
             class="agent-btn"
-            :class="agentEnabled ? 'agent-btn--ghost' : 'agent-btn--primary'"
+            :class="agentEnabled && agentFeatureAvailable ? 'agent-btn--ghost' : 'agent-btn--primary'"
             @click="toggleAgentLiveStatus"
           >
             {{ launchActionLabel }}
           </button>
         </div>
       </header>
+
+      <div v-if="!agentFeatureAvailable" class="ai-agent-locked-hint agent-panel">
+        <p class="ai-agent-locked-hint__text">当前服务版本不支持 AI Agent，请升级到专业版后使用</p>
+      </div>
+
+      <template v-else>
 
       <nav class="config-tabs">
         <button
@@ -228,6 +234,7 @@
         </div>
       </div>
 
+      </template>
     </template>
 
     <template v-else-if="resolvedActiveKey === 'doc-knowledge'">
@@ -565,6 +572,7 @@ const filteredFaqList = computed(() => {
 
 const { canUse, guardFeature } = usePlan();
 
+const agentFeatureAvailable = computed(() => canUse(FEATURES.AI_AGENT));
 const configTab = ref<ConfigTab>("deploy");
 const openLifecycleCard = ref<LifecycleCardKey | null>(null);
 const agentEnabled = ref(canUse(FEATURES.AI_AGENT));
@@ -888,7 +896,7 @@ const loadAgentSettings = () => {
   }
 };
 
-const launchActionLabel = computed(() => (agentEnabled.value ? "暂停 AI Agent" : "开启 AI Agent"));
+const launchActionLabel = computed(() => (agentEnabled.value && agentFeatureAvailable.value ? "暂停 AI Agent" : "开启 AI Agent"));
 
 const toggleLifecycleCard = (key: LifecycleCardKey) => {
   openLifecycleCard.value = openLifecycleCard.value === key ? null : key;
@@ -1009,6 +1017,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.ai-agent-locked-hint {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 24px;
+  padding: 24px;
+  text-align: center;
+}
+
+.ai-agent-locked-hint__text {
+  margin: 0;
+}
+
 .ai-agent-page {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
