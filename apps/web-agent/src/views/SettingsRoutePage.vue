@@ -1,9 +1,9 @@
 <template>
   <section
     class="agent-content-page agent-content-page--hide-scrollbar settings-page"
-    :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' }"
+    :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' || activeKey === 'quick-reply' || activeKey === 'personal-reply' || activeKey === 'visitor-tags' || activeKey === 'conversation-tags' || activeKey === 'blacklist' || activeKey === 'trusted-domains' }"
   >
-    <header v-if="activeKey !== 'agents' && activeKey !== 'roles'" class="agent-content-header">
+    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains'" class="agent-content-header">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
     </header>
 
@@ -176,24 +176,27 @@
       </article>
     </section>
 
-    <section v-else-if="activeKey === 'quick-reply' || activeKey === 'personal-reply'" class="settings-card agent-panel">
-      <div class="settings-card__title-row">
-        <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
-        <button type="button" class="agent-btn agent-btn--ghost" @click="emitToast('模板已保存')">保存</button>
-      </div>
-      <div class="quick-reply-editor">
-        <input v-model="quickReplyDraft" class="agent-input" placeholder="输入快捷回复内容后回车添加" @keydown.enter.prevent="addQuickReply" />
-        <button type="button" class="agent-btn agent-btn--primary" :disabled="quickReplyDraft.trim().length === 0" @click="addQuickReply">
-          新增
-        </button>
-      </div>
-      <ul class="quick-reply-list">
-        <li v-for="item in quickReplies" :key="item" class="quick-reply-item">
-          <span class="quick-reply-item__text">{{ item }}</span>
-          <button type="button" class="quick-reply-item__remove" @click="removeQuickReply(item)">删除</button>
-        </li>
-      </ul>
-    </section>
+    <SettingsQuickReplyPage
+      v-else-if="activeKey === 'quick-reply' || activeKey === 'personal-reply'"
+      :page-title="activeKey === 'quick-reply' ? '公共回复' : '个人回复'"
+      @toast="emitToast"
+    />
+
+    <SettingsTagsPage
+      v-else-if="activeKey === 'visitor-tags' || activeKey === 'conversation-tags'"
+      :page-title="activeKey === 'visitor-tags' ? '访客标签' : '会话标签'"
+      @toast="emitToast"
+    />
+
+    <SettingsBlacklistPage
+      v-else-if="activeKey === 'blacklist'"
+      @toast="emitToast"
+    />
+
+    <SettingsTrustedDomainsPage
+      v-else-if="activeKey === 'trusted-domains'"
+      @toast="emitToast"
+    />
 
     <section v-else-if="activeKey === 'webhooks'" class="settings-webhooks">
       <p class="webhooks-subtitle">通过 Webhook 将 Chat 平台事件实时推送至外部服务</p>
@@ -284,6 +287,55 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
       </article>
     </section>
 
+    <SettingsWebsiteCodePage
+      v-else-if="activeKey === 'website-code'"
+      @toast="emitToast"
+    />
+
+    <section v-else-if="activeKey === 'dev-settings'" class="settings-dev">
+      <article class="settings-card agent-panel">
+        <h2 class="dev-card__title">开发者ID</h2>
+        <p class="dev-card__desc">在接入聊天页面时作为参数传递，用于与内部系统的客户数据进行关联</p>
+
+        <div class="dev-table-wrap">
+          <table class="dev-table">
+            <thead>
+              <tr>
+                <th>开发者ID</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="dev-table__label">AppID</span>
+                  <span class="dev-table__value">{{ appId }}</span>
+                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="dev-table__label">AppSecret</span>
+                  <span class="dev-table__value">{{ maskedSecret }}</span>
+                </td>
+                <td>
+                  <div class="dev-table__actions">
+                    <button type="button" class="dev-table__reset-btn" @click="handleResetSecret">重置</button>
+                    <span class="dev-table__help-icon" title="AppSecret 用于生成 sbs_mm 签名，请妥善保管">
+                      <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4" />
+                        <path d="M8 7v4M8 5.5v-.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
     <section v-else class="settings-card agent-panel settings-placeholder">
       <div class="settings-placeholder__icon">🚧</div>
       <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
@@ -301,6 +353,11 @@ import SettingsAgentsPage from "./SettingsAgentsPage.vue";
 import SettingsAgentDetailPage from "./SettingsAgentDetailPage.vue";
 import SettingsRoleDetailPage from "./SettingsRoleDetailPage.vue";
 import SettingsRolesPage from "./SettingsRolesPage.vue";
+import SettingsWebsiteCodePage from "./SettingsWebsiteCodePage.vue";
+import SettingsQuickReplyPage from "./SettingsQuickReplyPage.vue";
+import SettingsTagsPage from "./SettingsTagsPage.vue";
+import SettingsBlacklistPage from "./SettingsBlacklistPage.vue";
+import SettingsTrustedDomainsPage from "./SettingsTrustedDomainsPage.vue";
 
 type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
@@ -340,6 +397,22 @@ const emit = defineEmits<{
 const { canUse, guardFeature } = usePlan();
 
 const chatPageBaseUrl = "https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59";
+
+/* Dev settings */
+const appId = "040d99be00d826dd0ae83d6b2255df59";
+const appSecret = ref("VduFxxxxxxxxxxxxxxxxxxxxxxxxEcri");
+const maskedSecret = computed(() => {
+  const s = appSecret.value;
+  if (s.length <= 8) return s;
+  return s.slice(0, 4) + "*".repeat(s.length - 8) + s.slice(-4);
+});
+const handleResetSecret = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 36; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+  appSecret.value = result;
+  emitToast("AppSecret 已重置，请妥善保管新密钥");
+};
 const htmlDeploymentFileName = "twt-chat.html";
 
 /* Agent detail page */
@@ -451,13 +524,6 @@ const agentIdleEnabled = ref(false);
 const agentIdleSeconds = ref(600);
 const sessionTimeoutEnabled = ref(true);
 const sessionTimeoutSeconds = ref(540);
-
-const quickReplies = ref<string[]>([
-  "你好，已收到你的问题，我马上为你处理。",
-  "请稍等 1-2 分钟，我正在核对订单信息。",
-  "如果方便，请提供一下订单号或邮箱。"
-]);
-const quickReplyDraft = ref("");
 
 const languageExampleUrl = computed(() => `${chatPageBaseUrl}?lang=en`);
 const customerSignExampleUrl = computed(() => `${chatPageBaseUrl}?sbs={sbs}&sbs_mm={sbs_mm}&ranstr={ranstr}`);
@@ -609,19 +675,6 @@ const unrepliedContentRows: WebhookTableRow[] = [
   { param: "time_sec", desc: "超时时间（秒）", example: "289" },
   { param: "assigned_agent_nickname", desc: "服务客服名称", example: "ctccccd" }
 ];
-
-const addQuickReply = () => {
-  const next = quickReplyDraft.value.trim();
-  if (!next) return;
-  quickReplies.value = [next, ...quickReplies.value.filter((item) => item !== next)];
-  quickReplyDraft.value = "";
-  emitToast("快捷回复已添加");
-};
-
-const removeQuickReply = (target: string) => {
-  quickReplies.value = quickReplies.value.filter((item) => item !== target);
-  emitToast("快捷回复已删除");
-};
 
 </script>
 
@@ -873,47 +926,6 @@ const removeQuickReply = (target: string) => {
   transform: translateX(20px);
 }
 
-.quick-reply-editor {
-  display: grid;
-  gap: var(--agent-space-12);
-  grid-template-columns: 1fr auto;
-}
-
-.quick-reply-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--agent-space-8);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.quick-reply-item {
-  align-items: center;
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
-  display: flex;
-  gap: var(--agent-space-12);
-  justify-content: space-between;
-  padding: 10px var(--agent-space-12);
-}
-
-.quick-reply-item__text {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.4;
-}
-
-.quick-reply-item__remove {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-status-error);
-  cursor: pointer;
-  font-size: var(--agent-font-size-sm);
-  padding: 0;
-}
-
 .settings-placeholder {
   align-items: center;
   justify-content: center;
@@ -924,6 +936,104 @@ const removeQuickReply = (target: string) => {
 .settings-placeholder__icon {
   font-size: 48px;
   line-height: 1;
+}
+
+/* Dev settings page */
+.settings-dev {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+}
+
+.dev-card__title {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-xl);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+}
+
+.dev-card__desc {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.dev-table-wrap {
+  overflow-x: auto;
+}
+
+.dev-table {
+  border-collapse: collapse;
+  color: #252525;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.dev-table th,
+.dev-table td {
+  border-bottom: 1px solid #edf1f5;
+  font-size: 13px;
+  line-height: 19px;
+  padding: 14px 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.dev-table th {
+  background: #eef2f5;
+  color: #222222;
+  font-weight: 600;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+.dev-table th:nth-child(1) { width: 80%; }
+.dev-table th:nth-child(2) { width: 20%; text-align: right; }
+
+.dev-table td:nth-child(2) {
+  text-align: right;
+}
+
+.dev-table__label {
+  color: #252525;
+  display: inline-block;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.dev-table__value {
+  color: #4b5563;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 13px;
+}
+
+.dev-table__actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.dev-table__reset-btn {
+  background: transparent;
+  border: 0;
+  color: #105eff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.dev-table__reset-btn:hover {
+  text-decoration: underline;
+}
+
+.dev-table__help-icon {
+  align-items: center;
+  color: #b0b8c8;
+  cursor: help;
+  display: inline-flex;
 }
 
 /* Webhooks page */
