@@ -3,7 +3,7 @@
     <article class="roles-panel agent-panel">
       <header class="roles-panel__header">
         <h1 class="roles-panel__title">角色</h1>
-        <button type="button" class="agent-btn agent-btn--primary roles-panel__create-btn" @click="emit('create-role')">
+        <button type="button" class="agent-btn agent-btn--primary roles-panel__create-btn" @click="handleCreateRole">
           <span class="roles-panel__create-icon">+</span>
           <span>新增角色</span>
         </button>
@@ -197,6 +197,11 @@ const closeDropdown = () => {
 
 const { guardFeature } = usePlan();
 
+const handleCreateRole = () => {
+  if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
+  emit("create-role");
+};
+
 const handleAction = (action: "view" | "edit" | "delete", role: RoleItem) => {
   closeDropdown();
   if (action === "view") emit("view-role", role.id);
@@ -220,6 +225,7 @@ const handleDeleteRole = (role: RoleItem) => {
 };
 
 const confirmDelete = () => {
+  if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
   if (!deleteTargetRole.value) return;
   if (deleteTargetRole.value.memberCount > 0) {
     deleteConfirmVisible.value = false;

@@ -320,7 +320,7 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
                 </td>
                 <td>
                   <div class="dev-table__actions">
-                    <button type="button" class="dev-table__reset-btn" @click="handleResetSecret">重置</button>
+                    <button type="button" class="dev-table__reset-btn" @click="handleSecretAction">{{ secretActionLabel }}</button>
                     <span class="dev-table__help-icon" title="AppSecret 用于生成 sbs_mm 签名，请妥善保管">
                       <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
                         <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4" />
@@ -403,15 +403,22 @@ const appId = "040d99be00d826dd0ae83d6b2255df59";
 const appSecret = ref("VduFxxxxxxxxxxxxxxxxxxxxxxxxEcri");
 const maskedSecret = computed(() => {
   const s = appSecret.value;
+  if (!s) return "未生成";
   if (s.length <= 8) return s;
   return s.slice(0, 4) + "*".repeat(s.length - 8) + s.slice(-4);
 });
-const handleResetSecret = () => {
+const secretActionLabel = computed(() => (appSecret.value ? "重置" : "生成"));
+const generateSecret = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
   for (let i = 0; i < 36; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-  appSecret.value = result;
-  emitToast("AppSecret 已重置，请妥善保管新密钥");
+  return result;
+};
+const handleSecretAction = () => {
+  if (!guardFeature(FEATURES.DEV_APP_SECRET)) return;
+  const hadSecret = Boolean(appSecret.value);
+  appSecret.value = generateSecret();
+  emitToast(hadSecret ? "AppSecret 已重置，请妥善保管新密钥" : "AppSecret 已生成，请妥善保管");
 };
 const htmlDeploymentFileName = "twt-chat.html";
 
@@ -491,11 +498,13 @@ const handleViewRole = (roleId: string) => {
 };
 
 const handleEditRole = (roleId: string) => {
+  if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
   handleViewRole(roleId);
   roleDetailMode.value = "edit";
 };
 
 const handleCreateRole = () => {
+  if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
   roleDetailId.value = "";
   roleDetailName.value = "";
   roleDetailIsSystem.value = false;
@@ -504,6 +513,7 @@ const handleCreateRole = () => {
 };
 
 const handleRoleSave = (_payload: { name: string; permissions: string[] }) => {
+  if (!guardFeature(FEATURES.ROLES_MANAGE)) return;
   const msg = roleDetailMode.value === "create" ? "新增成功" : "编辑成功";
   roleDetailMode.value = "";
   emitToast(msg);

@@ -1,5 +1,5 @@
 <template>
-  <section class="agent-content-page ai-agent-page">
+  <section class="agent-content-page ai-agent-page" @click="closeKnowledgeActionMenus">
     <template v-if="resolvedActiveKey === 'copilot-settings'">
       <header class="agent-content-header">
         <h1 class="agent-content-title">Copilot设置</h1>
@@ -50,10 +50,6 @@
           </button>
         </div>
       </header>
-
-      <div v-if="!agentFeatureAvailable" class="ai-agent-locked-hint agent-panel">
-        <p class="ai-agent-locked-hint__text">当前服务版本不支持 AI Agent，请升级到专业版后使用</p>
-      </div>
 
       <nav class="config-tabs">
         <button
@@ -309,13 +305,34 @@
                 </span>
               </td>
               <td class="doc-table__td doc-table__td--action">
-                <button type="button" class="doc-action-btn" @click="guardedDocAction">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <circle cx="8" cy="3" r="1.5"/>
-                    <circle cx="8" cy="8" r="1.5"/>
-                    <circle cx="8" cy="13" r="1.5"/>
-                  </svg>
-                </button>
+                <div class="doc-table__actions">
+                  <button type="button" class="doc-action-btn" @click.stop="toggleDocActionMenu(item.id)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <circle cx="8" cy="3" r="1.5"/>
+                      <circle cx="8" cy="8" r="1.5"/>
+                      <circle cx="8" cy="13" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div v-if="activeDocActionId === item.id" class="doc-table__dropdown" @click.stop>
+                    <button
+                      v-if="item.type === '文件'"
+                      type="button"
+                      class="doc-table__dropdown-item"
+                      @click="handleDocAction('preview', item)"
+                    >预览</button>
+                    <button
+                      v-else
+                      type="button"
+                      class="doc-table__dropdown-item"
+                      @click="handleDocAction('edit', item)"
+                    >编辑</button>
+                    <button
+                      type="button"
+                      class="doc-table__dropdown-item doc-table__dropdown-item--danger"
+                      @click="handleDocAction('delete', item)"
+                    >删除</button>
+                  </div>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredDocList.length === 0">
@@ -415,13 +432,27 @@
                 </span>
               </td>
               <td class="doc-table__td doc-table__td--action">
-                <button type="button" class="doc-action-btn" @click="guardedFaqAction">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <circle cx="8" cy="3" r="1.5"/>
-                    <circle cx="8" cy="8" r="1.5"/>
-                    <circle cx="8" cy="13" r="1.5"/>
-                  </svg>
-                </button>
+                <div class="doc-table__actions">
+                  <button type="button" class="doc-action-btn" @click.stop="toggleFaqActionMenu(item.id)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <circle cx="8" cy="3" r="1.5"/>
+                      <circle cx="8" cy="8" r="1.5"/>
+                      <circle cx="8" cy="13" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div v-if="activeFaqActionId === item.id" class="doc-table__dropdown" @click.stop>
+                    <button
+                      type="button"
+                      class="doc-table__dropdown-item"
+                      @click="handleFaqAction('edit', item)"
+                    >编辑</button>
+                    <button
+                      type="button"
+                      class="doc-table__dropdown-item doc-table__dropdown-item--danger"
+                      @click="handleFaqAction('delete', item)"
+                    >删除</button>
+                  </div>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredFaqList.length === 0">
@@ -530,7 +561,7 @@ const docSearchQuery = ref("");
 interface DocKnowledgeItem {
   id: number;
   name: string;
-  type: string;
+  type: "文件" | "文章";
   updatedAt: string;
   statusType: "success" | "pending" | "error";
   statusLabel: string;
@@ -539,7 +570,7 @@ interface DocKnowledgeItem {
 const docKnowledgeList = ref<DocKnowledgeItem[]>([
   { id: 1, name: "word修订记录.docx", type: "文件", updatedAt: "2026-01-28 11:48", statusType: "success", statusLabel: "已完成" },
   { id: 2, name: "SaaS 行业自动回复 FAQ 模板.docx", type: "文件", updatedAt: "2026-01-12 19:19", statusType: "success", statusLabel: "已完成" },
-  { id: 3, name: "https://www.baidu.com", type: "网页", updatedAt: "2025-12-31 16:26", statusType: "success", statusLabel: "已完成" }
+  { id: 3, name: "新手引导文章：如何配置客服入口", type: "文章", updatedAt: "2025-12-31 16:26", statusType: "success", statusLabel: "已完成" }
 ]);
 
 const filteredDocList = computed(() => {
@@ -561,7 +592,7 @@ interface FaqItem {
 }
 
 const faqList = ref<FaqItem[]>([
-  { id: 1, question: "退款吗?", answer: "不退款", updatedAt: "2026-03-17 15:12", statusType: "pending", statusLabel: "待训练" }
+  { id: 1, question: "退款吗?", answer: "不退款", updatedAt: "2026-03-17 15:12", statusType: "success", statusLabel: "已完成" }
 ]);
 
 const filteredFaqList = computed(() => {
@@ -571,6 +602,8 @@ const filteredFaqList = computed(() => {
 });
 
 const { canUse, guardFeature } = usePlan();
+const activeDocActionId = ref<number | null>(null);
+const activeFaqActionId = ref<number | null>(null);
 
 const agentFeatureAvailable = computed(() => canUse(FEATURES.AI_AGENT));
 const configTab = ref<ConfigTab>("deploy");
@@ -582,17 +615,48 @@ const guardedDocAdd = () => {
   if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
   emitToast('功能开发中');
 };
-const guardedDocAction = () => {
-  if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
-  emitToast('功能开发中');
-};
 const guardedFaqAdd = () => {
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
   emitToast('功能开发中');
 };
-const guardedFaqAction = () => {
+
+const closeKnowledgeActionMenus = () => {
+  activeDocActionId.value = null;
+  activeFaqActionId.value = null;
+};
+
+const toggleDocActionMenu = (id: number) => {
+  if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
+  activeFaqActionId.value = null;
+  activeDocActionId.value = activeDocActionId.value === id ? null : id;
+};
+
+const toggleFaqActionMenu = (id: number) => {
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
-  emitToast('功能开发中');
+  activeDocActionId.value = null;
+  activeFaqActionId.value = activeFaqActionId.value === id ? null : id;
+};
+
+const handleDocAction = (action: "preview" | "edit" | "delete", item: DocKnowledgeItem) => {
+  closeKnowledgeActionMenus();
+  if (!guardFeature(FEATURES.DOC_KNOWLEDGE)) return;
+  if (action === "delete") {
+    docKnowledgeList.value = docKnowledgeList.value.filter((doc) => doc.id !== item.id);
+    emitToast("删除成功");
+    return;
+  }
+  emitToast(action === "preview" ? "预览功能开发中" : "编辑功能开发中");
+};
+
+const handleFaqAction = (action: "edit" | "delete", item: FaqItem) => {
+  closeKnowledgeActionMenus();
+  if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
+  if (action === "delete") {
+    faqList.value = faqList.value.filter((faq) => faq.id !== item.id);
+    emitToast("删除成功");
+    return;
+  }
+  emitToast("编辑功能开发中");
 };
 
 /** Copilot 设置项 key → 功能 key 映射 */
@@ -1018,19 +1082,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.ai-agent-locked-hint {
-  color: #75869c;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0 24px;
-  padding: 24px;
-  text-align: center;
-}
-
-.ai-agent-locked-hint__text {
-  margin: 0;
-}
-
 .ai-agent-page {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
@@ -1564,6 +1615,11 @@ onMounted(() => {
   text-align: center;
 }
 
+.doc-table__actions {
+  display: inline-flex;
+  position: relative;
+}
+
 .doc-table__empty {
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
@@ -1611,6 +1667,41 @@ onMounted(() => {
 .doc-action-btn:hover {
   background: var(--agent-color-bg-muted);
   color: var(--agent-color-text-secondary);
+}
+
+.doc-table__dropdown {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  min-width: 112px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.doc-table__dropdown-item {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.doc-table__dropdown-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.doc-table__dropdown-item--danger {
+  color: #e53e3e;
 }
 
 .faq-table__th--question {

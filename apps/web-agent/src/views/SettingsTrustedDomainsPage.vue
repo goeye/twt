@@ -1,5 +1,5 @@
 <template>
-  <section class="td-view">
+  <section class="td-view" @click="closeDropdown">
     <article class="td-panel agent-panel">
       <header class="td-panel__header">
         <div>
@@ -28,7 +28,13 @@
               <td>{{ row.creator }}</td>
               <td>{{ row.createdAt }}</td>
               <td>
-                <button type="button" class="td-table__delete-btn" @click="handleDelete(row)">删除</button>
+                <div class="td-table__actions">
+                  <button type="button" class="td-table__more-btn" @click.stop="toggleDropdown(row.id)">···</button>
+                  <div v-if="activeDropdownId === row.id" class="td-table__dropdown" @click.stop>
+                    <button type="button" class="td-table__dropdown-item" @click="handleEdit(row)">编辑</button>
+                    <button type="button" class="td-table__dropdown-item td-table__dropdown-item--danger" @click="handleDelete(row)">删除</button>
+                  </div>
+                </div>
               </td>
             </tr>
             <tr v-if="pagedList.length === 0">
@@ -84,7 +90,7 @@
       <div v-if="addModalVisible" class="td-modal-overlay" @click.self="addModalVisible = false">
         <div class="td-modal td-modal--form">
           <header class="td-modal__header">
-            <h3 class="td-modal__title">添加信任域名</h3>
+            <h3 class="td-modal__title">{{ formMode === 'add' ? '添加信任域名' : '编辑信任域名' }}</h3>
             <button type="button" class="td-modal__close" @click="addModalVisible = false">&times;</button>
           </header>
           <div class="td-modal__body">
@@ -99,7 +105,7 @@
               type="button"
               class="agent-btn agent-btn--primary td-modal__ok"
               :disabled="!formDomain.trim()"
-              @click="confirmAdd"
+              @click="confirmForm"
             >确 定</button>
           </footer>
         </div>
@@ -110,6 +116,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
@@ -124,9 +132,16 @@ interface DomainItem {
 
 const currentPage = ref(1);
 const pageSize = 20;
-let nextId = 1;
+let nextId = 2;
 
-const items = ref<DomainItem[]>([]);
+const items = ref<DomainItem[]>([
+  {
+    id: "1",
+    domain: "support.twt.com",
+    creator: "客服主管",
+    createdAt: "2026-03-18 22:54:25",
+  },
+]);
 
 const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / pageSize)));
 const pagedList = computed(() => {
@@ -134,16 +149,32 @@ const pagedList = computed(() => {
   return items.value.slice(start, start + pageSize);
 });
 
+const { guardFeature } = usePlan();
+
+const activeDropdownId = ref<string | null>(null);
+
+const toggleDropdown = (rowId: string) => {
+  if (activeDropdownId.value !== rowId && !guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
+  activeDropdownId.value = activeDropdownId.value === rowId ? null : rowId;
+};
+
+const closeDropdown = () => {
+  activeDropdownId.value = null;
+};
+
 // ---- Delete ----
 const deleteConfirmVisible = ref(false);
 const deleteTarget = ref<DomainItem | null>(null);
 
 const handleDelete = (row: DomainItem) => {
+  closeDropdown();
+  if (!guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
   deleteTarget.value = row;
   deleteConfirmVisible.value = true;
 };
 
 const confirmDelete = () => {
+  if (!guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
   if (!deleteTarget.value) return;
   items.value = items.value.filter((i) => i.id !== deleteTarget.value!.id);
   emit("toast", "删除成功");
@@ -153,10 +184,25 @@ const confirmDelete = () => {
 
 // ---- Add ----
 const addModalVisible = ref(false);
+const formMode = ref<"add" | "edit">("add");
+const formEditId = ref("");
 const formDomain = ref("");
 
 const openAddModal = () => {
+  if (!guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
+  closeDropdown();
+  formMode.value = "add";
+  formEditId.value = "";
   formDomain.value = "";
+  addModalVisible.value = true;
+};
+
+const handleEdit = (row: DomainItem) => {
+  closeDropdown();
+  if (!guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
+  formMode.value = "edit";
+  formEditId.value = row.id;
+  formDomain.value = row.domain;
   addModalVisible.value = true;
 };
 
@@ -166,21 +212,34 @@ const now = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-const confirmAdd = () => {
+const confirmForm = () => {
+  if (!guardFeature(FEATURES.TRUSTED_DOMAINS)) return;
   const domain = formDomain.value.trim();
   if (!domain) return;
-  if (items.value.some((i) => i.domain === domain)) {
+  if (items.value.some((i) => i.domain === domain && i.id !== formEditId.value)) {
     emit("toast", "该域名已存在");
     return;
   }
-  nextId++;
-  items.value.push({
-    id: String(nextId),
-    domain,
-    creator: "客服主管",
-    createdAt: now(),
-  });
-  emit("toast", "添加成功");
+  if (formMode.value === "add") {
+    nextId++;
+    items.value.push({
+      id: String(nextId),
+      domain,
+      creator: "客服主管",
+      createdAt: now(),
+    });
+    emit("toast", "添加成功");
+  } else {
+    items.value = items.value.map((item) =>
+      item.id === formEditId.value
+        ? {
+            ...item,
+            domain,
+          }
+        : item
+    );
+    emit("toast", "编辑成功");
+  }
   addModalVisible.value = false;
 };
 </script>
@@ -283,18 +342,65 @@ const confirmAdd = () => {
 .td-table th:nth-child(3) { width: 28%; }
 .td-table th:nth-child(4) { width: 10%; }
 
-.td-table__delete-btn {
-  background: transparent;
-  border: 0;
-  color: #ef4444;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 0;
+.td-table__actions {
+  position: relative;
 }
 
-.td-table__delete-btn:hover {
-  text-decoration: underline;
+.td-table__more-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #dbe1ea;
+  border-radius: 6px;
+  color: #75869c;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding: 0 8px;
+}
+
+.td-table__more-btn:hover {
+  background: #f5f7f9;
+  border-color: #c7cdd8;
+}
+
+.td-table__dropdown {
+  background: #ffffff;
+  border: 1px solid #edf1f5;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+}
+
+.td-table__dropdown-item {
+  background: transparent;
+  border: 0;
+  color: #252525;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 20px;
+  padding: 8px 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.td-table__dropdown-item:hover {
+  background: #f5f7f9;
+}
+
+.td-table__dropdown-item--danger {
+  color: #ef4444;
 }
 
 /* Empty state */

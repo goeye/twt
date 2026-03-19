@@ -108,10 +108,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { FEATURES } from "../lib/plan";
+import { usePlan } from "../composables/usePlan";
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
+
+const { guardFeature } = usePlan();
 
 interface BlacklistItem {
   id: string;
@@ -146,11 +150,13 @@ const deleteConfirmVisible = ref(false);
 const deleteTarget = ref<BlacklistItem | null>(null);
 
 const handleDelete = (row: BlacklistItem) => {
+  if (!guardFeature(FEATURES.BLACKLIST)) return;
   deleteTarget.value = row;
   deleteConfirmVisible.value = true;
 };
 
 const confirmDelete = () => {
+  if (!guardFeature(FEATURES.BLACKLIST)) return;
   if (!deleteTarget.value) return;
   items.value = items.value.filter((i) => i.id !== deleteTarget.value!.id);
   emit("toast", "删除成功");
@@ -163,6 +169,7 @@ const addModalVisible = ref(false);
 const formIp = ref("");
 
 const openAddModal = () => {
+  if (!guardFeature(FEATURES.BLACKLIST)) return;
   formIp.value = "";
   addModalVisible.value = true;
 };
@@ -174,6 +181,7 @@ const now = () => {
 };
 
 const confirmAdd = () => {
+  if (!guardFeature(FEATURES.BLACKLIST)) return;
   const ip = formIp.value.trim();
   if (!ip) return;
   if (items.value.some((i) => i.ip === ip)) {
