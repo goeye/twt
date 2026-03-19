@@ -32,7 +32,7 @@
       <!-- 会话模式 -->
       <template v-if="mode === 'conversation'">
         <div
-          v-if="showCollaborateActions"
+          v-if="showCollaborateActions && channelType !== 'email'"
           class="conversation-header__icon-btn-wrap"
         >
           <button
@@ -76,7 +76,7 @@
           <span class="conversation-header__tooltip">{{ isProcessing ? '取消待处理' : '标记为待处理' }}</span>
         </div>
 
-        <div class="conversation-header__icon-btn-wrap">
+        <div v-if="channelType !== 'email'" class="conversation-header__icon-btn-wrap">
           <button
             class="conversation-header__icon-btn conversation-header__icon-btn--danger"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
@@ -150,6 +150,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
+import type { ChannelType } from "../../types";
 
 const props = withDefaults(
   defineProps<{
@@ -161,6 +162,7 @@ const props = withDefaults(
     isProcessing?: boolean;
     closed?: boolean;
     mode?: "conversation" | "single-chat" | "group-chat";
+    channelType?: ChannelType;
   }>(),
   {
     editable: false,

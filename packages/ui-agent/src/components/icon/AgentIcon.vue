@@ -186,6 +186,66 @@
       <path d="M14 11v5" />
     </g>
 
+    <g v-else-if="name === 'email'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+      <path d="M3.5 8l8.5 5l8.5-5" />
+    </g>
+
+    <g v-else-if="name === 'gmail'" fill="currentColor" stroke="none">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" />
+      <path d="M3.5 8l8.5 5l8.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+
+    <g v-else-if="name === 'web'" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.8" />
+      <path d="M3.8 12h16.4" />
+      <path d="M12 3.2a13 13 0 0 1 0 17.6a13 13 0 0 1 0-17.6Z" />
+    </g>
+
+    <g v-else-if="name === 'bold'" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 5h6a4 4 0 0 1 0 8H7V5Z" />
+      <path d="M7 13h7a4 4 0 0 1 0 8H7v-8Z" />
+    </g>
+
+    <g v-else-if="name === 'italic'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 5h6" />
+      <path d="M8 19h6" />
+      <path d="M14 5l-4 14" />
+    </g>
+
+    <g v-else-if="name === 'underline'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 4v7a5 5 0 0 0 10 0V4" />
+      <path d="M5 20h14" />
+    </g>
+
+    <g v-else-if="name === 'list-ordered'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 6h9" />
+      <path d="M11 12h9" />
+      <path d="M11 18h9" />
+      <path d="M4 6h1v4" />
+      <path d="M4 16.5a1.5 1.5 0 1 1 3 0c0 .8-3 2.5-3 2.5h3" />
+    </g>
+
+    <g v-else-if="name === 'list-unordered'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6h11" />
+      <path d="M9 12h11" />
+      <path d="M9 18h11" />
+      <circle cx="5" cy="6" r="1" fill="currentColor" />
+      <circle cx="5" cy="12" r="1" fill="currentColor" />
+      <circle cx="5" cy="18" r="1" fill="currentColor" />
+    </g>
+
+    <g v-else-if="name === 'link'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.54 3.54 0 0 0-5-5l-.5.5" />
+      <path d="M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l.5-.5" />
+    </g>
+
+    <g v-else-if="name === 'disconnect'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.54 3.54 0 0 0-5-5l-.5.5" />
+      <path d="M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l.5-.5" />
+      <path d="M4 4l16 16" stroke-width="2" />
+    </g>
+
     <circle v-else cx="12" cy="12" r="7.5" fill="currentColor" />
   </svg>
 </template>

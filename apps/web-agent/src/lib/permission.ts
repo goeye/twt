@@ -124,6 +124,7 @@ export const PERMISSION_TREE: PermGroup[] = [
       { key: 'website-code', label: '网站代码', features: [{ key: 'website-code-view', label: '查看' }] },
       { key: 'chat-page', label: '聊天页面', features: [{ key: 'chat-page-view', label: '查看' }] },
       { key: 'customize', label: '自定义', features: [{ key: 'customize-manage', label: '管理' }] },
+      { key: 'email-channel', label: 'Email', features: [{ key: 'email-channel-manage', label: '管理' }] },
     ],
   },
   {

@@ -5,6 +5,9 @@
       <div class="session-item__row">
         <span class="session-item__name-wrap">
           <strong>{{ customerName }}</strong>
+          <span v-if="channelType === 'email'" class="session-item__channel-badge" title="Email">
+            <AgentIcon name="email" :size="12" />
+          </span>
         </span>
         <span class="session-item__time">{{ updatedAt }}</span>
       </div>
@@ -17,6 +20,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ChannelType } from "../../types";
+import AgentIcon from "../icon/AgentIcon.vue";
+
 withDefaults(
   defineProps<{
     customerName: string;
@@ -27,6 +33,7 @@ withDefaults(
     tag?: string;
     avatarText?: string;
     avatarColor?: string;
+    channelType?: ChannelType;
   }>(),
   {
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
@@ -120,5 +127,12 @@ withDefaults(
   flex-shrink: 0;
   height: 8px;
   width: 8px;
+}
+
+.session-item__channel-badge {
+  align-items: center;
+  color: var(--agent-color-text-tertiary);
+  display: inline-flex;
+  flex-shrink: 0;
 }
 </style>

@@ -5,6 +5,8 @@ export interface NavItem {
   badge?: number;
 }
 
+export type ChannelType = 'web' | 'email';
+
 export interface SessionItem {
   id: string;
   customerName: string;
@@ -12,6 +14,7 @@ export interface SessionItem {
   updatedAt: string;
   unreadCount?: number;
   channel?: string;
+  channelType?: ChannelType;
   active?: boolean;
 }
 
@@ -35,6 +38,10 @@ export interface MessageItem {
   sender: string;
   content: string;
   time: string;
+  contentType?: 'text' | 'html';
+  subject?: string;
+  fromEmail?: string;
+  toEmail?: string;
 }
 
 export interface TableColumn<T = Record<string, unknown>> {

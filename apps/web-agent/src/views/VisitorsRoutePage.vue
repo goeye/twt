@@ -28,6 +28,12 @@
           <option value="普通">普通</option>
         </select>
 
+        <select v-model="filterChannel" class="visitor-select visitor-select--channel">
+          <option value="">来源渠道</option>
+          <option value="web">Web</option>
+          <option value="email">Email</option>
+        </select>
+
         <div class="visitor-date-input-wrap">
           <input class="agent-input visitor-date-input" placeholder="首次访问" readonly />
           <svg class="visitor-date-input-wrap__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,6 +120,7 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
+            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th">
               <span class="visitor-th--sortable">
                 首次访问
@@ -144,6 +151,9 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
+            <td class="doc-table__td">
+              <span class="visitor-channel-badge" :class="`visitor-channel-badge--${item.channelType}`">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</span>
+            </td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastVisit }}</td>
             <td class="doc-table__td" style="text-align: center;">{{ item.traceCount }}</td>
@@ -204,6 +214,7 @@ const emit = defineEmits<{
 const searchField = ref("name");
 const searchKeyword = ref("");
 const filterTag = ref("");
+const filterChannel = ref("");
 const openMenuId = ref<number | null>(null);
 
 interface AllVisitorItem {
@@ -213,6 +224,7 @@ interface AllVisitorItem {
   email: string;
   phone: string;
   tag: string;
+  channelType: "web" | "email";
   firstVisit: string;
   lastVisit: string;
   traceCount: number;
@@ -240,17 +252,20 @@ const onlineVisitorsList = ref<OnlineVisitorItem[]>([
 ]);
 
 const allVisitorsList = ref<AllVisitorItem[]>([
-  { id: 1, name: "Visitor3", remark: "–", email: "–", phone: "–", tag: "–", firstVisit: "2026-03-16 11:42", lastVisit: "2026-03-16 13:32:59", traceCount: 2, ip: "192.168.1.100" },
-  { id: 2, name: "Visitor2", remark: "超级无敌SuperVIP", email: "–", phone: "–", tag: "–", firstVisit: "2026-03-06 15:14", lastVisit: "2026-03-06 15:14:19", traceCount: 1, ip: "10.0.0.55" },
-  { id: 3, name: "Visitor1", remark: "–", email: "–", phone: "–", tag: "123", firstVisit: "2026-02-12 11:35", lastVisit: "2026-03-06 13:15:09", traceCount: 4, ip: "172.16.0.22" },
-  { id: 4, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", firstVisit: "2026-03-10 09:12", lastVisit: "2026-03-17 09:12:33", traceCount: 8, ip: "192.168.1.23" },
-  { id: 5, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", firstVisit: "2026-03-12 10:05", lastVisit: "2026-03-17 10:05:47", traceCount: 3, ip: "10.0.0.45" },
+  { id: 1, name: "Visitor3", remark: "–", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-16 11:42", lastVisit: "2026-03-16 13:32:59", traceCount: 2, ip: "192.168.1.100" },
+  { id: 2, name: "Visitor2", remark: "超级无敌SuperVIP", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-06 15:14", lastVisit: "2026-03-06 15:14:19", traceCount: 1, ip: "10.0.0.55" },
+  { id: 3, name: "Visitor1", remark: "–", email: "–", phone: "–", tag: "123", channelType: "web", firstVisit: "2026-02-12 11:35", lastVisit: "2026-03-06 13:15:09", traceCount: 4, ip: "172.16.0.22" },
+  { id: 4, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-10 09:12", lastVisit: "2026-03-17 09:12:33", traceCount: 8, ip: "192.168.1.23" },
+  { id: 5, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-12 10:05", lastVisit: "2026-03-17 10:05:47", traceCount: 3, ip: "10.0.0.45" },
+  { id: 6, name: "Michael Brown", remark: "–", email: "michael.brown@acme.com", phone: "–", tag: "–", channelType: "email", firstVisit: "2026-03-18 16:30", lastVisit: "2026-03-18 16:45:12", traceCount: 1, ip: "–" },
+  { id: 7, name: "Sarah Johnson", remark: "–", email: "sarah.johnson@techcorp.io", phone: "–", tag: "VIP", channelType: "email", firstVisit: "2026-03-15 13:00", lastVisit: "2026-03-18 14:20:33", traceCount: 3, ip: "–" },
 ]);
 
 const handleReset = () => {
   searchField.value = "name";
   searchKeyword.value = "";
   filterTag.value = "";
+  filterChannel.value = "";
 };
 
 const toggleActionMenu = (id: number) => {
@@ -322,6 +337,10 @@ const handleMenuAction = (action: string) => {
 }
 
 .visitor-select--tag {
+  min-width: 140px;
+}
+
+.visitor-select--channel {
   min-width: 140px;
 }
 
@@ -586,5 +605,24 @@ const handleMenuAction = (action: string) => {
   gap: 4px;
   height: 32px;
   padding: 0 10px;
+}
+
+.visitor-channel-badge {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: var(--agent-font-size-xs);
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
+  padding: 3px 8px;
+}
+
+.visitor-channel-badge--web {
+  background: #e8f0ff;
+  color: #2f6bff;
+}
+
+.visitor-channel-badge--email {
+  background: #fef3cd;
+  color: #b45309;
 }
 </style>

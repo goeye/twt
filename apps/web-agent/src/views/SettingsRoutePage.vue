@@ -287,6 +287,11 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
       </article>
     </section>
 
+    <SettingsEmailPage
+      v-else-if="activeKey === 'email'"
+      @toast="emitToast"
+    />
+
     <SettingsWebsiteCodePage
       v-else-if="activeKey === 'website-code'"
       @toast="emitToast"
@@ -358,8 +363,9 @@ import SettingsQuickReplyPage from "./SettingsQuickReplyPage.vue";
 import SettingsTagsPage from "./SettingsTagsPage.vue";
 import SettingsBlacklistPage from "./SettingsBlacklistPage.vue";
 import SettingsTrustedDomainsPage from "./SettingsTrustedDomainsPage.vue";
+import SettingsEmailPage from "./SettingsEmailPage.vue";
 
-type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
 interface ChatParameterRow extends Record<string, unknown> {
   param: string;
@@ -374,6 +380,7 @@ const pageTitleMap: Record<SettingsNavKey, string> = {
   install: "聊天页面",
   "website-code": "网站代码",
   customize: "自定义",
+  email: "Email",
   agents: "成员",
   roles: "角色",
   team: "成员设置",

@@ -14,14 +14,20 @@
           <span class="message__sender">{{ sender }}</span>
           <time>{{ time }}</time>
         </header>
-        <div class="message__bubble">{{ content }}</div>
+        <div class="message__bubble">
+          <p v-if="subject" class="message__subject">{{ subject }}</p>
+          <div v-if="contentType === 'html'" class="message__html-content" v-html="sanitizedContent" />
+          <span v-else>{{ content }}</span>
+        </div>
       </div>
     </template>
   </article>
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { computed } from "vue";
+
+const props = withDefaults(
   defineProps<{
     role: "agent" | "customer" | "system" | "bot";
     sender: string;
@@ -30,13 +36,61 @@ withDefaults(
     avatarText?: string;
     avatarColor?: string;
     avatarUrl?: string;
+    contentType?: 'text' | 'html';
+    subject?: string;
   }>(),
   {
     avatarText: "?",
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
-    avatarUrl: ""
+    avatarUrl: "",
+    contentType: "text",
   }
 );
+
+const ALLOWED_TAGS = new Set([
+  'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ol', 'ul', 'li', 'a',
+  'blockquote', 'h1', 'h2', 'h3', 'h4', 'table', 'tr', 'td', 'th',
+  'thead', 'tbody', 'span', 'div', 'hr', 'img',
+]);
+const ALLOWED_ATTRS = new Set(['href', 'src', 'alt', 'target', 'width', 'height']);
+
+function sanitizeHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  function walk(node: Node): void {
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        continue;
+      }
+
+      const el = child as Element;
+      if (!ALLOWED_TAGS.has(el.tagName.toLowerCase())) {
+        const children = Array.from(el.childNodes);
+        el.replaceWith(...children);
+        for (const nestedChild of children) {
+          walk(nestedChild);
+        }
+        continue;
+      }
+      for (const attr of Array.from(el.attributes)) {
+        if (!ALLOWED_ATTRS.has(attr.name.toLowerCase())) {
+          el.removeAttribute(attr.name);
+        }
+      }
+      if (el.tagName === 'A') {
+        el.setAttribute('target', '_blank');
+        el.setAttribute('rel', 'noopener noreferrer');
+      }
+      walk(el);
+    }
+  }
+  walk(doc.body);
+  return doc.body.innerHTML;
+}
+
+const sanitizedContent = computed(() => {
+  if (props.contentType !== 'html') return props.content;
+  return sanitizeHtml(props.content);
+});
 </script>
 
 <style scoped>
@@ -134,5 +188,44 @@ withDefaults(
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
   text-align: center;
+}
+
+.message__subject {
+  border-bottom: 1px solid var(--agent-color-border-default);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+}
+
+.message__html-content {
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.message__html-content :deep(p) {
+  margin: 0 0 8px;
+}
+
+.message__html-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.message__html-content :deep(a) {
+  color: var(--agent-color-brand-primary);
+  text-decoration: underline;
+}
+
+.message__html-content :deep(blockquote) {
+  border-left: 3px solid var(--agent-color-border-default);
+  color: var(--agent-color-text-secondary);
+  margin: 8px 0;
+  padding-left: 12px;
+}
+
+.message__html-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--agent-radius-sm);
 }
 </style>

@@ -183,6 +183,7 @@
             :active="item.id === activeSessionId"
             :avatar-color="item.avatarColor"
             :avatar-text="item.avatarText"
+            :channel-type="item.channelType"
             :customer-name="item.customerName"
             :preview="item.preview"
             :unread-count="item.unreadCount"
@@ -196,6 +197,7 @@
       <section class="chat-pane agent-panel">
         <ConversationHeader
           class="chat-pane__header"
+          :channel-type="activeSession?.channelType"
           :closed="isClosedSession"
           :editable="!isAiSession && !isClosedSession"
           :is-processing="isProcessingSession"
@@ -224,6 +226,8 @@
             :avatar-text="message.avatarText"
             :avatar-url="message.avatarUrl"
             :content="message.content"
+            :content-type="message.contentType"
+            :subject="message.subject"
             :role="message.displayRole"
             :sender="message.displaySender"
             :time="message.time"
@@ -237,6 +241,24 @@
         <div v-else-if="isClosedSession" class="chat-pane__closed">
           <span class="chat-pane__closed-tag">会话已结束</span>
         </div>
+
+        <EmailComposer
+          v-else-if="activeSession?.channelType === 'email'"
+          v-model="emailComposerBody"
+          class="chat-pane__composer"
+          :to="activeSession?.email ?? ''"
+          :from-options="connectedGmailAccounts"
+          :selected-from="selectedFromEmail"
+          :subject="emailComposerSubject"
+          :disabled="emailComposerBody.trim().length === 0"
+          :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
+          @update:selected-from="selectedFromEmail = $event"
+          @update:subject="emailComposerSubject = $event"
+          @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
+          @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+          @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
+          @send="handleSendEmail"
+        />
 
         <MessageComposer
           v-else
@@ -494,6 +516,7 @@ import {
   InviteModal,
   MessageBubble,
   MessageComposer,
+  EmailComposer,
   PrimaryNavRail,
   SessionListItem,
   SessionQueueNav,
@@ -571,7 +594,7 @@ const switchPermRole = (role: 'admin' | 'agent' | 'limited') => {
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
-type SettingsNavKey = "install" | "website-code" | "customize" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
@@ -620,6 +643,7 @@ interface ConversationSession extends SessionItem {
   avatarText: string;
   avatarColor: string;
   channel: string;
+  channelType?: "web" | "email";
   visitorName: string;
   visitorId: string;
   phone: string;
@@ -717,7 +741,8 @@ const settingsNavGroupsBase = [
     items: [
       { key: "website-code", label: "网站代码" },
       { key: "install", label: "聊天页面" },
-      { key: "customize", label: "自定义" }
+      { key: "customize", label: "自定义" },
+      { key: "email", label: "Email" }
     ]
   },
   {
@@ -1061,6 +1086,58 @@ const allSessions = ref<ConversationSession[]>([
     acceptedAt: "19:58",
     assignee: "智能助手",
     assistants: []
+  },
+  {
+    id: "s-email-01",
+    queueKey: "pending-reply",
+    customerName: "产品报价询问",
+    preview: "Hi, I would like to get a quote for the enterprise plan...",
+    updatedAt: "16:45",
+    unreadCount: 1,
+    tag: "客户",
+    avatarText: "M",
+    avatarColor: "linear-gradient(135deg, #e85d1a 0%, #ff8c42 100%)",
+    channel: "邮件",
+    channelType: "email",
+    visitorName: "Michael Brown",
+    visitorId: "770201",
+    phone: "",
+    email: "michael.brown@acme.com",
+    entryPage: "",
+    visitStats: "1 会话",
+    deviceIp: "",
+    os: "",
+    browser: "",
+    startedAt: "16:30",
+    acceptedAt: "16:31",
+    assignee: "王珂",
+    assistants: []
+  },
+  {
+    id: "s-email-02",
+    queueKey: "resolved",
+    customerName: "Re: 技术支持请求 #4892",
+    preview: "Thank you for the quick response, the issue has been...",
+    updatedAt: "14:20",
+    unreadCount: 0,
+    tag: "VIP",
+    avatarText: "S",
+    avatarColor: "linear-gradient(135deg, #16a34a 0%, #4ade80 100%)",
+    channel: "邮件",
+    channelType: "email",
+    visitorName: "Sarah Johnson",
+    visitorId: "770202",
+    phone: "",
+    email: "sarah.johnson@techcorp.io",
+    entryPage: "",
+    visitStats: "3 会话",
+    deviceIp: "",
+    os: "",
+    browser: "",
+    startedAt: "13:00",
+    acceptedAt: "13:02",
+    assignee: "客服主管",
+    assistants: []
   }
 ]);
 
@@ -1185,6 +1262,68 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       content: "您好！开启两步验证的步骤如下：\n1. 登录后进入「账户设置」页面\n2. 点击「安全设置」\n3. 找到「两步验证」，点击「开启」\n4. 选择验证方式（短信或认证器应用）\n5. 按提示完成绑定即可\n\n如果遇到问题，可以随时联系我。",
       time: "20:00"
     }
+  ],
+  "s-email-01": [
+    {
+      id: "m-email-01",
+      role: "system",
+      sender: "系统",
+      content: "邮件会话开始",
+      time: "16:30"
+    },
+    {
+      id: "m-email-02",
+      role: "customer",
+      sender: "Michael Brown",
+      content: "<p>Hi,</p><p>I would like to get a quote for the <strong>enterprise plan</strong> for our company. We have approximately 50 customer service agents and handle around 2,000 conversations per day.</p><p>Could you also provide information about:</p><ul><li>API integration options</li><li>Custom branding capabilities</li><li>SLA guarantees</li></ul><p>Looking forward to your response.</p><p>Best regards,<br/>Michael Brown<br/>VP of Customer Success, Acme Corp</p>",
+      time: "16:30",
+      contentType: "html",
+      subject: "Enterprise Plan Quote Request",
+      fromEmail: "michael.brown@acme.com",
+      toEmail: "support@company.gmail.com"
+    }
+  ],
+  "s-email-02": [
+    {
+      id: "m-email-10",
+      role: "system",
+      sender: "系统",
+      content: "邮件会话开始",
+      time: "13:00"
+    },
+    {
+      id: "m-email-11",
+      role: "customer",
+      sender: "Sarah Johnson",
+      content: "<p>Hi Support Team,</p><p>We're experiencing an issue with the <strong>webhook integration</strong>. The events are not being delivered to our endpoint since yesterday.</p><p>Error details:</p><blockquote>HTTP 503 - Service Unavailable on POST /api/webhooks/twt</blockquote><p>Our endpoint URL: <a href=\"#\">https://api.techcorp.io/webhooks/twt</a></p><p>Ticket reference: #4892</p><p>Thanks,<br/>Sarah</p>",
+      time: "13:00",
+      contentType: "html",
+      subject: "技术支持请求 #4892",
+      fromEmail: "sarah.johnson@techcorp.io",
+      toEmail: "support@company.gmail.com"
+    },
+    {
+      id: "m-email-12",
+      role: "agent",
+      sender: "客服主管",
+      content: "<p>Hi Sarah,</p><p>Thank you for reporting this issue. I've checked our webhook delivery logs and found the root cause:</p><p>Your SSL certificate expired on March 17th, which is causing the 503 errors. Please renew your certificate and the webhook deliveries will resume automatically.</p><p>We've queued all missed events and they will be re-delivered once your endpoint is accessible again.</p><p>Best regards,<br/>Support Team</p>",
+      time: "13:45",
+      contentType: "html",
+      subject: "Re: 技术支持请求 #4892",
+      fromEmail: "support@company.gmail.com",
+      toEmail: "sarah.johnson@techcorp.io"
+    },
+    {
+      id: "m-email-13",
+      role: "customer",
+      sender: "Sarah Johnson",
+      content: "<p>Hi,</p><p>Thank you for the quick response! You were right - the SSL certificate had expired. We've renewed it and the webhooks are working again.</p><p>Much appreciated!</p><p>Sarah</p>",
+      time: "14:20",
+      contentType: "html",
+      subject: "Re: 技术支持请求 #4892",
+      fromEmail: "sarah.johnson@techcorp.io",
+      toEmail: "support@company.gmail.com"
+    }
   ]
 });
 
@@ -1196,6 +1335,10 @@ const activeQueueKey = ref("pending-reply");
 const activeSessionId = ref("s-6001");
 const searchKeyword = ref("");
 const composerText = ref("");
+const emailComposerBody = ref("");
+const emailComposerSubject = ref("");
+const selectedFromEmail = ref("support@company.gmail.com");
+const connectedGmailAccounts = ["support@company.gmail.com", "sales@company.gmail.com"];
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
@@ -1401,6 +1544,17 @@ const activeMessages = computed<DisplayMessage[]>(() => {
 });
 
 const activeSessionTitle = computed(() => activeSession.value?.customerName ?? "会话详情");
+
+// 当切换到 email 会话时，自动填充 subject
+watch(() => activeSession.value?.id, (id) => {
+  if (!id) return;
+  const session = activeSession.value;
+  if (session?.channelType === "email") {
+    const messages = messageMap.value[id] ?? [];
+    const lastWithSubject = [...messages].reverse().find(m => m.subject);
+    emailComposerSubject.value = lastWithSubject?.subject ? `Re: ${lastWithSubject.subject.replace(/^Re:\s*/i, "")}` : "";
+  }
+}, { immediate: true });
 
 const activeQueueLabel = computed(() => {
   for (const group of queueGroups.value) {
@@ -1967,6 +2121,35 @@ const handleSend = () => {
   };
 
   composerText.value = "";
+};
+
+const handleSendEmail = () => {
+  const html = emailComposerBody.value.trim();
+  if (!html || !activeSession.value) return;
+  track(TrackEvent.SEND_MESSAGE);
+
+  const now = new Date();
+  const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  const nextMessage: MessageItem = {
+    id: `m-${activeSession.value.id}-${now.getTime()}`,
+    role: "agent",
+    sender: "客服主管",
+    content: html,
+    time,
+    contentType: "html",
+    subject: emailComposerSubject.value ? `Re: ${emailComposerSubject.value}` : "",
+    fromEmail: selectedFromEmail.value,
+    toEmail: activeSession.value.email
+  };
+
+  const history = messageMap.value[activeSession.value.id] ?? [];
+  messageMap.value = {
+    ...messageMap.value,
+    [activeSession.value.id]: [...history, nextMessage]
+  };
+
+  emailComposerBody.value = "";
 };
 
 const markSessionAsPending = () => {

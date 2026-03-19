@@ -17,6 +17,7 @@ export { default as MessageBubble } from "./components/conversation/MessageBubbl
 export { default as MessageList } from "./components/conversation/MessageList.vue";
 
 export { default as MessageComposer } from "./components/composer/MessageComposer.vue";
+export { default as EmailComposer } from "./components/composer/EmailComposer.vue";
 
 export { default as DetailPanel } from "./components/detail/DetailPanel.vue";
 

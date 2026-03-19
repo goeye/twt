@@ -79,6 +79,15 @@
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
 
+        <label class="archive-field">
+          <select v-model="draftFilters.channelType" class="archive-field__control archive-field__control--select">
+            <option value="all">来源渠道</option>
+            <option value="web">Web</option>
+            <option value="email">Email</option>
+          </select>
+          <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+        </label>
+
         <label class="archive-field archive-field--date">
           <input v-model="draftFilters.startedDate" class="archive-field__native-date" type="date" />
           <span
@@ -109,6 +118,7 @@
               <th>会话负责人</th>
               <th>服务客服</th>
               <th>标签</th>
+              <th>来源渠道</th>
               <th>
                 <button type="button" class="archive-sort" @click="toggleSort('startedAt')">
                   <span>发起时间</span>
@@ -226,6 +236,9 @@
                     </p>
                   </div>
                 </div>
+              </td>
+              <td>
+                <span class="archive-channel-badge" :class="`archive-channel-badge--${row.channelType}`">{{ row.channelType === 'email' ? 'Email' : 'Web' }}</span>
               </td>
               <td>{{ row.startedAtLabel }}</td>
               <td>{{ row.acceptedAtLabel }}</td>
@@ -347,6 +360,7 @@ interface ConversationRecord {
   serviceDuration: string;
   rating: ConversationRating;
   aiAgentHandled: boolean;
+  channelType: "web" | "email";
 }
 
 interface ConversationSeed {
@@ -368,6 +382,7 @@ interface ConversationSeed {
   serviceDuration?: string;
   rating?: ConversationRating;
   aiAgentHandled?: boolean;
+  channelType?: "web" | "email";
 }
 
 interface FilterState {
@@ -377,6 +392,7 @@ interface FilterState {
   owner: string;
   status: "all" | ConversationStatus;
   rating: "all" | ConversationRating;
+  channelType: "all" | "web" | "email";
   startedDate: string;
 }
 
@@ -476,6 +492,7 @@ const createDefaultFilters = (): FilterState => ({
   owner: "all",
   status: "all",
   rating: "all",
+  channelType: "all",
   startedDate: ""
 });
 
@@ -557,7 +574,8 @@ const createRecord = (index: number, seed: ConversationSeed): ConversationRecord
         ? "–"
         : formatDuration(duration.minutes, duration.seconds)),
     rating: seed.rating ?? (index % 8 === 0 ? "satisfied" : "none"),
-    aiAgentHandled: seed.aiAgentHandled ?? false
+    aiAgentHandled: seed.aiAgentHandled ?? false,
+    channelType: seed.channelType ?? (index % 6 === 0 ? "email" : "web")
   };
 };
 
@@ -908,6 +926,9 @@ const visibleRows = computed(() => {
       return false;
     }
     if (filters.rating !== "all" && row.rating !== filters.rating) {
+      return false;
+    }
+    if (filters.channelType !== "all" && row.channelType !== filters.channelType) {
       return false;
     }
     if (filters.startedDate && !row.startedAtLabel.startsWith(filters.startedDate)) {
@@ -2155,5 +2176,24 @@ onMounted(() => {
   .archive-filters__row--primary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.archive-channel-badge {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: var(--agent-font-size-xs);
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
+  padding: 3px 8px;
+}
+
+.archive-channel-badge--web {
+  background: #e8f0ff;
+  color: #2f6bff;
+}
+
+.archive-channel-badge--email {
+  background: #fef3cd;
+  color: #b45309;
 }
 </style>
