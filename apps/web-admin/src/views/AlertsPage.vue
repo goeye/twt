@@ -53,6 +53,12 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'content'">
+            <div>{{ record.content }}</div>
+            <div v-if="record.triggerKeywords?.length" class="trigger-keywords">
+              <a-tag v-for="kw in record.triggerKeywords" :key="kw" color="orange" :bordered="false">{{ kw }}</a-tag>
+            </div>
+          </template>
           <template v-if="column.dataIndex === 'type'">
             {{ record.type === 'session' ? '会话' : '聊天' }}
           </template>
@@ -192,5 +198,12 @@ const columns = [
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.trigger-keywords {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 </style>
