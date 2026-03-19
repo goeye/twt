@@ -451,6 +451,13 @@
       :open="permModalState.visible"
       @confirm="handlePermissionChangedConfirm"
     />
+
+    <VersionUpdateModal
+      :open="versionState.hasUpdate"
+      :notes="versionState.notes"
+      @dismiss="dismissUpdate"
+      @refresh="doRefresh"
+    />
   </AgentAppShell>
 </template>
 
@@ -473,12 +480,14 @@ import { track, TrackEvent } from "./lib/tracker";
 import { usePlan } from "./composables/usePlan";
 import { FEATURES } from "./lib/plan";
 import { usePermission } from "./composables/usePermission";
+import { useVersionCheck } from "./composables/useVersionCheck";
 import {
   AgentAppShell,
   AiSettingsNav,
   BaseModal,
   FeatureLockedModal,
   PermissionChangedModal,
+  VersionUpdateModal,
   AgentIcon,
   AgentToast,
   ConversationHeader,
@@ -509,6 +518,8 @@ const {
   showPermissionChangedModal,
   setMockRole,
 } = usePermission();
+
+const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 
 const permSwitcherOpen = ref(false);
 

@@ -1,0 +1,9 @@
+{
+  "name": "@twt/build-utils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./vite-plugin-version": "./vite-plugin-version.ts"
+  }
+}

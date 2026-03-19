@@ -91,6 +91,30 @@
         <router-view />
       </a-layout-content>
     </a-layout>
+
+    <!-- 版本更新弹窗 -->
+    <a-modal
+      :open="versionState.hasUpdate"
+      title="发现新版本"
+      :closable="false"
+      :mask-closable="false"
+      :footer="null"
+      :width="420"
+    >
+      <p style="color: #75869c; margin-bottom: 16px">
+        系统已更新，刷新页面即可使用最新功能
+      </p>
+      <div v-if="notesList.length" style="margin-bottom: 20px">
+        <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px">更新内容</h4>
+        <ul style="padding-left: 18px; color: #4e5969; font-size: 13px">
+          <li v-for="(note, i) in notesList" :key="i" style="margin-bottom: 4px">{{ note }}</li>
+        </ul>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px">
+        <a-button @click="dismissUpdate">稍后提醒</a-button>
+        <a-button type="primary" @click="doRefresh">立即刷新</a-button>
+      </div>
+    </a-modal>
   </a-layout>
 </template>
 
@@ -109,6 +133,17 @@ import {
   CloseOutlined,
 } from "@ant-design/icons-vue";
 import { dictionaryData } from "./mock/sensitiveWordsData";
+import { useVersionCheck } from "./composables/useVersionCheck";
+
+const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
+
+const notesList = computed(() => {
+  if (!versionState.notes) return [];
+  return versionState.notes
+    .split("\n")
+    .map((line) => line.replace(/^[a-f0-9]+ /, "").trim())
+    .filter(Boolean);
+});
 
 const collapsed = ref(false);
 const route = useRoute();
