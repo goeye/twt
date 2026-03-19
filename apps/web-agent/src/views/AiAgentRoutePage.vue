@@ -55,8 +55,6 @@
         <p class="ai-agent-locked-hint__text">当前服务版本不支持 AI Agent，请升级到专业版后使用</p>
       </div>
 
-      <template v-else>
-
       <nav class="config-tabs">
         <button
           type="button"
@@ -133,7 +131,7 @@
                     <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
                   </div>
                   <div class="bot-avatar-upload__actions">
-                    <button type="button" class="agent-btn agent-btn--ghost" @click="triggerBotAvatarSelect">
+                    <button type="button" class="agent-btn agent-btn--ghost" :disabled="!agentFeatureAvailable" @click="triggerBotAvatarSelect">
                       {{ botAvatarUrl ? '重新上传' : '上传头像' }}
                     </button>
                   </div>
@@ -166,6 +164,7 @@
                   :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
                   maxlength="64"
                   placeholder="请输入昵称"
+                  :disabled="!agentFeatureAvailable"
                   @blur="botNameTouched = true; autoSave()"
                 />
                 <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
@@ -184,6 +183,7 @@
                   rows="5"
                   maxlength="2000"
                   placeholder="例如：我们是一家 SaaS 软件服务商，提供产品功能咨询、账户管理、订阅与计费、技术故障排查等支持。请用专业友好的语气解答客户问题，无法解决时引导联系人工客服。"
+                  :disabled="!agentFeatureAvailable"
                   @blur="autoSave"
                 />
               </div>
@@ -209,6 +209,7 @@
                     type="button"
                     class="bot-chip"
                     :class="{ 'bot-chip--active': selectedTone === tone.value }"
+                    :disabled="!agentFeatureAvailable"
                     @click="selectedTone = tone.value; autoSave()"
                   >{{ tone.label }}</button>
                 </div>
@@ -221,7 +222,7 @@
                 <span class="form-row__desc">当 AI Agent 无法判断访客语言时，将使用该语言进行回复</span>
               </div>
               <div class="form-row__control">
-                <select v-model="defaultLanguage" class="agent-input" @change="autoSave">
+                <select v-model="defaultLanguage" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
                   <option
                     v-for="language in languageOptions"
                     :key="language.value"
@@ -234,7 +235,6 @@
         </div>
       </div>
 
-      </template>
     </template>
 
     <template v-else-if="resolvedActiveKey === 'doc-knowledge'">
@@ -922,6 +922,7 @@ const updateCopilotSetting = (key: string, next: boolean) => {
 };
 
 const triggerBotAvatarSelect = () => {
+  if (!guardFeature(FEATURES.AI_AGENT)) return;
   avatarInputRef.value?.click();
 };
 
@@ -1359,6 +1360,25 @@ onMounted(() => {
   border-color: var(--agent-color-brand-primary);
   color: var(--agent-color-brand-primary);
   font-weight: var(--agent-font-weight-medium);
+}
+
+.bot-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bot-chip:disabled:hover {
+  border-color: var(--agent-color-border-default);
+  color: var(--agent-color-text-secondary);
+}
+
+.bot-chip--active:disabled {
+  opacity: 0.6;
+}
+
+.bot-chip--active:disabled:hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
 }
 
 /* ─── 文档知识页面 ─── */
