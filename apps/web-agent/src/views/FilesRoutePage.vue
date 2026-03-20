@@ -32,6 +32,6 @@ const resolvedActiveKey = computed<FilesPageKey>(() => (
 
 <style scoped>
 .files-page {
-  background: #fff;
+  height: 100%;
 }
 </style>

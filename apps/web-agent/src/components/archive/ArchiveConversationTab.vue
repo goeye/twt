@@ -1374,13 +1374,14 @@ onMounted(() => {
 .files-page__card,
 .files-page__placeholder {
   background: #ffffff;
-  border-radius: var(--agent-radius-xl);
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 0;
   height: 100%;
   min-height: 0;
-  padding: 24px 32px 28px;
+  overflow: hidden;
+  padding: 18px 18px 0;
 }
 
 .files-page__header {
@@ -1403,6 +1404,7 @@ onMounted(() => {
   border-radius: 30px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
+  margin: 0 0 16px;
   min-height: 194px;
   overflow: hidden;
   position: relative;
@@ -1536,6 +1538,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding: 0 0 12px;
 }
 
 .archive-filters__row {
@@ -2178,8 +2181,8 @@ onMounted(() => {
 @media (max-width: 1440px) {
   .files-page__card,
   .files-page__placeholder {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .summary-banner {

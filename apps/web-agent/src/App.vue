@@ -257,7 +257,7 @@
           v-model="emailComposerBody"
           class="chat-pane__composer"
           :to="activeSession?.email ?? ''"
-          :from-options="connectedGmailAccounts"
+          :from-options="activeSessionFromOptions"
           :selected-from="selectedFromEmail"
           :disabled="emailComposerBody.trim().length === 0"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
@@ -662,6 +662,7 @@ interface ConversationSession extends SessionItem {
   channelType?: "web" | "email";
   remarkName?: string;
   visitorOnline?: boolean;
+  fromEmail?: string;
   visitorName: string;
   visitorId: string;
   phone: string;
@@ -1151,6 +1152,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #e85d1a 0%, #ff8c42 100%)",
     channel: "邮件",
     channelType: "email",
+    fromEmail: "sales@company.gmail.com",
     visitorName: "Michael Brown",
     visitorId: "770201",
     phone: "",
@@ -1177,6 +1179,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #16a34a 0%, #4ade80 100%)",
     channel: "邮件",
     channelType: "email",
+    fromEmail: "support@company.gmail.com",
     visitorName: "Sarah Johnson",
     visitorId: "770202",
     phone: "",
@@ -1189,6 +1192,33 @@ const allSessions = ref<ConversationSession[]>([
     startedAt: "13:00",
     acceptedAt: "13:02",
     assignee: "客服主管",
+    assistants: []
+  },
+  {
+    id: "s-email-03",
+    queueKey: "processing",
+    customerName: "账单地址变更请求",
+    preview: "Could you please update our billing address to...",
+    updatedAt: "11:30",
+    unreadCount: 1,
+    tag: "客户",
+    avatarText: "D",
+    avatarColor: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+    channel: "邮件",
+    channelType: "email",
+    fromEmail: "billing@company.gmail.com",
+    visitorName: "David Wilson",
+    visitorId: "770203",
+    phone: "",
+    email: "david.wilson@globalinc.com",
+    entryPage: "",
+    visitStats: "2 会话",
+    deviceIp: "",
+    os: "",
+    browser: "",
+    startedAt: "11:15",
+    acceptedAt: "11:16",
+    assignee: "刘昊",
     assistants: []
   }
 ]);
@@ -1395,6 +1425,19 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       fromEmail: "sarah.johnson@techcorp.io",
       toEmail: "support@company.gmail.com"
     }
+  ],
+  "s-email-03": [
+    {
+      id: "m-email-20",
+      role: "customer",
+      sender: "David Wilson",
+      content: "<p>Hi,</p><p>We recently moved our headquarters. Could you please update our billing address on file to:</p><p><strong>GlobalInc Ltd.</strong><br/>350 Market Street, Suite 800<br/>San Francisco, CA 94105<br/>United States</p><p>Please confirm once updated. Thank you!</p><p>Best regards,<br/>David Wilson<br/>Finance Department, GlobalInc</p>",
+      time: "11:15",
+      contentType: "html",
+      subject: "账单地址变更请求",
+      fromEmail: "david.wilson@globalinc.com",
+      toEmail: "billing@company.gmail.com"
+    }
   ]
 });
 
@@ -1410,7 +1453,7 @@ const emailComposerBody = ref("");
 const emailComposerSubject = ref("");
 const emailComposerRef = ref<InstanceType<typeof EmailComposer>>();
 const selectedFromEmail = ref("support@company.gmail.com");
-const connectedGmailAccounts = ref<string[]>([]);
+const connectedGmailAccounts = ref(["support@company.gmail.com", "sales@company.gmail.com"]);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
@@ -1567,6 +1610,14 @@ const activeSession = computed(() => {
     return fallback;
   }
   return visibleSessions.value[0] ?? queueSessionList.value[0] ?? allSessions.value[0];
+});
+
+const activeSessionFromOptions = computed(() => {
+  const session = activeSession.value;
+  if (!session || session.channelType !== "email") return [];
+  const from = session.fromEmail;
+  if (from && connectedGmailAccounts.value.includes(from)) return connectedGmailAccounts.value;
+  return [];
 });
 
 const activeMessages = computed<DisplayMessage[]>(() => {
