@@ -4,10 +4,13 @@
     <div class="session-item__main">
       <div class="session-item__row">
         <span class="session-item__name-wrap">
-          <strong>{{ customerName }}</strong>
-          <span v-if="channelType === 'email'" class="session-item__channel-badge" title="Email">
+          <span v-if="channelType === 'email'" class="session-item__channel-icon session-item__channel-icon--email" title="Email">
             <AgentIcon name="email" :size="12" />
           </span>
+          <span v-else class="session-item__channel-icon session-item__channel-icon--web" title="Web">
+            <AgentIcon name="web" :size="12" />
+          </span>
+          <strong>{{ customerName }}</strong>
         </span>
         <span class="session-item__time">{{ updatedAt }}</span>
       </div>
@@ -129,10 +132,23 @@ withDefaults(
   width: 8px;
 }
 
-.session-item__channel-badge {
+.session-item__channel-icon {
   align-items: center;
-  color: var(--agent-color-text-tertiary);
+  border-radius: 4px;
   display: inline-flex;
   flex-shrink: 0;
+  height: 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+.session-item__channel-icon--web {
+  background: #e8f0ff;
+  color: #2f6bff;
+}
+
+.session-item__channel-icon--email {
+  background: #fef3cd;
+  color: #b45309;
 }
 </style>

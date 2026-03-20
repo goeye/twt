@@ -88,6 +88,19 @@
           </button>
           <span class="conversation-header__tooltip">结束会话</span>
         </div>
+
+        <div v-if="channelType === 'email'" class="conversation-header__icon-btn-wrap">
+          <button
+            class="conversation-header__icon-btn conversation-header__icon-btn--success"
+            :class="{ 'conversation-header__icon-btn--disabled': closed }"
+            type="button"
+            aria-label="标记已解决"
+            @click="handleMarkResolved"
+          >
+            <AgentIcon name="check-circle" :size="16" />
+          </button>
+          <span class="conversation-header__tooltip">标记已解决</span>
+        </div>
       </template>
 
       <!-- 单聊模式 -->
@@ -180,6 +193,7 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "mark-pending"): void;
   (e: "remove-pending"): void;
+  (e: "mark-resolved"): void;
   (e: "update:title", value: string): void;
   (e: "start-group-chat"): void;
   (e: "add-member"): void;
@@ -240,6 +254,11 @@ const handleMarkPending = () => {
 const handleClose = () => {
   if (props.closed) return;
   emit("close");
+};
+
+const handleMarkResolved = () => {
+  if (props.closed) return;
+  emit("mark-resolved");
 };
 </script>
 
@@ -344,6 +363,11 @@ const handleClose = () => {
 .conversation-header__icon-btn--danger:hover {
   background: rgba(245, 63, 63, 0.06);
   color: var(--agent-color-status-error);
+}
+
+.conversation-header__icon-btn--success:hover {
+  background: rgba(0, 181, 120, 0.08);
+  color: var(--agent-color-status-success);
 }
 
 .conversation-header__icon-btn--disabled {

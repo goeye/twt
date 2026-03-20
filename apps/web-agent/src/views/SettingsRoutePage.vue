@@ -3,7 +3,7 @@
     class="agent-content-page agent-content-page--hide-scrollbar settings-page"
     :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' || activeKey === 'quick-reply' || activeKey === 'personal-reply' || activeKey === 'visitor-tags' || activeKey === 'conversation-tags' || activeKey === 'blacklist' || activeKey === 'trusted-domains' }"
   >
-    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains'" class="agent-content-header">
+    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains' && activeKey !== 'email'" class="agent-content-header">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
     </header>
 

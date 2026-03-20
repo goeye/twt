@@ -13,31 +13,69 @@
           </span>
         </button>
 
-        <button
-          v-for="item in group.items"
-          :key="item.key"
-          class="ai-nav__item"
-          :class="{ 'ai-nav__item--active': item.key === activeKey }"
-          type="button"
-          :aria-label="item.label"
-          @click="$emit('select', item.key)"
-        >
-          <span v-if="item.leadingEmoji" class="ai-nav__item-emoji" aria-hidden="true">{{ item.leadingEmoji }}</span>
-          <span
-            v-if="item.icon"
-            class="ai-nav__item-icon"
-            :class="item.iconTone ? `ai-nav__item-icon--${item.iconTone}` : ''"
+        <template v-for="item in group.items" :key="item.key">
+          <!-- Item with children: expandable -->
+          <template v-if="item.children && item.children.length > 0">
+            <button
+              class="ai-nav__item ai-nav__item--parent"
+              :class="{ 'ai-nav__item--expanded': expandedKeys.has(item.key) }"
+              type="button"
+              :aria-label="item.label"
+              @click="toggleExpand(item.key)"
+            >
+              <span v-if="item.leadingEmoji" class="ai-nav__item-emoji" aria-hidden="true">{{ item.leadingEmoji }}</span>
+              <span
+                v-if="item.icon"
+                class="ai-nav__item-icon"
+                :class="item.iconTone ? `ai-nav__item-icon--${item.iconTone}` : ''"
+              >
+                <AgentIcon :name="item.icon" :size="16" />
+              </span>
+              <span class="ai-nav__item-text">{{ item.label }}</span>
+              <AgentIcon class="ai-nav__item-arrow" name="chevron-down" :size="12" />
+            </button>
+            <div v-if="expandedKeys.has(item.key)" class="ai-nav__children">
+              <button
+                v-for="child in item.children"
+                :key="child.key"
+                class="ai-nav__item ai-nav__item--child"
+                :class="{ 'ai-nav__item--active': child.key === activeKey }"
+                type="button"
+                :aria-label="child.label"
+                @click="$emit('select', child.key)"
+              >
+                <span>{{ child.label }}</span>
+              </button>
+            </div>
+          </template>
+
+          <!-- Leaf item -->
+          <button
+            v-else
+            class="ai-nav__item"
+            :class="{ 'ai-nav__item--active': item.key === activeKey }"
+            type="button"
+            :aria-label="item.label"
+            @click="$emit('select', item.key)"
           >
-            <AgentIcon :name="item.icon" :size="16" />
-          </span>
-          <span>{{ item.label }}</span>
-        </button>
+            <span v-if="item.leadingEmoji" class="ai-nav__item-emoji" aria-hidden="true">{{ item.leadingEmoji }}</span>
+            <span
+              v-if="item.icon"
+              class="ai-nav__item-icon"
+              :class="item.iconTone ? `ai-nav__item-icon--${item.iconTone}` : ''"
+            >
+              <AgentIcon :name="item.icon" :size="16" />
+            </span>
+            <span>{{ item.label }}</span>
+          </button>
+        </template>
       </section>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { reactive } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
 
 interface AiSettingsNavItem {
@@ -46,6 +84,7 @@ interface AiSettingsNavItem {
   leadingEmoji?: string;
   icon?: string;
   iconTone?: string;
+  children?: AiSettingsNavItem[];
 }
 
 interface AiSettingsNavGroup {
@@ -70,6 +109,16 @@ withDefaults(
 defineEmits<{
   (e: "select", key: string): void;
 }>();
+
+const expandedKeys = reactive(new Set<string>());
+
+function toggleExpand(key: string) {
+  if (expandedKeys.has(key)) {
+    expandedKeys.delete(key);
+  } else {
+    expandedKeys.add(key);
+  }
+}
 </script>
 
 <style scoped>
@@ -185,6 +234,35 @@ defineEmits<{
   font-size: 16px;
   justify-content: center;
   line-height: 1;
+}
+
+.ai-nav__item--parent {
+  justify-content: flex-start;
+}
+
+.ai-nav__item-text {
+  flex: 1;
+}
+
+.ai-nav__item-arrow {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--agent-motion-fast) ease;
+}
+
+.ai-nav__item--expanded .ai-nav__item-arrow {
+  transform: rotate(180deg);
+}
+
+.ai-nav__children {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-4);
+  padding-left: 28px;
+}
+
+.ai-nav__item--child {
+  font-size: var(--agent-font-size-sm);
 }
 
 .ai-nav--default .ai-nav__title {

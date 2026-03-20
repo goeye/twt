@@ -1,20 +1,22 @@
 <template>
   <section class="email-settings">
+    <header class="email-settings__header">
+      <h1 class="agent-content-title">Email</h1>
+      <button
+        type="button"
+        class="agent-btn agent-btn--primary"
+        :disabled="connectedEmails.length >= maxEmails"
+        :title="connectedEmails.length >= maxEmails ? `最多支持 ${maxEmails} 个邮箱` : undefined"
+        @click="showConnectModal = true"
+      >
+        连接 Gmail 邮箱
+      </button>
+    </header>
+
     <p class="email-settings__desc">连接 Gmail 邮箱，通过邮件渠道接收和回复客户消息。初期仅支持 Gmail，后续将支持更多邮箱服务。</p>
 
     <article class="settings-card agent-panel">
-      <div class="email-settings__head">
-        <h2 class="agent-settings-feature-title">已连接邮箱</h2>
-        <button
-          type="button"
-          class="agent-btn agent-btn--primary"
-          :disabled="connectedEmails.length >= maxEmails"
-          :title="connectedEmails.length >= maxEmails ? `最多支持 ${maxEmails} 个邮箱` : undefined"
-          @click="showConnectModal = true"
-        >
-          连接 Gmail 邮箱
-        </button>
-      </div>
+      <h2 class="agent-settings-feature-title">已连接邮箱</h2>
 
       <div v-if="connectedEmails.length === 0" class="email-settings__empty">
         <p class="email-settings__empty-text">暂未连接任何邮箱，点击上方按钮添加 Gmail 邮箱</p>
@@ -25,8 +27,8 @@
           <thead>
             <tr>
               <th>邮箱地址</th>
-              <th>状态</th>
-              <th>连接时间</th>
+              <th>创建时间</th>
+              <th>创建人</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -35,22 +37,15 @@
               <td>
                 <span class="email-table__addr">{{ item.email }}</span>
               </td>
-              <td>
-                <span
-                  class="email-status-pill"
-                  :class="`email-status-pill--${item.status}`"
-                >
-                  {{ statusLabel(item.status) }}
-                </span>
-              </td>
-              <td class="email-table__time">{{ item.connectedAt }}</td>
+              <td class="email-table__time">{{ item.createdAt }}</td>
+              <td>{{ item.createdBy }}</td>
               <td>
                 <button
                   type="button"
                   class="email-table__action-btn"
-                  @click="confirmDisconnect(item)"
+                  @click="confirmDelete(item)"
                 >
-                  断开连接
+                  删除
                 </button>
               </td>
             </tr>
@@ -76,16 +71,16 @@
       </template>
     </BaseModal>
 
-    <!-- 断开连接确认弹窗 -->
+    <!-- 删除确认弹窗 -->
     <BaseModal
-      :open="showDisconnectModal"
-      title="断开连接"
-      @close="showDisconnectModal = false"
+      :open="showDeleteModal"
+      title="删除邮箱"
+      @close="showDeleteModal = false"
     >
-      <p class="email-modal__desc">确定要断开 <strong>{{ disconnectTarget?.email }}</strong> 的连接吗？断开后将无法接收该邮箱的邮件。</p>
+      <p class="email-modal__desc">确定要删除 <strong>{{ deleteTarget?.email }}</strong> 吗？删除后将无法接收该邮箱的邮件。</p>
       <template #footer>
-        <button type="button" class="agent-btn agent-btn--ghost" @click="showDisconnectModal = false">取消</button>
-        <button type="button" class="agent-btn agent-btn--danger" @click="handleDisconnect">确认断开</button>
+        <button type="button" class="agent-btn agent-btn--ghost" @click="showDeleteModal = false">取消</button>
+        <button type="button" class="agent-btn agent-btn--danger" @click="handleDelete">确认删除</button>
       </template>
     </BaseModal>
   </section>
@@ -98,8 +93,8 @@ import { BaseModal } from "@twt/ui-agent";
 interface ConnectedEmail {
   id: string;
   email: string;
-  status: "verified" | "pending" | "failed";
-  connectedAt: string;
+  createdAt: string;
+  createdBy: string;
 }
 
 const emit = defineEmits<{
@@ -109,19 +104,14 @@ const emit = defineEmits<{
 const maxEmails = 99;
 
 const connectedEmails = ref<ConnectedEmail[]>([
-  { id: "1", email: "support@company.gmail.com", status: "verified", connectedAt: "2026-03-15 10:30" },
-  { id: "2", email: "sales@company.gmail.com", status: "verified", connectedAt: "2026-03-16 14:20" },
-  { id: "3", email: "hello@team.gmail.com", status: "pending", connectedAt: "2026-03-18 09:15" },
+  { id: "1", email: "support@company.gmail.com", createdAt: "2026-03-15 10:30", createdBy: "客服主管" },
+  { id: "2", email: "sales@company.gmail.com", createdAt: "2026-03-16 14:20", createdBy: "王珂" },
+  { id: "3", email: "hello@team.gmail.com", createdAt: "2026-03-18 09:15", createdBy: "客服主管" },
 ]);
 
 const showConnectModal = ref(false);
-const showDisconnectModal = ref(false);
-const disconnectTarget = ref<ConnectedEmail | null>(null);
-
-const statusLabel = (status: ConnectedEmail["status"]) => {
-  const map = { verified: "已验证", pending: "验证中", failed: "失败" };
-  return map[status];
-};
+const showDeleteModal = ref(false);
+const deleteTarget = ref<ConnectedEmail | null>(null);
 
 let nextId = 100;
 const handleConnect = () => {
@@ -132,25 +122,25 @@ const handleConnect = () => {
     connectedEmails.value.push({
       id: String(nextId),
       email: fakeEmail,
-      status: "verified",
-      connectedAt: new Date().toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      createdAt: new Date().toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      createdBy: "客服主管",
     });
     emit("toast", "邮箱连接成功");
   }, 800);
 };
 
-const confirmDisconnect = (item: ConnectedEmail) => {
-  disconnectTarget.value = item;
-  showDisconnectModal.value = true;
+const confirmDelete = (item: ConnectedEmail) => {
+  deleteTarget.value = item;
+  showDeleteModal.value = true;
 };
 
-const handleDisconnect = () => {
-  if (disconnectTarget.value) {
-    connectedEmails.value = connectedEmails.value.filter(e => e.id !== disconnectTarget.value!.id);
-    emit("toast", "断开成功");
+const handleDelete = () => {
+  if (deleteTarget.value) {
+    connectedEmails.value = connectedEmails.value.filter(e => e.id !== deleteTarget.value!.id);
+    emit("toast", "删除成功");
   }
-  showDisconnectModal.value = false;
-  disconnectTarget.value = null;
+  showDeleteModal.value = false;
+  deleteTarget.value = null;
 };
 </script>
 
@@ -161,17 +151,17 @@ const handleDisconnect = () => {
   gap: var(--agent-space-16);
 }
 
+.email-settings__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
 .email-settings__desc {
   color: #75869c;
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   margin: 0;
-}
-
-.email-settings__head {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
 }
 
 .email-settings__empty {
@@ -240,30 +230,6 @@ const handleDisconnect = () => {
 
 .email-table__action-btn:hover {
   text-decoration: underline;
-}
-
-.email-status-pill {
-  border-radius: 999px;
-  display: inline-block;
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1;
-  padding: 4px 10px;
-}
-
-.email-status-pill--verified {
-  background: #e8f8ef;
-  color: #16a34a;
-}
-
-.email-status-pill--pending {
-  background: #fef3cd;
-  color: #b45309;
-}
-
-.email-status-pill--failed {
-  background: #fde8e8;
-  color: #dc2626;
 }
 
 .email-modal__desc {

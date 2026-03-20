@@ -199,7 +199,7 @@
           class="chat-pane__header"
           :channel-type="activeSession?.channelType"
           :closed="isClosedSession"
-          :editable="!isAiSession && !isClosedSession"
+          :editable="!isAiSession && !isClosedSession && activeSession?.channelType !== 'email'"
           :is-processing="isProcessingSession"
           :title="activeSessionTitle"
           :can-collaborate="canCollaborate && !isAiSession"
@@ -209,6 +209,7 @@
           @invite="handleOpenInvite"
           @mark-pending="handleMarkPending"
           @remove-pending="handleRemovePending"
+          @mark-resolved="handleMarkResolved"
           @transfer="handleOpenTransfer"
           @update:title="updateSessionTitle"
           @start-group-chat="showTopToast('发起群聊功能开发中')"
@@ -249,15 +250,15 @@
           :to="activeSession?.email ?? ''"
           :from-options="connectedGmailAccounts"
           :selected-from="selectedFromEmail"
-          :subject="emailComposerSubject"
           :disabled="emailComposerBody.trim().length === 0"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           @update:selected-from="selectedFromEmail = $event"
-          @update:subject="emailComposerSubject = $event"
           @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
           @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSendEmail"
+          @send-and-pending="handleSendEmailAndPending"
+          @send-and-resolve="handleSendEmailAndResolve"
         />
 
         <MessageComposer
@@ -735,13 +736,19 @@ const validCustomerNavKeys: CustomerNavKey[] = ["online-customer", "all-customer
 
 const settingsNavGroupsBase = [
   {
-    key: "install-group",
-    title: "安装",
+    key: "channel-group",
+    title: "渠道",
     leadingEmoji: "⚙️",
     items: [
-      { key: "website-code", label: "网站代码" },
-      { key: "install", label: "聊天页面" },
-      { key: "customize", label: "自定义" },
+      {
+        key: "live-chat",
+        label: "Live Chat",
+        children: [
+          { key: "customize", label: "外观" },
+          { key: "website-code", label: "安装" },
+          { key: "install", label: "聊天页面" }
+        ]
+      },
       { key: "email", label: "Email" }
     ]
   },
@@ -798,7 +805,11 @@ const settingsNavGroups = computed(() =>
 );
 
 const validSettingsNavKeys = computed<SettingsNavKey[]>(() =>
-  settingsNavGroups.value.flatMap((group) => group.items.map((item) => item.key as SettingsNavKey))
+  settingsNavGroups.value.flatMap((group) =>
+    group.items.flatMap((item: any) =>
+      item.children ? item.children.map((c: any) => c.key as SettingsNavKey) : [item.key as SettingsNavKey]
+    )
+  )
 );
 
 const campaignNavGroups = [
@@ -898,6 +909,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "J",
     avatarColor: "linear-gradient(135deg, #1aa3e8 0%, #2f6bff 100%)",
     channel: "官网入口",
+    channelType: "web",
     visitorName: "微微",
     visitorId: "449868",
     phone: "18133093890",
@@ -923,6 +935,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "E",
     avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)",
     channel: "活动落地页",
+    channelType: "web",
     visitorName: "Ella",
     visitorId: "552108",
     phone: "18677774561",
@@ -948,6 +961,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "Q",
     avatarColor: "linear-gradient(135deg, #00b578 0%, #00a66f 100%)",
     channel: "客服入口",
+    channelType: "web",
     visitorName: "秦川",
     visitorId: "418022",
     phone: "13902099876",
@@ -973,6 +987,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "R",
     avatarColor: "linear-gradient(135deg, #ff7d00 0%, #ffb15d 100%)",
     channel: "控制台工单",
+    channelType: "web",
     visitorName: "Rita",
     visitorId: "321900",
     phone: "15800110022",
@@ -998,6 +1013,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "M",
     avatarColor: "linear-gradient(135deg, #00c2b8 0%, #00a0cc 100%)",
     channel: "邮件链接",
+    channelType: "web",
     visitorName: "Mia",
     visitorId: "901177",
     phone: "13799220031",
@@ -1023,6 +1039,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "L",
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     channel: "社媒私信",
+    channelType: "web",
     visitorName: "Leo",
     visitorId: "883209",
     phone: "18621004482",
@@ -1048,6 +1065,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "T",
     avatarColor: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
     channel: "官网入口",
+    channelType: "web",
     visitorName: "Tom",
     visitorId: "770201",
     phone: "13512345678",
@@ -1073,6 +1091,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "S",
     avatarColor: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
     channel: "帮助中心",
+    channelType: "web",
     visitorName: "Sarah",
     visitorId: "880334",
     phone: "18900998877",
@@ -1265,13 +1284,6 @@ const messageMap = ref<Record<string, MessageItem[]>>({
   ],
   "s-email-01": [
     {
-      id: "m-email-01",
-      role: "system",
-      sender: "系统",
-      content: "邮件会话开始",
-      time: "16:30"
-    },
-    {
       id: "m-email-02",
       role: "customer",
       sender: "Michael Brown",
@@ -1281,16 +1293,42 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       subject: "Enterprise Plan Quote Request",
       fromEmail: "michael.brown@acme.com",
       toEmail: "support@company.gmail.com"
+    },
+    {
+      id: "m-email-03",
+      role: "agent",
+      sender: "王珂",
+      content: "<p>Hi Michael,</p><p>Thank you for your interest in our Enterprise Plan! Based on your requirements (50 agents, ~2,000 conversations/day), here is the pricing breakdown:</p><table style=\"border-collapse:collapse;width:100%;margin:12px 0;font-size:13px;\"><tr style=\"background:#f0f5ff;\"><th style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:left;\">Feature</th><th style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:left;\">Details</th><th style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:right;\">Price</th></tr><tr><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">Enterprise License (50 seats)</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">Unlimited conversations</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:right;\">$4,500/mo</td></tr><tr><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">API Integration Module</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">REST + Webhook + SDK</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:right;\">Included</td></tr><tr><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">Custom Branding</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">Logo, colors, domain</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:right;\">Included</td></tr><tr><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">SLA Guarantee</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;\">99.9% uptime, 1h response</td><td style=\"border:1px solid #d0d8e8;padding:8px 12px;text-align:right;\">Included</td></tr></table><p>Here is a preview of the Enterprise Dashboard:</p><img src=\"https://placehold.co/560x300/eef4ff/2f6bff?text=Enterprise+Dashboard+Preview\" alt=\"Enterprise Dashboard\" style=\"max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e0e6ed;\" /><p>Would you like to schedule a demo call to discuss further? We also offer a <strong>10% annual discount</strong> for yearly billing.</p><p>Best regards,<br/>Wang Ke<br/>Sales Team</p>",
+      time: "17:15",
+      contentType: "html",
+      subject: "Re: Enterprise Plan Quote Request",
+      fromEmail: "support@company.gmail.com",
+      toEmail: "michael.brown@acme.com"
+    },
+    {
+      id: "m-email-04",
+      role: "customer",
+      sender: "Michael Brown",
+      content: "<p>Hi Wang,</p><p>Thanks for the detailed breakdown! The pricing looks reasonable. I have a few follow-up questions:</p><p>1. We noticed some UI differences in our current trial. Here is a screenshot of what we see:</p><img src=\"https://placehold.co/520x280/fff8f0/e85d1a?text=Trial+Dashboard+Screenshot\" alt=\"Trial Screenshot\" style=\"max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e0e6ed;\" /><p>2. Can you confirm the data migration support? We have about <strong>150,000 historical conversations</strong> to import.</p><p>I'm also attaching our company's security compliance checklist for your review.</p><div style=\"display:flex;align-items:center;gap:8px;padding:10px 14px;margin:10px 0;background:#f8f9fb;border:1px solid #e0e6ed;border-radius:8px;\"><span style=\"font-size:20px;\">📄</span><div><div style=\"font-size:13px;color:#222;font-weight:500;\">Acme_Security_Checklist_2026.pdf</div><div style=\"font-size:11px;color:#75869c;\">2.4 MB</div></div></div><p>Best,<br/>Michael</p>",
+      time: "18:02",
+      contentType: "html",
+      subject: "Re: Enterprise Plan Quote Request",
+      fromEmail: "michael.brown@acme.com",
+      toEmail: "support@company.gmail.com"
+    },
+    {
+      id: "m-email-05",
+      role: "agent",
+      sender: "王珂",
+      content: "<p>Hi Michael,</p><p>Great questions! Let me address each one:</p><p><strong>1. UI Differences:</strong> The trial version uses our standard theme. With the Enterprise plan, you'll get full custom branding including your logo, color scheme, and custom domain (e.g., support.acme.com).</p><p><strong>2. Data Migration:</strong> Absolutely! 150K conversations is well within our migration capabilities. Our team will handle the full import with zero downtime. Typical timeline is 3-5 business days.</p><p><strong>3. Security Compliance:</strong> I've reviewed your checklist and prepared our compliance response document:</p><div style=\"display:flex;align-items:center;gap:8px;padding:10px 14px;margin:10px 0;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;\"><span style=\"font-size:20px;\">📋</span><div><div style=\"font-size:13px;color:#222;font-weight:500;\">TWT_SOC2_Compliance_Response.pdf</div><div style=\"font-size:11px;color:#75869c;\">1.8 MB</div></div></div><div style=\"display:flex;align-items:center;gap:8px;padding:10px 14px;margin:10px 0;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;\"><span style=\"font-size:20px;\">📄</span><div><div style=\"font-size:13px;color:#222;font-weight:500;\">Enterprise_Onboarding_Guide.pdf</div><div style=\"font-size:11px;color:#75869c;\">3.1 MB</div></div></div><p>I'd suggest we set up a 30-min call this week. How does Thursday 2pm PST work for you?</p><p>Best regards,<br/>Wang Ke</p>",
+      time: "18:45",
+      contentType: "html",
+      subject: "Re: Enterprise Plan Quote Request",
+      fromEmail: "support@company.gmail.com",
+      toEmail: "michael.brown@acme.com"
     }
   ],
   "s-email-02": [
-    {
-      id: "m-email-10",
-      role: "system",
-      sender: "系统",
-      content: "邮件会话开始",
-      time: "13:00"
-    },
     {
       id: "m-email-11",
       role: "customer",
@@ -1306,7 +1344,7 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       id: "m-email-12",
       role: "agent",
       sender: "客服主管",
-      content: "<p>Hi Sarah,</p><p>Thank you for reporting this issue. I've checked our webhook delivery logs and found the root cause:</p><p>Your SSL certificate expired on March 17th, which is causing the 503 errors. Please renew your certificate and the webhook deliveries will resume automatically.</p><p>We've queued all missed events and they will be re-delivered once your endpoint is accessible again.</p><p>Best regards,<br/>Support Team</p>",
+      content: "<p>Hi Sarah,</p><p>Thank you for reporting this issue. I've checked our webhook delivery logs and found the root cause:</p><p>Your SSL certificate expired on March 17th, which is causing the 503 errors. Please renew your certificate and the webhook deliveries will resume automatically.</p><p>Here is a screenshot from our delivery log dashboard:</p><img src=\"https://placehold.co/540x260/fff4f4/d63031?text=Webhook+Delivery+Failures+-+SSL+Expired\" alt=\"Webhook delivery log\" style=\"max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e0e6ed;\" /><p>We've queued all missed events and they will be re-delivered once your endpoint is accessible again.</p><p>Best regards,<br/>Support Team</p>",
       time: "13:45",
       contentType: "html",
       subject: "Re: 技术支持请求 #4892",
@@ -1317,7 +1355,7 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       id: "m-email-13",
       role: "customer",
       sender: "Sarah Johnson",
-      content: "<p>Hi,</p><p>Thank you for the quick response! You were right - the SSL certificate had expired. We've renewed it and the webhooks are working again.</p><p>Much appreciated!</p><p>Sarah</p>",
+      content: "<p>Hi,</p><p>Thank you for the quick response! You were right - the SSL certificate had expired. We've renewed it and the webhooks are working again.</p><p>Here's a confirmation screenshot showing successful deliveries:</p><img src=\"https://placehold.co/540x200/f0fdf4/16a34a?text=Webhook+Deliveries+Resumed+-+200+OK\" alt=\"Webhooks working\" style=\"max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #bbf7d0;\" /><p>Much appreciated! You can close this ticket.</p><p>Best,<br/>Sarah</p>",
       time: "14:20",
       contentType: "html",
       subject: "Re: 技术支持请求 #4892",
@@ -1543,7 +1581,16 @@ const activeMessages = computed<DisplayMessage[]>(() => {
   });
 });
 
-const activeSessionTitle = computed(() => activeSession.value?.customerName ?? "会话详情");
+const activeSessionTitle = computed(() => {
+  const session = activeSession.value;
+  if (!session) return "会话详情";
+  if (session.channelType === "email") {
+    const messages = messageMap.value[session.id] ?? [];
+    const lastWithSubject = [...messages].reverse().find(m => m.subject);
+    return lastWithSubject?.subject ?? session.customerName ?? "邮件会话";
+  }
+  return session.customerName ?? "会话详情";
+});
 
 // 当切换到 email 会话时，自动填充 subject
 watch(() => activeSession.value?.id, (id) => {
@@ -1625,7 +1672,9 @@ const activeInfoSections = computed<InfoSection[]>(() => {
     ];
   }
 
-  return [
+  const isEmailSession = activeSession.value.channelType === "email";
+
+  const sections: InfoSection[] = [
     {
       key: "visitor-basic",
       title: "基础信息",
@@ -1653,51 +1702,59 @@ const activeInfoSections = computed<InfoSection[]>(() => {
       title: "附加信息",
       type: "fields",
       fields: [
-        { key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage },
+        ...(isEmailSession ? [] : [{ key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage }]),
         { key: "visitor-stat", label: "会话总数", value: "6 个会话" }
-      ]
-    },
-    {
-      key: "visitor-trace",
-      title: "访问轨迹",
-      type: "timeline",
-      timeline: [
-        {
-          key: "trace-1",
-          label: "Chat with us",
-          link: "https://visitorchat.twt.com/...",
-          time: "2026-02-24 16:09",
-          duration: "1天 2小时 30分",
-          dotClass: "timeline-item__dot--active"
-        },
-        {
-          key: "trace-2",
-          label: "Chat with us",
-          link: "https://visitorchat.twt.com/...",
-          time: "2026-02-05 19:34",
-          duration: "1分 14秒"
-        },
-        {
-          key: "trace-3",
-          label: "Chat with us",
-          link: "https://visitorchat.twt.com/...",
-          time: "2026-02-05 19:34",
-          duration: "3秒"
-        }
-      ],
-      moreText: "查看更多"
-    },
-    {
-      key: "visitor-device",
-      title: "设备信息",
-      type: "fields",
-      fields: [
-        { key: "visitor-ip", label: "IP 地址", value: activeSession.value.deviceIp },
-        { key: "visitor-os", label: "操作系统", value: activeSession.value.os },
-        { key: "visitor-browser", label: "浏览器", value: activeSession.value.browser }
       ]
     }
   ];
+
+  // 访问轨迹和设备信息仅 web 访客显示
+  if (!isEmailSession) {
+    sections.push(
+      {
+        key: "visitor-trace",
+        title: "访问轨迹",
+        type: "timeline",
+        timeline: [
+          {
+            key: "trace-1",
+            label: "Chat with us",
+            link: "https://visitorchat.twt.com/...",
+            time: "2026-02-24 16:09",
+            duration: "1天 2小时 30分",
+            dotClass: "timeline-item__dot--active"
+          },
+          {
+            key: "trace-2",
+            label: "Chat with us",
+            link: "https://visitorchat.twt.com/...",
+            time: "2026-02-05 19:34",
+            duration: "1分 14秒"
+          },
+          {
+            key: "trace-3",
+            label: "Chat with us",
+            link: "https://visitorchat.twt.com/...",
+            time: "2026-02-05 19:34",
+            duration: "3秒"
+          }
+        ],
+        moreText: "查看更多"
+      },
+      {
+        key: "visitor-device",
+        title: "设备信息",
+        type: "fields",
+        fields: [
+          { key: "visitor-ip", label: "IP 地址", value: activeSession.value.deviceIp },
+          { key: "visitor-os", label: "操作系统", value: activeSession.value.os },
+          { key: "visitor-browser", label: "浏览器", value: activeSession.value.browser }
+        ]
+      }
+    );
+  }
+
+  return sections;
 });
 
 const isDetailSectionCollapsed = (key: string) => collapsedDetailSections.value.includes(key);
@@ -2152,6 +2209,18 @@ const handleSendEmail = () => {
   emailComposerBody.value = "";
 };
 
+const handleSendEmailAndPending = () => {
+  handleSendEmail();
+  markSessionAsPending();
+  showTopToast("已发送并标记为待处理");
+};
+
+const handleSendEmailAndResolve = () => {
+  handleSendEmail();
+  markSessionAsResolved();
+  showTopToast("已发送并标记为已解决");
+};
+
 const markSessionAsPending = () => {
   if (!activeSession.value || activeSession.value.queueKey === "processing") return;
   allSessions.value = allSessions.value.map((s) => {
@@ -2170,6 +2239,15 @@ const removeSessionFromPending = () => {
   activeQueueKey.value = "pending-reply";
 };
 
+const markSessionAsResolved = () => {
+  if (!activeSession.value) return;
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== activeSession.value!.id) return s;
+    return { ...s, queueKey: "resolved" };
+  });
+  activeQueueKey.value = "resolved";
+};
+
 const handleMarkPending = () => {
   markSessionAsPending();
   showTopToast("已标记为待处理");
@@ -2178,6 +2256,11 @@ const handleMarkPending = () => {
 const handleRemovePending = () => {
   removeSessionFromPending();
   showTopToast("已取消待处理");
+};
+
+const handleMarkResolved = () => {
+  markSessionAsResolved();
+  showTopToast("已标记为已解决");
 };
 
 const handleOpenCloseSession = () => {

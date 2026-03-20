@@ -283,7 +283,6 @@ const handleMenuAction = (action: string) => {
 <style scoped>
 .customer-page {
   background: #fff;
-  border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-xl);
   gap: var(--agent-space-16);
 }
@@ -478,7 +477,6 @@ const handleMenuAction = (action: string) => {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-md);
-  overflow: hidden;
 }
 
 .doc-table {

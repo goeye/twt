@@ -237,9 +237,7 @@
                   </div>
                 </div>
               </td>
-              <td>
-                <span class="archive-channel-badge" :class="`archive-channel-badge--${row.channelType}`">{{ row.channelType === 'email' ? 'Email' : 'Web' }}</span>
-              </td>
+              <td>{{ row.channelType === 'email' ? 'Email' : 'Web' }}</td>
               <td>{{ row.startedAtLabel }}</td>
               <td>{{ row.acceptedAtLabel }}</td>
               <td>{{ row.serviceDuration }}</td>
@@ -258,14 +256,20 @@
                 </button>
 
                 <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
-                  <template v-if="row.status === 'queueing'">
+                  <template v-if="row.channelType === 'email'">
+                    <button v-if="row.status === 'queueing' && isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                    <button v-if="row.status === 'queueing' && !isAdmin" type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
+                  </template>
+                  <template v-else-if="row.status === 'queueing'">
                     <button v-if="isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else>
                     <button type="button" class="archive-action-menu__item" @click="handleTakeoverOrAssign(row)">{{ row.owner === aiAgentArchiveName ? '接管会话' : '分配会话' }}</button>
+                    <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
-                  <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                 </div>
               </td>
             </tr>
@@ -293,9 +297,9 @@
     :open="Boolean(previewConversation)"
     :title="previewConversation?.title ?? ''"
     :messages="previewConversationMessages"
-    :assign-label="previewConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
+    :assign-label="getDrawerAssignLabel(previewConversation)"
     :editable="false"
-    @assign="previewConversation && assignConversation(previewConversation)"
+    @assign="previewConversation && handleDrawerAssign(previewConversation)"
     @close="closeConversationDrawer"
   />
 
@@ -1292,6 +1296,24 @@ const closeConversationDrawer = () => {
   previewConversationId.value = null;
 };
 
+const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
+  if (!row) return "分配会话";
+  if (row.channelType === "email") {
+    return row.status === "queueing" ? "分配会话" : "进入会话";
+  }
+  return row.owner === aiAgentArchiveName ? "接管会话" : "分配会话";
+};
+
+const handleDrawerAssign = (row: ConversationRecord) => {
+  if (row.channelType === "email" && row.status !== "queueing") {
+    // "进入会话" — 跳转到会话
+    closeConversationDrawer();
+    emit("toast", "进入会话功能开发中");
+    return;
+  }
+  assignConversation(row);
+};
+
 const closeAssignModal = () => {
   assignModalOpen.value = false;
   assignKeyword.value = "";
@@ -1356,8 +1378,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  height: 100%;
-  min-height: 0;
   padding: 24px 32px 28px;
 }
 
@@ -1616,16 +1636,12 @@ onMounted(() => {
 }
 
 .files-page__table-wrap {
-  border: 1px solid #e3e8f0;
   border-radius: 18px;
   display: flex;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
 }
 
 .files-page__table-scroll {
-  flex: 1;
   min-height: 0;
 }
 

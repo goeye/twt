@@ -15,16 +15,6 @@
           <option v-for="email in fromOptions" :key="email" :value="email">{{ email }}</option>
         </select>
       </div>
-      <div class="email-composer__field">
-        <label class="email-composer__label">Subject:</label>
-        <input
-          class="email-composer__subject-input"
-          type="text"
-          :value="subject"
-          placeholder="邮件主题"
-          @input="$emit('update:subject', ($event.target as HTMLInputElement).value)"
-        />
-      </div>
     </div>
 
     <div class="email-composer__toolbar">
@@ -65,20 +55,29 @@
     />
 
     <div class="email-composer__footer">
-      <button class="email-composer__send-btn" type="button" :disabled="disabled" @click="$emit('send')">发送</button>
+      <div class="email-composer__split-btn">
+        <button class="email-composer__send-btn" type="button" :disabled="disabled" @click="$emit('send')">发送</button>
+        <button class="email-composer__split-arrow" type="button" :disabled="disabled" @click.stop="toggleSendMenu">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div v-if="sendMenuOpen" class="email-composer__send-menu">
+        <button type="button" @click="handleMenuSend">发送</button>
+        <button type="button" @click="handleMenuSendPending">发送并标记为待处理</button>
+        <button type="button" @click="handleMenuSendResolve">发送并标记为已解决</button>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
 
 const props = withDefaults(defineProps<{
   to: string;
   fromOptions: string[];
   selectedFrom: string;
-  subject: string;
   modelValue: string;
   placeholder?: string;
   disabled?: boolean;
@@ -91,14 +90,39 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
   (e: "update:selectedFrom", value: string): void;
-  (e: "update:subject", value: string): void;
   (e: "emoji"): void;
   (e: "attachment"): void;
   (e: "translate"): void;
   (e: "send"): void;
+  (e: "send-and-pending"): void;
+  (e: "send-and-resolve"): void;
 }>();
 
 const editorRef = ref<HTMLDivElement>();
+const sendMenuOpen = ref(false);
+
+const toggleSendMenu = () => {
+  sendMenuOpen.value = !sendMenuOpen.value;
+};
+
+const closeSendMenu = () => {
+  sendMenuOpen.value = false;
+};
+
+const handleMenuSend = () => {
+  sendMenuOpen.value = false;
+  emit("send");
+};
+
+const handleMenuSendPending = () => {
+  sendMenuOpen.value = false;
+  emit("send-and-pending");
+};
+
+const handleMenuSendResolve = () => {
+  sendMenuOpen.value = false;
+  emit("send-and-resolve");
+};
 
 function handleInput() {
   if (editorRef.value) {
@@ -136,6 +160,11 @@ onMounted(() => {
   if (editorRef.value && props.modelValue) {
     editorRef.value.innerHTML = props.modelValue;
   }
+  document.addEventListener("click", closeSendMenu);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeSendMenu);
 });
 </script>
 
@@ -284,13 +313,18 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   padding: 8px 12px;
+  position: relative;
+}
+
+.email-composer__split-btn {
+  display: inline-flex;
 }
 
 .email-composer__send-btn {
   align-items: center;
   background: #f0f3f8;
   border: 0;
-  border-radius: 10px;
+  border-radius: 10px 0 0 10px;
   color: #9ca8ba;
   cursor: pointer;
   display: inline-flex;
@@ -298,12 +332,69 @@ onMounted(() => {
   font-weight: var(--agent-font-weight-semibold);
   height: 36px;
   justify-content: center;
-  min-width: 74px;
+  min-width: 62px;
   padding: 0 14px;
 }
 
 .email-composer__send-btn:enabled {
   background: var(--agent-color-brand-primary);
   color: #ffffff;
+}
+
+.email-composer__split-arrow {
+  align-items: center;
+  background: #f0f3f8;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0 10px 10px 0;
+  color: #9ca8ba;
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  width: 30px;
+}
+
+.email-composer__split-arrow:enabled {
+  background: var(--agent-color-brand-primary);
+  border-left-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.email-composer__send-menu {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  bottom: calc(100% + 4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  position: absolute;
+  right: 12px;
+  z-index: var(--agent-z-dropdown);
+}
+
+.email-composer__send-menu button {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 10px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.email-composer__send-menu button:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.email-composer__send-menu button:first-child {
+  border-radius: var(--agent-radius-md) var(--agent-radius-md) 0 0;
+}
+
+.email-composer__send-menu button:last-child {
+  border-radius: 0 0 var(--agent-radius-md) var(--agent-radius-md);
 }
 </style>

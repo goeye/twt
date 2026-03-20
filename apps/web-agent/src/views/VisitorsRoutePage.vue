@@ -65,6 +65,7 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
+            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th">
               <span class="visitor-th--sortable">
                 首次访问
@@ -87,6 +88,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
+            <td class="doc-table__td">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastPage }}</td>
             <td class="doc-table__td">{{ item.ip }}</td>
@@ -102,7 +104,7 @@
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
                 <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
-                <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
               </div>
             </td>
           </tr>
@@ -151,9 +153,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
-            <td class="doc-table__td">
-              <span class="visitor-channel-badge" :class="`visitor-channel-badge--${item.channelType}`">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</span>
-            </td>
+            <td class="doc-table__td">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastVisit }}</td>
             <td class="doc-table__td" style="text-align: center;">{{ item.traceCount }}</td>
@@ -170,7 +170,7 @@
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
                 <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
-                <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
               </div>
             </td>
           </tr>
@@ -238,17 +238,18 @@ interface OnlineVisitorItem {
   email: string;
   phone: string;
   tag: string;
+  channelType: "web" | "email";
   firstVisit: string;
   lastPage: string;
   ip: string;
 }
 
 const onlineVisitorsList = ref<OnlineVisitorItem[]>([
-  { id: 101, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", firstVisit: "2026-03-17 09:12", lastPage: "/pricing", ip: "192.168.1.23" },
-  { id: 102, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", firstVisit: "2026-03-17 10:05", lastPage: "/products/detail", ip: "10.0.0.45" },
-  { id: 103, name: "James", remark: "老客户", email: "james@corp.io", phone: "+44 7700-900123", tag: "VIP", firstVisit: "2026-03-16 14:30", lastPage: "/support/faq", ip: "172.16.0.88" },
-  { id: 104, name: "Sophia", remark: "–", email: "–", phone: "–", tag: "–", firstVisit: "2026-03-17 11:22", lastPage: "/home", ip: "203.0.113.12" },
-  { id: 105, name: "Liam", remark: "潜在客户", email: "liam@startup.co", phone: "+86 138-0000-1234", tag: "普通", firstVisit: "2026-03-17 08:45", lastPage: "/demo", ip: "198.51.100.7" },
+  { id: 101, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 09:12", lastPage: "/pricing", ip: "192.168.1.23" },
+  { id: 102, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-17 10:05", lastPage: "/products/detail", ip: "10.0.0.45" },
+  { id: 103, name: "James", remark: "老客户", email: "james@corp.io", phone: "+44 7700-900123", tag: "VIP", channelType: "web", firstVisit: "2026-03-16 14:30", lastPage: "/support/faq", ip: "172.16.0.88" },
+  { id: 104, name: "Sophia", remark: "–", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-17 11:22", lastPage: "/home", ip: "203.0.113.12" },
+  { id: 105, name: "Liam", remark: "潜在客户", email: "liam@startup.co", phone: "+86 138-0000-1234", tag: "普通", channelType: "email", firstVisit: "2026-03-17 08:45", lastPage: "/demo", ip: "198.51.100.7" },
 ]);
 
 const allVisitorsList = ref<AllVisitorItem[]>([
@@ -281,7 +282,6 @@ const handleMenuAction = (action: string) => {
 <style scoped>
 .visitors-page {
   background: #fff;
-  border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-xl);
   gap: var(--agent-space-16);
 }
@@ -490,7 +490,6 @@ const handleMenuAction = (action: string) => {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-md);
-  overflow: hidden;
 }
 
 .doc-table {

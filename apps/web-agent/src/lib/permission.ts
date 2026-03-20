@@ -124,6 +124,12 @@ export const PERMISSION_TREE: PermGroup[] = [
       { key: 'website-code', label: '网站代码', features: [{ key: 'website-code-view', label: '查看' }] },
       { key: 'chat-page', label: '聊天页面', features: [{ key: 'chat-page-view', label: '查看' }] },
       { key: 'customize', label: '自定义', features: [{ key: 'customize-manage', label: '管理' }] },
+    ],
+  },
+  {
+    key: 'email-channel-group',
+    label: 'Email 渠道',
+    children: [
       { key: 'email-channel', label: 'Email', features: [{ key: 'email-channel-manage', label: '管理' }] },
     ],
   },
@@ -175,7 +181,7 @@ export const NAV_PERMISSION_MAP: Record<string, string> = {
 // ---- 设置页子导航 group key → 权限 key 映射 ----
 
 export const SETTINGS_NAV_PERMISSION_MAP: Record<string, string> = {
-  'install-group': 'install',
+  'channel-group': 'install',
   'team-group': 'team',
   'quick-reply-group': 'quick-reply',
   'idle-conversation-group': 'team',
