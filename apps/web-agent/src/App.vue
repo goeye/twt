@@ -1709,51 +1709,49 @@ const activeInfoSections = computed<InfoSection[]>(() => {
     }
   ];
 
-  // 访问轨迹和设备信息仅 web 访客显示
-  if (!isEmailSession) {
-    sections.push(
+  // 访问轨迹：web 访客有数据，email 访客显示空区块
+  sections.push({
+    key: "visitor-trace",
+    title: "访问轨迹",
+    type: "timeline",
+    timeline: isEmailSession ? [] : [
       {
-        key: "visitor-trace",
-        title: "访问轨迹",
-        type: "timeline",
-        timeline: [
-          {
-            key: "trace-1",
-            label: "Chat with us",
-            link: "https://visitorchat.twt.com/...",
-            time: "2026-02-24 16:09",
-            duration: "1天 2小时 30分",
-            dotClass: "timeline-item__dot--active"
-          },
-          {
-            key: "trace-2",
-            label: "Chat with us",
-            link: "https://visitorchat.twt.com/...",
-            time: "2026-02-05 19:34",
-            duration: "1分 14秒"
-          },
-          {
-            key: "trace-3",
-            label: "Chat with us",
-            link: "https://visitorchat.twt.com/...",
-            time: "2026-02-05 19:34",
-            duration: "3秒"
-          }
-        ],
-        moreText: "查看更多"
+        key: "trace-1",
+        label: "Chat with us",
+        link: "https://visitorchat.twt.com/...",
+        time: "2026-02-24 16:09",
+        duration: "1天 2小时 30分",
+        dotClass: "timeline-item__dot--active"
       },
       {
-        key: "visitor-device",
-        title: "设备信息",
-        type: "fields",
-        fields: [
-          { key: "visitor-ip", label: "IP 地址", value: activeSession.value.deviceIp },
-          { key: "visitor-os", label: "操作系统", value: activeSession.value.os },
-          { key: "visitor-browser", label: "浏览器", value: activeSession.value.browser }
-        ]
+        key: "trace-2",
+        label: "Chat with us",
+        link: "https://visitorchat.twt.com/...",
+        time: "2026-02-05 19:34",
+        duration: "1分 14秒"
+      },
+      {
+        key: "trace-3",
+        label: "Chat with us",
+        link: "https://visitorchat.twt.com/...",
+        time: "2026-02-05 19:34",
+        duration: "3秒"
       }
-    );
-  }
+    ],
+    moreText: isEmailSession ? undefined : "查看更多"
+  });
+
+  // 设备信息：email 访客字段为空但仍展示区块
+  sections.push({
+    key: "visitor-device",
+    title: "设备信息",
+    type: "fields",
+    fields: [
+      { key: "visitor-ip", label: "IP 地址", value: activeSession.value.deviceIp || "-" },
+      { key: "visitor-os", label: "操作系统", value: activeSession.value.os || "-" },
+      { key: "visitor-browser", label: "浏览器", value: activeSession.value.browser || "-" }
+    ]
+  });
 
   return sections;
 });
@@ -2770,6 +2768,7 @@ onBeforeUnmount(() => {
   border-radius: 0 var(--agent-radius-xl) var(--agent-radius-xl) 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   min-width: 0;
 }
 

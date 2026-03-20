@@ -1378,6 +1378,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  height: 100%;
+  min-height: 0;
   padding: 24px 32px 28px;
 }
 
@@ -1547,7 +1549,7 @@ onMounted(() => {
 
 .archive-filters__row--secondary {
   align-items: center;
-  grid-template-columns: minmax(180px, 220px) minmax(220px, 280px) 92px 92px;
+  grid-template-columns: minmax(160px, 200px) minmax(160px, 200px) minmax(200px, 260px) 92px 92px;
 }
 
 .archive-field {
@@ -1636,13 +1638,16 @@ onMounted(() => {
 }
 
 .files-page__table-wrap {
-  border-radius: 18px;
   display: flex;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
 .files-page__table-scroll {
+  flex: 1;
   min-height: 0;
+  overflow: auto;
 }
 
 .archive-table {

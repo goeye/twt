@@ -52,7 +52,7 @@ const ALLOWED_TAGS = new Set([
   'blockquote', 'h1', 'h2', 'h3', 'h4', 'table', 'tr', 'td', 'th',
   'thead', 'tbody', 'span', 'div', 'hr', 'img',
 ]);
-const ALLOWED_ATTRS = new Set(['href', 'src', 'alt', 'target', 'width', 'height']);
+const ALLOWED_ATTRS = new Set(['href', 'src', 'alt', 'target', 'width', 'height', 'style']);
 
 function sanitizeHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');

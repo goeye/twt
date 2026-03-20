@@ -1083,8 +1083,6 @@ onMounted(() => {
 }
 
 .files-page__table-wrap {
-  border: 1px solid #e3e8f0;
-  border-radius: 18px;
   display: flex;
   flex: 1;
   min-height: 0;
