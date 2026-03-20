@@ -84,15 +84,15 @@
 
     <div class="email-composer__footer">
       <div class="email-composer__split-btn">
-        <button class="email-composer__send-btn" type="button" :disabled="disabled" @click="$emit('send')">发送</button>
-        <button class="email-composer__split-arrow" type="button" :disabled="disabled" @click.stop="toggleSendMenu">
+        <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">发送</button>
+        <button class="email-composer__split-arrow" type="button" :disabled="isSendDisabled" @click.stop="toggleSendMenu">
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
       <div v-if="sendMenuOpen" class="email-composer__send-menu">
         <button type="button" @click="handleMenuSend">发送</button>
         <button type="button" @click="handleMenuSendPending">发送并标记为待处理</button>
-        <button type="button" @click="handleMenuSendResolve">发送并标记为已解决</button>
+        <button type="button" @click="handleMenuSendResolve">发送并关闭</button>
       </div>
     </div>
     </template>
@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, reactive } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
 
 interface FileAttachment {
@@ -128,15 +128,23 @@ const emit = defineEmits<{
   (e: "emoji"): void;
   (e: "attachment"): void;
   (e: "translate"): void;
+  (e: "toast", message: string): void;
   (e: "send"): void;
   (e: "send-and-pending"): void;
   (e: "send-and-resolve"): void;
 }>();
 
+const MAX_TEXT_LENGTH = 2000;
+const MAX_ATTACHMENTS = 10;
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+
 const editorRef = ref<HTMLDivElement>();
 const fileInputRef = ref<HTMLInputElement>();
 const sendMenuOpen = ref(false);
 const fileAttachments = reactive<FileAttachment[]>([]);
+const canSend = ref(false);
+const textLimitReached = ref(false);
+const isSendDisabled = computed(() => props.disabled || !canSend.value);
 
 function fileEmoji(name: string): string {
   const ext = name.split('.').pop()?.toLowerCase() || '';
@@ -158,16 +166,111 @@ function triggerFileSelect() {
   fileInputRef.value?.click();
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function placeCaretAtEnd(el: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection) return;
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function getEditorTextContent(): string {
+  if (!editorRef.value) return "";
+  const walker = document.createTreeWalker(editorRef.value, NodeFilter.SHOW_TEXT);
+  let text = "";
+  let currentNode: Node | null = walker.nextNode();
+  while (currentNode) {
+    text += currentNode.textContent ?? "";
+    currentNode = walker.nextNode();
+  }
+  return text;
+}
+
+function trimEditorTextToLimit(): boolean {
+  if (!editorRef.value) return false;
+
+  const walker = document.createTreeWalker(editorRef.value, NodeFilter.SHOW_TEXT);
+  let remaining = MAX_TEXT_LENGTH;
+  let exceeded = false;
+  let currentNode: Node | null = walker.nextNode();
+
+  while (currentNode) {
+    const textNode = currentNode as Text;
+    const value = textNode.textContent ?? "";
+    if (value.length > 0) {
+      if (remaining <= 0) {
+        textNode.textContent = "";
+        exceeded = true;
+      } else if (value.length > remaining) {
+        textNode.textContent = value.slice(0, remaining);
+        remaining = 0;
+        exceeded = true;
+      } else {
+        remaining -= value.length;
+      }
+    }
+    currentNode = walker.nextNode();
+  }
+
+  return exceeded;
+}
+
+function syncEditorState() {
+  if (!editorRef.value) {
+    canSend.value = false;
+    emit("update:modelValue", "");
+    return;
+  }
+
+  const hasText = getEditorTextContent().trim().length > 0;
+  const hasImage = editorRef.value.querySelector("img") !== null;
+  canSend.value = hasText || hasImage;
+  emit("update:modelValue", editorRef.value.innerHTML);
+}
+
+function insertImage(file: File) {
+  const url = URL.createObjectURL(file);
+  const safeName = escapeHtml(file.name);
+  const imageHtml = `<p><br></p><img src="${url}" alt="${safeName}" style="max-width:100%;border-radius:4px;margin:4px 0;" /><p><br></p>`;
+
+  if (!editorRef.value) return;
+  editorRef.value.focus();
+  placeCaretAtEnd(editorRef.value);
+  document.execCommand("insertHTML", false, imageHtml);
+  handleInput();
+}
+
 function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
   if (!input.files) return;
+
+  let reachedAttachmentLimit = false;
+  let exceededFileSize = false;
+
   for (const file of Array.from(input.files)) {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      exceededFileSize = true;
+      continue;
+    }
+
     if (file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file);
-      document.execCommand('insertHTML', false, `<img src="${url}" alt="${file.name}" style="max-width:100%;border-radius:4px;margin:4px 0;" />`);
-      editorRef.value?.focus();
-      handleInput();
+      insertImage(file);
     } else {
+      if (fileAttachments.length >= MAX_ATTACHMENTS) {
+        reachedAttachmentLimit = true;
+        continue;
+      }
       fileAttachments.push({
         name: file.name,
         size: file.size,
@@ -175,7 +278,16 @@ function handleFileSelect(e: Event) {
       });
     }
   }
+
+  if (exceededFileSize) {
+    emit("toast", "附件和图片大小不能超过20MB");
+  }
+  if (reachedAttachmentLimit) {
+    emit("toast", `最多添加${MAX_ATTACHMENTS}个附件`);
+  }
+
   input.value = '';
+  syncEditorState();
 }
 
 function removeAttachment(idx: number) {
@@ -192,9 +304,14 @@ function clearAttachments() {
   fileAttachments.splice(0, fileAttachments.length);
 }
 
-defineExpose({ getAttachments, clearAttachments });
+function hasSendableContent() {
+  return canSend.value;
+}
+
+defineExpose({ getAttachments, clearAttachments, hasSendableContent });
 
 const toggleSendMenu = () => {
+  if (isSendDisabled.value) return;
   sendMenuOpen.value = !sendMenuOpen.value;
 };
 
@@ -202,30 +319,52 @@ const closeSendMenu = () => {
   sendMenuOpen.value = false;
 };
 
+const handlePrimarySend = () => {
+  if (isSendDisabled.value) return;
+  sendMenuOpen.value = false;
+  emit("send");
+};
+
 const handleMenuSend = () => {
+  if (isSendDisabled.value) return;
   sendMenuOpen.value = false;
   emit("send");
 };
 
 const handleMenuSendPending = () => {
+  if (isSendDisabled.value) return;
   sendMenuOpen.value = false;
   emit("send-and-pending");
 };
 
 const handleMenuSendResolve = () => {
+  if (isSendDisabled.value) return;
   sendMenuOpen.value = false;
   emit("send-and-resolve");
 };
 
 function handleInput() {
-  if (editorRef.value) {
-    emit("update:modelValue", editorRef.value.innerHTML);
+  if (!editorRef.value) return;
+
+  const exceeded = trimEditorTextToLimit();
+  if (exceeded) {
+    placeCaretAtEnd(editorRef.value);
+    if (!textLimitReached.value) {
+      emit("toast", `文本最多支持${MAX_TEXT_LENGTH}字符`);
+    }
   }
+  textLimitReached.value = exceeded;
+  if (!exceeded) {
+    textLimitReached.value = false;
+  }
+
+  syncEditorState();
 }
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
+    if (isSendDisabled.value) return;
     emit("send");
   }
 }
@@ -246,6 +385,7 @@ function insertLink() {
 watch(() => props.modelValue, (val) => {
   if (editorRef.value && editorRef.value.innerHTML !== val) {
     editorRef.value.innerHTML = val;
+    syncEditorState();
   }
 });
 
@@ -253,6 +393,7 @@ onMounted(() => {
   if (editorRef.value && props.modelValue) {
     editorRef.value.innerHTML = props.modelValue;
   }
+  syncEditorState();
   document.addEventListener("click", closeSendMenu);
 });
 
@@ -430,11 +571,10 @@ onBeforeUnmount(() => {
 }
 
 .email-composer__attachments {
-  border-top: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 0 12px 8px;
 }
 
 .email-composer__att-card {

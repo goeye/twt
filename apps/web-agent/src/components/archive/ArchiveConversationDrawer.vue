@@ -70,7 +70,7 @@
         </div>
 
         <footer class="archive-drawer__footer">
-          <button type="button" class="archive-drawer__assign-btn" @click="$emit('assign')">{{ assignLabel }}</button>
+          <button type="button" class="archive-drawer__assign-btn" :class="{ 'archive-drawer__assign-btn--join': variant === 'join' }" @click="$emit('assign')">{{ assignLabel }}</button>
         </footer>
       </aside>
     </div>
@@ -99,10 +99,12 @@ const props = withDefaults(
     messages: DrawerMessage[];
     assignLabel?: string;
     editable?: boolean;
+    variant?: "default" | "join";
   }>(),
   {
     assignLabel: "分配会话",
-    editable: true
+    editable: true,
+    variant: "default"
   }
 );
 
@@ -411,6 +413,16 @@ watch(
 
 .archive-drawer__assign-btn:hover {
   background: #ffffff;
+}
+
+.archive-drawer__assign-btn--join {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+  color: #ffffff;
+}
+
+.archive-drawer__assign-btn--join:hover {
+  background: #1a4fd6;
 }
 
 .archive-drawer-enter-active,

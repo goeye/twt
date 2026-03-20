@@ -32,19 +32,19 @@
       <!-- 会话模式 -->
       <template v-if="mode === 'conversation'">
         <div
-          v-if="showCollaborateActions && channelType !== 'email'"
+          v-if="showCollaborateActions"
           class="conversation-header__icon-btn-wrap"
         >
           <button
             class="conversation-header__icon-btn"
             :class="{ 'conversation-header__icon-btn--disabled': !canCollaborate || closed }"
             type="button"
-            aria-label="添加成员"
+            :aria-label="channelType === 'email' ? '添加客服' : '添加成员'"
             @click="handleInvite"
           >
             <AgentIcon name="user-plus" :size="16" />
           </button>
-          <span class="conversation-header__tooltip">添加成员</span>
+          <span class="conversation-header__tooltip">{{ channelType === 'email' ? '添加客服' : '添加成员' }}</span>
         </div>
 
         <div
@@ -91,15 +91,15 @@
 
         <div v-if="channelType === 'email'" class="conversation-header__icon-btn-wrap">
           <button
-            class="conversation-header__icon-btn conversation-header__icon-btn--success"
+            class="conversation-header__icon-btn conversation-header__icon-btn--danger"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
             type="button"
-            aria-label="标记已解决"
-            @click="handleMarkResolved"
+            aria-label="标记为关闭"
+            @click="handleCloseEmail"
           >
-            <AgentIcon name="check-circle" :size="16" />
+            <AgentIcon name="close-session" :size="16" />
           </button>
-          <span class="conversation-header__tooltip">标记已解决</span>
+          <span class="conversation-header__tooltip">标记为关闭</span>
         </div>
       </template>
 
@@ -195,7 +195,7 @@ const emit = defineEmits<{
   (e: "close"): void;
   (e: "mark-pending"): void;
   (e: "remove-pending"): void;
-  (e: "mark-resolved"): void;
+  (e: "close-email"): void;
   (e: "update:title", value: string): void;
   (e: "start-group-chat"): void;
   (e: "add-member"): void;
@@ -258,9 +258,9 @@ const handleClose = () => {
   emit("close");
 };
 
-const handleMarkResolved = () => {
+const handleCloseEmail = () => {
   if (props.closed) return;
-  emit("mark-resolved");
+  emit("close-email");
 };
 </script>
 

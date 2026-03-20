@@ -73,7 +73,7 @@
                 </svg>
               </span>
               <span class="email-provider-card__name">Gmail</span>
-              <span class="email-provider-card__desc">连接 Gmail 或 Google Workspace 邮箱</span>
+              <span class="email-provider-card__desc">连接Gamil</span>
             </button>
             <div class="email-provider-card email-provider-card--disabled">
               <span class="email-provider-card__icon">

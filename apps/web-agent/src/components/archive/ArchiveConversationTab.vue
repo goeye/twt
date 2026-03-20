@@ -257,8 +257,10 @@
 
                 <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
                   <template v-if="row.channelType === 'email'">
-                    <button v-if="row.status === 'queueing' && isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
-                    <button v-if="row.status === 'queueing' && !isAdmin" type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    <template v-if="row.status === 'queueing'">
+                      <button v-if="isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                      <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    </template>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else-if="row.status === 'queueing'">
@@ -298,6 +300,7 @@
     :title="previewConversation?.title ?? ''"
     :messages="previewConversationMessages"
     :assign-label="getDrawerAssignLabel(previewConversation)"
+    :variant="getDrawerVariant(previewConversation)"
     :editable="false"
     @assign="previewConversation && handleDrawerAssign(previewConversation)"
     @close="closeConversationDrawer"
@@ -601,7 +604,8 @@ const presetSeeds: ConversationSeed[] = [
     acceptedAtValue: new Date("2026-02-24T20:10:00").getTime(),
     serviceDuration: "4分",
     rating: "none",
-    aiAgentHandled: true
+    aiAgentHandled: true,
+    channelType: "web"
   },
   {
     title: "AI Agent - 退货流程咨询",
@@ -810,6 +814,82 @@ const presetSeeds: ConversationSeed[] = [
     acceptedAtValue: new Date("2026-02-24T17:16:00").getTime(),
     serviceDuration: "11天 46分",
     rating: "none"
+  },
+  {
+    title: "订单确认邮件咨询",
+    visitorName: "Visitor77",
+    customerIdentifier: "EMAIL-3001",
+    visitorAlias: "邮件客户A",
+    status: "closed",
+    messageCount: 5,
+    owner: "王珂",
+    staffCount: 1,
+    tag: "退款",
+    tags: ["退款"],
+    startedAtLabel: "2026-02-20 14:30",
+    startedAtValue: new Date("2026-02-20T14:30:00").getTime(),
+    acceptedAtLabel: "2026-02-20 14:35",
+    acceptedAtValue: new Date("2026-02-20T14:35:00").getTime(),
+    serviceDuration: "1天 3小时",
+    rating: "satisfied",
+    channelType: "email"
+  },
+  {
+    title: "发票开具问题",
+    visitorName: "Visitor93",
+    customerIdentifier: "EMAIL-3002",
+    visitorAlias: "邮件客户B",
+    status: "closed",
+    messageCount: 3,
+    owner: "客服主管",
+    staffCount: 1,
+    tag: "VIP",
+    tags: ["VIP"],
+    startedAtLabel: "2026-02-18 09:15",
+    startedAtValue: new Date("2026-02-18T09:15:00").getTime(),
+    acceptedAtLabel: "2026-02-18 09:20",
+    acceptedAtValue: new Date("2026-02-18T09:20:00").getTime(),
+    serviceDuration: "45分",
+    rating: "none",
+    channelType: "email"
+  },
+  {
+    title: "产品报价咨询",
+    visitorName: "Visitor36",
+    customerIdentifier: "EMAIL-3003",
+    visitorAlias: "邮件客户C",
+    status: "pending-reply",
+    messageCount: 2,
+    owner: "王珂",
+    staffCount: 1,
+    tag: "高意向",
+    tags: ["高意向"],
+    startedAtLabel: "2026-02-22 16:00",
+    startedAtValue: new Date("2026-02-22T16:00:00").getTime(),
+    acceptedAtLabel: "2026-02-22 16:05",
+    acceptedAtValue: new Date("2026-02-22T16:05:00").getTime(),
+    serviceDuration: "2天 5小时",
+    rating: "none",
+    channelType: "email"
+  },
+  {
+    title: "合作意向沟通",
+    visitorName: "Visitor81",
+    customerIdentifier: "EMAIL-3004",
+    visitorAlias: "–",
+    status: "replied",
+    messageCount: 8,
+    owner: "客服主管",
+    staffCount: 1,
+    tag: "续费",
+    tags: ["续费"],
+    startedAtLabel: "2026-02-21 11:20",
+    startedAtValue: new Date("2026-02-21T11:20:00").getTime(),
+    acceptedAtLabel: "2026-02-21 11:25",
+    acceptedAtValue: new Date("2026-02-21T11:25:00").getTime(),
+    serviceDuration: "3天 2小时",
+    rating: "none",
+    channelType: "email"
   }
 ];
 
@@ -1299,16 +1379,22 @@ const closeConversationDrawer = () => {
 const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
   if (!row) return "分配会话";
   if (row.channelType === "email") {
-    return row.status === "queueing" ? "分配会话" : "进入会话";
+    if (row.status === "queueing") return "分配会话";
+    return "加入会话";
   }
   return row.owner === aiAgentArchiveName ? "接管会话" : "分配会话";
 };
 
+const getDrawerVariant = (row: ConversationRecord | null): "default" | "join" => {
+  if (!row) return "default";
+  if (row.channelType === "email" && row.status !== "queueing") return "join";
+  return "default";
+};
+
 const handleDrawerAssign = (row: ConversationRecord) => {
   if (row.channelType === "email" && row.status !== "queueing") {
-    // "进入会话" — 跳转到会话
     closeConversationDrawer();
-    emit("toast", "进入会话功能开发中");
+    emit("toast", "加入会话功能开发中");
     return;
   }
   assignConversation(row);

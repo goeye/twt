@@ -212,7 +212,7 @@
           @invite="handleOpenInvite"
           @mark-pending="handleMarkPending"
           @remove-pending="handleRemovePending"
-          @mark-resolved="handleMarkResolved"
+          @close-email="handleOpenCloseEmailSession"
           @transfer="handleOpenTransfer"
           @update:title="updateSessionTitle"
           @start-group-chat="showTopToast('发起群聊功能开发中')"
@@ -259,15 +259,15 @@
           :to="activeSession?.email ?? ''"
           :from-options="activeSessionFromOptions"
           :selected-from="selectedFromEmail"
-          :disabled="emailComposerBody.trim().length === 0"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           @update:selected-from="selectedFromEmail = $event"
           @attachment="track(TrackEvent.ATTACHMENT)"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+          @toast="showTopToast"
           @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSendEmail"
           @send-and-pending="handleSendEmailAndPending"
-          @send-and-resolve="handleSendEmailAndResolve"
+          @send-and-resolve="handleSendEmailAndClose"
         />
 
         <MessageComposer
@@ -465,6 +465,26 @@
         <div class="confirm-close-modal__footer-actions">
           <button class="agent-btn agent-btn--ghost" type="button" @click="closeSessionModalOpen = false">取消</button>
           <button class="agent-btn agent-btn--danger" type="button" @click="handleConfirmCloseSession">确认结束</button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="closeEmailSessionModalOpen"
+      title="关闭邮件会话"
+      max-width="500px"
+      :show-close="false"
+      @close="closeEmailSessionModalOpen = false"
+    >
+      <div class="confirm-close-modal">
+        <p class="confirm-close-modal__description">确认关闭该邮件会话吗？关闭后会话将移入档案。</p>
+      </div>
+
+      <template #footer>
+        <span />
+        <div class="confirm-close-modal__footer-actions">
+          <button class="agent-btn agent-btn--ghost" type="button" @click="closeEmailSessionModalOpen = false">取消</button>
+          <button class="agent-btn agent-btn--danger" type="button" @click="handleConfirmCloseEmailSession">确认关闭</button>
         </div>
       </template>
     </BaseModal>
@@ -1480,6 +1500,7 @@ const pendingTransferAgentId = ref<string | null>(null);
 const inviteModalOpen = ref(false);
 const inviteKeyword = ref("");
 const closeSessionModalOpen = ref(false);
+const closeEmailSessionModalOpen = ref(false);
 
 const queueGroups = computed(() =>
   queueGroupSeed.map((group) => ({
@@ -2264,8 +2285,10 @@ const handleSend = () => {
 };
 
 const handleSendEmail = () => {
+  const composer = emailComposerRef.value;
+  const hasSendableContent = composer?.hasSendableContent?.() ?? false;
   const html = emailComposerBody.value.trim();
-  if (!html || !activeSession.value) return;
+  if (!activeSession.value || !hasSendableContent || !html) return false;
   track(TrackEvent.SEND_MESSAGE);
 
   const now = new Date();
@@ -2305,18 +2328,18 @@ const handleSendEmail = () => {
 
   emailComposerBody.value = "";
   emailComposerRef.value?.clearAttachments?.();
+  return true;
 };
 
 const handleSendEmailAndPending = () => {
-  handleSendEmail();
+  if (!handleSendEmail()) return;
   markSessionAsPending();
   showTopToast("已发送并标记为待处理");
 };
 
-const handleSendEmailAndResolve = () => {
-  handleSendEmail();
-  markSessionAsResolved();
-  showTopToast("已发送并标记为已解决");
+const handleSendEmailAndClose = () => {
+  if (!handleSendEmail()) return;
+  handleOpenCloseEmailSession();
 };
 
 const markSessionAsPending = () => {
@@ -2337,15 +2360,6 @@ const removeSessionFromPending = () => {
   activeQueueKey.value = "pending-reply";
 };
 
-const markSessionAsResolved = () => {
-  if (!activeSession.value) return;
-  allSessions.value = allSessions.value.map((s) => {
-    if (s.id !== activeSession.value!.id) return s;
-    return { ...s, queueKey: "resolved" };
-  });
-  activeQueueKey.value = "resolved";
-};
-
 const handleMarkPending = () => {
   markSessionAsPending();
   showTopToast("已标记为待处理");
@@ -2356,9 +2370,15 @@ const handleRemovePending = () => {
   showTopToast("已取消待处理");
 };
 
-const handleMarkResolved = () => {
-  markSessionAsResolved();
-  showTopToast("已标记为已解决");
+const handleOpenCloseEmailSession = () => {
+  closeEmailSessionModalOpen.value = true;
+};
+
+const handleConfirmCloseEmailSession = () => {
+  if (!activeSession.value) return;
+  allSessions.value = allSessions.value.filter((s) => s.id !== activeSession.value!.id);
+  closeEmailSessionModalOpen.value = false;
+  showTopToast("邮件会话已关闭");
 };
 
 const handleOpenCloseSession = () => {
