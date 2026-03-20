@@ -28,7 +28,7 @@
           <option value="普通">普通</option>
         </select>
 
-        <select v-model="filterChannel" class="visitor-select visitor-select--channel">
+        <select v-if="activeKey === 'all-visitors'" v-model="filterChannel" class="visitor-select visitor-select--channel">
           <option value="">来源渠道</option>
           <option value="web">Web</option>
           <option value="email">Email</option>
@@ -65,7 +65,6 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
-            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th">
               <span class="visitor-th--sortable">
                 首次访问
@@ -88,7 +87,6 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
-            <td class="doc-table__td">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastPage }}</td>
             <td class="doc-table__td">{{ item.ip }}</td>
@@ -249,7 +247,7 @@ const onlineVisitorsList = ref<OnlineVisitorItem[]>([
   { id: 102, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-17 10:05", lastPage: "/products/detail", ip: "10.0.0.45" },
   { id: 103, name: "James", remark: "老客户", email: "james@corp.io", phone: "+44 7700-900123", tag: "VIP", channelType: "web", firstVisit: "2026-03-16 14:30", lastPage: "/support/faq", ip: "172.16.0.88" },
   { id: 104, name: "Sophia", remark: "–", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-17 11:22", lastPage: "/home", ip: "203.0.113.12" },
-  { id: 105, name: "Liam", remark: "潜在客户", email: "liam@startup.co", phone: "+86 138-0000-1234", tag: "普通", channelType: "email", firstVisit: "2026-03-17 08:45", lastPage: "/demo", ip: "198.51.100.7" },
+  { id: 105, name: "Liam", remark: "潜在客户", email: "liam@startup.co", phone: "+86 138-0000-1234", tag: "普通", channelType: "web", firstVisit: "2026-03-17 08:45", lastPage: "/demo", ip: "198.51.100.7" },
 ]);
 
 const allVisitorsList = ref<AllVisitorItem[]>([
@@ -488,8 +486,6 @@ const handleMenuAction = (action: string) => {
 /* 复用 doc-table / doc-pagination 样式 —— 需要在全局或父组件中有这些类 */
 .doc-table-wrap {
   background: #fff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
 }
 
 .doc-table {

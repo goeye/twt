@@ -63,7 +63,7 @@
           <span class="conversation-header__tooltip">转移会话</span>
         </div>
 
-        <div class="conversation-header__icon-btn-wrap">
+        <div v-if="showPendingAction" class="conversation-header__icon-btn-wrap">
           <button
             class="conversation-header__icon-btn"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
@@ -172,6 +172,7 @@ const props = withDefaults(
     editable?: boolean;
     canCollaborate?: boolean;
     showCollaborateActions?: boolean;
+    showPendingAction?: boolean;
     isProcessing?: boolean;
     closed?: boolean;
     mode?: "conversation" | "single-chat" | "group-chat";
@@ -181,6 +182,7 @@ const props = withDefaults(
     editable: false,
     canCollaborate: true,
     showCollaborateActions: true,
+    showPendingAction: true,
     isProcessing: false,
     closed: false,
     mode: "conversation"

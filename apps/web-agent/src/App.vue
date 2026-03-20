@@ -204,6 +204,7 @@
           :title="activeSessionTitle"
           :can-collaborate="canCollaborate && !isAiSession"
           :show-collaborate-actions="!isAiSession"
+          :show-pending-action="!isAiSession"
           :mode="chatHeaderMode"
           @close="handleOpenCloseSession"
           @invite="handleOpenInvite"
@@ -742,11 +743,11 @@ const settingsNavGroupsBase = [
     items: [
       {
         key: "live-chat",
-        label: "Live Chat",
+        label: "在线会话",
         children: [
-          { key: "customize", label: "外观" },
-          { key: "website-code", label: "安装" },
-          { key: "install", label: "聊天页面" }
+          { key: "website-code", label: "网站代码" },
+          { key: "install", label: "聊天页面" },
+          { key: "customize", label: "自定义" }
         ]
       },
       { key: "email", label: "Email" }

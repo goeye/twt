@@ -40,7 +40,7 @@
             <template v-if="card.key === 'entry-routing'">
               <div class="form-row">
                 <div class="form-row__label">
-                  <span class="form-row__name">访客范围</span>
+                  <span class="form-row__name">回复访客</span>
                   <span class="form-row__desc">AI Agent 回复的访客类型</span>
                 </div>
                 <div class="form-row__control">
@@ -199,7 +199,7 @@
             <template v-else-if="card.key === 'answering-mode'">
               <div class="setting-helper-stack">
                 <div class="setting-callout">
-                  <p class="setting-callout__text">AI 会结合知识库、业务简介、语气和语言设置来组织回复</p>
+                  <p class="setting-callout__text">AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复</p>
                 </div>
               </div>
 
@@ -222,7 +222,7 @@
 
                 <div v-if="knowledgeDocCount <= 10" class="knowledge-card__tip">
                   <p class="knowledge-card__tip-text">
-                    AI Agent 需要充足的知识库内容来准确回答访客问题。在启用 AI Agent 之前，请确保已添加并审核相关内容
+                    AI Agent 需要充足的知识库内容来准确回答访客问题，请确保已添加并审核相关内容
                   </p>
                 </div>
 
@@ -247,7 +247,7 @@
             <template v-else-if="card.key === 'answering-unsupported'">
               <div class="setting-helper-stack">
                 <div class="setting-callout setting-callout--soft">
-                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
 
@@ -288,7 +288,7 @@
               <template v-if="localTransferEnabled">
                 <div class="setting-helper-stack">
                   <div class="setting-callout setting-callout--soft">
-                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
 
@@ -334,7 +334,7 @@
               <template v-else>
                 <div class="setting-helper-stack">
                   <div class="setting-callout setting-callout--soft">
-                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
 
@@ -375,7 +375,7 @@
 
               <div v-if="localFollowUpEnabled" class="setting-helper-stack">
                 <div class="setting-callout setting-callout--soft">
-                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言版本</p>
+                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
 
@@ -767,8 +767,8 @@ const localIdleSeconds = computed({
 }
 
 .config-card__status--warning {
-  background: #f8e7a7;
-  color: #4f3a00;
+  background: #eef4ff;
+  color: #1a56db;
 }
 
 .config-card__chevron {
@@ -856,7 +856,7 @@ const localIdleSeconds = computed({
 }
 
 .setting-callout {
-  background: #f8e7a7;
+  background: #eef4ff;
   border-radius: 12px;
   padding: 12px 14px;
 }
@@ -866,7 +866,7 @@ const localIdleSeconds = computed({
 }
 
 .setting-callout__text {
-  color: #4f3a00;
+  color: #1a56db;
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
   line-height: 1.6;
@@ -916,13 +916,13 @@ const localIdleSeconds = computed({
 }
 
 .knowledge-card__tip {
-  background: #f8e7a7;
+  background: #eef4ff;
   border-radius: 12px;
   padding: 12px 14px;
 }
 
 .knowledge-card__tip-text {
-  color: #4f3a00;
+  color: #1a56db;
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
   line-height: 1.6;
