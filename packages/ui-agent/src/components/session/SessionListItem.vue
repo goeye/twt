@@ -1,6 +1,9 @@
 <template>
   <button class="session-item" :class="{ 'session-item--active': active }" type="button">
-    <span v-if="avatarText" class="session-item__avatar" :style="{ background: avatarColor }">{{ avatarText }}</span>
+    <span v-if="avatarText" class="session-item__avatar-wrap">
+      <span class="session-item__avatar" :style="{ background: avatarColor }">{{ avatarText }}</span>
+      <span v-if="showOnlineStatus" class="session-item__online-dot" :class="online ? 'session-item__online-dot--online' : 'session-item__online-dot--offline'" />
+    </span>
     <div class="session-item__main">
       <div class="session-item__row">
         <span class="session-item__name-wrap">
@@ -37,6 +40,8 @@ withDefaults(
     avatarText?: string;
     avatarColor?: string;
     channelType?: ChannelType;
+    showOnlineStatus?: boolean;
+    online?: boolean;
   }>(),
   {
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
@@ -66,6 +71,11 @@ withDefaults(
   background: #e8f0ff;
 }
 
+.session-item__avatar-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
 .session-item__avatar {
   align-items: center;
   border-radius: 50%;
@@ -76,6 +86,24 @@ withDefaults(
   height: 38px;
   justify-content: center;
   width: 38px;
+}
+
+.session-item__online-dot {
+  border: 2px solid #fff;
+  border-radius: 50%;
+  bottom: 0;
+  height: 10px;
+  position: absolute;
+  right: 0;
+  width: 10px;
+}
+
+.session-item__online-dot--online {
+  background: #22c55e;
+}
+
+.session-item__online-dot--offline {
+  background: #9ca3af;
 }
 
 .session-item__main {

@@ -9,7 +9,7 @@
         :title="connectedEmails.length >= maxEmails ? `最多支持 ${maxEmails} 个邮箱` : undefined"
         @click="showConnectModal = true"
       >
-        连接 Gmail 邮箱
+        + 添加
       </button>
     </header>
 
@@ -19,7 +19,7 @@
       <h2 class="agent-settings-feature-title">已连接邮箱</h2>
 
       <div v-if="connectedEmails.length === 0" class="email-settings__empty">
-        <p class="email-settings__empty-text">暂未连接任何邮箱，点击上方按钮添加 Gmail 邮箱</p>
+        <p class="email-settings__empty-text">暂未连接任何邮箱，点击上方按钮添加邮箱</p>
       </div>
 
       <div v-else class="email-table-wrap">
@@ -58,17 +58,36 @@
       </p>
     </article>
 
-    <!-- 连接 Gmail 弹窗 -->
+    <!-- 添加邮箱弹窗 -->
     <BaseModal
       :open="showConnectModal"
-      title="连接 Gmail 邮箱"
+      title="添加邮箱"
       @close="showConnectModal = false"
     >
-      <p class="email-modal__desc">点击"开始授权"后将跳转到 Google 账号授权页面，授权成功后邮箱将自动添加到列表中。</p>
-      <template #footer>
-        <button type="button" class="agent-btn agent-btn--ghost" @click="showConnectModal = false">取消</button>
-        <button type="button" class="agent-btn agent-btn--primary" @click="handleConnect">开始授权</button>
-      </template>
+      <div class="email-provider-list">
+        <button type="button" class="email-provider-card" @click="handleConnectGmail">
+          <span class="email-provider-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09A6.97 6.97 0 015.48 12c0-.72.13-1.43.36-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.98z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          </span>
+          <span class="email-provider-card__name">Gmail</span>
+          <span class="email-provider-card__desc">连接 Gmail 或 Google Workspace 邮箱</span>
+        </button>
+        <div class="email-provider-card email-provider-card--disabled">
+          <span class="email-provider-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="5" width="18" height="14" rx="2" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+              <path d="M3 7l9 6 9-6" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="email-provider-card__name">其他邮箱</span>
+          <span class="email-provider-card__desc">敬请期待</span>
+        </div>
+      </div>
     </BaseModal>
 
     <!-- 删除确认弹窗 -->
@@ -114,9 +133,14 @@ const showDeleteModal = ref(false);
 const deleteTarget = ref<ConnectedEmail | null>(null);
 
 let nextId = 100;
-const handleConnect = () => {
+const handleConnectGmail = () => {
   showConnectModal.value = false;
-  // 模拟 OAuth 流程
+  // 打开 Google OAuth 授权页面
+  window.open(
+    "https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=https://mail.google.com/&access_type=offline&prompt=consent",
+    "_blank"
+  );
+  // 模拟 OAuth 回调成功
   setTimeout(() => {
     const fakeEmail = `user${nextId++}@gmail.com`;
     connectedEmails.value.push({
@@ -237,6 +261,53 @@ const handleDelete = () => {
   font-size: var(--agent-font-size-sm);
   line-height: 1.6;
   margin: 0;
+}
+
+.email-provider-list {
+  display: grid;
+  gap: var(--agent-space-12);
+  grid-template-columns: 1fr 1fr;
+}
+
+.email-provider-card {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+  gap: 8px;
+  padding: var(--agent-space-20);
+  text-align: left;
+  transition: border-color var(--agent-motion-fast), box-shadow var(--agent-motion-fast);
+}
+
+.email-provider-card:hover:not(.email-provider-card--disabled) {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 0 0 1px var(--agent-color-brand-primary);
+}
+
+.email-provider-card--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.email-provider-card__icon {
+  display: flex;
+}
+
+.email-provider-card__name {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-base);
+  font-weight: var(--agent-font-weight-semibold);
+}
+
+.email-provider-card__desc {
+  color: #75869c;
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.4;
 }
 
 .settings-card {

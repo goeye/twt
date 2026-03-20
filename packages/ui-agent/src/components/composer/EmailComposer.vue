@@ -1,5 +1,16 @@
 <template>
   <section class="email-composer">
+    <!-- 无可用邮箱时显示禁用提示 -->
+    <div v-if="fromOptions.length === 0" class="email-composer__disabled-overlay">
+      <svg class="email-composer__disabled-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="5" y="10" width="30" height="20" rx="3" stroke="#c5cdd8" stroke-width="2" fill="none"/>
+        <path d="M5 13l15 10 15-10" stroke="#c5cdd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p class="email-composer__disabled-title">暂无可用的发件邮箱</p>
+      <p class="email-composer__disabled-hint">请先在 <strong>渠道 > Email</strong> 中添加邮箱后再回复</p>
+    </div>
+
+    <template v-else>
     <div class="email-composer__header">
       <div class="email-composer__field">
         <label class="email-composer__label">To:</label>
@@ -39,11 +50,19 @@
           <AgentIcon name="link" :size="14" />
         </button>
         <span class="email-composer__divider" />
-        <button class="tool-icon" type="button" aria-label="附件" @click="$emit('attachment')">📎</button>
+        <button class="tool-icon" type="button" aria-label="附件" @click="triggerFileSelect">📎</button>
         <button class="tool-icon" type="button" aria-label="表情" @click="$emit('emoji')">☺</button>
         <button v-if="showTranslate" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">🌐</button>
       </div>
     </div>
+
+    <input
+      ref="fileInputRef"
+      type="file"
+      multiple
+      style="display: none"
+      @change="handleFileSelect"
+    />
 
     <div
       ref="editorRef"
@@ -53,6 +72,15 @@
       @input="handleInput"
       @keydown="handleKeydown"
     />
+
+    <div v-if="fileAttachments.length > 0" class="email-composer__attachments">
+      <div v-for="(file, idx) in fileAttachments" :key="idx" class="email-composer__att-card">
+        <span class="email-composer__att-icon">{{ fileEmoji(file.name) }}</span>
+        <span class="email-composer__att-name">{{ file.name }}</span>
+        <span class="email-composer__att-size">{{ formatSize(file.size) }}</span>
+        <button type="button" class="email-composer__att-remove" @click="removeAttachment(idx)">&times;</button>
+      </div>
+    </div>
 
     <div class="email-composer__footer">
       <div class="email-composer__split-btn">
@@ -67,12 +95,19 @@
         <button type="button" @click="handleMenuSendResolve">发送并标记为已解决</button>
       </div>
     </div>
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, reactive } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
+
+interface FileAttachment {
+  name: string;
+  size: number;
+  objectUrl: string;
+}
 
 const props = withDefaults(defineProps<{
   to: string;
@@ -99,7 +134,65 @@ const emit = defineEmits<{
 }>();
 
 const editorRef = ref<HTMLDivElement>();
+const fileInputRef = ref<HTMLInputElement>();
 const sendMenuOpen = ref(false);
+const fileAttachments = reactive<FileAttachment[]>([]);
+
+function fileEmoji(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (['pdf'].includes(ext)) return '\u{1F4C4}';
+  if (['doc', 'docx'].includes(ext)) return '\u{1F4DD}';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return '\u{1F4CA}';
+  if (['zip', 'rar', '7z'].includes(ext)) return '\u{1F4E6}';
+  return '\u{1F4CE}';
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function triggerFileSelect() {
+  emit('attachment');
+  fileInputRef.value?.click();
+}
+
+function handleFileSelect(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+  for (const file of Array.from(input.files)) {
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      document.execCommand('insertHTML', false, `<img src="${url}" alt="${file.name}" style="max-width:100%;border-radius:4px;margin:4px 0;" />`);
+      editorRef.value?.focus();
+      handleInput();
+    } else {
+      fileAttachments.push({
+        name: file.name,
+        size: file.size,
+        objectUrl: URL.createObjectURL(file),
+      });
+    }
+  }
+  input.value = '';
+}
+
+function removeAttachment(idx: number) {
+  const removed = fileAttachments.splice(idx, 1);
+  if (removed.length) URL.revokeObjectURL(removed[0].objectUrl);
+}
+
+function getAttachments(): FileAttachment[] {
+  return [...fileAttachments];
+}
+
+function clearAttachments() {
+  for (const att of fileAttachments) URL.revokeObjectURL(att.objectUrl);
+  fileAttachments.splice(0, fileAttachments.length);
+}
+
+defineExpose({ getAttachments, clearAttachments });
 
 const toggleSendMenu = () => {
   sendMenuOpen.value = !sendMenuOpen.value;
@@ -173,6 +266,34 @@ onBeforeUnmount(() => {
   background: transparent;
   display: flex;
   flex-direction: column;
+}
+
+.email-composer__disabled-overlay {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 160px;
+  padding: 24px;
+}
+
+.email-composer__disabled-icon {
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+
+.email-composer__disabled-title {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+}
+
+.email-composer__disabled-hint {
+  color: #75869c;
+  font-size: var(--agent-font-size-xs);
+  margin: 0;
 }
 
 .email-composer__header {
@@ -306,6 +427,58 @@ onBeforeUnmount(() => {
   color: #a6afbd;
   content: attr(data-placeholder);
   pointer-events: none;
+}
+
+.email-composer__attachments {
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.email-composer__att-card {
+  align-items: center;
+  background: var(--agent-color-bg-muted, #f5f7fa);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.email-composer__att-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.email-composer__att-name {
+  color: var(--agent-color-text-primary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-composer__att-size {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-xs);
+}
+
+.email-composer__att-remove {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.email-composer__att-remove:hover {
+  color: var(--agent-color-status-error, #ef4444);
 }
 
 .email-composer__footer {

@@ -1,5 +1,10 @@
 <template>
-  <article class="message" :class="`message--${role}`">
+  <article
+    class="message"
+    :class="`message--${role}`"
+    @mouseenter="hovered = true"
+    @mouseleave="hovered = false; moreMenuOpen = false"
+  >
     <template v-if="role === 'system'">
       <div class="message__system">{{ content }}</div>
     </template>
@@ -14,10 +19,33 @@
           <span class="message__sender">{{ sender }}</span>
           <time>{{ time }}</time>
         </header>
+
         <div class="message__bubble">
-          <p v-if="subject" class="message__subject">{{ subject }}</p>
-          <div v-if="contentType === 'html'" class="message__html-content" v-html="sanitizedContent" />
+          <div
+            v-if="showActions && hovered && role !== 'system' && role !== 'bot'"
+            class="message__actions"
+          >
+            <button class="message__action-btn" title="回复" @click="$emit('reply')">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.5 3.5L2.5 7L6.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 7H10C11.6569 7 13 8.3431 13 10V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="message__action-btn" title="复制" @click="handleCopy">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5.5" y="5.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5V4C10.5 3.17157 9.82843 2.5 9 2.5H4C3.17157 2.5 2.5 3.17157 2.5 4V9C2.5 9.82843 3.17157 10.5 4 10.5H5.5" stroke="currentColor" stroke-width="1.3"/></svg>
+            </button>
+            <div class="message__action-more-wrap">
+              <button class="message__action-btn" title="更多" @click.stop="moreMenuOpen = !moreMenuOpen">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
+              </button>
+              <div v-if="moreMenuOpen" class="message__action-menu">
+                <button class="message__action-menu-item" @click="handleMenuAction('translate')">翻译</button>
+                <button v-if="role === 'agent'" class="message__action-menu-item" @click="handleMenuAction('revoke')">撤回</button>
+              </div>
+            </div>
+          </div>
+          <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
           <span v-else>{{ content }}</span>
+          <div v-if="parsedEmail.attachments.length > 0" class="message__attachments">
+            <div v-for="(att, idx) in parsedEmail.attachments" :key="idx" class="message__attachment" v-html="att" />
+          </div>
         </div>
       </div>
     </template>
@@ -25,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -38,14 +66,48 @@ const props = withDefaults(
     avatarUrl?: string;
     contentType?: 'text' | 'html';
     subject?: string;
+    showActions?: boolean;
   }>(),
   {
     avatarText: "?",
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     avatarUrl: "",
     contentType: "text",
+    showActions: false,
   }
 );
+
+const emit = defineEmits<{
+  (e: 'reply'): void;
+  (e: 'copy'): void;
+  (e: 'translate'): void;
+  (e: 'revoke'): void;
+}>();
+
+const hovered = ref(false);
+const moreMenuOpen = ref(false);
+
+function getPlainText(): string {
+  if (props.contentType === 'html') {
+    const doc = new DOMParser().parseFromString(props.content, 'text/html');
+    return doc.body.textContent || '';
+  }
+  return props.content;
+}
+
+async function handleCopy() {
+  try {
+    await navigator.clipboard.writeText(getPlainText());
+  } catch {
+    // fallback: ignore
+  }
+  emit('copy');
+}
+
+function handleMenuAction(action: 'translate' | 'revoke') {
+  moreMenuOpen.value = false;
+  emit(action);
+}
 
 const ALLOWED_TAGS = new Set([
   'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ol', 'ul', 'li', 'a',
@@ -90,6 +152,26 @@ function sanitizeHtml(html: string): string {
 const sanitizedContent = computed(() => {
   if (props.contentType !== 'html') return props.content;
   return sanitizeHtml(props.content);
+});
+
+function extractAttachments(html: string): { body: string; attachments: string[] } {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const attachments: string[] = [];
+  for (const div of Array.from(doc.body.children)) {
+    if (div.tagName !== 'DIV') continue;
+    const text = div.textContent || '';
+    if (/[\u{1F4C4}\u{1F4CB}\u{1F4CE}\u{1F4C1}]/u.test(text) && /\d+(\.\d+)?\s*(MB|KB|GB|B)\b/i.test(text)) {
+      attachments.push(div.outerHTML);
+      div.remove();
+    }
+  }
+  return { body: doc.body.innerHTML, attachments };
+}
+
+const parsedEmail = computed(() => {
+  if (props.contentType !== 'html') return { body: props.content, attachments: [] as string[] };
+  const sanitized = sanitizeHtml(props.content);
+  return extractAttachments(sanitized);
 });
 </script>
 
@@ -141,6 +223,7 @@ const sanitizedContent = computed(() => {
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+  position: relative;
 }
 
 .message__meta {
@@ -165,6 +248,7 @@ const sanitizedContent = computed(() => {
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   padding: 10px var(--agent-space-12);
+  position: relative;
   white-space: pre-wrap;
 }
 
@@ -227,5 +311,97 @@ const sanitizedContent = computed(() => {
   max-width: 100%;
   height: auto;
   border-radius: var(--agent-radius-sm);
+}
+
+.message__attachments {
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.message__attachment :deep(div) {
+  font-size: 13px;
+}
+
+/* --- Action toolbar --- */
+.message__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 2px;
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 4px;
+  width: fit-content;
+  z-index: 1;
+}
+
+.message--customer .message__actions {
+  left: 0;
+}
+
+.message--agent .message__actions {
+  right: 0;
+}
+
+.message__action-btn {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.message__action-btn:hover {
+  background: var(--agent-color-bg-secondary);
+  color: var(--agent-color-text-primary);
+}
+
+.message__action-more-wrap {
+  position: relative;
+}
+
+.message__action-menu {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+  padding: 4px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.message__action-menu-item {
+  background: transparent;
+  border: none;
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 6px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.message__action-menu-item:hover {
+  background: var(--agent-color-bg-secondary);
 }
 </style>

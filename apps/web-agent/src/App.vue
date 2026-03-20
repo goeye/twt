@@ -188,6 +188,8 @@
             :preview="item.preview"
             :unread-count="item.unreadCount"
             :updated-at="item.updatedAt"
+            :show-online-status="item.channelType === 'web'"
+            :online="item.visitorOnline ?? false"
             @click="activeSessionId = item.id"
           />
           <p v-if="visibleSessions.length === 0" class="inbox-pane__empty">暂无符合条件的会话</p>
@@ -233,6 +235,11 @@
             :role="message.displayRole"
             :sender="message.displaySender"
             :time="message.time"
+            :show-actions="activeSession?.channelType !== 'email'"
+            @reply="showTopToast('回复功能开发中')"
+            @copy="showTopToast('已复制到剪贴板')"
+            @translate="showTopToast('翻译功能开发中')"
+            @revoke="showTopToast('撤回功能开发中')"
           />
         </div>
 
@@ -246,6 +253,7 @@
 
         <EmailComposer
           v-else-if="activeSession?.channelType === 'email'"
+          ref="emailComposerRef"
           v-model="emailComposerBody"
           class="chat-pane__composer"
           :to="activeSession?.email ?? ''"
@@ -254,7 +262,7 @@
           :disabled="emailComposerBody.trim().length === 0"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           @update:selected-from="selectedFromEmail = $event"
-          @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
+          @attachment="track(TrackEvent.ATTACHMENT)"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
           @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSendEmail"
@@ -639,6 +647,12 @@ const currentAgentName = "客服主管";
 const getAgentAvatarText = (name: string) => agentPool.find((a) => a.name === name)?.avatarText ?? name.slice(0, 1);
 const getAgentAvatarColor = (name: string) => agentPool.find((a) => a.name === name)?.avatarColor ?? "#a7b0c0";
 
+function getInitial(name: string): string {
+  if (!name) return '?';
+  const first = name.trim()[0];
+  return /[a-zA-Z]/.test(first) ? first.toUpperCase() : first;
+}
+
 interface ConversationSession extends SessionItem {
   queueKey: string;
   tag: "访客" | "VIP" | "客户" | "AI" | "AI 转接";
@@ -646,6 +660,8 @@ interface ConversationSession extends SessionItem {
   avatarColor: string;
   channel: string;
   channelType?: "web" | "email";
+  remarkName?: string;
+  visitorOnline?: boolean;
   visitorName: string;
   visitorId: string;
   phone: string;
@@ -911,6 +927,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #1aa3e8 0%, #2f6bff 100%)",
     channel: "官网入口",
     channelType: "web",
+    remarkName: "Jenny",
+    visitorOnline: true,
     visitorName: "微微",
     visitorId: "449868",
     phone: "18133093890",
@@ -937,6 +955,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)",
     channel: "活动落地页",
     channelType: "web",
+    remarkName: "",
+    visitorOnline: true,
     visitorName: "Ella",
     visitorId: "552108",
     phone: "18677774561",
@@ -963,6 +983,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #00b578 0%, #00a66f 100%)",
     channel: "客服入口",
     channelType: "web",
+    remarkName: "秦先生",
+    visitorOnline: false,
     visitorName: "秦川",
     visitorId: "418022",
     phone: "13902099876",
@@ -989,6 +1011,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #ff7d00 0%, #ffb15d 100%)",
     channel: "控制台工单",
     channelType: "web",
+    remarkName: "Rita VIP",
+    visitorOnline: true,
     visitorName: "Rita",
     visitorId: "321900",
     phone: "15800110022",
@@ -1015,6 +1039,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #00c2b8 0%, #00a0cc 100%)",
     channel: "邮件链接",
     channelType: "web",
+    remarkName: "",
+    visitorOnline: false,
     visitorName: "Mia",
     visitorId: "901177",
     phone: "13799220031",
@@ -1041,6 +1067,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     channel: "社媒私信",
     channelType: "web",
+    remarkName: "",
+    visitorOnline: true,
     visitorName: "Leo",
     visitorId: "883209",
     phone: "18621004482",
@@ -1067,6 +1095,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
     channel: "官网入口",
     channelType: "web",
+    remarkName: "",
+    visitorOnline: true,
     visitorName: "Tom",
     visitorId: "770201",
     phone: "13512345678",
@@ -1093,6 +1123,8 @@ const allSessions = ref<ConversationSession[]>([
     avatarColor: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
     channel: "帮助中心",
     channelType: "web",
+    remarkName: "",
+    visitorOnline: false,
     visitorName: "Sarah",
     visitorId: "880334",
     phone: "18900998877",
@@ -1376,8 +1408,9 @@ const searchKeyword = ref("");
 const composerText = ref("");
 const emailComposerBody = ref("");
 const emailComposerSubject = ref("");
+const emailComposerRef = ref<InstanceType<typeof EmailComposer>>();
 const selectedFromEmail = ref("support@company.gmail.com");
-const connectedGmailAccounts = ["support@company.gmail.com", "sales@company.gmail.com"];
+const connectedGmailAccounts = ref<string[]>([]);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
@@ -1556,7 +1589,7 @@ const activeMessages = computed<DisplayMessage[]>(() => {
         ...message,
         displayRole: "customer",
         displaySender: message.sender,
-        avatarText: session.avatarText,
+        avatarText: getInitial(session.remarkName || session.visitorName),
         avatarColor: session.avatarColor
       };
     }
@@ -2187,11 +2220,25 @@ const handleSendEmail = () => {
   const now = new Date();
   const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
 
+  // 拼接附件 HTML 到邮件末尾
+  const attachments = emailComposerRef.value?.getAttachments?.() ?? [];
+  const fileEmojiMap: Record<string, string> = { pdf: '\u{1F4C4}', doc: '\u{1F4DD}', docx: '\u{1F4DD}', xls: '\u{1F4CA}', xlsx: '\u{1F4CA}', csv: '\u{1F4CA}', zip: '\u{1F4E6}', rar: '\u{1F4E6}', '7z': '\u{1F4E6}' };
+  const fmtSize = (b: number) => b < 1024 ? b + ' B' : b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / (1024 * 1024)).toFixed(1) + ' MB';
+  let contentHtml = html;
+  if (attachments.length > 0) {
+    const attHtmlParts = attachments.map(att => {
+      const ext = att.name.split('.').pop()?.toLowerCase() || '';
+      const emoji = fileEmojiMap[ext] || '\u{1F4CE}';
+      return `<div style="padding:6px 0;font-size:13px;">${emoji} ${att.name} <span style="color:#8c95a6;margin-left:4px;">${fmtSize(att.size)}</span></div>`;
+    });
+    contentHtml += attHtmlParts.join('');
+  }
+
   const nextMessage: MessageItem = {
     id: `m-${activeSession.value.id}-${now.getTime()}`,
     role: "agent",
     sender: "客服主管",
-    content: html,
+    content: contentHtml,
     time,
     contentType: "html",
     subject: emailComposerSubject.value ? `Re: ${emailComposerSubject.value}` : "",
@@ -2206,6 +2253,7 @@ const handleSendEmail = () => {
   };
 
   emailComposerBody.value = "";
+  emailComposerRef.value?.clearAttachments?.();
 };
 
 const handleSendEmailAndPending = () => {
