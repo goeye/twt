@@ -843,22 +843,22 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
     },
     {
       key: "fallback",
-      title: "当 AI Agent 无法解决会话",
+      title: "当 AI Agent 无法解答时",
       icon: "service",
       cards: [
         {
           key: "answering-unsupported",
           title: "兜底回复",
-          summary: "当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复",
+          summary: "当访客发送图片、文件或敏感信息时的自动回复",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
         },
         {
           key: "fallback-transfer",
-          title: "转人工",
+          title: "转接人工",
           summary: transferEnabled.value
-            ? (hasTransferReply ? "允许" : "不允许")
-            : (hasOfflineReply ? "不允许" : "允许"),
+            ? (hasTransferReply ? "已开启" : "未开启")
+            : (hasOfflineReply ? "未开启" : "已开启"),
           badge: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "需要补充" : undefined,
           badgeTone: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "warning" : undefined
         }
@@ -871,12 +871,12 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "idle-followup",
-          title: "跟进策略",
-          summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "不跟进"
+          title: "主动跟进",
+          summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "未开启"
         },
         {
           key: "idle-autoclose",
-          title: "自动关闭会话",
+          title: "关闭会话",
           summary: idleSummaryText.value
         }
       ]

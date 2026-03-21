@@ -41,7 +41,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">受众群体</span>
-                  <span class="form-row__desc">选择谁能接收到AI Agent的回复</span>
+                  <span class="form-row__desc">AI Agent 的回复对象</span>
                 </div>
                 <div class="form-row__control">
                   <div class="radio-card-group">
@@ -68,7 +68,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">回复时机</span>
-                  <span class="form-row__desc">选择回复消息的时机</span>
+                  <span class="form-row__desc">AI Agent 何时介入回复</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
@@ -89,7 +89,7 @@
                           <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                           <span class="agent-switch__track" />
                         </label>
-                        <span class="toggle-row__label">在消息气泡中显示</span>
+                        <span class="toggle-row__label">在消息气泡中显示标签</span>
                       </div>
                     </div>
                   </div>
@@ -207,7 +207,7 @@
               <div class="setting-helper-stack">
                 <div class="setting-callout">
                   <p class="setting-callout__text">
-                    AI Agent 会结合知识库业务简介语气和语言设置来组织回复
+                    AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复
                   </p>
                 </div>
               </div>
@@ -215,12 +215,12 @@
               <div class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">回复模式</span>
-                  <span class="form-row__desc">AI Agent 回复策略</span>
+                  <span class="form-row__desc">AI Agent 回复的内容范围</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
-                    <option value="strict">严格模式 — 仅使用知识库匹配内容回复</option>
-                    <option value="creative">发散模式 — 允许 AI 在知识边界内适度推理</option>
+                    <option value="strict">严格模式 — 仅使用知识库内容回复</option>
+                    <option value="creative">发散模式 — 允许适度推理</option>
                   </select>
                 </div>
               </div>
@@ -257,7 +257,7 @@
                     @blur="emit('update:touched', 'unsupportedMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
-                  <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                  <p class="form-row__hint">更新文案后，系统将自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
             </template>
@@ -271,8 +271,8 @@
                       <span class="agent-switch__track" />
                     </label>
                     <div class="toggle-row__content">
-                      <span class="toggle-row__label">允许转接人工</span>
-                      <span class="toggle-row__desc">当访客主动要求转人工时，AI Agent 是否将会话转给人工客服</span>
+                      <span class="toggle-row__label">转接人工</span>
+                      <span class="toggle-row__desc">开启后，访客要求转人工时，会话自动转接人工客服</span>
                     </div>
                   </div>
                 </div>
@@ -294,7 +294,7 @@
                       @blur="emit('update:touched', 'transferMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
-                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                    <p class="form-row__hint">更新文案后，系统将自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
 
@@ -313,7 +313,7 @@
                       @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
-                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                    <p class="form-row__hint">更新文案后，系统将自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
               </template>
@@ -334,7 +334,7 @@
                       @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
-                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                    <p class="form-row__hint">更新文案后，系统将自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
               </template>
@@ -350,7 +350,7 @@
                     </label>
                     <div class="toggle-row__content">
                       <span class="toggle-row__label">发送跟进消息</span>
-                      <span class="toggle-row__desc">当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息</span>
+                      <span class="toggle-row__desc">开启后，访客 5 分钟未回复时自动发送跟进消息</span>
                     </div>
                   </div>
                 </div>
@@ -368,7 +368,7 @@
                     @blur="emit('update:touched', 'followUpMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="followUpMessageTouched && !followUpMessage.trim()" class="form-row__error">请输入跟进消息内容</p>
-                  <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                  <p class="form-row__hint">更新文案后，系统将自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
             </template>
