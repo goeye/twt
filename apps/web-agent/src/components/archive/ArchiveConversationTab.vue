@@ -1436,7 +1436,7 @@ const handleAssignConfirm = (agentId: string) => {
   });
 
   closeAssignModal();
-  emit("toast", `已将会话分配给${agent.name}`);
+  emit("toast", "会话分配成功");
 };
 
 /* ------------------------------------------------------------------ */

@@ -207,6 +207,7 @@
           :can-collaborate="canCollaborate && !isAiSession"
           :show-collaborate-actions="!isAiSession"
           :show-pending-action="!isAiSession"
+          :show-close-action="!isAiSession"
           :mode="chatHeaderMode"
           @close="handleOpenCloseSession"
           @invite="handleOpenInvite"
@@ -244,6 +245,7 @@
         </div>
 
         <div v-if="isAiSession" class="ai-takeover-bar">
+          <button type="button" class="agent-btn ai-takeover-bar__assign-btn" @click="handleOpenAiAssign">分配会话</button>
           <button type="button" class="agent-btn agent-btn--primary" @click="handleOpenTakeoverAiSession">接管会话</button>
         </div>
 
@@ -440,6 +442,15 @@
       </template>
     </BaseModal>
 
+    <ArchiveAssignModal
+      :open="aiAssignModalOpen"
+      :keyword="aiAssignKeyword"
+      :agents="aiAssignableAgents"
+      @close="aiAssignModalOpen = false"
+      @confirm="handleAiAssignConfirm"
+      @update:keyword="aiAssignKeyword = $event"
+    />
+
     <InviteModal
       :open="inviteModalOpen"
       :keyword="inviteKeyword"
@@ -517,6 +528,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ArchiveSubNav from "./components/ArchiveSubNav.vue";
+import ArchiveAssignModal from "./components/archive/ArchiveAssignModal.vue";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
 import CampaignRoutePage from "./views/CampaignRoutePage.vue";
 import CustomerRoutePage from "./views/CustomerRoutePage.vue";
@@ -1501,6 +1513,8 @@ const inviteModalOpen = ref(false);
 const inviteKeyword = ref("");
 const closeSessionModalOpen = ref(false);
 const closeEmailSessionModalOpen = ref(false);
+const aiAssignModalOpen = ref(false);
+const aiAssignKeyword = ref("");
 
 const queueGroups = computed(() =>
   queueGroupSeed.map((group) => ({
@@ -1539,6 +1553,14 @@ const invitableAgents = computed(() => {
   const keyword = inviteKeyword.value.trim().toLowerCase();
   return agentPool
     .filter((a) => !inSession.has(a.name))
+    .filter((a) => keyword.length === 0 || a.name.toLowerCase().includes(keyword))
+    .sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1))
+    .map((a) => ({ id: a.id, name: a.name, online: a.online, avatarText: a.avatarText, avatarColor: a.avatarColor }));
+});
+
+const aiAssignableAgents = computed(() => {
+  const keyword = aiAssignKeyword.value.trim().toLowerCase();
+  return agentPool
     .filter((a) => keyword.length === 0 || a.name.toLowerCase().includes(keyword))
     .sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1))
     .map((a) => ({ id: a.id, name: a.name, online: a.online, avatarText: a.avatarText, avatarColor: a.avatarColor }));
@@ -2253,6 +2275,30 @@ const handleConfirmTakeoverAiSession = () => {
   showTopToast("接管成功");
 };
 
+const handleOpenAiAssign = () => {
+  if (!activeSession.value) return;
+  aiAssignKeyword.value = "";
+  aiAssignModalOpen.value = true;
+};
+
+const handleAiAssignConfirm = (agentId: string) => {
+  const session = activeSession.value;
+  const agent = agentPool.find((a) => a.id === agentId);
+  if (!session || !agent) return;
+
+  allSessions.value = allSessions.value.filter((s) => s.id !== session.id);
+  aiAssignModalOpen.value = false;
+
+  const aiSessions = allSessions.value.filter((s) => s.queueKey === "ai-agent-queue");
+  if (aiSessions.length > 0) {
+    activeSessionId.value = aiSessions[0].id;
+  } else {
+    activeQueueKey.value = "pending-reply";
+  }
+
+  showTopToast("会话分配成功");
+};
+
 const handleSend = () => {
   const text = composerText.value.trim();
   if (!text || !activeSession.value) {
@@ -2925,9 +2971,19 @@ onBeforeUnmount(() => {
   background: #f0fdf4;
   border-top: 1px solid var(--agent-color-border-default);
   display: flex;
-  gap: var(--agent-space-16);
+  gap: var(--agent-space-12);
   justify-content: center;
   padding: var(--agent-space-20) var(--agent-space-16);
+}
+
+.ai-takeover-bar__assign-btn {
+  background: #ffffff;
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.ai-takeover-bar__assign-btn:hover {
+  background: rgba(47, 107, 255, 0.06);
 }
 
 .chat-pane__closed {

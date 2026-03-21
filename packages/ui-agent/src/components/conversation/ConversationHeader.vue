@@ -76,7 +76,7 @@
           <span class="conversation-header__tooltip">{{ isProcessing ? '取消待处理' : '标记为待处理' }}</span>
         </div>
 
-        <div v-if="channelType !== 'email'" class="conversation-header__icon-btn-wrap">
+        <div v-if="showCloseAction && channelType !== 'email'" class="conversation-header__icon-btn-wrap">
           <button
             class="conversation-header__icon-btn conversation-header__icon-btn--danger"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
@@ -89,7 +89,7 @@
           <span class="conversation-header__tooltip">结束会话</span>
         </div>
 
-        <div v-if="channelType === 'email'" class="conversation-header__icon-btn-wrap">
+        <div v-if="showCloseAction && channelType === 'email'" class="conversation-header__icon-btn-wrap">
           <button
             class="conversation-header__icon-btn conversation-header__icon-btn--danger"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
@@ -173,6 +173,7 @@ const props = withDefaults(
     canCollaborate?: boolean;
     showCollaborateActions?: boolean;
     showPendingAction?: boolean;
+    showCloseAction?: boolean;
     isProcessing?: boolean;
     closed?: boolean;
     mode?: "conversation" | "single-chat" | "group-chat";
@@ -183,6 +184,7 @@ const props = withDefaults(
     canCollaborate: true,
     showCollaborateActions: true,
     showPendingAction: true,
+    showCloseAction: true,
     isProcessing: false,
     closed: false,
     mode: "conversation"

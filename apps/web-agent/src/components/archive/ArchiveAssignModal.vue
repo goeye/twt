@@ -1,10 +1,10 @@
 <template>
   <teleport to="body">
-    <div v-if="open" class="assign-mask" @click.self="$emit('close')">
+    <div v-if="open" class="assign-mask" @click.self="handleMaskClick">
       <section class="assign-card" role="dialog" aria-modal="true" @click.stop>
         <header class="assign-card__header">
           <h3 class="assign-card__title">{{ modalTitle }}</h3>
-          <button class="assign-card__close" type="button" aria-label="关闭" @click="$emit('close')">
+          <button class="assign-card__close" type="button" aria-label="关闭" @click="handleClose">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             </svg>
@@ -48,9 +48,25 @@
               />
             </span>
             <span class="assign-card__agent-name">{{ agent.name }}</span>
-            <button type="button" class="assign-card__assign-btn" @click="handleSelect(agent.id)">
-              {{ assignBtnLabel }}
-            </button>
+            <span class="assign-card__btn-wrap">
+              <button type="button" class="assign-card__assign-btn" @click="handleSelect(agent.id)">
+                {{ assignBtnLabel }}
+              </button>
+              <div v-if="confirmingAgentId === agent.id" class="assign-popover">
+                <div class="assign-popover__content">
+                  <svg class="assign-popover__icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" fill="#faad14" />
+                    <path d="M8 4.5v4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="8" cy="11" r="0.75" fill="#fff" />
+                  </svg>
+                  <span class="assign-popover__text">确定分配给该客服吗？</span>
+                </div>
+                <div class="assign-popover__actions">
+                  <button type="button" class="assign-popover__btn assign-popover__btn--cancel" @click.stop="confirmingAgentId = null">取消</button>
+                  <button type="button" class="assign-popover__btn assign-popover__btn--confirm" @click.stop="handleConfirmAssign">确定</button>
+                </div>
+              </div>
+            </span>
           </div>
         </div>
       </section>
@@ -59,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 interface AssignAgent {
   id: string;
@@ -90,6 +106,12 @@ const emit = defineEmits<{
   (e: "update:keyword", value: string): void;
 }>();
 
+const confirmingAgentId = ref<string | null>(null);
+
+watch(() => props.open, (val) => {
+  if (!val) confirmingAgentId.value = null;
+});
+
 const sortedAgents = computed(() => {
   return [...props.agents].sort((a, b) => {
     if (a.online === b.online) return 0;
@@ -102,7 +124,23 @@ const assignBtnLabel = computed(() => {
 });
 
 const handleSelect = (id: string) => {
-  emit("confirm", id);
+  confirmingAgentId.value = id;
+};
+
+const handleConfirmAssign = () => {
+  if (!confirmingAgentId.value) return;
+  emit("confirm", confirmingAgentId.value);
+  confirmingAgentId.value = null;
+};
+
+const handleClose = () => {
+  confirmingAgentId.value = null;
+  emit("close");
+};
+
+const handleMaskClick = () => {
+  confirmingAgentId.value = null;
+  emit("close");
 };
 </script>
 
@@ -274,16 +312,20 @@ const handleSelect = (id: string) => {
   white-space: nowrap;
 }
 
+.assign-card__btn-wrap {
+  flex-shrink: 0;
+  margin-left: auto;
+  position: relative;
+}
+
 .assign-card__assign-btn {
   background: transparent;
   border: 1px solid #d4dbe6;
   border-radius: 8px;
   color: #555555;
   cursor: pointer;
-  flex-shrink: 0;
   font-size: 13px;
   font-weight: 500;
-  margin-left: auto;
   padding: 4px 16px;
   transition: all 0.15s ease;
 }
@@ -292,6 +334,81 @@ const handleSelect = (id: string) => {
   background: var(--agent-color-brand-primary, #2f6bff);
   border-color: var(--agent-color-brand-primary, #2f6bff);
   color: #ffffff;
+}
+
+/* Confirm popover */
+.assign-popover {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 14px 16px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.assign-popover::before {
+  border: 6px solid transparent;
+  border-bottom-color: #ffffff;
+  content: "";
+  filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.06));
+  position: absolute;
+  right: 20px;
+  top: -12px;
+}
+
+.assign-popover__content {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.assign-popover__icon {
+  flex-shrink: 0;
+}
+
+.assign-popover__text {
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.assign-popover__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.assign-popover__btn {
+  border: 1px solid #d4dbe6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 14px;
+  transition: all 0.15s ease;
+}
+
+.assign-popover__btn--cancel {
+  background: #ffffff;
+  color: #555;
+}
+
+.assign-popover__btn--cancel:hover {
+  background: #f5f5f5;
+}
+
+.assign-popover__btn--confirm {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+  color: #ffffff;
+}
+
+.assign-popover__btn--confirm:hover {
+  opacity: 0.9;
 }
 
 @media (max-width: 480px) {
