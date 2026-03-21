@@ -471,20 +471,20 @@
 
     <BaseModal
       :open="closeEmailSessionModalOpen"
-      title="关闭邮件会话"
+      title="结束会话"
       max-width="500px"
       :show-close="false"
       @close="closeEmailSessionModalOpen = false"
     >
       <div class="confirm-close-modal">
-        <p class="confirm-close-modal__description">确认关闭该邮件会话吗？关闭后会话将移入档案。</p>
+        <p class="confirm-close-modal__description">确认结束该会话吗？</p>
       </div>
 
       <template #footer>
         <span />
         <div class="confirm-close-modal__footer-actions">
           <button class="agent-btn agent-btn--ghost" type="button" @click="closeEmailSessionModalOpen = false">取消</button>
-          <button class="agent-btn agent-btn--danger" type="button" @click="handleConfirmCloseEmailSession">确认关闭</button>
+          <button class="agent-btn agent-btn--danger" type="button" @click="handleConfirmCloseEmailSession">确认结束</button>
         </div>
       </template>
     </BaseModal>
@@ -2378,7 +2378,7 @@ const handleConfirmCloseEmailSession = () => {
   if (!activeSession.value) return;
   allSessions.value = allSessions.value.filter((s) => s.id !== activeSession.value!.id);
   closeEmailSessionModalOpen.value = false;
-  showTopToast("邮件会话已关闭");
+  showTopToast("会话已结束");
 };
 
 const handleOpenCloseSession = () => {

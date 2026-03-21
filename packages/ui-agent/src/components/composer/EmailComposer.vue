@@ -92,7 +92,7 @@
       <div v-if="sendMenuOpen" class="email-composer__send-menu">
         <button type="button" @click="handleMenuSend">发送</button>
         <button type="button" @click="handleMenuSendPending">发送并标记为待处理</button>
-        <button type="button" @click="handleMenuSendResolve">发送并关闭</button>
+        <button type="button" @click="handleMenuSendResolve">发送并结束</button>
       </div>
     </div>
     </template>

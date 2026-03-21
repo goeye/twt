@@ -94,12 +94,12 @@
             class="conversation-header__icon-btn conversation-header__icon-btn--danger"
             :class="{ 'conversation-header__icon-btn--disabled': closed }"
             type="button"
-            aria-label="标记为关闭"
+            aria-label="结束会话"
             @click="handleCloseEmail"
           >
             <AgentIcon name="close-session" :size="16" />
           </button>
-          <span class="conversation-header__tooltip">标记为关闭</span>
+          <span class="conversation-header__tooltip">结束会话</span>
         </div>
       </template>
 

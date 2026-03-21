@@ -15,6 +15,10 @@
     "dev:web-admin": "pnpm --filter web-admin dev",
     "build:web-admin": "pnpm --filter web-admin build",
     "upload:web-admin": "cd apps && bash upcode.sh web-admin",
-    "deploy:web-admin": "pnpm build:web-admin && pnpm upload:web-admin"
+    "deploy:web-admin": "pnpm build:web-admin && pnpm upload:web-admin",
+    "dev:mobile-app": "pnpm --filter mobile-app dev",
+    "build:mobile-app": "pnpm --filter mobile-app build",
+    "upload:mobile-app": "cd apps && bash upcode.sh mobile-app",
+    "deploy:mobile-app": "pnpm build:mobile-app && pnpm upload:mobile-app"
   }
 }
