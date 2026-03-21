@@ -213,10 +213,6 @@
               </div>
 
               <div class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">回复模式</span>
-                  <span class="form-row__desc">AI Agent 回复的内容范围</span>
-                </div>
                 <div class="form-row__control">
                   <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
                     <option value="strict">严格模式 — 仅使用知识库内容回复</option>
