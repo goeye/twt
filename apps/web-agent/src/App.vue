@@ -168,7 +168,11 @@
 
           <div class="inbox-pane__filter-row">
             <div class="inbox-pane__chips">
-              <button type="button" class="filter-chip filter-chip--active">全部 {{ getFilterCount() }}</button>
+              <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sessionFilterType === 'all' }" @click="sessionFilterType = 'all'">全部 {{ filterCounts.all }}</button>
+              <template v-if="showSessionCategoryFilter">
+                <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sessionFilterType === 'visitor' }" @click="sessionFilterType = 'visitor'">访客 {{ filterCounts.visitor }}</button>
+                <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sessionFilterType === 'customer' }" @click="sessionFilterType = 'customer'">客户 {{ filterCounts.customer }}</button>
+              </template>
             </div>
             <button type="button" class="inbox-pane__filter-icon-btn" aria-label="筛选">
               <AgentIcon name="filter" :size="14" />
@@ -687,7 +691,7 @@ function getInitial(name: string): string {
 
 interface ConversationSession extends SessionItem {
   queueKey: string;
-  tag: "访客" | "VIP" | "客户" | "AI" | "AI 转接";
+  tag: "访客" | "VIP" | "客户";
   avatarText: string;
   avatarColor: string;
   channel: string;
@@ -1123,7 +1127,7 @@ const allSessions = ref<ConversationSession[]>([
     preview: "下单后多久能收到？有加急选项吗？",
     updatedAt: "20:15",
     unreadCount: 0,
-    tag: "AI",
+    tag: "访客",
     avatarText: "T",
     avatarColor: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
     channel: "官网入口",
@@ -1151,7 +1155,7 @@ const allSessions = ref<ConversationSession[]>([
     preview: "我想开启两步验证，在哪里设置？",
     updatedAt: "20:02",
     unreadCount: 0,
-    tag: "AI",
+    tag: "客户",
     avatarText: "S",
     avatarColor: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
     channel: "帮助中心",
@@ -1516,6 +1520,10 @@ const closeEmailSessionModalOpen = ref(false);
 const aiAssignModalOpen = ref(false);
 const aiAssignKeyword = ref("");
 
+const hasCustomerIdentity = ref(true);
+type SessionFilterType = "all" | "visitor" | "customer";
+const sessionFilterType = ref<SessionFilterType>("all");
+
 const queueGroups = computed(() =>
   queueGroupSeed.map((group) => ({
     ...group,
@@ -1632,9 +1640,28 @@ const currentModuleLabel = computed(() => {
 
 const queueSessionList = computed(() => allSessions.value.filter((session) => session.queueKey === activeQueueKey.value));
 
+watch(activeQueueKey, () => { sessionFilterType.value = "all"; });
+
+const filterCounts = computed(() => {
+  const list = queueSessionList.value;
+  return {
+    all: list.length,
+    visitor: list.filter((s) => s.tag === "访客").length,
+    customer: list.filter((s) => s.tag === "客户" || s.tag === "VIP").length,
+  };
+});
+
+const showSessionCategoryFilter = computed(() => {
+  if (!hasCustomerIdentity.value) return false;
+  const keys = ["pending-reply", "queueing", "processing", "resolved", "ai-agent-queue"];
+  return keys.includes(activeQueueKey.value);
+});
+
 const visibleSessions = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase();
   return queueSessionList.value.filter((session) => {
+    if (sessionFilterType.value === "visitor" && session.tag !== "访客") return false;
+    if (sessionFilterType.value === "customer" && session.tag !== "客户" && session.tag !== "VIP") return false;
     return (
       keyword.length === 0 ||
       session.customerName.toLowerCase().includes(keyword) ||
@@ -2053,8 +2080,6 @@ const handleCustomerNavSelect = (key: string) => {
     activeCustomerNavKey.value = key as CustomerNavKey;
   }
 };
-
-const getFilterCount = () => queueSessionList.value.length;
 
 const refreshAiAgentProfile = () => {
   aiAgentProfile.value = resolveAiAgentProfile(loadStoredAiAgentSettings());
