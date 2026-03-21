@@ -67,8 +67,8 @@
 
               <div class="form-row">
                 <div class="form-row__label">
-                  <span class="form-row__name">回复方式</span>
-                  <span class="form-row__desc">选择回复消息的场景</span>
+                  <span class="form-row__name">回复时机</span>
+                  <span class="form-row__desc">选择回复消息的时机</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
@@ -89,7 +89,7 @@
                           <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                           <span class="agent-switch__track" />
                         </label>
-                        <span class="toggle-row__label">消息气泡中显示 AI Agent 标识</span>
+                        <span class="toggle-row__label">在消息气泡中显示</span>
                       </div>
                     </div>
                   </div>
