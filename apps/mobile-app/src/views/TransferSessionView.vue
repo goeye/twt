@@ -105,6 +105,16 @@ const filteredAgents = computed(() => {
 });
 
 function handleConfirmTransfer() {
+  if (!transferTarget.value) return;
+  const id = route.params.id || "1";
+  const currentAgent = "李明";
+  const sysMsg = `${currentAgent}已将会话转移给${transferTarget.value.name}`;
+  const pending = JSON.parse(sessionStorage.getItem("pendingSystemMessages") || "{}");
+  const list = pending[id] || [];
+  list.push(sysMsg);
+  pending[id] = list;
+  sessionStorage.setItem("pendingSystemMessages", JSON.stringify(pending));
+
   transferTarget.value = null;
   toastText.value = "转移成功";
   setTimeout(() => {

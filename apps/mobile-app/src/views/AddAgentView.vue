@@ -156,8 +156,21 @@ function handleConfirm() {
   if (selected.value.size === 0) return;
   const added = selectedAgents.value.map(a => ({ name: a.name, initial: a.initial, color: a.color }));
   sessionStorage.setItem("addedAgents", JSON.stringify(added));
-  toastText.value = "添加成功";
+
   const id = route.params.id || "1";
+  const currentAgent = "李明";
+  const allNames = selectedAgents.value.map(a => a.name);
+  const displayNames = allNames.length <= 3
+    ? allNames.join("、")
+    : allNames.slice(0, 3).join("、") + `等${allNames.length}人`;
+  const sysMsg = `${currentAgent}添加了${displayNames}加入会话`;
+  const pending = JSON.parse(sessionStorage.getItem("pendingSystemMessages") || "{}");
+  const list = pending[id] || [];
+  list.push(sysMsg);
+  pending[id] = list;
+  sessionStorage.setItem("pendingSystemMessages", JSON.stringify(pending));
+
+  toastText.value = "添加成功";
   setTimeout(() => {
     toastText.value = "";
     router.replace({ path: `/session/${id}/info`, query: { tab: "session" } });

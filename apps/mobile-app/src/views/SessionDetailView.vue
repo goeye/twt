@@ -32,18 +32,23 @@
       </div>
 
       <!-- 消息列表 -->
-      <div v-for="msg in messages" :key="msg.id" class="message-item">
-        <img :src="msg.avatar" class="message-avatar" />
-        <div class="message-body">
-          <div class="message-meta">
-            <span class="message-sender">{{ msg.sender }}</span>
-            <span class="message-time">{{ msg.time }}</span>
-          </div>
-          <div class="message-bubble">
-            <p class="message-text">{{ msg.content }}</p>
+      <template v-for="msg in messages" :key="msg.id">
+        <div v-if="msg.type === 'system'" class="system-message">
+          <span class="system-message-text">{{ msg.content }}</span>
+        </div>
+        <div v-else class="message-item">
+          <img :src="msg.avatar" class="message-avatar" />
+          <div class="message-body">
+            <div class="message-meta">
+              <span class="message-sender">{{ msg.sender }}</span>
+              <span class="message-time">{{ msg.time }}</span>
+            </div>
+            <div class="message-bubble">
+              <p class="message-text">{{ msg.content }}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <!-- 底部输入栏 -->
@@ -134,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
@@ -148,6 +153,7 @@ const session = ref({
 
 interface Message {
   id: number;
+  type?: 'normal' | 'system';
   sender: string;
   avatar: string;
   time: string;
@@ -161,6 +167,22 @@ const messages = ref<Message[]>([
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
     time: "12/31 23:59",
     content: "这是一条示例消息。它展示了来自【会话】的客户对话在您的收件箱中的显示方式。"
+  },
+  {
+    id: 2,
+    type: 'system',
+    sender: '',
+    avatar: '',
+    time: '',
+    content: '李明已将会话转移给张思远'
+  },
+  {
+    id: 3,
+    type: 'system',
+    sender: '',
+    avatar: '',
+    time: '',
+    content: '李明添加了张思远、江晚柠、王子豪等5人加入会话'
   }
 ]);
 
@@ -206,6 +228,30 @@ function handleGoInfo(tab: string) {
   const id = route.params.id || '1';
   router.push({ path: `/session/${id}/info`, query: { tab } });
 }
+
+function loadPendingSystemMessages() {
+  const id = String(route.params.id || '1');
+  const pending = JSON.parse(sessionStorage.getItem("pendingSystemMessages") || "{}");
+  const list: string[] = pending[id] || [];
+  if (list.length === 0) return;
+  let nextId = messages.value.length + 1;
+  for (const content of list) {
+    messages.value.push({
+      id: nextId++,
+      type: 'system',
+      sender: '',
+      avatar: '',
+      time: '',
+      content
+    });
+  }
+  delete pending[id];
+  sessionStorage.setItem("pendingSystemMessages", JSON.stringify(pending));
+}
+
+onMounted(() => {
+  loadPendingSystemMessages();
+});
 </script>
 
 <style scoped>
@@ -312,6 +358,21 @@ function handleGoInfo(tab: string) {
   color: rgba(100, 116, 145, 0.8);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* 系统消息 */
+.system-message {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.system-message-text {
+  font-size: 12px;
+  color: rgba(100, 116, 145, 0.8);
+  line-height: 18px;
+  text-align: center;
+  max-width: 80%;
 }
 
 /* 消息项 */
