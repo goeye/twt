@@ -272,23 +272,16 @@
                     </label>
                     <div class="toggle-row__content">
                       <span class="toggle-row__label">允许转接人工</span>
-                      <span class="toggle-row__desc">允许 AI Agent 主动转接人工客服</span>
+                      <span class="toggle-row__desc">当访客主动要求转人工时，AI Agent 是否将会话转给人工客服</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <template v-if="localTransferEnabled">
-                <div class="setting-helper-stack">
-                  <div class="setting-callout">
-                    <p class="setting-callout__text">AI Agent会自动将预设回复内容翻译成所有启用的语言</p>
-                  </div>
-                </div>
-
                 <div class="form-row">
                   <div class="form-row__label">
                     <span class="form-row__name">转接提示语</span>
-                    <span class="form-row__desc">转接人工时向访客展示的提示</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -301,13 +294,13 @@
                       @blur="emit('update:touched', 'transferMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="transferMessageTouched && !transferMessage.trim()" class="form-row__error">请输入回复内容</p>
+                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-row__label">
                     <span class="form-row__name">客服离线提示</span>
-                    <span class="form-row__desc">转接时所有人工客服不在线的提示</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -320,21 +313,15 @@
                       @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
               </template>
 
               <template v-else>
-                <div class="setting-helper-stack">
-                  <div class="setting-callout">
-                    <p class="setting-callout__text">AI Agent会自动将预设回复内容翻译成所有启用的语言</p>
-                  </div>
-                </div>
-
                 <div class="form-row">
                   <div class="form-row__label">
-                    <span class="form-row__name">不转人工提示</span>
-                    <span class="form-row__desc">转接人工关闭时，AI Agent 无法解决问题时的回复</span>
+                    <span class="form-row__name">不转接提示语</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
@@ -347,6 +334,7 @@
                       @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
+                    <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                   </div>
                 </div>
               </template>
@@ -368,17 +356,7 @@
                 </div>
               </div>
 
-              <div v-if="localFollowUpEnabled" class="setting-helper-stack">
-                <div class="setting-callout">
-                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
-                </div>
-              </div>
-
               <div v-if="localFollowUpEnabled" class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">跟进消息内容</span>
-                  <span class="form-row__desc">自定义跟进消息，引导访客继续对话或留下联系方式</span>
-                </div>
                 <div class="form-row__control">
                   <textarea
                     v-model="localFollowUpMessage"
@@ -390,22 +368,13 @@
                     @blur="emit('update:touched', 'followUpMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="followUpMessageTouched && !followUpMessage.trim()" class="form-row__error">请输入跟进消息内容</p>
+                  <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
             </template>
 
             <template v-else-if="card.key === 'idle-autoclose'">
-              <div class="setting-helper-stack">
-                <div class="setting-callout setting-callout--soft">
-                  <p class="setting-callout__text">若开启跟进消息，关闭时间将从跟进消息发送后开始计算</p>
-                </div>
-              </div>
-
               <div class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">关闭时间</span>
-                  <span class="form-row__desc">访客持续不活跃后自动关闭会话的等待时长</span>
-                </div>
                 <div class="form-row__control">
                   <div class="inactive-setting">
                     <span class="inactive-setting__text">当访客超过</span>
@@ -417,6 +386,7 @@
                     <span class="inactive-setting__unit-label">秒</span>
                     <span class="inactive-setting__text">未回复时，自动关闭会话</span>
                   </div>
+                  <p class="form-row__hint">若开启跟进消息，关闭时间将从跟进消息发送后开始计算</p>
                 </div>
               </div>
             </template>
@@ -786,8 +756,7 @@ const localIdleSeconds = computed({
 }
 
 .config-card__body .form-row + .form-row {
-  border-top: 1px solid var(--agent-color-border-default);
-  padding-top: var(--agent-space-24);
+  padding-top: var(--agent-space-16);
 }
 
 .form-row__label {

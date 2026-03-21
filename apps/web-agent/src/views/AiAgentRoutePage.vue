@@ -115,40 +115,26 @@
                   头像
                   <span class="form-row__help-wrap">
                     <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
-                    <span class="form-row__tooltip">头像不会在访客端进行展示</span>
+                    <span class="form-row__tooltip">用于客服工作台会话列表中展示</span>
                   </span>
                 </span>
-                <span class="form-row__desc">该头像用于客服工作台会话列表中展示</span>
               </div>
               <div class="form-row__control">
                 <div class="bot-avatar-row">
-                  <div class="bot-avatar-item" :class="{ 'bot-avatar-item--image': Boolean(botAvatarUrl) }">
-                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-item__image" />
-                    <span v-else class="bot-avatar-item__fallback">{{ avatarFallbackText }}</span>
-                  </div>
                   <button
-                    v-if="botAvatarUrl"
                     type="button"
-                    class="bot-avatar-item bot-avatar-item--reupload"
+                    class="bot-avatar-item"
+                    :class="{ 'bot-avatar-item--image': Boolean(botAvatarUrl) }"
                     :disabled="!agentFeatureAvailable"
                     @click="triggerBotAvatarSelect"
                   >
-                    <img :src="botAvatarUrl" alt="" class="bot-avatar-item__image" />
-                    <span class="bot-avatar-item__overlay">
+                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-item__image" />
+                    <span v-else class="bot-avatar-item__fallback">{{ avatarFallbackText }}</span>
+                    <span v-if="botAvatarUrl" class="bot-avatar-item__overlay">
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M10 4v12M4 10h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
                       </svg>
                     </span>
-                  </button>
-                  <button
-                    type="button"
-                    class="bot-avatar-item bot-avatar-item--add"
-                    :disabled="!agentFeatureAvailable"
-                    @click="triggerBotAvatarSelect"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M6 1v10M1 6h10" stroke="#75869c" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
                   </button>
                   <input
                     ref="avatarInputRef"
@@ -167,10 +153,9 @@
                   昵称
                   <span class="form-row__help-wrap">
                     <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
-                    <span class="form-row__tooltip">昵称不会在访客端进行展示</span>
+                    <span class="form-row__tooltip">用于客服工作台会话列表中展示</span>
                   </span>
                 </span>
-                <span class="form-row__desc">当访客询问"你是谁"时，会使用这个昵称回复</span>
               </div>
               <div class="form-row__control">
                 <input
@@ -189,7 +174,6 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">业务简介</span>
-                <span class="form-row__desc">描述你的业务和服务范围，AI Agent 根据内容生成更贴合场景的回答</span>
               </div>
               <div class="form-row__control">
                 <textarea
@@ -214,7 +198,6 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">回复语气</span>
-                <span class="form-row__desc">设置表达风格，保证对外沟通体验一致</span>
               </div>
               <div class="form-row__control">
                 <select v-model="selectedTone" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
@@ -230,7 +213,6 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">默认语言</span>
-                <span class="form-row__desc">无法判断访客语言时，将使用该语言进行回复</span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
@@ -240,6 +222,7 @@
                     :value="language.value"
                   >{{ language.label }}</option>
                 </select>
+                <p class="form-row__hint">无法判断访客语言时，将使用该语言进行回复</p>
               </div>
             </div>
           </div>
@@ -888,7 +871,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "idle-followup",
-          title: "跟进",
+          title: "跟进策略",
           summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "不跟进"
         },
         {
@@ -1343,6 +1326,13 @@ onMounted(() => {
   margin: 4px 0 0;
 }
 
+.form-row__hint {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 .agent-input--error {
   border-color: #e53e3e;
 }
@@ -1362,6 +1352,7 @@ onMounted(() => {
   align-items: center;
   border: 0;
   border-radius: 12px;
+  cursor: pointer;
   display: inline-flex;
   flex-shrink: 0;
   height: 48px;
