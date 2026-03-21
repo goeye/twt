@@ -67,6 +67,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 interface SessionItem {
   id: number;
@@ -160,8 +163,8 @@ const filteredSessions = computed(() => {
   return sessionList.value.filter((s) => s.status === activeFilter.value);
 });
 
-function handleSessionClick(_item: SessionItem) {
-  // placeholder
+function handleSessionClick(item: SessionItem) {
+  router.push(`/session/${item.id}`);
 }
 </script>
 

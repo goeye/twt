@@ -1,12 +1,17 @@
 <template>
   <div class="ma-app">
     <router-view />
-    <TabBar />
+    <TabBar v-if="showTabBar" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import TabBar from "./components/TabBar.vue";
+
+const route = useRoute();
+const showTabBar = computed(() => !route.meta.hideTabBar);
 </script>
 
 <style scoped>
