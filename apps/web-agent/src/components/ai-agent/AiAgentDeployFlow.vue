@@ -40,31 +40,39 @@
             <template v-if="card.key === 'entry-routing'">
               <div class="form-row">
                 <div class="form-row__label">
-                  <span class="form-row__name">回复访客</span>
-                  <span class="form-row__desc">AI Agent 回复的访客类型</span>
+                  <span class="form-row__name">受众群体</span>
+                  <span class="form-row__desc">选择谁能接收到AI Agent的回复</span>
                 </div>
                 <div class="form-row__control">
-                  <div class="pill-group">
-                    <button
+                  <div class="radio-card-group">
+                    <label
                       v-for="option in audienceOptions"
                       :key="option.value"
-                      type="button"
-                      class="pill-option"
-                      :class="{ 'pill-option--active': localVisitorAudience === option.value }"
-                      @click="localVisitorAudience = option.value; emit('auto-save')"
-                    >{{ option.label }}</button>
+                      class="radio-card"
+                      :class="{ 'radio-card--active': localVisitorAudience === option.value }"
+                    >
+                      <input
+                        v-model="localVisitorAudience"
+                        type="radio"
+                        :value="option.value"
+                        class="radio-card__input"
+                        @change="emit('auto-save')"
+                      />
+                      <span class="radio-card__indicator" />
+                      <span class="radio-card__label">{{ option.label }}</span>
+                    </label>
                   </div>
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-row__label">
-                  <span class="form-row__name">回复时机</span>
-                  <span class="form-row__desc">AI Agent 在首条消息后何时接管回复</span>
+                  <span class="form-row__name">回复方式</span>
+                  <span class="form-row__desc">选择回复消息的场景</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
-                    <option value="always">始终由 AI Agent 回复</option>
+                    <option value="always">始终回复</option>
                     <option value="offline-only">仅客服不在线时</option>
                   </select>
                 </div>
@@ -75,15 +83,14 @@
               <div class="visibility-layout">
                 <div class="visibility-layout__form">
                   <div class="form-row form-row--single">
-                    <div class="form-row__label">
-                      <span class="form-row__name">显示 AI Agent 标签</span>
-                      <span class="form-row__desc">是否在消息气泡上显示 AI Agent 标识</span>
-                    </div>
                     <div class="form-row__control">
-                      <label class="agent-switch">
-                        <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
-                        <span class="agent-switch__track" />
-                      </label>
+                      <div class="toggle-row">
+                        <label class="agent-switch">
+                          <input v-model="localShowMessageAgentLabel" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
+                          <span class="agent-switch__track" />
+                        </label>
+                        <span class="toggle-row__label">消息气泡中显示 AI Agent 标识</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -93,7 +100,7 @@
                     <div class="bubble-preview__content">
                       <span class="bubble-preview__time">16:54</span>
                       <div class="bubble-preview__bubble">
-                        你好！有什么可以帮你的吗？
+                        Hi! How may I help you?
                         <span v-if="localShowMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
                       </div>
                     </div>
@@ -199,14 +206,16 @@
             <template v-else-if="card.key === 'answering-mode'">
               <div class="setting-helper-stack">
                 <div class="setting-callout">
-                  <p class="setting-callout__text">AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复</p>
+                  <p class="setting-callout__text">
+                    AI Agent 会结合知识库业务简介语气和语言设置来组织回复
+                  </p>
                 </div>
               </div>
 
               <div class="form-row form-row--single">
                 <div class="form-row__label">
                   <span class="form-row__name">回复模式</span>
-                  <span class="form-row__desc">AI Agent 的回复策略</span>
+                  <span class="form-row__desc">AI Agent 回复策略</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
@@ -219,19 +228,10 @@
 
             <template v-else-if="card.key === 'answering-knowledge'">
               <div class="knowledge-card">
-
-                <div v-if="knowledgeDocCount <= 10" class="knowledge-card__tip">
-                  <p class="knowledge-card__tip-text">
-                    AI Agent 需要充足的知识库内容来准确回答访客问题，请确保已添加并审核相关内容
+                <div class="setting-callout">
+                  <p class="setting-callout__text">
+                    AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容
                   </p>
-                </div>
-
-                <div class="knowledge-card__stats">
-                  <span class="knowledge-card__stats-label">AI Agent 将使用：</span>
-                  <span class="knowledge-card__stats-item">
-                    <AgentIcon name="file" :size="16" />
-                    {{ knowledgeDocCount }} 篇知识库内容
-                  </span>
                 </div>
 
                 <button
@@ -239,60 +239,53 @@
                   class="agent-btn agent-btn--ghost knowledge-card__action"
                   @click="emit('nav-change', 'doc-knowledge')"
                 >
-                  管理知识库 →
+                  添加知识库
                 </button>
               </div>
             </template>
 
             <template v-else-if="card.key === 'answering-unsupported'">
-              <div class="setting-helper-stack">
-                <div class="setting-callout setting-callout--soft">
-                  <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
-                </div>
-              </div>
-
               <div class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">兜底回复</span>
-                  <span class="form-row__desc">当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复</span>
-                </div>
                 <div class="form-row__control">
                   <textarea
                     v-model="localUnsupportedQuestionMessage"
                     class="agent-input form-row__textarea"
                     :class="{ 'agent-input--error': unsupportedMessageTouched && !unsupportedQuestionMessage.trim() }"
-                    rows="4"
+                    rows="3"
                     maxlength="2000"
                     placeholder="请输入"
                     @blur="emit('update:touched', 'unsupportedMessageTouched', true); emit('auto-save')"
                   />
                   <p v-if="unsupportedMessageTouched && !unsupportedQuestionMessage.trim()" class="form-row__error">请输入回复内容</p>
+                  <p class="form-row__hint">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
             </template>
 
             <template v-else-if="card.key === 'fallback-transfer'">
               <div class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">允许转接人工</span>
-                  <span class="form-row__desc">是否允许 AI Agent 主动转接人工客服</span>
-                </div>
                 <div class="form-row__control">
-                  <label class="agent-switch">
-                    <input v-model="localTransferEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
-                    <span class="agent-switch__track" />
-                  </label>
+                  <div class="toggle-row">
+                    <label class="agent-switch">
+                      <input v-model="localTransferEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
+                      <span class="agent-switch__track" />
+                    </label>
+                    <div class="toggle-row__content">
+                      <span class="toggle-row__label">允许转接人工</span>
+                      <span class="toggle-row__desc">允许 AI Agent 主动转接人工客服</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <template v-if="localTransferEnabled">
                 <div class="setting-helper-stack">
-                  <div class="setting-callout setting-callout--soft">
-                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                  <div class="setting-callout">
+                    <p class="setting-callout__text">AI Agent会自动将预设回复内容翻译成所有启用的语言</p>
                   </div>
                 </div>
 
-                <div class="form-row form-row--single">
+                <div class="form-row">
                   <div class="form-row__label">
                     <span class="form-row__name">转接提示语</span>
                     <span class="form-row__desc">转接人工时向访客展示的提示</span>
@@ -302,7 +295,7 @@
                       v-model="localTransferMessage"
                       class="agent-input form-row__textarea"
                       :class="{ 'agent-input--error': transferMessageTouched && !transferMessage.trim() }"
-                      rows="4"
+                      rows="3"
                       maxlength="2000"
                       placeholder="请输入"
                       @blur="emit('update:touched', 'transferMessageTouched', true); emit('auto-save')"
@@ -311,7 +304,7 @@
                   </div>
                 </div>
 
-                <div class="form-row form-row--single">
+                <div class="form-row">
                   <div class="form-row__label">
                     <span class="form-row__name">客服离线提示</span>
                     <span class="form-row__desc">转接时所有人工客服不在线的提示</span>
@@ -321,7 +314,7 @@
                       v-model="localOfflineMessage"
                       class="agent-input form-row__textarea"
                       :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                      rows="4"
+                      rows="3"
                       maxlength="2000"
                       placeholder="请输入"
                       @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
@@ -333,25 +326,25 @@
 
               <template v-else>
                 <div class="setting-helper-stack">
-                  <div class="setting-callout setting-callout--soft">
-                    <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
+                  <div class="setting-callout">
+                    <p class="setting-callout__text">AI Agent会自动将预设回复内容翻译成所有启用的语言</p>
                   </div>
                 </div>
 
-                <div class="form-row form-row--single">
+                <div class="form-row">
                   <div class="form-row__label">
                     <span class="form-row__name">不转人工提示</span>
-                    <span class="form-row__desc">转接人工关闭时，AI Agent 无法解决时的提示</span>
+                    <span class="form-row__desc">转接人工关闭时，AI Agent 无法解决问题时的回复</span>
                   </div>
                   <div class="form-row__control">
                     <textarea
                       v-model="localOfflineMessage"
                       class="agent-input form-row__textarea"
                       :class="{ 'agent-input--error': offlineMessageTouched && !offlineMessage.trim() }"
-                      rows="4"
+                      rows="3"
                       maxlength="2000"
                       placeholder="请输入"
-                      @blur="emit('update:touched', 'offlineMessageTouched', true)"
+                      @blur="emit('update:touched', 'offlineMessageTouched', true); emit('auto-save')"
                     />
                     <p v-if="offlineMessageTouched && !offlineMessage.trim()" class="form-row__error">请输入回复内容</p>
                   </div>
@@ -361,20 +354,22 @@
 
             <template v-else-if="card.key === 'idle-followup'">
               <div class="form-row form-row--single">
-                <div class="form-row__label">
-                  <span class="form-row__name">发送跟进消息</span>
-                  <span class="form-row__desc">当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息</span>
-                </div>
                 <div class="form-row__control">
-                  <label class="agent-switch">
-                    <input v-model="localFollowUpEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
-                    <span class="agent-switch__track" />
-                  </label>
+                  <div class="toggle-row">
+                    <label class="agent-switch">
+                      <input v-model="localFollowUpEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
+                      <span class="agent-switch__track" />
+                    </label>
+                    <div class="toggle-row__content">
+                      <span class="toggle-row__label">发送跟进消息</span>
+                      <span class="toggle-row__desc">当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div v-if="localFollowUpEnabled" class="setting-helper-stack">
-                <div class="setting-callout setting-callout--soft">
+                <div class="setting-callout">
                   <p class="setting-callout__text">如果你更新以下文案，系统会自动同步翻译为其他已支持的语言</p>
                 </div>
               </div>
@@ -389,7 +384,7 @@
                     v-model="localFollowUpMessage"
                     class="agent-input form-row__textarea"
                     :class="{ 'agent-input--error': followUpMessageTouched && !followUpMessage.trim() }"
-                    rows="4"
+                    rows="3"
                     maxlength="2000"
                     placeholder="请输入跟进消息内容"
                     @blur="emit('update:touched', 'followUpMessageTouched', true); emit('auto-save')"
@@ -471,7 +466,7 @@ export interface LifecycleSection {
 // ── Options arrays (local constants) ─────────────────────────────────────────
 
 const audienceOptions: Array<{ label: string; value: AudienceType }> = [
-  { label: "全部", value: "all" },
+  { label: "全部访客", value: "all" },
   { label: "仅访客", value: "visitor" },
   { label: "仅客户", value: "customer" }
 ];
@@ -801,7 +796,7 @@ const localIdleSeconds = computed({
   flex-shrink: 0;
   gap: 4px;
   padding-top: 8px;
-  width: 220px;
+  width: 280px;
 }
 
 .form-row__name {
@@ -833,7 +828,7 @@ const localIdleSeconds = computed({
 }
 
 .form-row__textarea {
-  min-height: 120px;
+  min-height: 80px;
   resize: vertical;
   width: 100%;
 }
@@ -856,25 +851,28 @@ const localIdleSeconds = computed({
 }
 
 .setting-callout {
-  background: #eef4ff;
+  background: rgba(16, 94, 255, 0.05);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 10px 16px;
 }
 
 .setting-callout--soft {
-  background: #eef4ff;
+  background: rgba(16, 94, 255, 0.05);
 }
 
 .setting-callout__text {
-  color: #1a56db;
+  color: #222;
   font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
   line-height: 1.6;
   margin: 0;
 }
 
 .setting-callout--soft .setting-callout__text {
-  color: #20478a;
+  color: #222;
+}
+
+.setting-callout__highlight {
+  color: #ff3a3a;
 }
 
 .knowledge-card {
@@ -883,73 +881,92 @@ const localIdleSeconds = computed({
   gap: var(--agent-space-16);
 }
 
-.knowledge-card__desc {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.knowledge-card__stats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.knowledge-card__stats-label {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-semibold);
-}
-
-.knowledge-card__stats-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-}
-
 .knowledge-card__action {
   align-self: flex-start;
   font-weight: var(--agent-font-weight-medium);
 }
 
-.knowledge-card__tip {
-  background: #eef4ff;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.knowledge-card__tip-text {
-  color: #1a56db;
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.pill-group {
+.radio-card-group {
   display: flex;
-  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.radio-card {
+  align-items: center;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  transition: border-color var(--agent-motion-fast);
+}
+
+.radio-card--active {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.radio-card__input {
+  height: 0;
+  opacity: 0;
+  position: absolute;
+  width: 0;
+}
+
+.radio-card__indicator {
+  border: 2px solid var(--agent-color-border-default);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 16px;
+  position: relative;
+  width: 16px;
+}
+
+.radio-card--active .radio-card__indicator {
+  border-color: var(--agent-color-brand-primary);
+  border-width: 5px;
+}
+
+.radio-card__label {
+  color: #222;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.toggle-row {
+  align-items: flex-start;
+  display: flex;
   gap: 8px;
 }
 
-.pill-option {
-  background: #f4f6fa;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 6px 12px;
-  transition: all var(--agent-motion-fast) ease;
+.toggle-row__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
-.pill-option--active {
-  background: #e9f1ff;
-  border-color: #b7ccff;
-  color: var(--agent-color-brand-primary);
+.toggle-row__label {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 24px;
+}
+
+.toggle-row__desc {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.form-row__hint {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 8px;
 }
 
 .inactive-setting {

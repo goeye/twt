@@ -36,7 +36,7 @@
               {{ agentEnabled && agentFeatureAvailable ? '已开启' : '已关闭' }}
             </span>
           </div>
-          <p class="agent-content-subtitle">开启后，AI Agent 将自动回复访客咨询，根据知识库内容智能回复，并在需要时转接人工客服</p>
+          <p class="agent-content-subtitle">开启后，将根据知识库内容自动智能回复访客咨询，并在需要时转接人工客服，保障服务连续性</p>
         </div>
 
         <div class="agent-config-header__actions">
@@ -118,24 +118,43 @@
                     <span class="form-row__tooltip">头像不会在访客端进行展示</span>
                   </span>
                 </span>
-                <span class="form-row__desc">设置 AI Agent 的头像，用于会话列表中展示</span>
+                <span class="form-row__desc">该头像用于客服工作台会话列表中展示</span>
               </div>
-              <div class="form-row__control form-row__control--stack">
-                <div class="bot-avatar-upload">
-                  <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
-                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
-                    <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
+              <div class="form-row__control">
+                <div class="bot-avatar-row">
+                  <div class="bot-avatar-item" :class="{ 'bot-avatar-item--image': Boolean(botAvatarUrl) }">
+                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-item__image" />
+                    <span v-else class="bot-avatar-item__fallback">{{ avatarFallbackText }}</span>
                   </div>
-                  <div class="bot-avatar-upload__actions">
-                    <button type="button" class="agent-btn agent-btn--ghost" :disabled="!agentFeatureAvailable" @click="triggerBotAvatarSelect">
-                      {{ botAvatarUrl ? '重新上传' : '上传头像' }}
-                    </button>
-                  </div>
+                  <button
+                    v-if="botAvatarUrl"
+                    type="button"
+                    class="bot-avatar-item bot-avatar-item--reupload"
+                    :disabled="!agentFeatureAvailable"
+                    @click="triggerBotAvatarSelect"
+                  >
+                    <img :src="botAvatarUrl" alt="" class="bot-avatar-item__image" />
+                    <span class="bot-avatar-item__overlay">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4v12M4 10h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    class="bot-avatar-item bot-avatar-item--add"
+                    :disabled="!agentFeatureAvailable"
+                    @click="triggerBotAvatarSelect"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M6 1v10M1 6h10" stroke="#75869c" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
                   <input
                     ref="avatarInputRef"
                     type="file"
                     accept="image/png,image/jpeg,image/jpg"
-                    class="bot-avatar-upload__input"
+                    class="bot-avatar-row__input"
                     @change="handleAvatarFileChange"
                   />
                 </div>
@@ -151,7 +170,7 @@
                     <span class="form-row__tooltip">昵称不会在访客端进行展示</span>
                   </span>
                 </span>
-                <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会使用这个昵称</span>
+                <span class="form-row__desc">当访客询问"你是谁"时，会使用这个昵称回复</span>
               </div>
               <div class="form-row__control">
                 <input
@@ -170,13 +189,13 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">业务简介</span>
-                <span class="form-row__desc">描述你的业务和服务范围，AI Agent 会据此生成更贴合场景的回答</span>
+                <span class="form-row__desc">描述你的业务和服务范围，AI Agent 根据内容生成更贴合场景的回答</span>
               </div>
               <div class="form-row__control">
                 <textarea
                   v-model="botIntro"
                   class="agent-input form-row__textarea"
-                  rows="5"
+                  rows="3"
                   maxlength="2000"
                   placeholder="例如：我们是一家 SaaS 软件服务商，提供产品功能咨询、账户管理、订阅与计费、技术故障排查等支持。请用专业友好的语气解答客户问题，无法解决时引导联系人工客服。"
                   :disabled="!agentFeatureAvailable"
@@ -195,27 +214,23 @@
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">回复语气</span>
-                <span class="form-row__desc">设置 AI Agent 的表达风格，保证对外沟通体验一致</span>
+                <span class="form-row__desc">设置表达风格，保证对外沟通体验一致</span>
               </div>
               <div class="form-row__control">
-                <div class="bot-chips-group">
-                  <button
+                <select v-model="selectedTone" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
+                  <option
                     v-for="tone in toneOptions"
                     :key="tone.value"
-                    type="button"
-                    class="bot-chip"
-                    :class="{ 'bot-chip--active': selectedTone === tone.value }"
-                    :disabled="!agentFeatureAvailable"
-                    @click="selectedTone = tone.value; autoSave()"
-                  >{{ tone.label }}</button>
-                </div>
+                    :value="tone.value"
+                  >{{ tone.label }}</option>
+                </select>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-row__label">
                 <span class="form-row__name">默认语言</span>
-                <span class="form-row__desc">当 AI Agent 无法判断访客语言时，将使用该语言进行回复</span>
+                <span class="form-row__desc">无法判断访客语言时，将使用该语言进行回复</span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
@@ -691,30 +706,30 @@ const toneOptions = [
   { value: "concise", label: "简洁高效" }
 ];
 const languageOptions = [
-  { value: "en", label: "英语" },
-  { value: "es", label: "西班牙语" },
-  { value: "fr", label: "法语" },
-  { value: "de", label: "德语" },
-  { value: "pt", label: "葡萄牙语" },
-  { value: "ru", label: "俄语" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
+  { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
+  { value: "pt", label: "Português" },
+  { value: "ru", label: "Русский" },
   { value: "zh-CN", label: "简体中文" },
-  { value: "zh-TW", label: "繁体中文" },
-  { value: "ja", label: "日语" },
-  { value: "ko", label: "韩语" },
-  { value: "vi", label: "越南语" },
-  { value: "th", label: "泰语" },
-  { value: "id", label: "印尼语" },
-  { value: "ms", label: "马利西亚语" }
+  { value: "zh-TW", label: "繁體中文" },
+  { value: "ja", label: "日本語" },
+  { value: "ko", label: "한국어" },
+  { value: "vi", label: "Tiếng Việt" },
+  { value: "th", label: "ภาษาไทย" },
+  { value: "id", label: "Bahasa Indonesia" },
+  { value: "ms", label: "Bahasa Melayu" }
 ];
 
 const audienceLabelMap: Record<AudienceType, string> = {
-  all: "全部",
-  visitor: "访客",
-  customer: "客户"
+  all: "全部访客",
+  visitor: "仅访客",
+  customer: "仅客户"
 };
 
 const responseModeLabelMap: Record<string, string> = {
-  always: "始终由 AI Agent 回复",
+  always: "始终回复",
   "offline-only": "仅客服离线时"
 };
 
@@ -799,7 +814,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
   return [
     {
       key: "entry",
-      title: "当访客发送第一条消息",
+      title: "当访客发送消息时",
       icon: "customer",
       cards: [
         {
@@ -851,7 +866,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "answering-unsupported",
           title: "兜底回复",
-          summary: hasUnsupportedReply ? " " : " ",
+          summary: "当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
         },
@@ -1190,10 +1205,12 @@ onMounted(() => {
 }
 
 .settings-section {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-4);
-  padding: var(--agent-space-24);
+  padding: 20px var(--agent-space-24);
 }
 
 .settings-section__title {
@@ -1218,8 +1235,7 @@ onMounted(() => {
 }
 
 .settings-form .form-row + .form-row {
-  border-top: 1px solid var(--agent-color-border-default);
-  padding-top: var(--agent-space-24);
+  padding-top: var(--agent-space-16);
 }
 
 
@@ -1235,7 +1251,7 @@ onMounted(() => {
   flex-shrink: 0;
   gap: 4px;
   padding-top: 8px;
-  width: 220px;
+  width: 280px;
 }
 
 .form-row__name {
@@ -1315,7 +1331,7 @@ onMounted(() => {
 }
 
 .form-row__textarea {
-  min-height: 120px;
+  min-height: 80px;
   resize: vertical;
   width: 100%;
 }
@@ -1331,105 +1347,85 @@ onMounted(() => {
   border-color: #e53e3e;
 }
 
-.bot-avatar-upload {
+.bot-avatar-row {
   align-items: center;
   display: flex;
   gap: var(--agent-space-12);
+  position: relative;
 }
 
-.bot-avatar-upload__preview {
+.bot-avatar-row__input {
+  display: none;
+}
+
+.bot-avatar-item {
   align-items: center;
-  background: linear-gradient(135deg, #00b578, #00c2b8);
-  border-radius: 50%;
+  border: 0;
+  border-radius: 12px;
   display: inline-flex;
   flex-shrink: 0;
-  height: 64px;
+  height: 48px;
   justify-content: center;
   overflow: hidden;
   position: relative;
-  width: 64px;
+  width: 48px;
 }
 
-.bot-avatar-upload__preview--image {
+.bot-avatar-item:not(.bot-avatar-item--add):not(.bot-avatar-item--reupload) {
+  background: linear-gradient(135deg, #00b578, #00c2b8);
+}
+
+.bot-avatar-item--image {
   background: #eef2f8;
 }
 
-.bot-avatar-upload__image {
+.bot-avatar-item__image {
   height: 100%;
   object-fit: cover;
   width: 100%;
 }
 
-.bot-avatar-upload__fallback {
-  color: #ffffff;
+.bot-avatar-item__fallback {
+  color: #fff;
   font-size: 18px;
   font-weight: 600;
 }
 
-.bot-avatar-upload__actions {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.bot-avatar-upload__hint {
-  color: var(--agent-color-text-tertiary);
-  font-size: var(--agent-font-size-xs);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.bot-avatar-upload__input {
-  display: none;
-}
-
-.bot-chips-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--agent-space-8);
-}
-
-.bot-chip {
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
+.bot-avatar-item--reupload {
+  background: transparent;
   cursor: pointer;
-  font-size: var(--agent-font-size-sm);
-  padding: 8px var(--agent-space-16);
-  transition: all var(--agent-motion-fast);
+  padding: 0;
 }
 
-.bot-chip:hover {
+.bot-avatar-item--reupload .bot-avatar-item__image {
+  display: block;
+}
+
+.bot-avatar-item__overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+}
+
+.bot-avatar-item--add {
+  background: #f4f5fb;
+  border: 1px dashed var(--agent-color-border-default);
+  cursor: pointer;
+  padding: 0;
+}
+
+.bot-avatar-item--add:hover {
   border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
 }
 
-.bot-chip--active {
-  background: var(--agent-color-brand-soft);
-  border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
-  font-weight: var(--agent-font-weight-medium);
-}
-
-.bot-chip:disabled {
+.bot-avatar-item--add:disabled,
+.bot-avatar-item--reupload:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.bot-chip:disabled:hover {
-  border-color: var(--agent-color-border-default);
-  color: var(--agent-color-text-secondary);
-}
-
-.bot-chip--active:disabled {
-  opacity: 0.6;
-}
-
-.bot-chip--active:disabled:hover {
-  border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
 }
 
 /* ─── 文档知识页面 ─── */
@@ -1800,11 +1796,6 @@ onMounted(() => {
   .form-row__label {
     padding-top: 0;
     width: auto;
-  }
-
-  .bot-avatar-upload {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .agent-config-header {
