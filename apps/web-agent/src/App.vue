@@ -253,7 +253,7 @@
           <button type="button" class="agent-btn agent-btn--primary" @click="handleOpenTakeoverAiSession">接管会话</button>
         </div>
 
-        <div v-else-if="isQueueingSession" class="queue-claim-bar">
+        <div v-else-if="isQueueingSession && !isQueueingSessionClaimed" class="queue-claim-bar">
           <button type="button" class="agent-btn queue-claim-bar__assign-btn" @click="handleOpenQueueAssign">分配会话</button>
           <button type="button" class="agent-btn agent-btn--primary" @click="handleClaimQueueSession">领取会话</button>
         </div>
@@ -727,6 +727,7 @@ interface ConversationSession extends SessionItem {
   assignee: string;
   assistants: string[];
   closed?: boolean;
+  claimed?: boolean;
   isGroupChat?: boolean;
 }
 
@@ -1552,7 +1553,7 @@ const queueGroups = computed(() =>
 
 const validQueueKeys = queueGroupSeed.flatMap((group) => group.items.map((item) => item.key));
 
-const canCollaborate = computed(() => activeSession.value?.queueKey !== "queueing");
+const canCollaborate = computed(() => activeSession.value?.queueKey !== "queueing" || activeSession.value?.claimed === true);
 
 const transferableAgents = computed(() => {
   const keyword = transferKeyword.value.trim().toLowerCase();
@@ -1630,6 +1631,7 @@ const isCustomerRoute = computed(() => currentRouteName.value === "customer");
 
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
 const isQueueingSession = computed(() => activeSession.value?.queueKey === "queueing");
+const isQueueingSessionClaimed = computed(() => isQueueingSession.value && activeSession.value?.claimed === true);
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
@@ -2355,10 +2357,9 @@ const handleClaimQueueSession = () => {
 
   allSessions.value = allSessions.value.map((s) => {
     if (s.id !== session.id) return s;
-    return { ...s, queueKey: "pending-reply", assignee: currentAgentName };
+    return { ...s, claimed: true, assignee: currentAgentName };
   });
 
-  activeQueueKey.value = "pending-reply";
   showTopToast("领取会话成功");
 };
 
