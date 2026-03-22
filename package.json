@@ -19,6 +19,10 @@
     "dev:mobile-app": "pnpm --filter mobile-app dev",
     "build:mobile-app": "pnpm --filter mobile-app build",
     "upload:mobile-app": "cd apps && bash upcode.sh mobile-app",
-    "deploy:mobile-app": "pnpm build:mobile-app && pnpm upload:mobile-app"
+    "deploy:mobile-app": "pnpm build:mobile-app && pnpm upload:mobile-app",
+    "dev:web-website": "pnpm --filter web-website dev",
+    "build:web-website": "pnpm --filter web-website build",
+    "upload:web-website": "cd apps && bash upcode.sh web-website",
+    "deploy:web-website": "pnpm build:web-website && pnpm upload:web-website"
   }
 }

@@ -31,6 +31,22 @@ const router = createRouter({
       path: "/compliance/alerts",
       component: () => import("./views/AlertsPage.vue"),
     },
+    {
+      path: "/links/banners",
+      component: () => import("./views/BannerListPage.vue"),
+    },
+    {
+      path: "/links/categories",
+      component: () => import("./views/CategoryListPage.vue"),
+    },
+    {
+      path: "/links/resources",
+      component: () => import("./views/ResourceListPage.vue"),
+    },
+    {
+      path: "/links/resources/:id",
+      component: () => import("./views/ResourceEditPage.vue"),
+    },
   ],
 });
 

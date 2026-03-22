@@ -41,9 +41,12 @@
           <a-menu-item key="alerts" @click="$router.push('/compliance/alerts')">预警列表</a-menu-item>
         </a-sub-menu>
 
-        <a-sub-menu key="resource" disabled>
+        <a-sub-menu key="resource">
           <template #icon><CloudServerOutlined /></template>
           <template #title>资源管理</template>
+          <a-menu-item key="banners" @click="$router.push('/links/banners')">Banner 管理</a-menu-item>
+          <a-menu-item key="link-categories" @click="$router.push('/links/categories')">分类管理</a-menu-item>
+          <a-menu-item key="link-resources" @click="$router.push('/links/resources')">资源管理</a-menu-item>
         </a-sub-menu>
       </a-menu>
     </a-layout-sider>
@@ -182,6 +185,18 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
     breadcrumbs: [{ title: "合规管理" }, { title: "预警列表" }],
     tabTitle: "预警列表",
   },
+  "/links/banners": {
+    breadcrumbs: [{ title: "资源管理" }, { title: "Banner 管理" }],
+    tabTitle: "Banner 管理",
+  },
+  "/links/categories": {
+    breadcrumbs: [{ title: "资源管理" }, { title: "分类管理" }],
+    tabTitle: "分类管理",
+  },
+  "/links/resources": {
+    breadcrumbs: [{ title: "资源管理" }, { title: "资源管理" }],
+    tabTitle: "资源管理",
+  },
 };
 
 function getRouteMeta(path: string): { breadcrumbs: BreadcrumbItem[]; tabTitle: string } {
@@ -199,6 +214,19 @@ function getRouteMeta(path: string): { breadcrumbs: BreadcrumbItem[]; tabTitle: 
         { title: name },
       ],
       tabTitle: name,
+    };
+  }
+  // 动态路由：资源编辑 /links/resources/:id
+  const resourceMatch = path.match(/^\/links\/resources\/(.+)$/);
+  if (resourceMatch) {
+    const isNew = resourceMatch[1] === "new";
+    return {
+      breadcrumbs: [
+        { title: "资源管理" },
+        { title: "资源管理", path: "/links/resources" },
+        { title: isNew ? "新增资源" : "编辑资源" },
+      ],
+      tabTitle: isNew ? "新增资源" : "编辑资源",
     };
   }
   return { breadcrumbs: [{ title: "数据看板" }], tabTitle: "页面" };
@@ -241,11 +269,15 @@ function routeToKey(path: string): string {
   if (path === "/compliance/agreements") return "agreements";
   if (path.startsWith("/compliance/sensitive-words")) return "sensitive-words";
   if (path === "/compliance/alerts") return "alerts";
+  if (path === "/links/banners") return "banners";
+  if (path === "/links/categories") return "link-categories";
+  if (path.startsWith("/links/resources")) return "link-resources";
   return "dashboard";
 }
 
 function routeToOpenKeys(path: string): string[] {
   if (path.startsWith("/compliance")) return ["compliance"];
+  if (path.startsWith("/links")) return ["resource"];
   return ["data"];
 }
 

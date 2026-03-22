@@ -1,0 +1,112 @@
+/* 容器 */
+.links-container {
+  max-width: var(--links-content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--links-space-24);
+}
+
+/* 页面双栏布局 */
+.links-page {
+  display: flex;
+  min-height: calc(100vh - var(--links-header-height));
+}
+
+.links-sidebar {
+  position: sticky;
+  top: var(--links-header-height);
+  width: var(--links-sidebar-width);
+  height: calc(100vh - var(--links-header-height));
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: var(--links-color-bg-sidebar);
+  border-right: 1px solid var(--links-color-border);
+}
+
+.links-main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--links-space-24);
+}
+
+/* 卡片网格 */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--links-space-16);
+}
+
+/* 区块标题 */
+.links-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--links-space-8);
+  font-size: var(--links-font-size-xl);
+  font-weight: 600;
+  color: var(--links-color-text-primary);
+  margin-bottom: var(--links-space-16);
+}
+
+.links-section-title .icon {
+  font-size: var(--links-font-size-2xl);
+}
+
+/* 子分类 tabs */
+.links-sub-tabs {
+  display: flex;
+  gap: var(--links-space-8);
+  margin-bottom: var(--links-space-16);
+  flex-wrap: wrap;
+}
+
+.links-sub-tab {
+  padding: var(--links-space-4) var(--links-space-16);
+  border-radius: var(--links-radius-sm);
+  font-size: var(--links-font-size-md);
+  color: var(--links-color-text-secondary);
+  cursor: pointer;
+  transition: all var(--links-motion-fast);
+}
+
+.links-sub-tab:hover {
+  color: var(--links-color-primary);
+  background: var(--links-color-primary-light);
+}
+
+.links-sub-tab--active {
+  color: var(--links-color-primary);
+  background: var(--links-color-primary-light);
+  font-weight: 500;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .links-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .links-sidebar {
+    width: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .links-sidebar {
+    display: none;
+  }
+
+  .links-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .links-main {
+    padding: var(--links-space-16);
+  }
+}
+
+@media (max-width: 480px) {
+  .links-grid {
+    grid-template-columns: 1fr;
+  }
+}

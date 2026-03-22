@@ -1,0 +1,60 @@
+:root {
+  /* 颜色 */
+  --links-color-primary: #1677ff;
+  --links-color-primary-hover: #0958d9;
+  --links-color-primary-light: #e6f4ff;
+  --links-color-text-primary: #1a1a2e;
+  --links-color-text-secondary: #5a5a7a;
+  --links-color-text-muted: #9999bb;
+  --links-color-bg-page: #f5f6fa;
+  --links-color-bg-card: #ffffff;
+  --links-color-bg-sidebar: #ffffff;
+  --links-color-border: #e8e9f0;
+  --links-color-tag-featured: #fa8c16;
+  --links-color-tag-featured-bg: #fff7e6;
+  --links-color-tag-top: #ff4d4f;
+  --links-color-tag-top-bg: #fff1f0;
+  --links-color-tag-new: #52c41a;
+  --links-color-tag-new-bg: #f6ffed;
+  --links-color-tag-quality: #1677ff;
+  --links-color-tag-quality-bg: #e6f4ff;
+  --links-color-star: #fadb14;
+  --links-color-star-empty: #e8e9f0;
+
+  /* 间距 */
+  --links-space-4: 4px;
+  --links-space-8: 8px;
+  --links-space-12: 12px;
+  --links-space-16: 16px;
+  --links-space-20: 20px;
+  --links-space-24: 24px;
+  --links-space-32: 32px;
+
+  /* 圆角 */
+  --links-radius-sm: 6px;
+  --links-radius-md: 10px;
+  --links-radius-lg: 16px;
+
+  /* 阴影 */
+  --links-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --links-shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* 布局 */
+  --links-sidebar-width: 220px;
+  --links-header-height: 64px;
+  --links-content-max-width: 1280px;
+
+  /* 字体 */
+  --links-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --links-font-size-xs: 12px;
+  --links-font-size-sm: 13px;
+  --links-font-size-md: 14px;
+  --links-font-size-lg: 16px;
+  --links-font-size-xl: 20px;
+  --links-font-size-2xl: 24px;
+
+  /* 动效 */
+  --links-motion-fast: 120ms;
+  --links-motion-base: 200ms;
+  --links-motion-slow: 300ms;
+}
