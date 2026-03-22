@@ -82,7 +82,7 @@
     <template v-else>
       <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-banner">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="cw-queue-banner__icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-        <span>正在排队中，您前面还有 {{ queuePosition }} 位访客</span>
+        <span>正在排队中，前面还有 {{ queuePosition }} 位访客</span>
       </div>
       <div class="cw-messages">
         <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">

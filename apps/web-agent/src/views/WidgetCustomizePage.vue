@@ -334,6 +334,54 @@
           </div>
         </article>
 
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'agentInfoDisplay' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('agentInfoDisplay')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">会话标题</h3>
+              <p class="wc-card__desc">设置访客端会话标题展示方式</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'agentInfoDisplay'" class="wc-accordion__body">
+            <div class="wc-title-mode-options wc-title-mode-options--horizontal">
+              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'ai' }">
+                <input v-model="settings.sessionTitleMode" type="radio" value="ai" class="wc-title-mode-option__radio" @change="autoSave" />
+                <span class="wc-title-mode-option__indicator" />
+                <div class="wc-title-mode-option__text">
+                  <span class="wc-title-mode-option__title">AI 生成会话标题</span>
+                  <span class="wc-title-mode-option__desc">由 AI 根据会话内容自动生成标题</span>
+                </div>
+              </label>
+              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'agent' }">
+                <input v-model="settings.sessionTitleMode" type="radio" value="agent" class="wc-title-mode-option__radio" @change="autoSave" />
+                <span class="wc-title-mode-option__indicator" />
+                <div class="wc-title-mode-option__text">
+                  <span class="wc-title-mode-option__title">展示客服信息</span>
+                  <span class="wc-title-mode-option__desc">展示会话负责人信息</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'queueReminder' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('queueReminder')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">排队提醒</h3>
+              <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'queueReminder'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">显示排队信息</span>
+              </div>
+              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
+            </div>
+          </div>
+        </article>
+
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorInactive' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorInactive')">
             <div class="wc-accordion__trigger-text">
@@ -384,54 +432,6 @@
                 <span class="wc-switch-desc">开启后，访客可在单聊中看到客服的在线状态</span>
               </div>
               <AgentSwitch v-model="settings.showAgentOnlineStatus" @update:model-value="autoSave" />
-            </div>
-          </div>
-        </article>
-
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'agentInfoDisplay' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('agentInfoDisplay')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">会话标题</h3>
-              <p class="wc-card__desc">设置访客端会话标题展示方式</p>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'agentInfoDisplay'" class="wc-accordion__body">
-            <div class="wc-title-mode-options wc-title-mode-options--horizontal">
-              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'ai' }">
-                <input v-model="settings.sessionTitleMode" type="radio" value="ai" class="wc-title-mode-option__radio" @change="autoSave" />
-                <span class="wc-title-mode-option__indicator" />
-                <div class="wc-title-mode-option__text">
-                  <span class="wc-title-mode-option__title">AI 生成会话标题</span>
-                  <span class="wc-title-mode-option__desc">由 AI 根据会话内容自动生成标题</span>
-                </div>
-              </label>
-              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'agent' }">
-                <input v-model="settings.sessionTitleMode" type="radio" value="agent" class="wc-title-mode-option__radio" @change="autoSave" />
-                <span class="wc-title-mode-option__indicator" />
-                <div class="wc-title-mode-option__text">
-                  <span class="wc-title-mode-option__title">展示客服信息</span>
-                  <span class="wc-title-mode-option__desc">展示会话负责人信息</span>
-                </div>
-              </label>
-            </div>
-          </div>
-        </article>
-
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'queueReminder' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('queueReminder')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">排队提醒</h3>
-              <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'queueReminder'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">显示排队信息</span>
-              </div>
-              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
             </div>
           </div>
         </article>
@@ -577,7 +577,7 @@
           <template v-else>
             <div v-if="settings.showQueuePosition || openSection === 'queueReminder'" class="wc-widget__queue-banner">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="wc-widget__queue-banner-icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-              <span>正在排队中，您前面还有 3 位访客</span>
+              <span>正在排队中，前面还有 3 位访客</span>
             </div>
             <div class="wc-widget__messages">
               <template v-if="showChatPreviewMessage">
