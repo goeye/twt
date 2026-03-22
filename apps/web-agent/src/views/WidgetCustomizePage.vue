@@ -331,14 +331,6 @@
               </div>
               <AgentSwitch v-model="settings.enableEndSession" @update:model-value="autoSave" />
             </div>
-            <div class="wc-divider" />
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">排队提醒</span>
-                <span class="wc-switch-desc">开启后，访客发送消息进入排队时，聊天顶部将显示当前排队位置；AI Agent 接待的会话不生效</span>
-              </div>
-              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
-            </div>
           </div>
         </article>
 
@@ -393,16 +385,24 @@
               </div>
               <AgentSwitch v-model="settings.showAgentOnlineStatus" @update:model-value="autoSave" />
             </div>
-            <div class="wc-divider" />
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">展示客服信息</span>
-                <span class="wc-switch-desc">开启后，访客端会话列表和会话详情将展示当前负责客服的头像和昵称</span>
-              </div>
-              <AgentSwitch v-model="settings.showAgentInfoToVisitor" @update:model-value="autoSave" />
-            </div>
           </div>
         </article>
+
+        <div class="wc-general-setting-card">
+          <div class="wc-general-setting-card__text">
+            <span class="wc-switch-label">展示客服信息</span>
+            <span class="wc-switch-desc">开启后，访客端会话列表和会话详情将展示当前负责客服的头像和昵称</span>
+          </div>
+          <AgentSwitch v-model="settings.showAgentInfoToVisitor" @update:model-value="autoSave" />
+        </div>
+
+        <div class="wc-general-setting-card">
+          <div class="wc-general-setting-card__text">
+            <span class="wc-switch-label">排队提醒</span>
+            <span class="wc-switch-desc">开启后，访客发送消息进入排队时，聊天顶部将显示当前排队位置；AI Agent 接待的会话不生效</span>
+          </div>
+          <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
+        </div>
 
         <div class="wc-general-setting-card">
           <div class="wc-general-setting-card__text">
