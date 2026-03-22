@@ -241,6 +241,7 @@
             :sender="message.displaySender"
             :time="message.time"
             :show-actions="true"
+            :channel-type="activeSession?.channelType ?? 'web'"
             :translation-languages="translationLanguages"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"

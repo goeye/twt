@@ -21,8 +21,9 @@
         </header>
 
         <div class="message__bubble">
+          <!-- 非邮件会话：完整工具栏 -->
           <div
-            v-if="showActions && hovered && role !== 'system' && role !== 'bot'"
+            v-if="showActions && hovered && role !== 'system' && role !== 'bot' && channelType !== 'email'"
             class="message__actions"
           >
             <button class="message__action-btn" title="回复" @click="$emit('reply')">
@@ -42,21 +43,53 @@
                 <button v-if="role === 'agent'" class="message__action-menu-item" @click="handleMenuAction('revoke')">撤回</button>
               </div>
             </div>
+            <!-- 非邮件翻译面板：定位在 bubble 旁 -->
+            <div v-if="translatePanelOpen && translationLanguages.length > 0" class="message__translate-panel" :class="`message__translate-panel--${role}`">
+              <div class="message__translate-lang-list">
+                <button
+                  v-for="lang in translationLanguages"
+                  :key="lang.value"
+                  class="message__translate-lang-item"
+                  :class="{ 'message__translate-lang-item--active': selectedTranslateLang === lang.value }"
+                  @click="selectedTranslateLang = lang.value"
+                >{{ lang.label }}</button>
+              </div>
+              <div v-if="selectedTranslateLang" class="message__translate-result">
+                <p class="message__translate-result-text">{{ getPlainText().slice(0, 100) }}... ({{ selectedTranslateLang }} 翻译)</p>
+              </div>
+            </div>
           </div>
 
-          <!-- 翻译语言面板 -->
-          <div v-if="translatePanelOpen && translationLanguages.length > 0" class="message__translate-panel" :class="`message__translate-panel--${role}`">
-            <div class="message__translate-lang-list">
-              <button
-                v-for="lang in translationLanguages"
-                :key="lang.value"
-                class="message__translate-lang-item"
-                :class="{ 'message__translate-lang-item--active': selectedTranslateLang === lang.value }"
-                @click="selectedTranslateLang = lang.value"
-              >{{ lang.label }}</button>
-            </div>
-            <div v-if="selectedTranslateLang" class="message__translate-result">
-              <p class="message__translate-result-text">{{ getPlainText().slice(0, 100) }}... ({{ selectedTranslateLang }} 翻译)</p>
+          <!-- 邮件会话：只显示翻译按钮，hover 展示语言面板 -->
+          <div
+            v-if="showActions && hovered && role !== 'system' && role !== 'bot' && channelType === 'email'"
+            class="message__actions"
+          >
+            <div
+              class="message__translate-trigger"
+              @mouseenter="translatePanelOpen = true"
+              @mouseleave="translatePanelOpen = false"
+            >
+              <button class="message__action-btn" title="翻译">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 1.5c-1.5 2-2.5 4-2.5 6.5s1 4.5 2.5 6.5c1.5-2 2.5-4 2.5-6.5s-1-4.5-2.5-6.5z" stroke="currentColor" stroke-width="1.3"/></svg>
+              </button>
+              <!-- 邮件翻译面板：定位在翻译图标旁 -->
+              <div v-if="translatePanelOpen && translationLanguages.length > 0" class="message__email-translate-panel" :class="`message__email-translate-panel--${role}`">
+                <div class="message__email-translate-inner">
+                  <div class="message__translate-lang-list">
+                    <button
+                      v-for="lang in translationLanguages"
+                      :key="lang.value"
+                      class="message__translate-lang-item"
+                      :class="{ 'message__translate-lang-item--active': selectedTranslateLang === lang.value }"
+                      @click="selectedTranslateLang = lang.value"
+                    >{{ lang.label }}</button>
+                  </div>
+                  <div v-if="selectedTranslateLang" class="message__translate-result">
+                    <p class="message__translate-result-text">{{ getPlainText().slice(0, 100) }}... ({{ selectedTranslateLang }} 翻译)</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
@@ -85,6 +118,7 @@ const props = withDefaults(
     contentType?: 'text' | 'html';
     subject?: string;
     showActions?: boolean;
+    channelType?: 'web' | 'email';
     translationLanguages?: { label: string; value: string }[];
   }>(),
   {
@@ -93,6 +127,7 @@ const props = withDefaults(
     avatarUrl: "",
     contentType: "text",
     showActions: false,
+    channelType: "web",
     translationLanguages: () => [],
   }
 );
@@ -489,5 +524,50 @@ const parsedEmail = computed(() => {
   line-height: 1.5;
   margin: 0;
   white-space: pre-wrap;
+}
+
+/* --- 邮件翻译触发区和面板 --- */
+.message__translate-trigger {
+  position: relative;
+}
+
+.message__email-translate-panel {
+  position: absolute;
+  top: -4px;
+  z-index: var(--agent-z-dropdown);
+}
+
+.message__email-translate-inner {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px;
+  width: 160px;
+}
+
+.message__email-translate-panel > .message__translate-lang-list,
+.message__email-translate-panel > .message__translate-result {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+/* 访客消息：语言面板在翻译图标的右侧 */
+.message__email-translate-panel--customer {
+  left: 100%;
+  padding-left: 6px;
+}
+
+/* 客服消息：语言面板在翻译图标的左侧 */
+.message__email-translate-panel--agent {
+  right: 100%;
+  padding-right: 6px;
 }
 </style>
