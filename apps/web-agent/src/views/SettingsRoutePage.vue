@@ -133,6 +133,7 @@
     />
 
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
+      <p class="settings-channel-hint">以下设置同时适用于在线会话和 Email 渠道</p>
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">成员不活跃</h2>
@@ -1216,6 +1217,15 @@ const unrepliedContentRows: WebhookTableRow[] = [
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-16);
+}
+
+.settings-channel-hint {
+  background: #e8f4fd;
+  border-radius: var(--agent-radius-sm);
+  color: #1a73e8;
+  font-size: var(--agent-font-size-xs);
+  margin: 0;
+  padding: 8px 12px;
 }
 
 .settings-card__inline-desc {

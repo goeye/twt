@@ -101,7 +101,8 @@
                 </svg>
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
-                <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
+                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="openSendEmailDialog(item)">发送邮件</button>
+                <button v-else type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
               </div>
             </td>
@@ -167,7 +168,8 @@
                 </svg>
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
-                <button type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
+                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="openSendEmailDialog(item)">发送邮件</button>
+                <button v-else type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
               </div>
             </td>
@@ -193,6 +195,31 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
+
+    <!-- 发送邮件弹窗 -->
+    <Teleport to="body">
+      <div v-if="sendEmailOpen" class="send-email-overlay" @click.self="sendEmailOpen = false">
+        <div class="send-email-modal">
+          <header class="send-email-modal__header">
+            <h2 class="send-email-modal__title">发送邮件</h2>
+            <button type="button" class="send-email-modal__close" @click="sendEmailOpen = false">&times;</button>
+          </header>
+          <p class="send-email-modal__recipient">发送给: {{ sendEmailTarget }}</p>
+          <div
+            ref="emailEditorRef"
+            class="send-email-modal__editor"
+            contenteditable="true"
+            data-placeholder="请输入消息"
+            @input="handleEmailInput"
+          />
+          <p class="send-email-modal__char-count" :class="{ 'send-email-modal__char-count--limit': emailCharCount >= 2000 }">{{ emailCharCount }} / 2000</p>
+          <footer class="send-email-modal__footer">
+            <button type="button" class="agent-btn agent-btn--ghost" @click="sendEmailOpen = false">取消</button>
+            <button type="button" class="agent-btn agent-btn--primary" :disabled="emailCharCount === 0" @click="handleSendEmail">确认发送</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -207,6 +234,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "navigate-to-inbox", queueKey: string): void;
 }>();
 
 const searchField = ref("name");
@@ -214,6 +242,10 @@ const searchKeyword = ref("");
 const filterTag = ref("");
 const filterChannel = ref("");
 const openMenuId = ref<number | null>(null);
+const sendEmailOpen = ref(false);
+const sendEmailTarget = ref("");
+const emailCharCount = ref(0);
+const emailEditorRef = ref<HTMLDivElement>();
 
 interface AllVisitorItem {
   id: number;
@@ -274,6 +306,37 @@ const toggleActionMenu = (id: number) => {
 const handleMenuAction = (action: string) => {
   openMenuId.value = null;
   emit("toast", `${action}功能开发中`);
+};
+
+const openSendEmailDialog = (item: OnlineVisitorItem | AllVisitorItem) => {
+  openMenuId.value = null;
+  sendEmailTarget.value = item.name;
+  emailCharCount.value = 0;
+  sendEmailOpen.value = true;
+};
+
+const handleEmailInput = () => {
+  if (!emailEditorRef.value) return;
+  const text = emailEditorRef.value.textContent || "";
+  if (text.length > 2000) {
+    emailEditorRef.value.textContent = text.slice(0, 2000);
+    // 光标移到末尾
+    const sel = window.getSelection();
+    if (sel && emailEditorRef.value.lastChild) {
+      const range = document.createRange();
+      range.selectNodeContents(emailEditorRef.value);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+  emailCharCount.value = Math.min((emailEditorRef.value.textContent || "").length, 2000);
+};
+
+const handleSendEmail = () => {
+  sendEmailOpen.value = false;
+  emit("toast", "发送成功");
+  emit("navigate-to-inbox", "resolved");
 };
 </script>
 
@@ -619,5 +682,103 @@ const handleMenuAction = (action: string) => {
 .visitor-channel-badge--email {
   background: #fef3cd;
   color: #b45309;
+}
+
+/* 发送邮件弹窗 */
+.send-email-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: var(--agent-z-modal);
+}
+
+.send-email-modal {
+  background: #fff;
+  border-radius: var(--agent-radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  padding: 24px;
+  width: 90vw;
+}
+
+.send-email-modal__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.send-email-modal__title {
+  color: var(--agent-color-text-primary);
+  font-size: 18px;
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+}
+
+.send-email-modal__close {
+  background: none;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+}
+
+.send-email-modal__close:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.send-email-modal__recipient {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0 0 12px;
+}
+
+.send-email-modal__editor {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  font-family: inherit;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  min-height: 200px;
+  outline: none;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.send-email-modal__editor:empty::before {
+  color: #a6afbd;
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.send-email-modal__editor:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.send-email-modal__char-count {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  margin: 6px 0 0;
+  text-align: right;
+}
+
+.send-email-modal__char-count--limit {
+  color: var(--agent-color-status-error, #ef4444);
+}
+
+.send-email-modal__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

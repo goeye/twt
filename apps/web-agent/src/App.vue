@@ -81,7 +81,7 @@
       <SessionQueueNav
         v-if="isConversationRoute"
         :key="currentSubnavRenderKey"
-        title="会话"
+        title="收件箱"
         :active-key="activeQueueKey"
         :groups="queueGroups"
         @select="handleQueueSelect"
@@ -240,7 +240,8 @@
             :role="message.displayRole"
             :sender="message.displaySender"
             :time="message.time"
-            :show-actions="activeSession?.channelType !== 'email'"
+            :show-actions="true"
+            :translation-languages="translationLanguages"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
@@ -279,6 +280,8 @@
           @send="handleSendEmail"
           @send-and-pending="handleSendEmailAndPending"
           @send-and-resolve="handleSendEmailAndClose"
+          @quick-reply="showTopToast('快捷回复功能开发中')"
+          @copilot="showTopToast('Copilot推荐开发中')"
         />
 
         <MessageComposer
@@ -300,8 +303,8 @@
     </section>
 
     <HomeRoutePage v-else-if="isHomeRoute" :key="currentContentRenderKey" />
-    <FilesRoutePage v-else-if="isFilesRoute" :key="currentContentRenderKey" :active-key="activeFilesNavKey" @toast="showTopToast" />
-    <VisitorsRoutePage v-else-if="isVisitorsRoute" :key="currentContentRenderKey" :active-key="activeVisitorsNavKey" @toast="showTopToast" />
+    <FilesRoutePage v-else-if="isFilesRoute" :key="currentContentRenderKey" :active-key="activeFilesNavKey" @toast="showTopToast" @navigate-to-session="handleNavigateToInbox($event.queueKey)" />
+    <VisitorsRoutePage v-else-if="isVisitorsRoute" :key="currentContentRenderKey" :active-key="activeVisitorsNavKey" @toast="showTopToast" @navigate-to-inbox="handleNavigateToInbox" />
     <CustomerRoutePage v-else-if="isCustomerRoute" :key="currentContentRenderKey" :active-key="activeCustomerNavKey" @toast="showTopToast" />
 
     <template v-else-if="isSettingsRoute">
@@ -694,6 +697,23 @@ const agentPool: AgentEntry[] = [
 
 const currentAgentName = "客服主管";
 
+const translationLanguages = [
+  { label: "英语", value: "en" },
+  { label: "西班牙语", value: "es" },
+  { label: "法语", value: "fr" },
+  { label: "德语", value: "de" },
+  { label: "葡萄牙语", value: "pt" },
+  { label: "俄语", value: "ru" },
+  { label: "简体中文", value: "zh-CN" },
+  { label: "繁体中文", value: "zh-TW" },
+  { label: "日语", value: "ja" },
+  { label: "韩语", value: "ko" },
+  { label: "越南语", value: "vi" },
+  { label: "泰语", value: "th" },
+  { label: "印度尼西亚语", value: "id" },
+  { label: "马来语", value: "ms" },
+];
+
 const getAgentAvatarText = (name: string) => agentPool.find((a) => a.name === name)?.avatarText ?? name.slice(0, 1);
 const getAgentAvatarColor = (name: string) => agentPool.find((a) => a.name === name)?.avatarColor ?? "#a7b0c0";
 
@@ -767,7 +787,7 @@ interface InfoSection {
 
 const mainNavItemsBase: NavItem[] = [
   { key: "home", label: "首页", icon: "home" },
-  { key: "conversation", label: "会话", icon: "conversation" },
+  { key: "conversation", label: "收件箱", icon: "conversation" },
   { key: "files", label: "档案", icon: "files" },
   { key: "visitors", label: "访客", icon: "visitors" },
   { key: "customer", label: "客户", icon: "customer" },
@@ -1792,7 +1812,7 @@ const activeQueueLabel = computed(() => {
       return item.label;
     }
   }
-  return "会话";
+  return "收件箱";
 });
 
 const activeQueueEmoji = computed(() => {
@@ -2045,6 +2065,14 @@ const handleMainNavSelect = (key: string) => {
 const openSettingsPage = () => {
   syncRouteScopedState("settings", { forceDefault: true });
   router.push("/settings");
+};
+
+const handleNavigateToInbox = (queueKey: string) => {
+  activeQueueKey.value = queueKey;
+  syncRouteScopedState("conversation", { forceDefault: false });
+  if (route.path !== "/conversation") {
+    router.push("/conversation");
+  }
 };
 
 const handleSettingsNavSelect = (key: string) => {

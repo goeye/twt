@@ -1,6 +1,6 @@
 <template>
   <section class="files-page">
-    <ArchiveConversationTab v-if="resolvedActiveKey === 'all-conversations'" @toast="emit('toast', $event)" />
+    <ArchiveConversationTab v-if="resolvedActiveKey === 'all-conversations'" @toast="emit('toast', $event)" @navigate-to-session="emit('navigate-to-session', $event)" />
     <ArchiveChatTab v-else @toast="emit('toast', $event)" />
   </section>
 </template>
@@ -14,6 +14,7 @@ type FilesPageKey = "all-conversations" | "all-chats";
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "navigate-to-session", sessionInfo: { id: string; queueKey: string }): void;
 }>();
 
 const props = withDefaults(

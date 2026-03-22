@@ -51,8 +51,12 @@
         </button>
         <span class="email-composer__divider" />
         <button class="tool-icon" type="button" aria-label="附件" @click="triggerFileSelect">📎</button>
+        <button class="tool-icon" type="button" aria-label="图片" @click="triggerImageSelect">🖼</button>
         <button class="tool-icon" type="button" aria-label="表情" @click="$emit('emoji')">☺</button>
         <button v-if="showTranslate" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">🌐</button>
+        <span class="email-composer__divider" />
+        <button class="tool-icon" type="button" aria-label="快捷回复" @click="$emit('quick-reply')">💬</button>
+        <button class="tool-icon" type="button" aria-label="Copilot推荐" @click="$emit('copilot')">🤖</button>
       </div>
     </div>
 
@@ -60,8 +64,18 @@
       ref="fileInputRef"
       type="file"
       multiple
+      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.zip,.rar,.7z,.txt"
       style="display: none"
       @change="handleFileSelect"
+    />
+
+    <input
+      ref="imageInputRef"
+      type="file"
+      multiple
+      accept="image/*"
+      style="display: none"
+      @change="handleImageSelect"
     />
 
     <div
@@ -132,6 +146,8 @@ const emit = defineEmits<{
   (e: "send"): void;
   (e: "send-and-pending"): void;
   (e: "send-and-resolve"): void;
+  (e: "quick-reply"): void;
+  (e: "copilot"): void;
 }>();
 
 const MAX_TEXT_LENGTH = 2000;
@@ -140,6 +156,7 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 const editorRef = ref<HTMLDivElement>();
 const fileInputRef = ref<HTMLInputElement>();
+const imageInputRef = ref<HTMLInputElement>();
 const sendMenuOpen = ref(false);
 const fileAttachments = reactive<FileAttachment[]>([]);
 const canSend = ref(false);
@@ -164,6 +181,31 @@ function formatSize(bytes: number): string {
 function triggerFileSelect() {
   emit('attachment');
   fileInputRef.value?.click();
+}
+
+function triggerImageSelect() {
+  imageInputRef.value?.click();
+}
+
+function handleImageSelect(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+
+  let exceededFileSize = false;
+  for (const file of Array.from(input.files)) {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      exceededFileSize = true;
+      continue;
+    }
+    if (file.type.startsWith('image/')) {
+      insertImage(file);
+    }
+  }
+  if (exceededFileSize) {
+    emit("toast", "图片大小不能超过20MB");
+  }
+  input.value = '';
+  syncEditorState();
 }
 
 function escapeHtml(text: string): string {
@@ -242,7 +284,7 @@ function syncEditorState() {
 function insertImage(file: File) {
   const url = URL.createObjectURL(file);
   const safeName = escapeHtml(file.name);
-  const imageHtml = `<p><br></p><img src="${url}" alt="${safeName}" style="max-width:100%;border-radius:4px;margin:4px 0;" /><p><br></p>`;
+  const imageHtml = `<p><br></p><img src="${url}" alt="${safeName}" style="max-width:100%;border-radius:4px;margin:4px 0;cursor:nwse-resize;" /><p><br></p>`;
 
   if (!editorRef.value) return;
   editorRef.value.focus();
@@ -395,6 +437,40 @@ onMounted(() => {
   }
   syncEditorState();
   document.addEventListener("click", closeSendMenu);
+
+  // 图片 resize：点击图片后拖拽调整大小
+  if (editorRef.value) {
+    let resizingImg: HTMLImageElement | null = null;
+    let startX = 0;
+    let startWidth = 0;
+
+    editorRef.value.addEventListener("mousedown", (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG") {
+        e.preventDefault();
+        resizingImg = target as HTMLImageElement;
+        startX = e.clientX;
+        startWidth = resizingImg.offsetWidth;
+        resizingImg.style.outline = "2px solid var(--agent-color-brand-primary, #2f6bff)";
+      }
+    });
+
+    document.addEventListener("mousemove", (e: MouseEvent) => {
+      if (!resizingImg) return;
+      const delta = e.clientX - startX;
+      const newWidth = Math.max(50, startWidth + delta);
+      resizingImg.style.width = newWidth + "px";
+      resizingImg.style.height = "auto";
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (resizingImg) {
+        resizingImg.style.outline = "";
+        resizingImg = null;
+        syncEditorState();
+      }
+    });
+  }
 });
 
 onBeforeUnmount(() => {

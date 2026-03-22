@@ -3,7 +3,7 @@
     class="message"
     :class="`message--${role}`"
     @mouseenter="hovered = true"
-    @mouseleave="hovered = false; moreMenuOpen = false"
+    @mouseleave="hovered = false; moreMenuOpen = false; translatePanelOpen = false"
   >
     <template v-if="role === 'system'">
       <div class="message__system">{{ content }}</div>
@@ -31,14 +31,32 @@
             <button class="message__action-btn" title="复制" @click="handleCopy">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5.5" y="5.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5V4C10.5 3.17157 9.82843 2.5 9 2.5H4C3.17157 2.5 2.5 3.17157 2.5 4V9C2.5 9.82843 3.17157 10.5 4 10.5H5.5" stroke="currentColor" stroke-width="1.3"/></svg>
             </button>
+            <button class="message__action-btn" title="翻译" @click.stop="translatePanelOpen = !translatePanelOpen; moreMenuOpen = false">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 1.5c-1.5 2-2.5 4-2.5 6.5s1 4.5 2.5 6.5c1.5-2 2.5-4 2.5-6.5s-1-4.5-2.5-6.5z" stroke="currentColor" stroke-width="1.3"/></svg>
+            </button>
             <div class="message__action-more-wrap">
-              <button class="message__action-btn" title="更多" @click.stop="moreMenuOpen = !moreMenuOpen">
+              <button class="message__action-btn" title="更多" @click.stop="moreMenuOpen = !moreMenuOpen; translatePanelOpen = false">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
               </button>
               <div v-if="moreMenuOpen" class="message__action-menu">
-                <button class="message__action-menu-item" @click="handleMenuAction('translate')">翻译</button>
                 <button v-if="role === 'agent'" class="message__action-menu-item" @click="handleMenuAction('revoke')">撤回</button>
               </div>
+            </div>
+          </div>
+
+          <!-- 翻译语言面板 -->
+          <div v-if="translatePanelOpen && translationLanguages.length > 0" class="message__translate-panel" :class="`message__translate-panel--${role}`">
+            <div class="message__translate-lang-list">
+              <button
+                v-for="lang in translationLanguages"
+                :key="lang.value"
+                class="message__translate-lang-item"
+                :class="{ 'message__translate-lang-item--active': selectedTranslateLang === lang.value }"
+                @click="selectedTranslateLang = lang.value"
+              >{{ lang.label }}</button>
+            </div>
+            <div v-if="selectedTranslateLang" class="message__translate-result">
+              <p class="message__translate-result-text">{{ getPlainText().slice(0, 100) }}... ({{ selectedTranslateLang }} 翻译)</p>
             </div>
           </div>
           <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
@@ -67,6 +85,7 @@ const props = withDefaults(
     contentType?: 'text' | 'html';
     subject?: string;
     showActions?: boolean;
+    translationLanguages?: { label: string; value: string }[];
   }>(),
   {
     avatarText: "?",
@@ -74,6 +93,7 @@ const props = withDefaults(
     avatarUrl: "",
     contentType: "text",
     showActions: false,
+    translationLanguages: () => [],
   }
 );
 
@@ -86,6 +106,8 @@ const emit = defineEmits<{
 
 const hovered = ref(false);
 const moreMenuOpen = ref(false);
+const translatePanelOpen = ref(false);
+const selectedTranslateLang = ref("");
 
 function getPlainText(): string {
   if (props.contentType === 'html') {
@@ -403,5 +425,69 @@ const parsedEmail = computed(() => {
 
 .message__action-menu-item:hover {
   background: var(--agent-color-bg-secondary);
+}
+
+/* --- 翻译面板 --- */
+.message__translate-panel {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px;
+  position: absolute;
+  top: 0;
+  width: 160px;
+  z-index: 2;
+}
+
+.message__translate-panel--customer {
+  left: calc(100% + 8px);
+}
+
+.message__translate-panel--agent {
+  right: calc(100% + 8px);
+}
+
+.message__translate-lang-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.message__translate-lang-item {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 10px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.message__translate-lang-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.message__translate-lang-item--active {
+  background: var(--agent-color-bg-secondary);
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.message__translate-result {
+  border-top: 1px solid var(--agent-color-border-default);
+  margin-top: 4px;
+  padding: 10px 14px 6px;
+}
+
+.message__translate-result-text {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
 }
 </style>

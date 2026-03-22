@@ -409,6 +409,7 @@ interface FilterState {
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "navigate-to-session", sessionInfo: { id: string; queueKey: string }): void;
 }>();
 
 /* ------------------------------------------------------------------ */
@@ -949,6 +950,7 @@ const staffPanelRowId = ref<string | null>(null);
 
 // Admin mode
 const isAdmin = ref(true);
+const currentArchiveAgentName = "客服主管";
 
 // Confirm dialog
 const confirmDialogOpen = ref(false);
@@ -1380,7 +1382,8 @@ const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
   if (!row) return "分配会话";
   if (row.channelType === "email") {
     if (row.status === "queueing") return "分配会话";
-    return "加入会话";
+    const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
+    return isServiceAgent ? "进入会话" : "加入会话";
   }
   return row.owner === aiAgentArchiveName ? "接管会话" : "分配会话";
 };
@@ -1393,8 +1396,23 @@ const getDrawerVariant = (row: ConversationRecord | null): "default" | "join" =>
 
 const handleDrawerAssign = (row: ConversationRecord) => {
   if (row.channelType === "email" && row.status !== "queueing") {
+    const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
     closeConversationDrawer();
-    emit("toast", "加入会话功能开发中");
+    if (isServiceAgent) {
+      // 进入会话
+      const queueKey = row.status === "pending-reply" ? "pending-reply" : row.status === "resolved" ? "resolved" : "processing";
+      emit("navigate-to-session", { id: row.id, queueKey });
+    } else {
+      // 加入会话
+      row.staffAgents.push({
+        name: currentArchiveAgentName,
+        avatarText: "主",
+        avatarColor: "#2f6bff",
+      });
+      emit("toast", "已加入会话");
+      const queueKey = row.status === "pending-reply" ? "pending-reply" : row.status === "resolved" ? "resolved" : "processing";
+      emit("navigate-to-session", { id: row.id, queueKey });
+    }
     return;
   }
   assignConversation(row);
@@ -1436,7 +1454,12 @@ const handleAssignConfirm = (agentId: string) => {
   });
 
   closeAssignModal();
-  emit("toast", "会话分配成功");
+  const assignedRow = allRows.value.find(r => r.id === rowId);
+  if (assignedRow?.channelType === "email") {
+    emit("toast", `会话分配成功 - 已通知${agent.name}：新会话请求`);
+  } else {
+    emit("toast", "会话分配成功");
+  }
 };
 
 /* ------------------------------------------------------------------ */
