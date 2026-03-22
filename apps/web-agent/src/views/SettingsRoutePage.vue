@@ -201,14 +201,60 @@
     <section v-else-if="activeKey === 'webhooks'" class="settings-webhooks">
       <p class="webhooks-subtitle">通过 Webhook 将 Chat 平台事件实时推送至外部服务</p>
 
+      <!-- Card 1: 渠道列表 -->
       <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">Webhook URL</h2>
-        <p class="agent-settings-feature-description">输入接收事件通知的 URL 地址</p>
-        <div class="settings-link-row">
-          <input v-model="webhookUrl" class="agent-input settings-link-input" placeholder="请输入URL地址" />
+        <div class="wh-header">
+          <div>
+            <h2 class="settings-card__title agent-settings-feature-title">Webhook 渠道</h2>
+            <p class="agent-settings-feature-description">配置推送渠道，将事件通知发送到飞书、钉钉、Slack 等平台</p>
+          </div>
+          <button type="button" class="agent-btn agent-btn--primary" @click="openAddWebhook">添加</button>
         </div>
 
-        <h2 class="settings-card__title agent-settings-feature-title" style="margin-top: var(--agent-space-8)">支持的事件</h2>
+        <table class="wh-table">
+          <thead>
+            <tr>
+              <th class="wh-table__th">名称</th>
+              <th class="wh-table__th" style="width: 100px">渠道</th>
+              <th class="wh-table__th" style="width: 80px">状态</th>
+              <th class="wh-table__th" style="width: 120px">创建时间</th>
+              <th class="wh-table__th" style="width: 100px">创建人</th>
+              <th class="wh-table__th" style="width: 120px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="webhookEntries.length === 0">
+              <td colspan="6" class="wh-table__empty">暂未添加任何 Webhook，点击「添加」开始配置</td>
+            </tr>
+            <tr v-for="entry in webhookEntries" :key="entry.id" class="wh-table__row">
+              <td class="wh-table__td">{{ entry.name }}</td>
+              <td class="wh-table__td">{{ CHANNEL_MAP[entry.channel].label }}</td>
+              <td class="wh-table__td">
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="entry.enabled"
+                  class="settings-toggle"
+                  :class="{ 'settings-toggle--on': entry.enabled }"
+                  @click="toggleWebhookEntry(entry)"
+                >
+                  <span class="settings-toggle__thumb" />
+                </button>
+              </td>
+              <td class="wh-table__td wh-table__td--muted">{{ entry.createdAt }}</td>
+              <td class="wh-table__td wh-table__td--muted">{{ entry.createdBy }}</td>
+              <td class="wh-table__td">
+                <button type="button" class="wh-action-btn" @click="openEditWebhook(entry)">编辑</button>
+                <button type="button" class="wh-action-btn wh-action-btn--danger" @click="openDeleteWebhook(entry.id)">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <!-- Card 2: 事件设置（保留） -->
+      <article class="settings-card agent-panel">
+        <h2 class="settings-card__title agent-settings-feature-title">支持的事件</h2>
         <p class="agent-settings-feature-description">当前系统支持的 Webhook 事件类型</p>
 
         <div class="webhooks-event-card">
@@ -236,6 +282,7 @@
 
       </article>
 
+      <!-- Card 3: 配置说明（保留） -->
       <article class="settings-card agent-panel">
         <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
         <p class="webhooks-link-text">如何正确配置和使用 Webhooks</p>
@@ -285,6 +332,78 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
 }</code></pre>
         </div>
       </article>
+
+      <!-- 添加/编辑 Webhook Modal -->
+      <Teleport to="body">
+        <div v-if="whModalOpen" class="wh-modal-overlay" @click.self="whModalStep === 2 && whModalMode === 'add' ? backToChannelSelect() : (whModalOpen = false)">
+          <div class="wh-modal">
+            <header class="wh-modal__header">
+              <button v-if="whModalStep === 2 && whModalMode === 'add'" type="button" class="wh-back-btn" @click="backToChannelSelect">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <h3 class="wh-modal__title">{{ whModalTitle }}</h3>
+              <button type="button" class="wh-modal__close" @click="whModalStep === 2 && whModalMode === 'add' ? backToChannelSelect() : (whModalOpen = false)">&times;</button>
+            </header>
+
+            <!-- Step 1: 选择渠道 -->
+            <div v-if="whModalStep === 1" class="wh-modal__body">
+              <div class="wh-channel-grid">
+                <button
+                  v-for="ch in CHANNEL_META"
+                  :key="ch.id"
+                  type="button"
+                  class="wh-channel-card"
+                  @click="selectChannel(ch.id)"
+                >
+                  <span class="wh-channel-card__icon" :class="'wh-channel-card__icon--' + ch.id" />
+                  <span class="wh-channel-card__label">{{ ch.label }}</span>
+                  <span class="wh-channel-card__hint">{{ ch.setupHint }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: 配置表单 -->
+            <div v-else-if="whModalStep === 2 && whCurrentChannel" class="wh-modal__body">
+              <div class="wh-form">
+                <p class="wh-form__hint">{{ whCurrentChannel.setupHint }}</p>
+
+                <label class="wh-field">
+                  <span class="wh-field__label">名称</span>
+                  <input v-model="whDraftName" class="agent-input" placeholder="请输入" maxlength="50" @input="handleNameInput" />
+                </label>
+
+                <label class="wh-field">
+                  <span class="wh-field__label">Webhook 地址</span>
+                  <input v-model="whDraftUrl" class="agent-input" type="url" placeholder="请输入" />
+                </label>
+
+                <label v-if="whCurrentChannel.hasSecret" class="wh-field">
+                  <span class="wh-field__label">签名密钥</span>
+                  <input v-model="whDraftSecret" class="agent-input" type="password" placeholder="请输入" />
+                </label>
+              </div>
+            </div>
+
+            <footer v-if="whModalStep === 2" class="wh-modal__footer">
+              <button type="button" class="agent-btn agent-btn--primary wh-save-btn" :disabled="!whCanSave" @click="saveWebhook">保存</button>
+            </footer>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- 删除确认 Modal -->
+      <Teleport to="body">
+        <div v-if="whDeleteModalOpen" class="wh-delete-overlay" @click.self="whDeleteModalOpen = false">
+          <div class="wh-delete-modal">
+            <h3 class="wh-delete-modal__title">删除 Webhook</h3>
+            <p class="wh-delete-modal__desc">删除后将不再向该渠道推送事件通知</p>
+            <div class="wh-delete-modal__actions">
+              <button type="button" class="agent-btn agent-btn--ghost" @click="whDeleteModalOpen = false">取消</button>
+              <button type="button" class="agent-btn agent-btn--danger" @click="confirmDeleteWebhook">删除</button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </section>
 
     <SettingsEmailPage
@@ -648,7 +767,150 @@ interface WebhookTableRow extends Record<string, unknown> {
   example: string;
 }
 
-const webhookUrl = ref("");
+type WebhookChannel = 'feishu' | 'dingtalk' | 'slack' | 'wecom' | 'custom';
+
+interface ChannelMeta {
+  id: WebhookChannel;
+  label: string;
+  setupHint: string;
+  hasSecret: boolean;
+}
+
+interface WebhookEntry {
+  id: string;
+  channel: WebhookChannel;
+  name: string;
+  enabled: boolean;
+  createdAt: string;
+  createdBy: string;
+  webhookUrl: string;
+  secret: string;
+}
+
+const CHANNEL_META: ChannelMeta[] = [
+  { id: 'feishu', label: '飞书', setupHint: '在飞书群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true },
+  { id: 'dingtalk', label: '钉钉', setupHint: '在钉钉群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true },
+  { id: 'wecom', label: '企业微信', setupHint: '在企业微信群中添加「群机器人」，复制 Webhook 地址', hasSecret: false },
+  { id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: false },
+  { id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: false },
+];
+
+const CHANNEL_MAP = Object.fromEntries(CHANNEL_META.map(c => [c.id, c])) as Record<WebhookChannel, ChannelMeta>;
+
+const webhookEntries = ref<WebhookEntry[]>([
+  { id: '1', channel: 'feishu', name: '飞书-研发告警', enabled: true, createdAt: '2025-01-10', createdBy: '张三', webhookUrl: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx', secret: '' },
+  { id: '2', channel: 'slack', name: 'Slack-客服通知', enabled: true, createdAt: '2025-02-20', createdBy: '李四', webhookUrl: 'https://hooks.slack.com/services/xxx', secret: '' },
+  { id: '3', channel: 'custom', name: '自定义 Webhook', enabled: false, createdAt: '2025-03-01', createdBy: '王五', webhookUrl: '', secret: '' },
+]);
+
+let whNextId = 4;
+
+/* Webhook Modal */
+const whModalOpen = ref(false);
+const whModalMode = ref<'add' | 'edit'>('add');
+const whModalStep = ref<1 | 2>(1);
+const whDraftId = ref('');
+const whDraftChannel = ref<WebhookChannel | null>(null);
+const whDraftName = ref('');
+const whDraftUrl = ref('');
+const whDraftSecret = ref('');
+
+const whDeleteModalOpen = ref(false);
+const whDeleteTargetId = ref('');
+
+const whModalTitle = computed(() => {
+  if (whModalMode.value === 'edit') return '编辑 Webhook';
+  return whModalStep.value === 1 ? '添加' : '返回';
+});
+
+const whCurrentChannel = computed(() => whDraftChannel.value ? CHANNEL_MAP[whDraftChannel.value] : null);
+
+const whCanSave = computed(() => whDraftName.value.trim() && whDraftUrl.value.trim());
+
+const openAddWebhook = () => {
+  if (!guardFeature(FEATURES.WEBHOOKS)) return;
+  if (webhookEntries.value.length >= 99) {
+    emitToast('最多添加 99 个 Webhook');
+    return;
+  }
+  whModalMode.value = 'add';
+  whModalStep.value = 1;
+  whDraftChannel.value = null;
+  whDraftName.value = '';
+  whDraftUrl.value = '';
+  whDraftSecret.value = '';
+  whModalOpen.value = true;
+};
+
+const selectChannel = (ch: WebhookChannel) => {
+  whDraftChannel.value = ch;
+  whModalStep.value = 2;
+};
+
+const handleNameInput = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  let value = input.value.replace(/\s/g, '');
+  if (value.length > 50) value = value.slice(0, 50);
+  whDraftName.value = value;
+  input.value = value;
+};
+
+const backToChannelSelect = () => {
+  whModalStep.value = 1;
+};
+
+const openEditWebhook = (entry: WebhookEntry) => {
+  whModalMode.value = 'edit';
+  whModalStep.value = 2;
+  whDraftId.value = entry.id;
+  whDraftChannel.value = entry.channel;
+  whDraftName.value = entry.name;
+  whDraftUrl.value = entry.webhookUrl;
+  whDraftSecret.value = entry.secret;
+  whModalOpen.value = true;
+};
+
+const saveWebhook = () => {
+  if (!whCanSave.value || !whDraftChannel.value) return;
+  if (whModalMode.value === 'add') {
+    webhookEntries.value.push({
+      id: String(whNextId++),
+      channel: whDraftChannel.value,
+      name: whDraftName.value.trim(),
+      enabled: true,
+      createdAt: new Date().toISOString().slice(0, 10),
+      createdBy: '当前用户',
+      webhookUrl: whDraftUrl.value.trim(),
+      secret: whDraftSecret.value,
+    });
+  } else {
+    const entry = webhookEntries.value.find(e => e.id === whDraftId.value);
+    if (entry) {
+      entry.name = whDraftName.value.trim();
+      entry.webhookUrl = whDraftUrl.value.trim();
+      entry.secret = whDraftSecret.value;
+    }
+  }
+  whModalOpen.value = false;
+  emitToast('保存成功');
+};
+
+const openDeleteWebhook = (id: string) => {
+  whDeleteTargetId.value = id;
+  whDeleteModalOpen.value = true;
+};
+
+const confirmDeleteWebhook = () => {
+  webhookEntries.value = webhookEntries.value.filter(e => e.id !== whDeleteTargetId.value);
+  whDeleteModalOpen.value = false;
+  emitToast('删除成功');
+};
+
+const toggleWebhookEntry = (entry: WebhookEntry) => {
+  if (!entry.enabled && !guardFeature(FEATURES.WEBHOOKS)) return;
+  entry.enabled = !entry.enabled;
+};
+
 const unrepliedEventEnabled = ref(canUse(FEATURES.WEBHOOKS));
 const unrepliedFirstSeconds = ref(60);
 const unrepliedRepeatSeconds = ref(600);
@@ -1145,6 +1407,307 @@ const unrepliedContentRows: WebhookTableRow[] = [
   font-size: var(--agent-font-size-sm);
   line-height: 1.6;
   white-space: pre;
+}
+
+/* Webhook 渠道列表 */
+.wh-header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--agent-space-16);
+}
+
+.wh-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.wh-table__th {
+  border-bottom: 1px solid var(--agent-color-border-default);
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  padding: var(--agent-space-8) var(--agent-space-12);
+  text-align: left;
+}
+
+.wh-table__row:not(:last-child) .wh-table__td {
+  border-bottom: 1px solid var(--agent-color-border-default);
+}
+
+.wh-table__td {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  padding: var(--agent-space-12);
+  vertical-align: middle;
+}
+
+.wh-table__td--muted {
+  color: var(--agent-color-text-secondary);
+}
+
+.wh-table__empty {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  padding: var(--agent-space-24) var(--agent-space-12);
+  text-align: center;
+}
+
+.wh-channel-badge {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+}
+
+.wh-action-btn {
+  background: none;
+  border: none;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 2px 6px;
+}
+
+.wh-action-btn:hover {
+  text-decoration: underline;
+}
+
+.wh-action-btn--danger {
+  color: var(--agent-color-status-error);
+}
+
+/* Webhook Modal */
+.wh-modal-overlay {
+  align-items: center;
+  background: var(--agent-color-overlay-mask);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--agent-space-24);
+  position: fixed;
+  z-index: var(--agent-z-modal);
+}
+
+.wh-modal {
+  background: #ffffff;
+  border-radius: var(--agent-radius-xl);
+  max-width: 680px;
+  width: 100%;
+}
+
+.wh-modal__header {
+  align-items: center;
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: var(--agent-space-12);
+  padding: var(--agent-space-20) var(--agent-space-24);
+}
+
+.wh-modal__title {
+  color: #252525;
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.wh-back-btn {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}
+
+.wh-back-btn:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+.wh-modal__close {
+  background: none;
+  border: none;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+}
+
+.wh-modal__close:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.wh-modal__body {
+  padding: var(--agent-space-24);
+}
+
+.wh-modal__footer {
+  border-top: 1px solid var(--agent-color-border-default);
+  padding: var(--agent-space-20) var(--agent-space-24);
+}
+
+.wh-channel-grid {
+  display: grid;
+  gap: var(--agent-space-16);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.wh-channel-card {
+  align-items: flex-start;
+  background: var(--agent-color-bg-surface);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+  padding: var(--agent-space-20);
+  text-align: left;
+  transition: border-color var(--agent-motion-fast), background var(--agent-motion-fast);
+}
+
+.wh-channel-card:hover {
+  border-color: var(--agent-color-brand-primary);
+  background: var(--agent-color-bg-muted);
+}
+
+.wh-channel-card__icon {
+  border-radius: var(--agent-radius-md);
+  display: inline-block;
+  height: 36px;
+  width: 36px;
+}
+
+.wh-channel-card__icon--feishu {
+  background: #e8f5e9;
+}
+
+.wh-channel-card__icon--dingtalk {
+  background: #e3f2fd;
+}
+
+.wh-channel-card__icon--slack {
+  background: #fce4ec;
+}
+
+.wh-channel-card__icon--wecom {
+  background: #e8f5e9;
+}
+
+.wh-channel-card__icon--custom {
+  background: var(--agent-color-bg-muted);
+}
+
+.wh-channel-card__label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+}
+
+.wh-channel-card__hint {
+  color: #75869c;
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.4;
+}
+
+/* Webhook Form */
+.wh-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-16);
+}
+
+.wh-form__hint {
+  color: #75869c;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  margin: calc(-1 * var(--agent-space-8)) 0 0;
+}
+
+.wh-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-4);
+}
+
+.wh-field__label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.wh-save-btn {
+  width: 100%;
+}
+
+/* Delete Modal */
+.wh-delete-overlay {
+  align-items: center;
+  background: var(--agent-color-overlay-mask);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--agent-space-24);
+  position: fixed;
+  z-index: var(--agent-z-modal);
+}
+
+.wh-delete-modal {
+  background: #ffffff;
+  border-radius: var(--agent-radius-xl);
+  max-width: 400px;
+  padding: var(--agent-space-24);
+  width: 100%;
+}
+
+.wh-delete-modal__title {
+  color: #252525;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.wh-delete-modal__desc {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 12px 0 20px;
+}
+
+.wh-delete-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.wh-modal-footer {
+  display: flex;
+  gap: var(--agent-space-8);
+  justify-content: flex-end;
+}
+
+.agent-btn--danger {
+  background: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  color: #ffffff;
+}
+
+.agent-btn--danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.agent-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 10px;
+  color: var(--agent-color-text-primary);
+}
+
+.agent-btn--ghost:hover {
+  background: var(--agent-color-bg-muted);
 }
 
 /* Layout mode switcher */
