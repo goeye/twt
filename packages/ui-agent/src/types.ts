@@ -49,3 +49,22 @@ export interface TableColumn<T = Record<string, unknown>> {
   title: string;
   width?: string;
 }
+
+export interface QuickReplyImage {
+  url: string;
+  name: string;
+}
+
+export interface QuickReplyItem {
+  id: string;
+  tag: string;
+  reply: string;
+  images: QuickReplyImage[];
+}
+
+export interface QuickReplyCategory {
+  key: string;
+  label: string;
+  type: 'group' | 'tag';
+  items: QuickReplyItem[];
+}

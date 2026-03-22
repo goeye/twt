@@ -55,7 +55,7 @@
         <button class="tool-icon" type="button" aria-label="表情" @click="$emit('emoji')">☺</button>
         <button v-if="showTranslate" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">🌐</button>
         <span class="email-composer__divider" />
-        <button class="tool-icon" type="button" aria-label="快捷回复" @click="$emit('quick-reply')">💬</button>
+        <button class="tool-icon" type="button" aria-label="快捷回复" @click="toggleQuickReply">💬</button>
         <button class="tool-icon" type="button" aria-label="Copilot推荐" @click="$emit('copilot')">🤖</button>
       </div>
     </div>
@@ -78,14 +78,23 @@
       @change="handleImageSelect"
     />
 
-    <div
-      ref="editorRef"
-      class="email-composer__editor"
-      contenteditable="true"
-      :data-placeholder="placeholder"
-      @input="handleInput"
-      @keydown="handleKeydown"
-    />
+    <div class="email-composer__editor-wrap">
+      <QuickReplyPanel
+        v-if="showQuickReply && quickReplyCategories && quickReplyCategories.length > 0"
+        :categories="quickReplyCategories"
+        @close="handleQuickReplyClose"
+        @settings="$emit('quick-reply-settings')"
+        @select="handleQuickReplySelect"
+      />
+      <div
+        ref="editorRef"
+        class="email-composer__editor"
+        contenteditable="true"
+        :data-placeholder="placeholder"
+        @input="handleInput"
+        @keydown="handleKeydown"
+      />
+    </div>
 
     <div v-if="fileAttachments.length > 0" class="email-composer__attachments">
       <div v-for="(file, idx) in fileAttachments" :key="idx" class="email-composer__att-card">
@@ -116,6 +125,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
+import QuickReplyPanel from "./QuickReplyPanel.vue";
+import type { QuickReplyItem, QuickReplyCategory } from "../../types";
 
 interface FileAttachment {
   name: string;
@@ -131,8 +142,9 @@ const props = withDefaults(defineProps<{
   placeholder?: string;
   disabled?: boolean;
   showTranslate?: boolean;
+  quickReplyCategories?: QuickReplyCategory[];
 }>(), {
-  placeholder: "输入邮件正文...",
+  placeholder: "发消息或输入 / 选择快捷回复",
   showTranslate: true,
 });
 
@@ -146,7 +158,7 @@ const emit = defineEmits<{
   (e: "send"): void;
   (e: "send-and-pending"): void;
   (e: "send-and-resolve"): void;
-  (e: "quick-reply"): void;
+  (e: "quick-reply-settings"): void;
   (e: "copilot"): void;
 }>();
 
@@ -161,6 +173,7 @@ const sendMenuOpen = ref(false);
 const fileAttachments = reactive<FileAttachment[]>([]);
 const canSend = ref(false);
 const textLimitReached = ref(false);
+const showQuickReply = ref(false);
 const isSendDisabled = computed(() => props.disabled || !canSend.value);
 
 function fileEmoji(name: string): string {
@@ -350,6 +363,33 @@ function hasSendableContent() {
   return canSend.value;
 }
 
+function toggleQuickReply() {
+  showQuickReply.value = !showQuickReply.value;
+}
+
+function handleQuickReplySelect(item: QuickReplyItem) {
+  if (!editorRef.value) return;
+  editorRef.value.innerHTML = "";
+  // 插入文本内容
+  const textHtml = escapeHtml(item.reply).replace(/\n/g, "<br>");
+  editorRef.value.innerHTML = textHtml;
+  // 如有图片追加到末尾
+  for (const img of item.images) {
+    const safeName = escapeHtml(img.name);
+    editorRef.value.insertAdjacentHTML(
+      "beforeend",
+      `<p><br></p><img src="${img.url}" alt="${safeName}" style="max-width:100%;border-radius:4px;margin:4px 0;" />`
+    );
+  }
+  placeCaretAtEnd(editorRef.value);
+  syncEditorState();
+  showQuickReply.value = false;
+}
+
+function handleQuickReplyClose() {
+  showQuickReply.value = false;
+}
+
 defineExpose({ getAttachments, clearAttachments, hasSendableContent });
 
 const toggleSendMenu = () => {
@@ -398,6 +438,12 @@ function handleInput() {
   textLimitReached.value = exceeded;
   if (!exceeded) {
     textLimitReached.value = false;
+  }
+
+  // 检测 / 触发快捷回复
+  const text = getEditorTextContent();
+  if (text === "/" && props.quickReplyCategories && props.quickReplyCategories.length > 0) {
+    showQuickReply.value = true;
   }
 
   syncEditorState();
@@ -627,6 +673,10 @@ onBeforeUnmount(() => {
   height: 16px;
   margin: 0 4px;
   width: 1px;
+}
+
+.email-composer__editor-wrap {
+  position: relative;
 }
 
 .email-composer__editor {

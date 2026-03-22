@@ -273,6 +273,7 @@
           :from-options="activeSessionFromOptions"
           :selected-from="selectedFromEmail"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
+          :quick-reply-categories="quickReplyCategories"
           @update:selected-from="selectedFromEmail = $event"
           @attachment="track(TrackEvent.ATTACHMENT)"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
@@ -281,7 +282,7 @@
           @send="handleSendEmail"
           @send-and-pending="handleSendEmailAndPending"
           @send-and-resolve="handleSendEmailAndClose"
-          @quick-reply="showTopToast('快捷回复功能开发中')"
+          @quick-reply-settings="showTopToast('快捷回复设置开发中')"
           @copilot="showTopToast('Copilot推荐开发中')"
         />
 
@@ -292,10 +293,11 @@
           :disabled="composerText.trim().length === 0"
           :show-polish="canUse(FEATURES.TEXT_POLISH)"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
-          placeholder="发送消息输入 / 选择快捷回复"
+          :quick-reply-categories="quickReplyCategories"
+          placeholder="发消息或输入 / 选择快捷回复"
           @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
-          @quick-reply="track(TrackEvent.QUICK_REPLY); showTopToast('快捷回复面板开发中')"
+          @quick-reply-settings="showTopToast('快捷回复设置开发中')"
           @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
           @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSend"
@@ -588,7 +590,8 @@ import {
   type MessageItem,
   type NavItem,
   type SessionItem,
-  type SessionQueueGroup
+  type SessionQueueGroup,
+  type QuickReplyCategory
 } from "@twt/ui-agent";
 
 const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired, canUse } = usePlan();
@@ -1526,6 +1529,30 @@ const emailComposerSubject = ref("");
 const emailComposerRef = ref<InstanceType<typeof EmailComposer>>();
 const selectedFromEmail = ref("support@company.gmail.com");
 const connectedGmailAccounts = ref(["support@company.gmail.com", "sales@company.gmail.com"]);
+
+const quickReplyCategories = ref<QuickReplyCategory[]>([
+  {
+    key: "public",
+    label: "公共回复",
+    type: "group",
+    items: [
+      { id: "1", tag: "/1123", reply: "You're welcome, please let me know if there's anything else I can help you!", images: [] },
+      { id: "2", tag: "/1", reply: "想要在手机放一个 AI 助手，选项不少，但要么像个「高级复读机」，要么是信息的搬运工——天知道，我想要的是一个能真干活的助手，一个除了能说还能动手的「创意合伙人」。今年你应该也感觉到了，AI 正在从「能聊」变成「能干」。OpenAI 搞了个 Atlas，Google 即将发布的 Gemini 3.0 让 AI 直接操作电脑……大家都在玩同一个方向：让说话变成操作，让对话变成动作。", images: [{ url: "/mock/ai-assistant.png", name: "ai-assistant.png" }] },
+      { id: "3", tag: "/123", reply: "Thank you for your patience. We have processed your request and you should receive a confirmation email shortly.", images: [] },
+      { id: "4", tag: "/hello", reply: "Hello! Welcome to our support center. How can I help you today?", images: [{ url: "/mock/welcome1.png", name: "welcome1.png" }, { url: "/mock/welcome2.png", name: "welcome2.png" }] },
+    ],
+  },
+  {
+    key: "personal",
+    label: "个人回复",
+    type: "group",
+    items: [],
+  },
+  { key: "tag-1123", label: "/1123", type: "tag", items: [{ id: "1", tag: "/1123", reply: "You're welcome, please let me know if there's anything else I can help you!", images: [] }] },
+  { key: "tag-1", label: "/1", type: "tag", items: [{ id: "2", tag: "/1", reply: "想要在手机放一个 AI 助手，选项不少，但要么像个「高级复读机」，要么是信息的搬运工——天知道，我想要的是一个能真干活的助手，一个除了能说还能动手的「创意合伙人」。", images: [{ url: "/mock/ai-assistant.png", name: "ai-assistant.png" }] }] },
+  { key: "tag-123", label: "/123", type: "tag", items: [{ id: "3", tag: "/123", reply: "Thank you for your patience. We have processed your request and you should receive a confirmation email shortly.", images: [] }] },
+  { key: "tag-hello", label: "/hello", type: "tag", items: [{ id: "4", tag: "/hello", reply: "Hello! Welcome to our support center. How can I help you today?", images: [{ url: "/mock/welcome1.png", name: "welcome1.png" }, { url: "/mock/welcome2.png", name: "welcome2.png" }] }] },
+]);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
