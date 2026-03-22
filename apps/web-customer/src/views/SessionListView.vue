@@ -27,16 +27,16 @@
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
         </button>
-        <template v-if="showAgentInfoToVisitor && session.agentName">
+        <template v-if="sessionTitleMode === 'agent' && session.agentName">
           <img :src="session.agentAvatar" class="cw-session__avatar-img" alt="" />
         </template>
-        <template v-else-if="showAgentInfoToVisitor && !session.agentName">
+        <template v-else-if="sessionTitleMode === 'agent' && !session.agentName">
           <img :src="BRAND_LOGO" class="cw-session__avatar-img" alt="" />
         </template>
         <div v-else class="cw-session__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
         <div class="cw-session__body">
           <div class="cw-session__top">
-            <span class="cw-session__name">{{ showAgentInfoToVisitor ? (session.agentName ? `与${session.agentName}的会话` : BRAND_NAME) : session.name }}</span>
+            <span class="cw-session__name">{{ sessionTitleMode === 'agent' ? (session.agentName ? `与${session.agentName}的会话` : BRAND_NAME) : session.name }}</span>
             <span class="cw-session__time">{{ session.time }}</span>
           </div>
           <div class="cw-session__bottom">
@@ -83,8 +83,8 @@ const BRAND_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.o
 const BRAND_NAME = "项目名称";
 const DEFAULT_AGENT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 
-/** 模拟设置：是否展示客服信息 */
-const showAgentInfoToVisitor = ref(true);
+/** 模拟设置：会话标题展示模式 */
+const sessionTitleMode = ref<"ai" | "agent">("agent");
 
 const router = useRouter();
 

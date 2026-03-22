@@ -6,7 +6,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
         <div class="cw-chat-header__avatar-wrap">
-          <img v-if="showAgentInfoToVisitor && agentName" :src="agentAvatar" class="cw-chat-header__avatar-img" alt="" />
+          <img v-if="sessionTitleMode === 'agent' && agentName" :src="agentAvatar" class="cw-chat-header__avatar-img" alt="" />
           <span v-else class="cw-chat-header__avatar" :style="{ background: avatarGradient }">{{ avatarText }}</span>
         </div>
         <div class="cw-chat-header__title-block">
@@ -182,8 +182,8 @@ const avatarText = computed(() => getAvatarText(agentSettings.value.botName));
 const avatarGradient = computed(() => getAvatarGradient(agentSettings.value.botName));
 const showAgentLabel = computed(() => agentSettings.value.agentEnabled && agentSettings.value.showMessageAgentLabel);
 
-/** 模拟设置：是否展示客服信息 */
-const showAgentInfoToVisitor = ref(true);
+/** 模拟设置：会话标题展示模式 */
+const sessionTitleMode = ref<"ai" | "agent">("agent");
 /** 模拟设置：是否显示排队位置 */
 const showQueuePosition = ref(true);
 /** 模拟排队状态 */
@@ -194,7 +194,7 @@ const agentName = ref("客服小李");
 const agentAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 
 const headerTitle = computed(() => {
-  if (showAgentInfoToVisitor.value && agentName.value) return `与${agentName.value}的会话`;
+  if (sessionTitleMode.value === "agent" && agentName.value) return `与${agentName.value}的会话`;
   return "新的会话";
 });
 

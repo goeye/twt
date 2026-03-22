@@ -388,21 +388,53 @@
           </div>
         </article>
 
-        <div class="wc-general-setting-card">
-          <div class="wc-general-setting-card__text">
-            <span class="wc-switch-label">展示客服信息</span>
-            <span class="wc-switch-desc">开启后，访客端会话列表和会话详情将展示当前负责客服的头像和昵称</span>
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'agentInfoDisplay' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('agentInfoDisplay')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">会话标题展示</h3>
+              <p class="wc-card__desc">控制访客端会话列表和会话详情的标题展示方式</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'agentInfoDisplay'" class="wc-accordion__body">
+            <div class="wc-title-mode-options">
+              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'ai' }">
+                <input v-model="settings.sessionTitleMode" type="radio" value="ai" class="wc-title-mode-option__radio" @change="autoSave" />
+                <span class="wc-title-mode-option__indicator" />
+                <div class="wc-title-mode-option__text">
+                  <span class="wc-title-mode-option__title">AI 生成会话标题</span>
+                  <span class="wc-title-mode-option__desc">由 AI 根据会话内容自动生成标题</span>
+                </div>
+              </label>
+              <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'agent' }">
+                <input v-model="settings.sessionTitleMode" type="radio" value="agent" class="wc-title-mode-option__radio" @change="autoSave" />
+                <span class="wc-title-mode-option__indicator" />
+                <div class="wc-title-mode-option__text">
+                  <span class="wc-title-mode-option__title">展示客服信息</span>
+                  <span class="wc-title-mode-option__desc">展示负责客服的头像和昵称，标题为「与{昵称}的会话」</span>
+                </div>
+              </label>
+            </div>
           </div>
-          <AgentSwitch v-model="settings.showAgentInfoToVisitor" @update:model-value="autoSave" />
-        </div>
+        </article>
 
-        <div class="wc-general-setting-card">
-          <div class="wc-general-setting-card__text">
-            <span class="wc-switch-label">排队提醒</span>
-            <span class="wc-switch-desc">开启后，访客发送消息进入排队时，聊天顶部将显示当前排队位置；AI Agent 接待的会话不生效</span>
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'queueReminder' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('queueReminder')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">排队提醒</h3>
+              <p class="wc-card__desc">访客发送消息进入排队时，聊天顶部显示当前排队位置；AI Agent 接待的会话不生效</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'queueReminder'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">显示排队位置</span>
+              </div>
+              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
+            </div>
           </div>
-          <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
-        </div>
+        </article>
 
         <div class="wc-general-setting-card">
           <div class="wc-general-setting-card__text">
@@ -462,13 +494,13 @@
               >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
               </button>
-              <template v-if="settings.showAgentInfoToVisitor">
+              <template v-if="settings.sessionTitleMode === 'agent'">
                 <img :src="DEFAULT_AVATAR" class="wc-session-item__avatar-img" alt="" />
               </template>
               <div v-else class="wc-session-item__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
               <div class="wc-session-item__body">
                 <div class="wc-session-item__top">
-                  <span class="wc-session-item__name">{{ settings.showAgentInfoToVisitor ? '与客服小李的会话' : session.name }}</span>
+                  <span class="wc-session-item__name">{{ settings.sessionTitleMode === 'agent' ? '与客服小李的会话' : session.name }}</span>
                   <span class="wc-session-item__time">{{ session.time }}</span>
                 </div>
                 <div class="wc-session-item__bottom">
@@ -698,7 +730,8 @@ type PreviewMode = "sessionList" | "chat" | "form" | "minimized";
 type SectionKey = "brand" | "position" | "display" | "quickAccess"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
   | "visitorFeedback"
-  | "sessionForm" | "msgStatus" | "sessionFeatures" | null;
+  | "sessionForm" | "msgStatus" | "sessionFeatures"
+  | "agentInfoDisplay" | "queueReminder" | null;
 
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
@@ -912,7 +945,7 @@ const showChatPreviewAgentAvatar = computed(() => {
 });
 
 const chatPreviewHeaderTitle = computed(() => {
-  if (settings.showAgentInfoToVisitor) return "与客服小李的会话";
+  if (settings.sessionTitleMode === "agent") return "与客服小李的会话";
   return showChatPreviewAgentAvatar.value ? "聊天" : "新的会话";
 });
 
@@ -953,7 +986,7 @@ const settings = reactive({
   enableVisitorInactive: true,
   visitorInactiveSeconds: 7200,
   visitorInactiveIncludePending: true,
-  showAgentInfoToVisitor: false,
+  sessionTitleMode: "ai" as "ai" | "agent",
   showQueuePosition: false
 });
 
@@ -2373,6 +2406,85 @@ watch(previewMode, (mode) => {
 }
 
 /* Messages */
+.wc-title-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wc-title-mode-option {
+  align-items: flex-start;
+  border: 1.5px solid var(--agent-color-border-default);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.wc-title-mode-option:hover {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-title-mode-option--active {
+  background: rgba(47, 107, 255, 0.04);
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-title-mode-option__radio {
+  clip: rect(0 0 0 0);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+.wc-title-mode-option__indicator {
+  border: 2px solid #d0d5dd;
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 18px;
+  margin-top: 1px;
+  position: relative;
+  transition: border-color 0.15s;
+  width: 18px;
+}
+
+.wc-title-mode-option--active .wc-title-mode-option__indicator {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-title-mode-option--active .wc-title-mode-option__indicator::after {
+  background: var(--agent-color-brand-primary);
+  border-radius: 50%;
+  content: "";
+  height: 8px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+}
+
+.wc-title-mode-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wc-title-mode-option__title {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wc-title-mode-option__desc {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .wc-widget__queue-banner {
   align-items: center;
   background: #eef4ff;
