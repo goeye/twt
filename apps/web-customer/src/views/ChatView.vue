@@ -6,10 +6,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
         <div class="cw-chat-header__avatar-wrap">
-          <span class="cw-chat-header__avatar" :style="{ background: avatarGradient }">{{ avatarText }}</span>
+          <img v-if="showAgentInfoToVisitor && agentName" :src="agentAvatar" class="cw-chat-header__avatar-img" alt="" />
+          <span v-else class="cw-chat-header__avatar" :style="{ background: avatarGradient }">{{ avatarText }}</span>
         </div>
         <div class="cw-chat-header__title-block">
-          <span class="cw-chat-header__title">新的会话</span>
+          <span class="cw-chat-header__title">{{ headerTitle }}</span>
         </div>
       </div>
       <button type="button" class="cw-chat-header__close" aria-label="最小化" @click="$router.push('/minimized')">
@@ -79,6 +80,10 @@
     </template>
 
     <template v-else>
+      <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-banner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="cw-queue-banner__icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>正在排队中，您前面还有 {{ queuePosition }} 位访客</span>
+      </div>
       <div class="cw-messages">
         <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
           <template v-if="msg.role === 'risk-alert'">
@@ -176,6 +181,22 @@ const floatingToggles = reactive({
 const avatarText = computed(() => getAvatarText(agentSettings.value.botName));
 const avatarGradient = computed(() => getAvatarGradient(agentSettings.value.botName));
 const showAgentLabel = computed(() => agentSettings.value.agentEnabled && agentSettings.value.showMessageAgentLabel);
+
+/** 模拟设置：是否展示客服信息 */
+const showAgentInfoToVisitor = ref(true);
+/** 模拟设置：是否显示排队位置 */
+const showQueuePosition = ref(true);
+/** 模拟排队状态 */
+const isQueuing = ref(true);
+const queuePosition = ref(3);
+/** 模拟客服信息 */
+const agentName = ref("客服小李");
+const agentAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
+
+const headerTitle = computed(() => {
+  if (showAgentInfoToVisitor.value && agentName.value) return `与${agentName.value}的会话`;
+  return "新的会话";
+});
 
 let msgCounter = 1;
 const messages = ref<Message[]>([]);
@@ -415,6 +436,13 @@ resetConversation();
   flex-shrink: 0;
 }
 
+.cw-chat-header__avatar-img {
+  border-radius: 50%;
+  height: 28px;
+  object-fit: cover;
+  width: 28px;
+}
+
 .cw-chat-header__avatar {
   align-items: center;
   border-radius: 50%;
@@ -503,6 +531,23 @@ resetConversation();
   background: rgba(47, 107, 255, 0.08);
   border-color: rgba(47, 107, 255, 0.24);
   color: var(--agent-color-brand-primary);
+}
+
+.cw-queue-banner {
+  align-items: center;
+  background: #eef4ff;
+  color: #2f6bff;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 6px;
+  justify-content: center;
+  padding: 10px 14px;
+}
+
+.cw-queue-banner__icon {
+  flex-shrink: 0;
 }
 
 .cw-messages {

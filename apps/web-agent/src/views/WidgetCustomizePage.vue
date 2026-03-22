@@ -331,6 +331,14 @@
               </div>
               <AgentSwitch v-model="settings.enableEndSession" @update:model-value="autoSave" />
             </div>
+            <div class="wc-divider" />
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">排队提醒</span>
+                <span class="wc-switch-desc">开启后，访客发送消息进入排队时，聊天顶部将显示当前排队位置；AI Agent 接待的会话不生效</span>
+              </div>
+              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
+            </div>
           </div>
         </article>
 
@@ -384,6 +392,14 @@
                 <span class="wc-switch-desc">开启后，访客可在单聊中看到客服的在线状态</span>
               </div>
               <AgentSwitch v-model="settings.showAgentOnlineStatus" @update:model-value="autoSave" />
+            </div>
+            <div class="wc-divider" />
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">展示客服信息</span>
+                <span class="wc-switch-desc">开启后，访客端会话列表和会话详情将展示当前负责客服的头像和昵称</span>
+              </div>
+              <AgentSwitch v-model="settings.showAgentInfoToVisitor" @update:model-value="autoSave" />
             </div>
           </div>
         </article>
@@ -446,10 +462,13 @@
               >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
               </button>
-              <div class="wc-session-item__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
+              <template v-if="settings.showAgentInfoToVisitor">
+                <img :src="DEFAULT_AVATAR" class="wc-session-item__avatar-img" alt="" />
+              </template>
+              <div v-else class="wc-session-item__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
               <div class="wc-session-item__body">
                 <div class="wc-session-item__top">
-                  <span class="wc-session-item__name">{{ session.name }}</span>
+                  <span class="wc-session-item__name">{{ settings.showAgentInfoToVisitor ? '与客服小李的会话' : session.name }}</span>
                   <span class="wc-session-item__time">{{ session.time }}</span>
                 </div>
                 <div class="wc-session-item__bottom">
@@ -524,6 +543,10 @@
 
           <!-- Normal chat preview -->
           <template v-else>
+            <div v-if="settings.showQueuePosition" class="wc-widget__queue-banner">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="wc-widget__queue-banner-icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span>正在排队中，您前面还有 3 位访客</span>
+            </div>
             <div class="wc-widget__messages">
               <template v-if="showChatPreviewMessage">
                 <div v-if="showChatPreviewTextBubble" class="wc-widget__msg" :class="isMsgStatusPreview ? 'wc-widget__msg--visitor' : 'wc-widget__msg--agent'">
@@ -889,6 +912,7 @@ const showChatPreviewAgentAvatar = computed(() => {
 });
 
 const chatPreviewHeaderTitle = computed(() => {
+  if (settings.showAgentInfoToVisitor) return "与客服小李的会话";
   return showChatPreviewAgentAvatar.value ? "聊天" : "新的会话";
 });
 
@@ -928,7 +952,9 @@ const settings = reactive({
   enableEndSession: false,
   enableVisitorInactive: true,
   visitorInactiveSeconds: 7200,
-  visitorInactiveIncludePending: true
+  visitorInactiveIncludePending: true,
+  showAgentInfoToVisitor: false,
+  showQueuePosition: false
 });
 
 const showChatPreviewOnlineStatus = computed(() => {
@@ -2237,6 +2263,14 @@ watch(previewMode, (mode) => {
   width: 42px;
 }
 
+.wc-session-item__avatar-img {
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 42px;
+  object-fit: cover;
+  width: 42px;
+}
+
 .wc-session-item__body {
   display: flex;
   flex: 1;
@@ -2339,6 +2373,23 @@ watch(previewMode, (mode) => {
 }
 
 /* Messages */
+.wc-widget__queue-banner {
+  align-items: center;
+  background: #eef4ff;
+  color: #2f6bff;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 6px;
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.wc-widget__queue-banner-icon {
+  flex-shrink: 0;
+}
+
 .wc-widget__messages {
   background: #f5f5f5;
   display: flex;

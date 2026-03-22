@@ -27,10 +27,16 @@
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
         </button>
-        <div class="cw-session__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
+        <template v-if="showAgentInfoToVisitor && session.agentName">
+          <img :src="session.agentAvatar" class="cw-session__avatar-img" alt="" />
+        </template>
+        <template v-else-if="showAgentInfoToVisitor && !session.agentName">
+          <img :src="BRAND_LOGO" class="cw-session__avatar-img" alt="" />
+        </template>
+        <div v-else class="cw-session__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
         <div class="cw-session__body">
           <div class="cw-session__top">
-            <span class="cw-session__name">{{ session.name }}</span>
+            <span class="cw-session__name">{{ showAgentInfoToVisitor ? (session.agentName ? `与${session.agentName}的会话` : BRAND_NAME) : session.name }}</span>
             <span class="cw-session__time">{{ session.time }}</span>
           </div>
           <div class="cw-session__bottom">
@@ -75,6 +81,10 @@ import { useRouter } from "vue-router";
 
 const BRAND_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
 const BRAND_NAME = "项目名称";
+const DEFAULT_AGENT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
+
+/** 模拟设置：是否展示客服信息 */
+const showAgentInfoToVisitor = ref(true);
 
 const router = useRouter();
 
@@ -86,7 +96,9 @@ const sessions = ref([
     time: "09:46",
     unread: 0,
     avatarLabel: "L",
-    avatarColor: "#7C3AED"
+    avatarColor: "#7C3AED",
+    agentName: "客服小李",
+    agentAvatar: DEFAULT_AGENT_AVATAR
   }
 ]);
 
@@ -242,6 +254,14 @@ const confirmDelete = () => {
   font-weight: 700;
   height: 42px;
   justify-content: center;
+  width: 42px;
+}
+
+.cw-session__avatar-img {
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 42px;
+  object-fit: cover;
   width: 42px;
 }
 
