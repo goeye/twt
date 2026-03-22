@@ -365,21 +365,22 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
             <!-- Step 2: 配置表单 -->
             <div v-else-if="whModalStep === 2 && whCurrentChannel" class="wh-modal__body">
               <div class="wh-form">
-                <p class="wh-form__hint">{{ whCurrentChannel.setupHint }}</p>
 
                 <label class="wh-field">
-                  <span class="wh-field__label">名称</span>
+                  <span class="wh-field__label">配置名称</span>
                   <input v-model="whDraftName" class="agent-input" placeholder="请输入" maxlength="50" @input="handleNameInput" />
                 </label>
 
                 <label class="wh-field">
-                  <span class="wh-field__label">Webhook 地址</span>
-                  <input v-model="whDraftUrl" class="agent-input" type="url" placeholder="请输入" />
+                  <span class="wh-field__label">Webhook URL</span>
+                  <input v-model="whDraftUrl" class="agent-input" type="url" :placeholder="whCurrentChannel.urlPlaceholder" />
+                  <p class="wh-field__desc">{{ whCurrentChannel.urlHint }}</p>
                 </label>
 
-                <label v-if="whCurrentChannel.hasSecret" class="wh-field">
-                  <span class="wh-field__label">签名密钥</span>
+                <label class="wh-field">
+                  <span class="wh-field__label">{{ whCurrentChannel.secretLabel }}</span>
                   <input v-model="whDraftSecret" class="agent-input" type="password" placeholder="请输入" />
+                  <p class="wh-field__desc">{{ whCurrentChannel.secretHint }}</p>
                 </label>
               </div>
             </div>
@@ -774,6 +775,12 @@ interface ChannelMeta {
   label: string;
   setupHint: string;
   hasSecret: boolean;
+  urlPlaceholder: string;
+  urlHint: string;
+  secretLabel: string;
+  secretPlaceholder: string;
+  secretHint: string;
+  secretRequired: boolean;
 }
 
 interface WebhookEntry {
@@ -788,11 +795,51 @@ interface WebhookEntry {
 }
 
 const CHANNEL_META: ChannelMeta[] = [
-  { id: 'feishu', label: '飞书', setupHint: '在飞书群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true },
-  { id: 'dingtalk', label: '钉钉', setupHint: '在钉钉群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true },
-  { id: 'wecom', label: '企业微信', setupHint: '在企业微信群中添加「群机器人」，复制 Webhook 地址', hasSecret: false },
-  { id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: false },
-  { id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: false },
+  {
+    id: 'feishu', label: '飞书', setupHint: '在飞书群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true,
+    urlPlaceholder: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
+    urlHint: '在飞书群设置中添加自定义机器人，复制 Webhook 地址',
+    secretLabel: '签名密钥',
+    secretPlaceholder: '可选。在飞书机器人安全设置中开启签名校验后填写',
+    secretHint: '可选。在飞书机器人安全设置中开启签名校验后填写',
+    secretRequired: false,
+  },
+  {
+    id: 'dingtalk', label: '钉钉', setupHint: '在钉钉群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true,
+    urlPlaceholder: 'https://oapi.dingtalk.com/robot/send?access_token=xx',
+    urlHint: '在钉钉群设置中添加自定义机器人，复制 Webhook 地址',
+    secretLabel: '加签密钥',
+    secretPlaceholder: '必填。在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
+    secretHint: '必填。在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
+    secretRequired: true,
+  },
+  {
+    id: 'wecom', label: '企业微信', setupHint: '在企业微信群中添加「群机器人」，复制 Webhook 地址', hasSecret: true,
+    urlPlaceholder: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key',
+    urlHint: '在企业微信群中添加群机器人，复制 Webhook 地址',
+    secretLabel: '签名密钥',
+    secretPlaceholder: '可选。用于验证请求来源',
+    secretHint: '可选。用于验证请求来源',
+    secretRequired: false,
+  },
+  {
+    id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: true,
+    urlPlaceholder: 'https://hooks.slack.com/services/xxx/xxx/xxx',
+    urlHint: '在 Slack App 中启用 Incoming Webhooks，复制 Webhook URL',
+    secretLabel: '签名密钥',
+    secretPlaceholder: '可选。用于验证请求来源',
+    secretHint: '可选。用于验证请求来源',
+    secretRequired: false,
+  },
+  {
+    id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: true,
+    urlPlaceholder: 'https://your-service.com/webhook',
+    urlHint: '输入您的自定义 Webhook 接收地址',
+    secretLabel: 'HMAC 密钥（选填）',
+    secretPlaceholder: '可选。用于生成请求签名，接收方可用于验证消息来源',
+    secretHint: '可选。用于生成请求签名，接收方可用于验证消息来源',
+    secretRequired: false,
+  },
 ];
 
 const CHANNEL_MAP = Object.fromEntries(CHANNEL_META.map(c => [c.id, c])) as Record<WebhookChannel, ChannelMeta>;
@@ -825,7 +872,12 @@ const whModalTitle = computed(() => {
 
 const whCurrentChannel = computed(() => whDraftChannel.value ? CHANNEL_MAP[whDraftChannel.value] : null);
 
-const whCanSave = computed(() => whDraftName.value.trim() && whDraftUrl.value.trim());
+const whCanSave = computed(() => {
+  const base = whDraftName.value.trim() && whDraftUrl.value.trim();
+  if (!base) return false;
+  if (whCurrentChannel.value?.secretRequired && !whDraftSecret.value.trim()) return false;
+  return true;
+});
 
 const openAddWebhook = () => {
   if (!guardFeature(FEATURES.WEBHOOKS)) return;
@@ -1637,8 +1689,20 @@ const unrepliedContentRows: WebhookTableRow[] = [
   font-weight: var(--agent-font-weight-medium);
 }
 
+.wh-field__required {
+  color: #ef4444;
+}
+
+.wh-field__desc {
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
 .wh-save-btn {
   width: 100%;
+  height: 40px;
 }
 
 /* Delete Modal */
