@@ -253,6 +253,11 @@
           <button type="button" class="agent-btn agent-btn--primary" @click="handleOpenTakeoverAiSession">接管会话</button>
         </div>
 
+        <div v-else-if="isQueueingSession" class="queue-claim-bar">
+          <button type="button" class="agent-btn queue-claim-bar__assign-btn" @click="handleOpenQueueAssign">分配会话</button>
+          <button type="button" class="agent-btn agent-btn--primary" @click="handleClaimQueueSession">领取会话</button>
+        </div>
+
         <div v-else-if="isClosedSession" class="chat-pane__closed">
           <span class="chat-pane__closed-tag">会话已结束</span>
         </div>
@@ -453,6 +458,15 @@
       @close="aiAssignModalOpen = false"
       @confirm="handleAiAssignConfirm"
       @update:keyword="aiAssignKeyword = $event"
+    />
+
+    <ArchiveAssignModal
+      :open="queueAssignModalOpen"
+      :keyword="queueAssignKeyword"
+      :agents="queueAssignableAgents"
+      @close="queueAssignModalOpen = false"
+      @confirm="handleQueueAssignConfirm"
+      @update:keyword="queueAssignKeyword = $event"
     />
 
     <InviteModal
@@ -1519,6 +1533,8 @@ const closeSessionModalOpen = ref(false);
 const closeEmailSessionModalOpen = ref(false);
 const aiAssignModalOpen = ref(false);
 const aiAssignKeyword = ref("");
+const queueAssignModalOpen = ref(false);
+const queueAssignKeyword = ref("");
 
 const hasCustomerIdentity = ref(true);
 type SessionFilterType = "all" | "visitor" | "customer";
@@ -1574,6 +1590,14 @@ const aiAssignableAgents = computed(() => {
     .map((a) => ({ id: a.id, name: a.name, online: a.online, avatarText: a.avatarText, avatarColor: a.avatarColor }));
 });
 
+const queueAssignableAgents = computed(() => {
+  const keyword = queueAssignKeyword.value.trim().toLowerCase();
+  return agentPool
+    .filter((a) => keyword.length === 0 || a.name.toLowerCase().includes(keyword))
+    .sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1))
+    .map((a) => ({ id: a.id, name: a.name, online: a.online, avatarText: a.avatarText, avatarColor: a.avatarColor }));
+});
+
 const conversationBadgeCount = computed(() => {
   const queueKeys = queueGroupSeed.flatMap((group) => group.items.map((item) => item.key));
   return allSessions.value.filter((session) => queueKeys.includes(session.queueKey)).length;
@@ -1605,6 +1629,7 @@ const isVisitorsRoute = computed(() => currentRouteName.value === "visitors");
 const isCustomerRoute = computed(() => currentRouteName.value === "customer");
 
 const isAiSession = computed(() => activeSession.value?.queueKey === "ai-agent-queue");
+const isQueueingSession = computed(() => activeSession.value?.queueKey === "queueing");
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
@@ -2324,6 +2349,43 @@ const handleAiAssignConfirm = (agentId: string) => {
   showTopToast("会话分配成功");
 };
 
+const handleClaimQueueSession = () => {
+  const session = activeSession.value;
+  if (!session) return;
+
+  allSessions.value = allSessions.value.map((s) => {
+    if (s.id !== session.id) return s;
+    return { ...s, queueKey: "pending-reply", assignee: currentAgentName };
+  });
+
+  activeQueueKey.value = "pending-reply";
+  showTopToast("领取会话成功");
+};
+
+const handleOpenQueueAssign = () => {
+  if (!activeSession.value) return;
+  queueAssignKeyword.value = "";
+  queueAssignModalOpen.value = true;
+};
+
+const handleQueueAssignConfirm = (agentId: string) => {
+  const session = activeSession.value;
+  const agent = agentPool.find((a) => a.id === agentId);
+  if (!session || !agent) return;
+
+  allSessions.value = allSessions.value.filter((s) => s.id !== session.id);
+  queueAssignModalOpen.value = false;
+
+  const queueSessions = allSessions.value.filter((s) => s.queueKey === "queueing");
+  if (queueSessions.length > 0) {
+    activeSessionId.value = queueSessions[0].id;
+  } else {
+    activeQueueKey.value = "pending-reply";
+  }
+
+  showTopToast("会话分配成功");
+};
+
 const handleSend = () => {
   const text = composerText.value.trim();
   if (!text || !activeSession.value) {
@@ -3008,6 +3070,26 @@ onBeforeUnmount(() => {
 }
 
 .ai-takeover-bar__assign-btn:hover {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+.queue-claim-bar {
+  align-items: center;
+  background: #fff;
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: var(--agent-space-12);
+  justify-content: center;
+  padding: var(--agent-space-20) var(--agent-space-16);
+}
+
+.queue-claim-bar__assign-btn {
+  background: #ffffff;
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.queue-claim-bar__assign-btn:hover {
   background: rgba(47, 107, 255, 0.06);
 }
 
