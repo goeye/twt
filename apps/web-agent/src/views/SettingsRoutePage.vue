@@ -242,7 +242,12 @@
                 </button>
               </td>
               <td class="wh-table__td wh-table__td--muted">{{ entry.createdAt }}</td>
-              <td class="wh-table__td wh-table__td--muted">{{ entry.createdBy }}</td>
+              <td class="wh-table__td wh-table__td--muted">
+                <span class="wh-creator">
+                  <span class="wh-creator__avatar">{{ entry.createdBy.charAt(0) }}</span>
+                  {{ entry.createdBy }}
+                </span>
+              </td>
               <td class="wh-table__td">
                 <button type="button" class="wh-action-btn" @click="openEditWebhook(entry)">编辑</button>
                 <button type="button" class="wh-action-btn wh-action-btn--danger" @click="openDeleteWebhook(entry.id)">删除</button>
@@ -1496,6 +1501,25 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .wh-table__td--muted {
   color: var(--agent-color-text-secondary);
+}
+
+.wh-creator {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.wh-creator__avatar {
+  align-items: center;
+  background: var(--agent-color-brand-light, #e8f0fe);
+  border-radius: 50%;
+  color: var(--agent-color-brand, #4a7bf7);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 500;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
 }
 
 .wh-table__empty {
