@@ -391,13 +391,13 @@
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'agentInfoDisplay' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('agentInfoDisplay')">
             <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">会话标题展示</h3>
-              <p class="wc-card__desc">控制访客端会话列表和会话详情的标题展示方式</p>
+              <h3 class="wc-card__title">会话标题</h3>
+              <p class="wc-card__desc">设置访客端会话标题展示方式</p>
             </div>
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'agentInfoDisplay'" class="wc-accordion__body">
-            <div class="wc-title-mode-options">
+            <div class="wc-title-mode-options wc-title-mode-options--horizontal">
               <label class="wc-title-mode-option" :class="{ 'wc-title-mode-option--active': settings.sessionTitleMode === 'ai' }">
                 <input v-model="settings.sessionTitleMode" type="radio" value="ai" class="wc-title-mode-option__radio" @change="autoSave" />
                 <span class="wc-title-mode-option__indicator" />
@@ -411,7 +411,7 @@
                 <span class="wc-title-mode-option__indicator" />
                 <div class="wc-title-mode-option__text">
                   <span class="wc-title-mode-option__title">展示客服信息</span>
-                  <span class="wc-title-mode-option__desc">展示负责客服的头像和昵称，标题为「与{昵称}的会话」</span>
+                  <span class="wc-title-mode-option__desc">展示会话负责人信息</span>
                 </div>
               </label>
             </div>
@@ -422,14 +422,14 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('queueReminder')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">排队提醒</h3>
-              <p class="wc-card__desc">访客发送消息进入排队时，聊天顶部显示当前排队位置；AI Agent 接待的会话不生效</p>
+              <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
             </div>
             <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'queueReminder'" class="wc-accordion__body">
             <div class="wc-switch-row">
               <div class="wc-switch-row__text">
-                <span class="wc-switch-label">显示排队位置</span>
+                <span class="wc-switch-label">显示排队信息</span>
               </div>
               <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
             </div>
@@ -575,7 +575,7 @@
 
           <!-- Normal chat preview -->
           <template v-else>
-            <div v-if="settings.showQueuePosition" class="wc-widget__queue-banner">
+            <div v-if="settings.showQueuePosition || openSection === 'queueReminder'" class="wc-widget__queue-banner">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="wc-widget__queue-banner-icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
               <span>正在排队中，您前面还有 3 位访客</span>
             </div>
@@ -869,7 +869,9 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   visitorFeedback: "chat",
   sessionForm: "form",
   msgStatus: "chat",
-  sessionFeatures: "sessionList"
+  sessionFeatures: "sessionList",
+  agentInfoDisplay: "sessionList",
+  queueReminder: "chat"
 };
 
 const toggleSection = (key: SectionKey) => {
@@ -2410,6 +2412,14 @@ watch(previewMode, (mode) => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.wc-title-mode-options--horizontal {
+  flex-direction: row;
+}
+
+.wc-title-mode-options--horizontal .wc-title-mode-option {
+  flex: 1;
 }
 
 .wc-title-mode-option {
