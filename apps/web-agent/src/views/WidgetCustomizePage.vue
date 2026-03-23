@@ -356,7 +356,7 @@
                 <input v-model="settings.sessionTitleMode" type="radio" value="agent" class="wc-title-mode-option__radio" @change="autoSave" />
                 <span class="wc-title-mode-option__indicator" />
                 <div class="wc-title-mode-option__text">
-                  <span class="wc-title-mode-option__title">展示客服信息</span>
+                  <span class="wc-title-mode-option__title">客服信息</span>
                   <span class="wc-title-mode-option__desc">展示会话负责人信息</span>
                 </div>
               </label>
@@ -500,7 +500,7 @@
               <div v-else class="wc-session-item__avatar" :style="{ background: session.avatarColor }">{{ session.avatarLabel }}</div>
               <div class="wc-session-item__body">
                 <div class="wc-session-item__top">
-                  <span class="wc-session-item__name">{{ settings.sessionTitleMode === 'agent' ? '与客服小李的会话' : session.name }}</span>
+                  <span class="wc-session-item__name">{{ settings.sessionTitleMode === 'agent' ? agentSessionTitles[globalLang] : aiGeneratedTitles[globalLang] }}</span>
                   <span class="wc-session-item__time">{{ session.time }}</span>
                 </div>
                 <div class="wc-session-item__bottom">
@@ -575,7 +575,7 @@
 
           <!-- Normal chat preview -->
           <template v-else>
-            <div v-if="settings.showQueuePosition || openSection === 'queueReminder'" class="wc-widget__queue-banner">
+            <div v-if="settings.showQueuePosition" class="wc-widget__queue-banner">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="wc-widget__queue-banner-icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
               <span>正在排队中，前面还有 3 位访客</span>
             </div>
@@ -947,8 +947,8 @@ const showChatPreviewAgentAvatar = computed(() => {
 });
 
 const chatPreviewHeaderTitle = computed(() => {
-  if (settings.sessionTitleMode === "agent") return "与客服小李的会话";
-  return showChatPreviewAgentAvatar.value ? "聊天" : "新的会话";
+  if (settings.sessionTitleMode === "agent") return agentSessionTitles[globalLang.value];
+  return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New Session" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
 });
 
 const feedbackPreviewTitle = computed(() => {
@@ -995,6 +995,20 @@ const settings = reactive({
 const showChatPreviewOnlineStatus = computed(() => {
   return isMsgStatusPreview.value && settings.showAgentOnlineStatus;
 });
+
+// AI生成的会话标题（多语言）
+const aiGeneratedTitles: Record<LangKey, string> = {
+  en: "Order Status Inquiry",
+  "zh-cn": "订单状态咨询",
+  "zh-tw": "訂單狀態諮詢"
+};
+
+// 展示客服信息的标题（多语言）
+const agentSessionTitles: Record<LangKey, string> = {
+  en: "Chat with Agent Sarah",
+  "zh-cn": "与客服小雨的会话",
+  "zh-tw": "與客服小雨的會話"
+};
 
 const previewSessionItems: PreviewSessionItem[] = [
   { id: "preview-session-2", name: "Lily", message: "Can you help me check the order status?", time: "09:46", unread: 0, avatarLabel: "L", avatarColor: "#7C3AED" }
