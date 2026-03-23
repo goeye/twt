@@ -504,7 +504,7 @@
                   <span class="wc-session-item__time">{{ session.time }}</span>
                 </div>
                 <div class="wc-session-item__bottom">
-                  <span class="wc-session-item__msg">{{ session.message }}</span>
+                  <span class="wc-session-item__msg">{{ sessionListMessages[globalLang] }}</span>
                   <span v-if="session.unread > 0" class="wc-session-item__badge">{{ session.unread }}</span>
                 </div>
               </div>
@@ -575,11 +575,10 @@
 
           <!-- Normal chat preview -->
           <template v-else>
-            <div v-if="settings.showQueuePosition" class="wc-widget__queue-banner">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="wc-widget__queue-banner-icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-              <span>正在排队中，前面还有 3 位访客</span>
-            </div>
             <div class="wc-widget__messages">
+              <div v-if="settings.showQueuePosition" class="wc-widget__queue-pill">
+                <span>{{ queueTexts[globalLang].prefix }}<strong class="wc-widget__queue-pill-num">3</strong>{{ queueTexts[globalLang].suffix }}</span>
+              </div>
               <template v-if="showChatPreviewMessage">
                 <div v-if="showChatPreviewTextBubble" class="wc-widget__msg" :class="isMsgStatusPreview ? 'wc-widget__msg--visitor' : 'wc-widget__msg--agent'">
                   <span class="wc-widget__msg-time">10:32</span>
@@ -1008,6 +1007,20 @@ const agentSessionTitles: Record<LangKey, string> = {
   en: "Chat with Agent Sarah",
   "zh-cn": "与客服小雨的会话",
   "zh-tw": "與客服小雨的會話"
+};
+
+// 会话列表消息（多语言）
+const sessionListMessages: Record<LangKey, string> = {
+  en: "Can you help me check the order status?",
+  "zh-cn": "您好，请问有什么可以帮助您的吗？",
+  "zh-tw": "您好，請問有什麼可以幫助您的嗎？"
+};
+
+// 排队信息文本（多语言）
+const queueTexts: Record<LangKey, { prefix: string; suffix: string }> = {
+  en: { prefix: "In queue, ", suffix: " visitors ahead" },
+  "zh-cn": { prefix: "排队中，前面还有", suffix: "人" },
+  "zh-tw": { prefix: "排隊中，前面還有", suffix: "人" }
 };
 
 const previewSessionItems: PreviewSessionItem[] = [
@@ -2518,21 +2531,22 @@ watch(previewMode, (mode) => {
   line-height: 1.5;
 }
 
-.wc-widget__queue-banner {
-  align-items: center;
-  background: #eef4ff;
-  color: #2f6bff;
-  display: flex;
-  flex-shrink: 0;
+.wc-widget__queue-pill {
+  align-self: center;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #666;
   font-size: 11px;
   font-weight: 500;
-  gap: 6px;
-  justify-content: center;
-  padding: 8px 12px;
+  margin-bottom: 10px;
+  padding: 6px 14px;
+  text-align: center;
 }
 
-.wc-widget__queue-banner-icon {
-  flex-shrink: 0;
+.wc-widget__queue-pill-num {
+  color: #ff6b2c;
+  font-weight: 700;
 }
 
 .wc-widget__messages {

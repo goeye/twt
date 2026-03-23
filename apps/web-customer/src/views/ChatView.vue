@@ -80,11 +80,10 @@
     </template>
 
     <template v-else>
-      <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-banner">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="cw-queue-banner__icon"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" /><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-        <span>正在排队中，前面还有 {{ queuePosition }} 位访客</span>
-      </div>
       <div class="cw-messages">
+        <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-pill">
+          <span>排队中，前面还有<strong class="cw-queue-pill-num">{{ queuePosition }}</strong>人</span>
+        </div>
         <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
           <template v-if="msg.role === 'risk-alert'">
             <div class="cw-msg__system-text">{{ msg.text }}</div>
@@ -533,21 +532,22 @@ resetConversation();
   color: var(--agent-color-brand-primary);
 }
 
-.cw-queue-banner {
-  align-items: center;
-  background: #eef4ff;
-  color: #2f6bff;
-  display: flex;
-  flex-shrink: 0;
-  font-size: 12px;
+.cw-queue-pill {
+  align-self: center;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #666;
+  font-size: 11px;
   font-weight: 500;
-  gap: 6px;
-  justify-content: center;
-  padding: 10px 14px;
+  margin-bottom: 10px;
+  padding: 6px 14px;
+  text-align: center;
 }
 
-.cw-queue-banner__icon {
-  flex-shrink: 0;
+.cw-queue-pill-num {
+  color: #ff6b2c;
+  font-weight: 700;
 }
 
 .cw-messages {
