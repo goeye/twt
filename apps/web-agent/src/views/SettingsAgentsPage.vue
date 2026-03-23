@@ -136,14 +136,6 @@
             </tbody>
           </table>
         </div>
-
-        <footer class="settings-agents-pagination">
-          <button type="button" class="settings-agents-pagination__page settings-agents-pagination__page--active">1</button>
-          <button type="button" class="settings-agents-pagination__page">2</button>
-          <button type="button" class="settings-agents-pagination__page">3</button>
-          <span class="settings-agents-pagination__meta">{{ pagination.pageSize }}/Page</span>
-          <span class="settings-agents-pagination__meta">Total: {{ pagination.total }}</span>
-        </footer>
     </article>
 
     <!-- Delete confirmation modal -->
@@ -259,11 +251,6 @@ const seatSummary = computed(() => ({
   total: 10,
   used: members.value.length + inviteRecords.value.filter((r) => r.status === "邀请中").length,
   remaining: 10 - members.value.length - inviteRecords.value.filter((r) => r.status === "邀请中").length
-}));
-
-const pagination = computed(() => ({
-  pageSize: 10,
-  total: members.value.length + inviteRecords.value.length
 }));
 
 let nextMemberId = 10006;
@@ -835,44 +822,6 @@ const confirmCancelInvite = () => {
 
 .settings-agents-table__dropdown-item--danger:disabled {
   color: #fca5a5;
-}
-
-/* Pagination */
-.settings-agents-pagination {
-  align-items: center;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin: auto;
-  padding: 16px 18px 24px;
-}
-
-.settings-agents-pagination__page {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #edf1f5;
-  border-radius: 8px;
-  color: #4b5563;
-  cursor: pointer;
-  display: inline-flex;
-  font-size: 13px;
-  height: 24px;
-  justify-content: center;
-  min-width: 24px;
-  padding: 0 6px;
-}
-
-.settings-agents-pagination__page--active {
-  background: #105eff;
-  border-color: #105eff;
-  color: #ffffff;
-}
-
-.settings-agents-pagination__meta {
-  color: #4b5563;
-  font-size: 13px;
-  line-height: 20px;
 }
 
 /* Delete confirmation modal */
