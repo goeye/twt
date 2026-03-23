@@ -133,7 +133,6 @@
     />
 
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
-      <p class="settings-channel-hint">以下设置同时适用于在线会话和 Email 渠道</p>
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">成员不活跃</h2>

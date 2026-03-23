@@ -7,7 +7,6 @@
           <div>
             <h1 class="wc-settings__title">自定义</h1>
             <p class="wc-settings__subtitle">设置你的聊天小部件功能和显示</p>
-            <p class="wc-settings__channel-hint">此配置仅适用于在线会话渠道，不影响 Email 渠道</p>
           </div>
           <div class="wc-global-lang">
             <select v-model="globalLang" class="wc-global-lang__select">

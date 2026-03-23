@@ -451,7 +451,6 @@ const quickLinks: QuickLinkItem[] = [
   { key: "knowledge", label: "知识库", icon: "book", route: "/ai-agent", bgColor: "rgba(16, 94, 255, 0.12)", color: "#105eff" },
   { key: "campaign", label: "群发消息", icon: "campaign", route: "/campaign", bgColor: "rgba(42, 178, 96, 0.12)", color: "#2ab260" },
   { key: "service", label: "成员", icon: "service", route: "/settings", bgColor: "rgba(103, 109, 255, 0.12)", color: "#676dff" },
-  { key: "session-setting", label: "会话设置", icon: "settings", route: "/settings", bgColor: "rgba(255, 152, 46, 0.12)", color: "#ff982e" }
 ];
 
 const chartLabels = ["12-19", "12-20", "12-21", "12-22", "12-23", "12-24", "12-25"];
