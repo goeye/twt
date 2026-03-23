@@ -268,7 +268,18 @@
         <div class="report-chart-panel report-chart-panel--wide agent-panel">
           <div class="report-chart-panel__header">
             <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="AI Agent 接管的会话数量趋势" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
-            <span class="report-chart-panel__avg">平均数量 <strong>3</strong></span>
+            <div class="report-chart-panel__header-right">
+              <span class="report-chart-panel__avg">会话数平均数量 <strong>24</strong></span>
+              <span class="report-chart-panel__avg" style="margin-left: 24px;">转人工数平均数量 <strong>24</strong></span>
+            </div>
+          </div>
+          <div class="report-chart-panel__legend-bar">
+            <span class="report-chart-panel__legend-item">
+              <span class="report-chart-panel__dot" style="background: var(--agent-color-brand-primary)" /> 会话数
+            </span>
+            <span class="report-chart-panel__legend-item">
+              <span class="report-chart-panel__dot" style="background: #ff7d00" /> 转人工数
+            </span>
           </div>
           <div class="report-chart-panel__body">
             <div class="report-line-chart">
@@ -279,34 +290,11 @@
                 <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="report-line-chart__svg">
                   <line v-for="n in 5" :key="n" x1="0" :y1="(n-1)*50" x2="700" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
                   <polyline fill="none" stroke="var(--agent-color-brand-primary)" stroke-width="2" points="0,175 100,150 200,125 300,175 400,100 500,75 600,50 700,100" />
+                  <polyline fill="none" stroke="#ff7d00" stroke-width="2" points="0,175 100,150 200,125 300,175 400,100 500,75 600,50 700,100" />
                 </svg>
                 <div class="report-line-chart__x-axis">
                   <span v-for="d in aiChartXLabels" :key="d">{{ d }}</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 转人工趋势 -->
-      <div class="report-chart-panel report-chart-panel--wide agent-panel">
-        <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">转人工趋势 <span class="report-stat-card__help" data-tooltip="各时间段 AI Agent 转人工会话分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
-          <span class="report-chart-panel__avg">平均数量 <strong>3</strong></span>
-        </div>
-        <div class="report-chart-panel__body">
-          <div class="report-line-chart">
-            <div class="report-line-chart__y-axis">
-              <span>8</span><span>6</span><span>4</span><span>2</span><span>0</span>
-            </div>
-            <div class="report-line-chart__area">
-              <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="report-line-chart__svg">
-                <line v-for="n in 5" :key="n" x1="0" :y1="(n-1)*50" x2="700" :y2="(n-1)*50" stroke="var(--agent-color-border-default)" stroke-width="0.5" stroke-dasharray="4" />
-                <polyline fill="none" stroke="#ff7d00" stroke-width="2" points="0,175 100,150 200,125 300,175 400,100 500,75 600,50 700,100" />
-              </svg>
-              <div class="report-line-chart__x-axis">
-                <span v-for="d in aiChartXLabels" :key="d">{{ d }}</span>
               </div>
             </div>
           </div>

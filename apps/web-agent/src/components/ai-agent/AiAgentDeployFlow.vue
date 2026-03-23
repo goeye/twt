@@ -22,11 +22,16 @@
         >
           <button type="button" class="config-card__trigger" @click="emit('toggle-card', card.key)">
             <div class="config-card__heading">
-              <h3 class="config-card__title">{{ card.title }}</h3>
-              <span v-if="card.badge" class="config-card__status" :class="`config-card__status--${card.badgeTone ?? 'default'}`">
-                {{ card.badge }}
-              </span>
-              <p class="config-card__summary">{{ card.summary }}</p>
+              <div class="config-card__title-row">
+                <h3 class="config-card__title">{{ card.title }}</h3>
+                <span v-if="card.badge" class="config-card__status" :class="`config-card__status--${card.badgeTone ?? 'default'}`">
+                  {{ card.badge }}
+                </span>
+                <p v-if="openCardKey !== card.key && card.summary" class="config-card__summary">{{ card.summary }}</p>
+              </div>
+              <p v-if="card.description && openCardKey === card.key" class="config-card__description">
+                {{ card.description }}
+              </p>
             </div>
 
             <AgentIcon
@@ -204,10 +209,6 @@
             </template>
 
             <template v-else-if="card.key === 'answering-mode'">
-              <p class="card-description">
-                AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复
-              </p>
-
               <div class="form-row form-row--single">
                 <div class="form-row__control">
                   <select v-model="localReplyMode" class="agent-input" @change="emit('auto-save')">
@@ -220,10 +221,6 @@
 
             <template v-else-if="card.key === 'answering-knowledge'">
               <div class="knowledge-card">
-                <p class="card-description">
-                  AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容
-                </p>
-
                 <div v-if="knowledgeDocCount === 0" class="knowledge-warning">
                   <p class="knowledge-warning__text">
                     当前未添加知识库，为获得更精准的回答，请添加相关内容。
@@ -273,20 +270,15 @@
                       <input v-model="localTransferEnabled" type="checkbox" class="agent-switch__input" @change="emit('auto-save')" />
                       <span class="agent-switch__track" />
                     </label>
-                    <div class="toggle-row__content">
-                      <span class="toggle-row__label">转接人工</span>
-                      <span class="toggle-row__desc">开启后，访客要求转人工时，会话自动转接人工客服</span>
-                    </div>
+                    <span class="toggle-row__label">允许转接人工</span>
                   </div>
                 </div>
               </div>
 
               <template v-if="localTransferEnabled">
-                <div class="form-row">
-                  <div class="form-row__label">
+                <div class="form-row form-row--single">
+                  <div class="form-row__control form-row__control--stack">
                     <span class="form-row__name">转接提示语</span>
-                  </div>
-                  <div class="form-row__control">
                     <textarea
                       v-model="localTransferMessage"
                       class="agent-input form-row__textarea"
@@ -301,11 +293,9 @@
                   </div>
                 </div>
 
-                <div class="form-row">
-                  <div class="form-row__label">
+                <div class="form-row form-row--single">
+                  <div class="form-row__control form-row__control--stack">
                     <span class="form-row__name">客服离线提示</span>
-                  </div>
-                  <div class="form-row__control">
                     <textarea
                       v-model="localOfflineMessage"
                       class="agent-input form-row__textarea"
@@ -322,11 +312,9 @@
               </template>
 
               <template v-else>
-                <div class="form-row">
-                  <div class="form-row__label">
+                <div class="form-row form-row--single">
+                  <div class="form-row__control form-row__control--stack">
                     <span class="form-row__name">不转接提示语</span>
-                  </div>
-                  <div class="form-row__control">
                     <textarea
                       v-model="localOfflineMessage"
                       class="agent-input form-row__textarea"
@@ -425,6 +413,7 @@ export interface LifecycleCard {
   key: LifecycleCardKey;
   title: string;
   summary: string;
+  description?: string;
   badge?: string;
   badgeTone?: "warning" | "default";
 }
@@ -695,13 +684,26 @@ const localIdleSeconds = computed({
 }
 
 .config-card__heading {
-  align-items: center;
   color: var(--agent-color-text-primary);
   display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.config-card__title-row {
+  align-items: center;
+  display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  min-width: 0;
+}
+
+.config-card__description {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .config-card__title {

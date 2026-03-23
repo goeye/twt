@@ -212,7 +212,13 @@
 
             <div class="form-row">
               <div class="form-row__label">
-                <span class="form-row__name">默认语言</span>
+                <span class="form-row__name">
+                  默认语言
+                  <span class="form-row__help-wrap">
+                    <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
+                    <span class="form-row__tooltip">AI Agent 会检测访客语言并使用该语言进行回复，当无法判断访客语言时，将使用默认进行回复</span>
+                  </span>
+                </span>
               </div>
               <div class="form-row__control">
                 <select v-model="defaultLanguage" class="agent-input" :disabled="!agentFeatureAvailable" @change="autoSave">
@@ -222,7 +228,6 @@
                     :value="language.value"
                   >{{ language.label }}</option>
                 </select>
-                <p class="form-row__hint">无法判断访客语言时，将使用该语言进行回复</p>
               </div>
             </div>
           </div>
@@ -832,12 +837,14 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "answering-mode",
           title: "回复模式",
-          summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict
+          summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict,
+          description: "AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复"
         },
         {
           key: "answering-knowledge",
           title: "关联知识库",
-          summary: `已关联 ${knowledgeDocCount.value} 篇知识库文档`
+          summary: `已关联 ${knowledgeDocCount.value} 篇知识库文档`,
+          description: "AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容"
         }
       ]
     },
@@ -849,7 +856,8 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "answering-unsupported",
           title: "兜底回复",
-          summary: "当访客发送图片、文件或敏感信息时的自动回复",
+          summary: "",
+          description: "当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
         },
@@ -859,6 +867,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           summary: transferEnabled.value
             ? (hasTransferReply ? "已开启" : "未开启")
             : (hasOfflineReply ? "未开启" : "已开启"),
+          description: "当访客要求转人工时，是否允许转接到人工客服",
           badge: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "需要补充" : undefined,
           badgeTone: (transferEnabled.value && !hasTransferReply) || !hasOfflineReply ? "warning" : undefined
         }
@@ -872,7 +881,8 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
         {
           key: "idle-followup",
           title: "主动跟进",
-          summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "未开启"
+          summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "未开启",
+          description: "当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息"
         },
         {
           key: "idle-autoclose",
@@ -1193,6 +1203,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-4);
+  overflow: visible;
   padding: 20px var(--agent-space-24);
 }
 
@@ -1284,7 +1295,7 @@ onMounted(() => {
   transform: translateX(-50%);
   transition: opacity var(--agent-motion-fast);
   white-space: nowrap;
-  z-index: var(--agent-z-dropdown);
+  z-index: 9999;
 }
 
 .form-row__help-wrap:hover .form-row__tooltip {
