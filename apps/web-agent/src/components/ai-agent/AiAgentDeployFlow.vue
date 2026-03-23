@@ -204,13 +204,9 @@
             </template>
 
             <template v-else-if="card.key === 'answering-mode'">
-              <div class="setting-helper-stack">
-                <div class="setting-callout">
-                  <p class="setting-callout__text">
-                    AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复
-                  </p>
-                </div>
-              </div>
+              <p class="card-description">
+                AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复
+              </p>
 
               <div class="form-row form-row--single">
                 <div class="form-row__control">
@@ -224,19 +220,30 @@
 
             <template v-else-if="card.key === 'answering-knowledge'">
               <div class="knowledge-card">
-                <div class="setting-callout">
-                  <p class="setting-callout__text">
-                    AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容
+                <p class="card-description">
+                  AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容
+                </p>
+
+                <div v-if="knowledgeDocCount === 0" class="knowledge-warning">
+                  <p class="knowledge-warning__text">
+                    当前未添加知识库，为获得更精准的回答，请添加相关内容。
+                    <a class="knowledge-warning__link" @click.prevent="emit('nav-change', 'doc-knowledge')">去添加</a>
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  class="agent-btn agent-btn--ghost knowledge-card__action"
-                  @click="emit('nav-change', 'doc-knowledge')"
-                >
-                  添加知识库
-                </button>
+                <div class="knowledge-actions">
+                  <button
+                    type="button"
+                    class="agent-btn agent-btn--ghost"
+                    @click="emit('nav-change', 'doc-knowledge')"
+                  >
+                    添加知识库
+                  </button>
+
+                  <p v-if="knowledgeDocCount > 0" class="knowledge-card__count">
+                    已关联 {{ knowledgeDocCount }} 篇知识库文档
+                  </p>
+                </div>
               </div>
             </template>
 
@@ -745,6 +752,13 @@ const localIdleSeconds = computed({
   padding: 24px;
 }
 
+.card-description {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0 0 var(--agent-space-16);
+}
+
 .form-row {
   align-items: flex-start;
   display: flex;
@@ -846,9 +860,45 @@ const localIdleSeconds = computed({
   gap: var(--agent-space-16);
 }
 
+.knowledge-actions {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-12);
+}
+
 .knowledge-card__action {
   align-self: flex-start;
   font-weight: var(--agent-font-weight-medium);
+}
+
+.knowledge-card__count {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.knowledge-warning {
+  background: rgba(255, 128, 26, 0.14);
+  border-radius: 12px;
+  padding: 10px 16px;
+}
+
+.knowledge-warning__text {
+  color: #222;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.knowledge-warning__link {
+  color: #105eff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.knowledge-warning__link:hover {
+  text-decoration: underline;
 }
 
 .radio-card-group {
