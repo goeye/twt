@@ -87,7 +87,7 @@
           <tr v-for="item in onlineCustomerList" :key="item.id" class="doc-table__row">
             <td class="doc-table__td">{{ item.customerId }}</td>
             <td class="doc-table__td">{{ item.remark }}</td>
-            <td class="doc-table__td">{{ item.name }}</td>
+            <td class="doc-table__td"><a class="customer-name-link" href="javascript:void(0)" @click.prevent="openVisitorDrawer(item)">{{ item.name }}</a></td>
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
@@ -154,7 +154,7 @@
           <tr v-for="item in allCustomerList" :key="item.id" class="doc-table__row">
             <td class="doc-table__td">{{ item.customerId }}</td>
             <td class="doc-table__td">{{ item.remark }}</td>
-            <td class="doc-table__td">{{ item.name }}</td>
+            <td class="doc-table__td"><a class="customer-name-link" href="javascript:void(0)" @click.prevent="openVisitorDrawer(item)">{{ item.name }}</a></td>
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
@@ -200,11 +200,17 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
+    <VisitorInfoDrawer
+      :open="visitorDrawerOpen"
+      :visitor="selectedVisitor"
+      @close="visitorDrawerOpen = false"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import VisitorInfoDrawer, { type VisitorDrawerData } from "../components/VisitorInfoDrawer.vue";
 
 type CustomerNavKey = "online-customer" | "all-customer";
 
@@ -215,6 +221,27 @@ defineProps<{
 const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
+
+const visitorDrawerOpen = ref(false);
+const selectedVisitor = ref<VisitorDrawerData | null>(null);
+
+const openVisitorDrawer = (item: OnlineCustomerItem | CustomerItem) => {
+  selectedVisitor.value = {
+    name: item.name,
+    remark: item.remark !== "–" ? item.remark : "",
+    email: item.email !== "–" ? item.email : "",
+    phone: item.phone !== "–" ? item.phone : "",
+    tags: item.tag && item.tag !== "–" ? [item.tag] : [],
+    channelType: item.channelType,
+    entryPage: "lastPage" in item ? item.lastPage : undefined,
+    sessionCount: "traceCount" in item ? `${item.traceCount} 个会话` : "1 个会话",
+    ip: item.ip,
+    os: "Windows 11",
+    browser: "Chrome 122",
+    customerId: item.customerId
+  };
+  visitorDrawerOpen.value = true;
+};
 
 const searchField = ref("id");
 const searchKeyword = ref("");
@@ -402,6 +429,16 @@ const handleMenuAction = (action: string) => {
 /* 表格 */
 .customer-table {
   table-layout: auto;
+}
+
+/* 姓名链接 */
+.customer-name-link {
+  color: var(--agent-color-text-primary);
+  text-decoration: underline;
+}
+
+.customer-name-link:hover {
+  color: var(--agent-color-brand-primary);
 }
 
 .customer-th--sortable {

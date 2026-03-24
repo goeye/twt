@@ -11,7 +11,7 @@
             <AgentIcon name="email" :size="12" />
           </span>
           <span v-else-if="channelType === 'widget'" class="session-item__channel-icon session-item__channel-icon--widget" title="聊天插件">
-            <AgentIcon name="web" :size="12" />
+            <AgentIcon name="widget" :size="12" />
           </span>
           <span v-else class="session-item__channel-icon session-item__channel-icon--web" title="Web">
             <AgentIcon name="web" :size="12" />

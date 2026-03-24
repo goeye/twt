@@ -83,7 +83,7 @@
         <tbody>
           <tr v-for="item in onlineVisitorsList" :key="item.id" class="doc-table__row">
             <td class="doc-table__td">
-              <a class="visitor-name-link" href="javascript:void(0)" @click.prevent="emit('toast', '访客详情开发中')">{{ item.name }}</a>
+              <a class="visitor-name-link" href="javascript:void(0)" @click.prevent="openVisitorDrawer(item)">{{ item.name }}</a>
             </td>
             <td class="doc-table__td">{{ item.remark }}</td>
             <td class="doc-table__td">{{ item.email }}</td>
@@ -149,7 +149,7 @@
         <tbody>
           <tr v-for="item in allVisitorsList" :key="item.id" class="doc-table__row">
             <td class="doc-table__td">
-              <a class="visitor-name-link" href="javascript:void(0)" @click.prevent="emit('toast', '访客详情开发中')">{{ item.name }}</a>
+              <a class="visitor-name-link" href="javascript:void(0)" @click.prevent="openVisitorDrawer(item)">{{ item.name }}</a>
             </td>
             <td class="doc-table__td">{{ item.remark }}</td>
             <td class="doc-table__td">{{ item.email }}</td>
@@ -266,11 +266,17 @@
         </div>
       </div>
     </Teleport>
+    <VisitorInfoDrawer
+      :open="visitorDrawerOpen"
+      :visitor="selectedVisitor"
+      @close="visitorDrawerOpen = false"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
+import VisitorInfoDrawer, { type VisitorDrawerData } from "../components/VisitorInfoDrawer.vue";
 
 type VisitorsNavKey = "online-visitors" | "all-visitors";
 
@@ -282,6 +288,26 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "navigate-to-inbox", queueKey: string): void;
 }>();
+
+const visitorDrawerOpen = ref(false);
+const selectedVisitor = ref<VisitorDrawerData | null>(null);
+
+const openVisitorDrawer = (item: OnlineVisitorItem | AllVisitorItem) => {
+  selectedVisitor.value = {
+    name: item.name,
+    remark: item.remark !== "–" ? item.remark : "",
+    email: item.email !== "–" ? item.email : "",
+    phone: item.phone !== "–" ? item.phone : "",
+    tags: item.tag && item.tag !== "–" ? [item.tag] : [],
+    channelType: item.channelType,
+    entryPage: "lastPage" in item ? item.lastPage : undefined,
+    sessionCount: "traceCount" in item ? `${item.traceCount} 个会话` : "1 个会话",
+    ip: item.ip,
+    os: "Windows 11",
+    browser: "Chrome 122"
+  };
+  visitorDrawerOpen.value = true;
+};
 
 const searchField = ref("name");
 const searchKeyword = ref("");

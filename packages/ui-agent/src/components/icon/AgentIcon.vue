@@ -212,6 +212,17 @@
       <path d="M12 3c2.3 2.5 3.5 5.6 3.5 9s-1.2 6.5-3.5 9c-2.3-2.5-3.5-5.6-3.5-9s1.2-6.5 3.5-9z" />
     </g>
 
+    <g v-else-if="name === 'widget'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.5" y="4.5" width="15" height="15" rx="2.5" />
+      <path d="M4.5 9.5h15" />
+      <path d="M8 7.5v-3" />
+      <path d="M12 7.5v-3" />
+      <path d="M16 7.5v-3" />
+      <circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M9 17.5h6" />
+    </g>
+
     <g v-else-if="name === 'bold'" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M7 5h6a4 4 0 0 1 0 8H7V5Z" />
       <path d="M7 13h7a4 4 0 0 1 0 8H7v-8Z" />

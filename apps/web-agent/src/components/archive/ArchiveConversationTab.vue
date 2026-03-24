@@ -164,7 +164,9 @@
               <td>
                 <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
               </td>
-              <td>{{ row.visitorName }}</td>
+              <td>
+                <button type="button" class="archive-visitor-link" @click.stop="openVisitorDrawer(row)">{{ row.visitorName }}</button>
+              </td>
               <td>{{ row.customerIdentifier }}</td>
               <td>{{ row.visitorAlias }}</td>
               <td>
@@ -318,6 +320,12 @@
     @confirm="handleAssignConfirm"
     @update:keyword="assignKeyword = $event"
   />
+
+  <VisitorInfoDrawer
+    :open="visitorDrawerOpen"
+    :visitor="selectedVisitorForDrawer"
+    @close="visitorDrawerOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -325,6 +333,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveAssignModal from "./ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
+import VisitorInfoDrawer, { type VisitorDrawerData } from "../VisitorInfoDrawer.vue";
 import {
   type StaffAgent,
   type ArchiveAgent,
@@ -950,6 +959,29 @@ const tagSearchKeyword = ref("");
 
 // Staff panel (inline)
 const staffPanelRowId = ref<string | null>(null);
+
+// Visitor info drawer
+const visitorDrawerOpen = ref(false);
+const selectedVisitorForDrawer = ref<VisitorDrawerData | null>(null);
+
+const openVisitorDrawer = (row: ConversationRecord) => {
+  // 关闭会话预览抽屉，互斥
+  previewConversationId.value = null;
+  selectedVisitorForDrawer.value = {
+    name: row.visitorName,
+    remark: row.visitorAlias !== "–" ? row.visitorAlias : "",
+    email: "",
+    phone: "",
+    tags: row.tags,
+    channelType: row.channelType === "email" ? "email" : "web",
+    entryPage: row.channelType !== "email" ? "/home" : undefined,
+    sessionCount: `${row.messageCount} 条消息`,
+    ip: "192.168.1.100",
+    os: "Windows 11",
+    browser: "Chrome 122"
+  };
+  visitorDrawerOpen.value = true;
+};
 
 // Admin mode
 const isAdmin = ref(true);
@@ -1826,6 +1858,21 @@ onMounted(() => {
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.archive-visitor-link {
+  background: transparent;
+  border: 0;
+  color: #2d3640;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.archive-visitor-link:hover {
+  color: var(--agent-color-brand-primary);
 }
 
 .archive-status {
