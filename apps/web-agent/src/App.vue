@@ -2,18 +2,24 @@
   <AgentAppShell :show-detail="isConversationRoute" :hide-subnav="isHomeRoute">
     <template #nav-rail>
       <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
-        <template #brand>
-          <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+        <template #brand="{ expanded }">
+          <div v-if="expanded" class="brand-expanded">
+            <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+            <span class="brand-expanded__name">TWT Chat</span>
+            <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
+          </div>
+          <button v-else type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
         </template>
-        <template #footer>
-          <div class="rail-footer">
-            <div class="plan-switcher-wrap">
-              <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="planSwitcherOpen = !planSwitcherOpen">
+        <template #footer="{ expanded }">
+          <div class="rail-footer" :class="{ 'rail-footer--expanded': expanded }">
+            <div class="plan-switcher-wrap" :class="{ 'plan-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPlanSwitcherHover()" @mouseleave="expanded && closePlanSwitcherHover()">
+              <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="!expanded && (planSwitcherOpen = !planSwitcherOpen)">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
                 </svg>
+                <span v-if="expanded" class="rail-footer__label">服务版本</span>
               </button>
-              <span class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
+              <span v-if="!expanded" class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
               <div v-if="planSwitcherOpen" class="plan-switcher-panel" @click.stop>
                 <h4 class="plan-switcher-panel__title">切换服务版本</h4>
                 <p class="plan-switcher-panel__desc">仅供开发调试，快速预览不同版本下的功能限制</p>
@@ -36,13 +42,14 @@
                 </div>
               </div>
             </div>
-            <div class="perm-switcher-wrap">
-              <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="permSwitcherOpen = !permSwitcherOpen">
+            <div class="perm-switcher-wrap" :class="{ 'perm-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPermSwitcherHover()" @mouseleave="expanded && closePermSwitcherHover()">
+              <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="!expanded && (permSwitcherOpen = !permSwitcherOpen)">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
                 </svg>
+                <span v-if="expanded" class="rail-footer__label">角色权限</span>
               </button>
-              <span class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
+              <span v-if="!expanded" class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
               <div v-if="permSwitcherOpen" class="perm-switcher-panel" @click.stop>
                 <h4 class="perm-switcher-panel__title">切换角色权限</h4>
                 <p class="perm-switcher-panel__desc">仅供开发调试，模拟不同角色的权限</p>
@@ -67,11 +74,15 @@
             </div>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
               <AgentIcon name="help" :size="16" />
+              <span v-if="expanded" class="rail-footer__label">支持</span>
             </button>
             <button type="button" class="rail-footer__icon" aria-label="设置" @click="openSettingsPage">
               <AgentIcon name="settings" :size="16" />
+              <span v-if="expanded" class="rail-footer__label">设置</span>
             </button>
-            <button type="button" class="rail-footer__profile" aria-label="当前客服账号" />
+            <button type="button" class="rail-footer__profile" aria-label="当前客服账号">
+              <span v-if="expanded" class="rail-footer__label">个人资料</span>
+            </button>
           </div>
         </template>
       </PrimaryNavRail>
@@ -622,6 +633,23 @@ watch(currentPermissions, () => {
 });
 
 const planSwitcherOpen = ref(false);
+let planHoverTimer: ReturnType<typeof setTimeout> | null = null;
+let permHoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+const openPlanSwitcherHover = () => {
+  planHoverTimer = setTimeout(() => { planSwitcherOpen.value = true; }, 220);
+};
+const closePlanSwitcherHover = () => {
+  if (planHoverTimer) { clearTimeout(planHoverTimer); planHoverTimer = null; }
+  planSwitcherOpen.value = false;
+};
+const openPermSwitcherHover = () => {
+  permHoverTimer = setTimeout(() => { permSwitcherOpen.value = true; }, 220);
+};
+const closePermSwitcherHover = () => {
+  if (permHoverTimer) { clearTimeout(permHoverTimer); permHoverTimer = null; }
+  permSwitcherOpen.value = false;
+};
 
 const planSwitcherLabel = computed(() => {
   if (currentPlan.isExpired) return '过期';
@@ -2668,6 +2696,7 @@ onBeforeUnmount(() => {
   color: #ffffff;
   cursor: pointer;
   display: inline-flex;
+  flex-shrink: 0;
   font-size: 11px;
   font-weight: var(--agent-font-weight-semibold);
   height: 24px;
@@ -2675,11 +2704,36 @@ onBeforeUnmount(() => {
   width: 24px;
 }
 
+.brand-expanded {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding: 0 4px;
+  width: 100%;
+}
+
+.brand-expanded__name {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: var(--agent-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.brand-expanded__arrow {
+  color: var(--agent-color-text-secondary);
+  margin-left: auto;
+}
+
 .rail-footer {
   align-items: center;
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-8);
+}
+
+.rail-footer--expanded {
+  align-items: stretch;
+  gap: 2px;
 }
 
 .rail-footer__icon {
@@ -2695,8 +2749,23 @@ onBeforeUnmount(() => {
   width: 30px;
 }
 
+.rail-footer--expanded .rail-footer__icon {
+  gap: 10px;
+  height: 36px;
+  justify-content: flex-start;
+  padding: 0 10px;
+  width: 100%;
+}
+
 .rail-footer__icon:hover {
   background: var(--agent-color-bg-muted);
+}
+
+.rail-footer__label {
+  color: var(--agent-color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .rail-footer__profile {
@@ -2707,6 +2776,32 @@ onBeforeUnmount(() => {
   height: 30px;
   position: relative;
   width: 30px;
+}
+
+.rail-footer--expanded .rail-footer__profile {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.rail-footer--expanded .rail-footer__profile::before {
+  background: radial-gradient(circle at 30% 25%, #f8dfb8 0%, #d4986f 48%, #8b6042 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  content: "";
+  flex-shrink: 0;
+  height: 22px;
+  width: 22px;
+}
+
+.rail-footer--expanded .rail-footer__profile:hover {
+  background: var(--agent-color-bg-muted);
 }
 
 .rail-footer__profile::after {
@@ -2721,6 +2816,10 @@ onBeforeUnmount(() => {
   width: 9px;
 }
 
+.rail-footer--expanded .rail-footer__profile::after {
+  display: none;
+}
+
 /* 版本切换器 */
 .plan-switcher-wrap {
   position: relative;
@@ -2728,6 +2827,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+}
+
+.plan-switcher-wrap--expanded {
+  align-items: stretch;
+  gap: 0;
 }
 
 .plan-switcher-trigger {
@@ -2771,6 +2875,15 @@ onBeforeUnmount(() => {
   bottom: -20px;
   width: 220px;
   z-index: var(--agent-z-dropdown);
+}
+
+.plan-switcher-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -12px;
+  bottom: 0;
+  width: 12px;
 }
 
 .plan-switcher-panel__title {
@@ -2865,6 +2978,11 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 
+.perm-switcher-wrap--expanded {
+  align-items: stretch;
+  gap: 0;
+}
+
 .perm-switcher-trigger {
   color: #43a047;
 }
@@ -2910,6 +3028,15 @@ onBeforeUnmount(() => {
   bottom: -20px;
   width: 220px;
   z-index: var(--agent-z-dropdown);
+}
+
+.perm-switcher-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -12px;
+  bottom: 0;
+  width: 12px;
 }
 
 .perm-switcher-panel__title {

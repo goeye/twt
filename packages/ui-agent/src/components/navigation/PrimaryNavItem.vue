@@ -1,7 +1,7 @@
 <template>
   <button
     class="nav-item"
-    :class="{ 'nav-item--active': active }"
+    :class="{ 'nav-item--active': active, 'nav-item--expanded': expanded }"
     type="button"
     :aria-label="label"
     :title="label"
@@ -10,6 +10,7 @@
     <span class="nav-item__icon">
       <AgentIcon :name="icon" :size="18" />
     </span>
+    <span v-if="expanded" class="nav-item__label">{{ label }}</span>
     <span v-if="badge && badge > 0" class="nav-item__badge">{{ badge }}</span>
   </button>
 </template>
@@ -22,6 +23,7 @@ defineProps<{
   label?: string;
   badge?: number;
   active?: boolean;
+  expanded?: boolean;
 }>();
 
 defineEmits<{
@@ -54,9 +56,14 @@ defineEmits<{
   color: var(--agent-color-brand-primary);
 }
 
+.nav-item--active:hover {
+  background: var(--agent-color-brand-soft);
+}
+
 .nav-item__icon {
   align-items: center;
   display: inline-flex;
+  flex-shrink: 0;
   justify-content: center;
 }
 
@@ -71,5 +78,29 @@ defineEmits<{
   position: absolute;
   right: -4px;
   top: -4px;
+}
+
+.nav-item__label {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Expanded state */
+.nav-item--expanded {
+  gap: 10px;
+  height: 36px;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.nav-item--expanded .nav-item__badge {
+  position: static;
+  margin-left: auto;
 }
 </style>

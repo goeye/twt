@@ -62,6 +62,7 @@ defineProps<{
 .agent-shell__rail {
   background: var(--agent-color-bg-panel);
   border-right: 1px solid var(--agent-color-border-default);
+  overflow: visible;
   position: relative;
   z-index: 3;
 }
