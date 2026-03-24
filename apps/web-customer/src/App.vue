@@ -1,10 +1,20 @@
 <template>
   <div class="cw-app">
     <router-view />
+    <VersionUpdateModal
+      :open="versionState.hasUpdate"
+      :notes="versionState.notes"
+      @dismiss="dismissUpdate"
+      @refresh="doRefresh"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import VersionUpdateModal from "./components/VersionUpdateModal.vue";
+import { useVersionCheck } from "./lib/useVersionCheck";
+
+const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 </script>
 
 <style scoped>

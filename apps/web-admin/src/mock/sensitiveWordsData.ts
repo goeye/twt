@@ -5,6 +5,7 @@ export interface DictionaryRecord {
   name: string;
   words: WordRecord[];
   creator: string;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -31,6 +32,7 @@ export const dictionaryData: DictionaryRecord[] = [
       "2026-01-10 10:00:00"
     ),
     creator: "傅晓康",
+    createdAt: "2026-01-10 10:00:00",
     updatedAt: "2026-02-01 09:05:00",
   },
   {
@@ -41,6 +43,7 @@ export const dictionaryData: DictionaryRecord[] = [
       "2026-01-10 10:25:00"
     ),
     creator: "傅晓康",
+    createdAt: "2026-01-10 10:25:00",
     updatedAt: "2026-01-20 11:00:00",
   },
   {
@@ -51,6 +54,7 @@ export const dictionaryData: DictionaryRecord[] = [
       "2026-01-10 10:40:00"
     ),
     creator: "傅晓康",
+    createdAt: "2026-01-10 10:40:00",
     updatedAt: "2026-02-10 16:00:00",
   },
 ];

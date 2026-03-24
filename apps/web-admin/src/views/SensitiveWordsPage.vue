@@ -120,6 +120,7 @@ function handleModalOk() {
     name: formData.name.trim(),
     words: lines.map((text, i) => ({ id: i + 1, text, createdAt: ts })),
     creator: "傅晓康",
+    createdAt: ts,
     updatedAt: ts,
   };
   dataSource.value.unshift(newDict);
@@ -146,6 +147,7 @@ const columns = [
   { title: "词库名称", dataIndex: "name", width: 200 },
   { title: "词数量", dataIndex: "wordCount", width: 100 },
   { title: "创建人", dataIndex: "creator", width: 100 },
+  { title: "创建时间", dataIndex: "createdAt", width: 180 },
   { title: "更新时间", dataIndex: "updatedAt", width: 180 },
   { title: "操作", dataIndex: "action", width: 140 },
 ];
