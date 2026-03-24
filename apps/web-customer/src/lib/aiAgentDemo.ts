@@ -59,7 +59,7 @@ export const toneLabels: Record<AgentTone, string> = {
 };
 
 export const responseModeLabels: Record<AgentResponseMode, string> = {
-  always: "始终由 AI Agent 回复",
+  always: "始终由 Autopilot 回复",
   "offline-only": "仅客服离线时由 AI 回复"
 };
 

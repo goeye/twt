@@ -92,7 +92,7 @@
           <span class="cw-msg__time">{{ msg.time }}</span>
           <div class="cw-msg__bubble" :class="[{ 'cw-msg__bubble--visitor': msg.role === 'visitor' }, { 'cw-msg__bubble--typing': msg.pending }]">
             <template v-if="msg.pending">
-              <span class="cw-msg__typing" aria-label="AI Agent 发送中">
+              <span class="cw-msg__typing" aria-label="Autopilot 发送中">
                 <span class="cw-msg__typing-dot"></span>
                 <span class="cw-msg__typing-dot"></span>
                 <span class="cw-msg__typing-dot"></span>
@@ -100,7 +100,7 @@
             </template>
             <template v-else>
               {{ msg.text }}
-              <span v-if="msg.role === 'ai' && showAgentLabel" class="cw-msg__bubble-label">AI Agent</span>
+              <span v-if="msg.role === 'ai' && showAgentLabel" class="cw-msg__bubble-label">Autopilot</span>
             </template>
           </div>
           </template>

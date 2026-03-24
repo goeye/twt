@@ -122,7 +122,7 @@ export const FEATURE_INFO: Record<string, { name: string; description: string }>
     description: '配置 Webhook 回调，实现事件驱动的系统集成',
   },
   [FEATURES.AI_AGENT]: {
-    name: 'AI Agent',
+    name: 'Autopilot',
     description: '启用 AI 智能客服，自动处理访客咨询，提升服务效率',
   },
 }

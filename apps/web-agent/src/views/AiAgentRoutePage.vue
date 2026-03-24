@@ -2,7 +2,7 @@
   <section class="agent-content-page ai-agent-page" @click="closeKnowledgeActionMenus">
     <template v-if="resolvedActiveKey === 'copilot-settings'">
       <header class="agent-content-header">
-        <h1 class="agent-content-title">Copilot设置</h1>
+        <h1 class="agent-content-title">Copilot</h1>
         <p class="agent-content-subtitle">使用 Copilot 工具在客服对话中提供智能辅助功能。</p>
       </header>
 
@@ -31,12 +31,12 @@
       <header class="agent-content-header agent-config-header">
         <div class="agent-config-header__content">
           <div class="agent-config-header__title-row">
-            <h1 class="agent-content-title">AI Agent</h1>
+            <h1 class="agent-content-title">Autopilot</h1>
             <span class="agent-config-header__status" :class="agentEnabled && agentFeatureAvailable ? 'agent-config-header__status--active' : 'agent-config-header__status--inactive'">
               {{ agentEnabled && agentFeatureAvailable ? '已开启' : '已关闭' }}
             </span>
           </div>
-          <p class="agent-content-subtitle">开启后，将根据知识库内容自动智能回复访客咨询，并在需要时转接人工客服，保障服务连续性</p>
+          <p class="agent-content-subtitle">开启后，Autopilot 将根据知识库内容自动智能回复访客咨询，并在需要时转接人工客服，保障服务连续性</p>
         </div>
 
         <div class="agent-config-header__actions">
@@ -128,7 +128,7 @@
                     :disabled="!agentFeatureAvailable"
                     @click="triggerBotAvatarSelect"
                   >
-                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-item__image" />
+                    <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="Autopilot 头像" class="bot-avatar-item__image" />
                     <span v-else class="bot-avatar-item__fallback">{{ avatarFallbackText }}</span>
                     <span v-if="botAvatarUrl" class="bot-avatar-item__overlay">
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -164,7 +164,7 @@
                   :class="{ 'agent-input--error': botNameTouched && !botName.trim() }"
                   maxlength="64"
                   placeholder="请输入昵称"
-                  :disabled="!agentFeatureAvailable"
+                  @input="guardSettingsInput($event)"
                   @blur="botNameTouched = true; autoSave()"
                 />
                 <p v-if="botNameTouched && !botName.trim()" class="form-row__error">请输入昵称</p>
@@ -182,7 +182,7 @@
                   rows="3"
                   maxlength="2000"
                   placeholder="例如：我们是一家 SaaS 软件服务商，提供产品功能咨询、账户管理、订阅与计费、技术故障排查等支持。请用专业友好的语气解答客户问题，无法解决时引导联系人工客服。"
-                  :disabled="!agentFeatureAvailable"
+                  @input="guardSettingsInput($event)"
                   @blur="autoSave"
                 />
               </div>
@@ -216,7 +216,7 @@
                   默认语言
                   <span class="form-row__help-wrap">
                     <button type="button" class="form-row__help-icon" tabindex="-1">?</button>
-                    <span class="form-row__tooltip">AI Agent 会检测访客语言并使用该语言进行回复，当无法判断访客语言时，将使用默认进行回复</span>
+                    <span class="form-row__tooltip">Autopilot 会检测访客语言并使用该语言进行回复，当无法判断访客语言时，将使用默认进行回复</span>
                   </span>
                 </span>
               </div>
@@ -683,7 +683,7 @@ const copilotSettings = ref<CopilotSetting[]>([
 ]);
 
 const botAvatarUrl = ref("");
-const botName = ref("AI Agent");
+const botName = ref("Autopilot");
 const botIntro = ref("");
 const selectedTone = ref("friendly");
 const defaultLanguage = ref("en");
@@ -766,7 +766,7 @@ const resolvedActiveKey = computed<AiAgentNavKey>(() => {
 const activeSectionLabel = computed(() => {
   if (resolvedActiveKey.value === "doc-knowledge") return "文档知识";
   if (resolvedActiveKey.value === "faq") return "常见问题";
-  return "Copilot设置";
+  return "Copilot";
 });
 
 const avatarFallbackText = computed(() => "🤖");
@@ -807,19 +807,19 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
       cards: [
         {
           key: "entry-routing",
-          title: "AI Agent 将回复",
+          title: "Autopilot 将回复",
           summary: `${audienceLabelMap[visitorAudience.value]} · ${responseModeLabelMap[agentResponseMode.value] ?? responseModeLabelMap.always}`
         },
         {
           key: "entry-visibility",
-          title: "AI Agent 标签",
+          title: "Autopilot 标签",
           summary: showMessageAgentLabel.value ? "显示" : "不显示"
         }
       ]
     },
     {
       key: "answering",
-      title: "当 AI Agent 回复访客",
+      title: "当 Autopilot 回复访客",
       icon: "ai-agent",
       cards: [
         {
@@ -838,26 +838,26 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           key: "answering-mode",
           title: "回复模式",
           summary: replyModeLabelMap[replyMode.value] ?? replyModeLabelMap.strict,
-          description: "AI Agent 会结合知识库、业务简介、语气和语言设置来组织回复"
+          description: "Autopilot 会结合知识库、业务简介、语气和语言设置来组织回复"
         },
         {
           key: "answering-knowledge",
           title: "关联知识库",
           summary: `已关联 ${knowledgeDocCount.value} 篇知识库文档`,
-          description: "AI Agent 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容"
+          description: "Autopilot 需要充足的知识库内容来准确回答访客问题。请确保已添加并审核相关内容"
         }
       ]
     },
     {
       key: "fallback",
-      title: "当 AI Agent 无法解答时",
+      title: "当 Autopilot 无法解答时",
       icon: "service",
       cards: [
         {
           key: "answering-unsupported",
           title: "兜底回复",
           summary: "",
-          description: "当访客发送图片、文件或涉及敏感信息时，AI Agent 如何回复",
+          description: "当访客发送图片、文件或涉及敏感信息时，Autopilot 如何回复",
           badge: hasUnsupportedReply ? undefined : "需要补充",
           badgeTone: hasUnsupportedReply ? undefined : "warning"
         },
@@ -882,7 +882,7 @@ const lifecycleSections = computed<LifecycleSection[]>(() => {
           key: "idle-followup",
           title: "主动跟进",
           summary: followUpEnabled.value ? "5 分钟后发送跟进消息" : "未开启",
-          description: "当访客 5 分钟未回复时，AI Agent 自动发送一条跟进消息"
+          description: "当访客 5 分钟未回复时，Autopilot 自动发送一条跟进消息"
         },
         {
           key: "idle-autoclose",
@@ -968,7 +968,7 @@ const loadAgentSettings = () => {
   }
 };
 
-const launchActionLabel = computed(() => (agentEnabled.value && agentFeatureAvailable.value ? "暂停 AI Agent" : "开启 AI Agent"));
+const launchActionLabel = computed(() => (agentEnabled.value && agentFeatureAvailable.value ? "关闭 Autopilot" : "开启 Autopilot"));
 
 const toggleLifecycleCard = (key: LifecycleCardKey) => {
   openLifecycleCard.value = openLifecycleCard.value === key ? null : key;
@@ -980,7 +980,7 @@ const toggleAgentLiveStatus = () => {
   const settings = getCurrentSettings();
   persistStoredAiAgentSettings(settings);
   lastSnapshot = JSON.stringify(settings);
-  emitToast(agentEnabled.value ? "AI Agent 已开启" : "AI Agent 已暂停");
+  emitToast(agentEnabled.value ? "Autopilot 已开启" : "Autopilot 已关闭");
 };
 
 const updateCopilotSetting = (key: string, next: boolean) => {
@@ -996,6 +996,15 @@ const updateCopilotSetting = (key: string, next: boolean) => {
 const triggerBotAvatarSelect = () => {
   if (!guardFeature(FEATURES.AI_AGENT)) return;
   avatarInputRef.value?.click();
+};
+
+const guardSettingsInput = (event: Event) => {
+  if (!guardFeature(FEATURES.AI_AGENT)) {
+    const settings = loadStoredAiAgentSettings();
+    botName.value = settings.botName ?? "Autopilot";
+    botIntro.value = settings.botIntro ?? "";
+    (event.target as HTMLElement)?.blur();
+  }
 };
 
 const readFileAsDataUrl = (file: File) =>

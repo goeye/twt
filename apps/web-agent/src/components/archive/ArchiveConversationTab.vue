@@ -457,7 +457,7 @@ const titlePool = [
   "合作方案沟通"
 ];
 const tagPool = ["–", "高意向", "VIP", "续费", "退款", "活动"];
-const allTagPool = ["有购买意向", "外部推荐", "广告投放", "待跟进", "情绪稳定", "放弃购买", "高意向", "VIP", "续费", "退款", "活动", "AI Agent"];
+const allTagPool = ["有购买意向", "外部推荐", "广告投放", "待跟进", "情绪稳定", "放弃购买", "高意向", "VIP", "续费", "退款", "活动", "Autopilot"];
 const aliasPool = ["–", "需要 进群的客户", "重点回访客户", "需要二次联系", "老客户跟进"];
 const visitorPool = [
   "Visitor34",
@@ -527,7 +527,7 @@ const buildStaffAgents = (seed: ConversationSeed, index: number): StaffAgent[] =
       avatarText: profile.avatarText,
       avatarColor: profile.avatarColor,
       avatarUrl: profile.avatarUrl,
-      role: "AI Agent"
+      role: "Autopilot"
     });
   }
 
@@ -601,7 +601,7 @@ const createRecord = (index: number, seed: ConversationSeed): ConversationRecord
 
 const presetSeeds: ConversationSeed[] = [
   {
-    title: "AI Agent - 配送时间咨询",
+    title: "Autopilot - 配送时间咨询",
     visitorName: "Tom",
     customerIdentifier: "AI-7001",
     visitorAlias: "AI 接待会话",
@@ -609,8 +609,8 @@ const presetSeeds: ConversationSeed[] = [
     messageCount: 4,
     owner: aiAgentArchiveName,
     staffCount: 1,
-    tag: "AI Agent",
-    tags: ["AI Agent", "有购买意向"],
+    tag: "Autopilot",
+    tags: ["Autopilot", "有购买意向"],
     startedAtLabel: "2026-02-24 20:10",
     startedAtValue: new Date("2026-02-24T20:10:00").getTime(),
     acceptedAtLabel: "2026-02-24 20:10",
@@ -621,7 +621,7 @@ const presetSeeds: ConversationSeed[] = [
     channelType: "web"
   },
   {
-    title: "AI Agent - 退货流程咨询",
+    title: "Autopilot - 退货流程咨询",
     visitorName: "Visitor96",
     customerIdentifier: "AI-7002",
     visitorAlias: "AI 转人工客户",
@@ -629,8 +629,8 @@ const presetSeeds: ConversationSeed[] = [
     messageCount: 6,
     owner: "王珂",
     staffCount: 1,
-    tag: "AI Agent",
-    tags: ["AI Agent", "待跟进"],
+    tag: "Autopilot",
+    tags: ["Autopilot", "待跟进"],
     startedAtLabel: "2026-02-24 19:50",
     startedAtValue: new Date("2026-02-24T19:50:00").getTime(),
     acceptedAtLabel: "2026-02-24 19:55",
@@ -640,7 +640,7 @@ const presetSeeds: ConversationSeed[] = [
     aiAgentHandled: true
   },
   {
-    title: "AI Agent - 会员权益咨询",
+    title: "Autopilot - 会员权益咨询",
     visitorName: "Visitor40",
     customerIdentifier: "AI-7003",
     visitorAlias: "VIP 客户",

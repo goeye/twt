@@ -173,8 +173,8 @@
         <section class="home-section">
           <div class="home-section__title-row home-section__title-row--with-hint">
             <div class="home-section__heading">
-              <h2 class="home-section__title">AI Agent 概览</h2>
-              <span class="home-section__hint" title="近7日 AI Agent 会话数据概览">i</span>
+              <h2 class="home-section__title">Autopilot 概览</h2>
+              <span class="home-section__hint" title="近7日 Autopilot 会话数据概览">i</span>
             </div>
           </div>
 

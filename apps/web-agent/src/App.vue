@@ -972,8 +972,8 @@ const aiNavGroups = [
     key: "ai-settings",
     title: "AI设置",
     items: [
-      { key: "copilot-settings", label: "Copilot设置", leadingEmoji: "💡" },
-      { key: "ai-agent-config", label: "AI Agent", leadingEmoji: "🤖" }
+      { key: "copilot-settings", label: "Copilot", leadingEmoji: "💡" },
+      { key: "ai-agent-config", label: "Autopilot", leadingEmoji: "🤖" }
     ]
   }
 ];
@@ -984,7 +984,7 @@ const reportNavGroups = [
     title: "",
     items: [
       { key: "data-overview", label: "人工客服", leadingEmoji: "📈" },
-      { key: "ai-agent-report", label: "AI Agent", leadingEmoji: "🤖" },
+      { key: "ai-agent-report", label: "Autopilot", leadingEmoji: "🤖" },
       { key: "evaluation-analysis", label: "会话评价分析", leadingEmoji: "😊" }
     ]
   }
@@ -1008,8 +1008,8 @@ const queueGroupSeed: SessionQueueGroup[] = [
   },
   {
     key: "ai-agent",
-    title: "AI Agent",
-    items: [{ key: "ai-agent-queue", label: "AI Agent", leadingEmoji: "🤖" }]
+    title: "Autopilot",
+    items: [{ key: "ai-agent-queue", label: "Autopilot", leadingEmoji: "🤖" }]
   }
 ];
 

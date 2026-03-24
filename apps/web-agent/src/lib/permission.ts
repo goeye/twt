@@ -89,8 +89,8 @@ export const PERMISSION_TREE: PermGroup[] = [
     children: [
       { key: 'ai-doc', label: '文档知识', features: [{ key: 'ai-doc-manage', label: '管理' }] },
       { key: 'ai-faq', label: '常见问题', features: [{ key: 'ai-faq-manage', label: '管理' }] },
-      { key: 'ai-copilot', label: 'Copilot设置', features: [{ key: 'ai-copilot-manage', label: '管理' }] },
-      { key: 'ai-agent-settings', label: 'AI Agent', features: [{ key: 'ai-agent-settings-manage', label: '管理' }] },
+      { key: 'ai-copilot', label: 'Copilot', features: [{ key: 'ai-copilot-manage', label: '管理' }] },
+      { key: 'ai-agent-settings', label: 'Autopilot', features: [{ key: 'ai-agent-settings-manage', label: '管理' }] },
     ],
   },
   {

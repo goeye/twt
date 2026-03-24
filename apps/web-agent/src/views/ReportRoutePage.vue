@@ -175,7 +175,7 @@
 
     <!-- AI Agent 报表 -->
     <template v-else-if="activeKey === 'ai-agent-report'">
-      <h1 class="report-page__title">AI Agent</h1>
+      <h1 class="report-page__title">Autopilot</h1>
 
       <!-- Filters -->
       <div class="report-filter-bar">
@@ -267,7 +267,7 @@
       <div class="report-charts-grid">
         <div class="report-chart-panel report-chart-panel--wide agent-panel">
           <div class="report-chart-panel__header">
-            <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="AI Agent 接管的会话数量趋势" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
+            <span class="report-chart-panel__title">会话趋势 <span class="report-stat-card__help" data-tooltip="Autopilot 接管的会话数量趋势" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
             <div class="report-chart-panel__header-right">
               <span class="report-chart-panel__avg">会话数平均数量 <strong>24</strong></span>
               <span class="report-chart-panel__avg" style="margin-left: 24px;">转人工数平均数量 <strong>24</strong></span>
@@ -304,7 +304,7 @@
       <!-- 满意度 -->
       <div class="report-chart-panel report-chart-panel--wide agent-panel">
         <div class="report-chart-panel__header">
-          <span class="report-chart-panel__title">满意度趋势 <span class="report-stat-card__help" data-tooltip="各时间段访客对 AI Agent 满意度评价分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
+          <span class="report-chart-panel__title">满意度趋势 <span class="report-stat-card__help" data-tooltip="各时间段访客对 Autopilot 满意度评价分布" @mouseenter="showTooltip" @mouseleave="hideTooltip">ⓘ</span></span>
         </div>
         <div class="report-chart-panel__legend-bar">
           <span class="report-chart-panel__legend-item">
@@ -777,11 +777,11 @@ const trendLinePoints = computed(() =>
   trendPoints.value.map((p) => `${p.x},${p.y}`).join(" ")
 );
 
-// ── AI Agent ──
+// ── Autopilot ──
 const aiTopStatCards = [
-  { label: "总会话数", value: "3", tooltip: "AI Agent 处理的会话总数" },
-  { label: "解决率", value: "33.3%", tooltip: "已关闭会话中，AI Agent 独立解决且无需人工介入的会话占比" },
-  { label: "转人工", value: "3", tooltip: "AI Agent 转接至人工客服的会话量" }
+  { label: "总会话数", value: "3", tooltip: "Autopilot 处理的会话总数" },
+  { label: "解决率", value: "33.3%", tooltip: "已关闭会话中，Autopilot 独立解决且无需人工介入的会话占比" },
+  { label: "转人工", value: "3", tooltip: "Autopilot 转接至人工客服的会话量" }
 ];
 
 const aiChartXLabels = ["02/07", "02/11", "02/15", "02/19", "02/23", "02/27", "03/03", "03/07"];

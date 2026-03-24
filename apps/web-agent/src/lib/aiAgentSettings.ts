@@ -1,5 +1,5 @@
 export const AI_AGENT_SETTINGS_STORAGE_KEY = "twt:ai-agent-settings";
-export const DEFAULT_AI_AGENT_NAME = "AI Agent";
+export const DEFAULT_AI_AGENT_NAME = "Autopilot";
 
 export interface StoredAiAgentSettings {
   agentEnabled?: boolean;

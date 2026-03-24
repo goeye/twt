@@ -46,7 +46,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">受众群体</span>
-                  <span class="form-row__desc">AI Agent 的回复对象</span>
+                  <span class="form-row__desc">Autopilot 的回复对象</span>
                 </div>
                 <div class="form-row__control">
                   <div class="radio-card-group">
@@ -73,7 +73,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">回复时机</span>
-                  <span class="form-row__desc">AI Agent 何时介入回复</span>
+                  <span class="form-row__desc">Autopilot 何时介入回复</span>
                 </div>
                 <div class="form-row__control">
                   <select v-model="localAgentResponseMode" class="agent-input" @change="emit('auto-save')">
@@ -106,7 +106,7 @@
                       <span class="bubble-preview__time">16:54</span>
                       <div class="bubble-preview__bubble">
                         Hi! How may I help you?
-                        <span v-if="localShowMessageAgentLabel" class="bubble-preview__tag">AI Agent</span>
+                        <span v-if="localShowMessageAgentLabel" class="bubble-preview__tag">Autopilot</span>
                       </div>
                     </div>
                   </div>
@@ -118,12 +118,12 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">头像</span>
-                  <span class="form-row__desc">设置 AI Agent 的头像形象，用于会话列表和消息头像展示</span>
+                  <span class="form-row__desc">设置 Autopilot 的头像形象，用于会话列表和消息头像展示</span>
                 </div>
                 <div class="form-row__control form-row__control--stack">
                   <div class="bot-avatar-upload">
                     <div class="bot-avatar-upload__preview" :class="{ 'bot-avatar-upload__preview--image': Boolean(botAvatarUrl) }">
-                      <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="AI Agent 头像" class="bot-avatar-upload__image" />
+                      <img v-if="botAvatarUrl" :src="botAvatarUrl" alt="Autopilot 头像" class="bot-avatar-upload__image" />
                       <span v-else class="bot-avatar-upload__fallback">{{ avatarFallbackText }}</span>
                     </div>
                     <div class="bot-avatar-upload__actions">
@@ -138,7 +138,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">昵称</span>
-                  <span class="form-row__desc">当访客询问"你是谁"时，AI Agent 会优先使用这个身份名称</span>
+                  <span class="form-row__desc">当访客询问"你是谁"时，Autopilot 会优先使用这个身份名称</span>
                 </div>
                 <div class="form-row__control">
                   <input
@@ -175,7 +175,7 @@
               <div class="form-row">
                 <div class="form-row__label">
                   <span class="form-row__name">回复语气</span>
-                  <span class="form-row__desc">统一 AI Agent 的表达风格，保证对外沟通体验一致</span>
+                  <span class="form-row__desc">统一 Autopilot 的表达风格，保证对外沟通体验一致</span>
                 </div>
                 <div class="form-row__control">
                   <div class="bot-chips-group">

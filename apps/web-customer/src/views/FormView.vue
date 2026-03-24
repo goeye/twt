@@ -26,7 +26,7 @@
             <span class="cw-form-card__chip">{{ toneLabel }}</span>
           </div>
           <p class="cw-form-card__title">{{ introText }}</p>
-          <p class="cw-form-card__desc">请先填写基础信息，我们会根据当前 AI Agent 配置开始接待。</p>
+          <p class="cw-form-card__desc">请先填写基础信息，我们会根据当前 Autopilot 配置开始接待。</p>
           <div class="cw-form-card__fields">
             <div v-for="field in formFields" :key="field.id" class="cw-form-field">
               <label class="cw-form-field__label">
@@ -76,7 +76,7 @@ const avatarGradient = computed(() => getAvatarGradient(agentSettings.value.botN
 const introText = computed(() => getAgentIntro(agentSettings.value));
 const languageLabel = computed(() => getLanguageLabel(agentSettings.value.defaultLanguage));
 const toneLabel = computed(() => getToneLabel(agentSettings.value.selectedTone));
-const agentStatusLabel = computed(() => (agentSettings.value.agentEnabled ? "AI Agent 已开启" : "人工客服接待"));
+const agentStatusLabel = computed(() => (agentSettings.value.agentEnabled ? "Autopilot 已开启" : "人工客服接待"));
 
 const handleSubmit = () => {
   router.push("/chat/new");
