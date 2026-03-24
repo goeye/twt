@@ -83,6 +83,7 @@
           <select v-model="draftFilters.channelType" class="archive-field__control archive-field__control--select">
             <option value="all">来源渠道</option>
             <option value="web">Web</option>
+            <option value="widget">聊天插件</option>
             <option value="email">Email</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
@@ -237,7 +238,7 @@
                   </div>
                 </div>
               </td>
-              <td>{{ row.channelType === 'email' ? 'Email' : 'Web' }}</td>
+              <td>{{ channelTypeLabel[row.channelType] || 'Web' }}</td>
               <td>{{ row.startedAtLabel }}</td>
               <td>{{ row.acceptedAtLabel }}</td>
               <td>{{ row.serviceDuration }}</td>
@@ -399,7 +400,7 @@ interface FilterState {
   owner: string;
   status: "all" | ConversationStatus;
   rating: "all" | ConversationRating;
-  channelType: "all" | "web" | "email";
+  channelType: "all" | "web" | "widget" | "email";
   startedDate: string;
 }
 
@@ -415,6 +416,8 @@ const emit = defineEmits<{
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
+
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
 
 const statusLabelMap: Record<ConversationStatus, string> = {
   "pending-reply": "待回复",

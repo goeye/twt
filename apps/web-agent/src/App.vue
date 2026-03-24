@@ -761,7 +761,7 @@ interface ConversationSession extends SessionItem {
   avatarText: string;
   avatarColor: string;
   channel: string;
-  channelType?: "web" | "email";
+  channelType?: "web" | "widget" | "email";
   remarkName?: string;
   visitorOnline?: boolean;
   fromEmail?: string;
@@ -1124,7 +1124,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "R",
     avatarColor: "linear-gradient(135deg, #ff7d00 0%, #ffb15d 100%)",
     channel: "控制台工单",
-    channelType: "web",
+    channelType: "widget",
     remarkName: "Rita VIP",
     visitorOnline: true,
     visitorName: "Rita",
@@ -1180,7 +1180,7 @@ const allSessions = ref<ConversationSession[]>([
     avatarText: "L",
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     channel: "社媒私信",
-    channelType: "web",
+    channelType: "widget",
     remarkName: "",
     visitorOnline: true,
     visitorName: "Leo",
@@ -1970,6 +1970,7 @@ const activeInfoSections = computed<InfoSection[]>(() => {
   }
 
   const isEmailSession = activeSession.value.channelType === "email";
+  const channelLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
 
   const sections: InfoSection[] = [
     {
@@ -2000,6 +2001,7 @@ const activeInfoSections = computed<InfoSection[]>(() => {
       type: "fields",
       fields: [
         ...(isEmailSession ? [] : [{ key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage }]),
+        { key: "visitor-channel", label: "来源渠道", value: channelLabel[activeSession.value.channelType ?? "web"] ?? "Web" },
         { key: "visitor-stat", label: "会话总数", value: "6 个会话" }
       ]
     }

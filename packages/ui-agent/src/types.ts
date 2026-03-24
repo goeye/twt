@@ -5,7 +5,7 @@ export interface NavItem {
   badge?: number;
 }
 
-export type ChannelType = 'web' | 'email';
+export type ChannelType = 'web' | 'widget' | 'email';
 
 export interface SessionItem {
   id: string;

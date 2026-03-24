@@ -29,6 +29,13 @@
           <option value="普通">普通</option>
         </select>
 
+        <select v-model="filterChannel" class="customer-select customer-select--channel">
+          <option value="">来源渠道</option>
+          <option value="web">Web</option>
+          <option value="widget">聊天插件</option>
+          <option value="email">Email</option>
+        </select>
+
         <div class="customer-date-input-wrap">
           <input class="agent-input customer-date-input" placeholder="首次访问" readonly />
           <svg class="customer-date-input-wrap__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -61,6 +68,7 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
+            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th" @click="toggleSort('firstVisit')">
               <span class="customer-th--sortable">
                 首次访问
@@ -83,6 +91,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
+            <td class="doc-table__td">{{ channelTypeLabel[item.channelType] || 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastPage }}</td>
             <td class="doc-table__td">{{ item.ip }}</td>
@@ -117,6 +126,7 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
+            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th" @click="toggleSort('firstVisit')">
               <span class="customer-th--sortable">
                 首次访问
@@ -148,6 +158,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
+            <td class="doc-table__td">{{ channelTypeLabel[item.channelType] || 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastVisit }}</td>
             <td class="doc-table__td" style="text-align: center;">{{ item.traceCount }}</td>
@@ -208,9 +219,12 @@ const emit = defineEmits<{
 const searchField = ref("id");
 const searchKeyword = ref("");
 const filterTag = ref("");
+const filterChannel = ref("");
 const openMenuId = ref<number | null>(null);
 const sortKey = ref("");
 const sortDir = ref<"asc" | "desc">("asc");
+
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
 
 interface CustomerItem {
   id: number;
@@ -220,6 +234,7 @@ interface CustomerItem {
   email: string;
   phone: string;
   tag: string;
+  channelType: "web" | "widget" | "email";
   firstVisit: string;
   lastVisit: string;
   traceCount: number;
@@ -234,31 +249,33 @@ interface OnlineCustomerItem {
   email: string;
   phone: string;
   tag: string;
+  channelType: "web" | "widget" | "email";
   firstVisit: string;
   lastPage: string;
   ip: string;
 }
 
 const onlineCustomerList = ref<OnlineCustomerItem[]>([
-  { id: 101, customerId: "CU-2001", remark: "张总", name: "张伟", email: "zhangwei@corp.cn", phone: "+86 138-1234-5678", tag: "VIP", firstVisit: "2026-02-20 10:30", lastPage: "/pricing", ip: "116.228.89.12" },
-  { id: 102, customerId: "CU-2002", remark: "–", name: "Sarah", email: "sarah@gmail.com", phone: "+1 555-0199", tag: "普通", firstVisit: "2026-03-15 14:22", lastPage: "/products/detail", ip: "74.125.200.100" },
-  { id: 103, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", firstVisit: "2026-01-10 09:15", lastPage: "/dashboard", ip: "203.198.45.67" },
-  { id: 104, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", firstVisit: "2026-03-17 11:08", lastPage: "/support/tickets", ip: "222.73.110.88" },
-  { id: 105, customerId: "CU-2005", remark: "试用客户", name: "David", email: "david@startup.co", phone: "–", tag: "普通", firstVisit: "2026-03-16 16:45", lastPage: "/demo", ip: "185.220.101.33" },
+  { id: 101, customerId: "CU-2001", remark: "张总", name: "张伟", email: "zhangwei@corp.cn", phone: "+86 138-1234-5678", tag: "VIP", channelType: "web", firstVisit: "2026-02-20 10:30", lastPage: "/pricing", ip: "116.228.89.12" },
+  { id: 102, customerId: "CU-2002", remark: "–", name: "Sarah", email: "sarah@gmail.com", phone: "+1 555-0199", tag: "普通", channelType: "widget", firstVisit: "2026-03-15 14:22", lastPage: "/products/detail", ip: "74.125.200.100" },
+  { id: 103, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", channelType: "web", firstVisit: "2026-01-10 09:15", lastPage: "/dashboard", ip: "203.198.45.67" },
+  { id: 104, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", channelType: "email", firstVisit: "2026-03-17 11:08", lastPage: "/support/tickets", ip: "222.73.110.88" },
+  { id: 105, customerId: "CU-2005", remark: "试用客户", name: "David", email: "david@startup.co", phone: "–", tag: "普通", channelType: "widget", firstVisit: "2026-03-16 16:45", lastPage: "/demo", ip: "185.220.101.33" },
 ]);
 
 const allCustomerList = ref<CustomerItem[]>([
-  { id: 1, customerId: "CU-1001", remark: "–", name: "王明", email: "wangming@qq.com", phone: "+86 136-0000-1111", tag: "–", firstVisit: "2026-03-10 08:30", lastVisit: "2026-03-16 13:06", traceCount: 3, ip: "192.168.1.100" },
-  { id: 2, customerId: "CU-2001", remark: "张总", name: "张伟", email: "zhangwei@corp.cn", phone: "+86 138-1234-5678", tag: "VIP", firstVisit: "2026-02-20 10:30", lastVisit: "2026-03-17 10:30:12", traceCount: 15, ip: "116.228.89.12" },
-  { id: 3, customerId: "CU-2002", remark: "–", name: "Sarah", email: "sarah@gmail.com", phone: "+1 555-0199", tag: "普通", firstVisit: "2026-03-15 14:22", lastVisit: "2026-03-17 14:22:05", traceCount: 2, ip: "74.125.200.100" },
-  { id: 4, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", firstVisit: "2026-01-10 09:15", lastVisit: "2026-03-17 09:15:30", traceCount: 22, ip: "203.198.45.67" },
-  { id: 5, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", firstVisit: "2026-03-17 11:08", lastVisit: "2026-03-17 11:08:44", traceCount: 1, ip: "222.73.110.88" },
+  { id: 1, customerId: "CU-1001", remark: "–", name: "王明", email: "wangming@qq.com", phone: "+86 136-0000-1111", tag: "–", channelType: "web", firstVisit: "2026-03-10 08:30", lastVisit: "2026-03-16 13:06", traceCount: 3, ip: "192.168.1.100" },
+  { id: 2, customerId: "CU-2001", remark: "张总", name: "张伟", email: "zhangwei@corp.cn", phone: "+86 138-1234-5678", tag: "VIP", channelType: "web", firstVisit: "2026-02-20 10:30", lastVisit: "2026-03-17 10:30:12", traceCount: 15, ip: "116.228.89.12" },
+  { id: 3, customerId: "CU-2002", remark: "–", name: "Sarah", email: "sarah@gmail.com", phone: "+1 555-0199", tag: "普通", channelType: "widget", firstVisit: "2026-03-15 14:22", lastVisit: "2026-03-17 14:22:05", traceCount: 2, ip: "74.125.200.100" },
+  { id: 4, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", channelType: "email", firstVisit: "2026-01-10 09:15", lastVisit: "2026-03-17 09:15:30", traceCount: 22, ip: "203.198.45.67" },
+  { id: 5, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", channelType: "web", firstVisit: "2026-03-17 11:08", lastVisit: "2026-03-17 11:08:44", traceCount: 1, ip: "222.73.110.88" },
 ]);
 
 const handleReset = () => {
   searchField.value = "id";
   searchKeyword.value = "";
   filterTag.value = "";
+  filterChannel.value = "";
 };
 
 const toggleSort = (key: string) => {

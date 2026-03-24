@@ -10,6 +10,9 @@
           <span v-if="channelType === 'email'" class="session-item__channel-icon session-item__channel-icon--email" title="Email">
             <AgentIcon name="email" :size="12" />
           </span>
+          <span v-else-if="channelType === 'widget'" class="session-item__channel-icon session-item__channel-icon--widget" title="聊天插件">
+            <AgentIcon name="web" :size="12" />
+          </span>
           <span v-else class="session-item__channel-icon session-item__channel-icon--web" title="Web">
             <AgentIcon name="web" :size="12" />
           </span>
@@ -173,6 +176,11 @@ withDefaults(
 .session-item__channel-icon--web {
   background: #e8f0ff;
   color: #2f6bff;
+}
+
+.session-item__channel-icon--widget {
+  background: #e8f5e9;
+  color: #22c55e;
 }
 
 .session-item__channel-icon--email {

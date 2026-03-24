@@ -28,9 +28,10 @@
           <option value="普通">普通</option>
         </select>
 
-        <select v-if="activeKey === 'all-visitors'" v-model="filterChannel" class="visitor-select visitor-select--channel">
+        <select v-model="filterChannel" class="visitor-select visitor-select--channel">
           <option value="">来源渠道</option>
           <option value="web">Web</option>
+          <option value="widget">聊天插件</option>
           <option value="email">Email</option>
         </select>
 
@@ -65,6 +66,7 @@
             <th class="doc-table__th">邮箱</th>
             <th class="doc-table__th">电话</th>
             <th class="doc-table__th">标签</th>
+            <th class="doc-table__th">来源渠道</th>
             <th class="doc-table__th">
               <span class="visitor-th--sortable">
                 首次访问
@@ -87,6 +89,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
+            <td class="doc-table__td">{{ channelTypeLabel[item.channelType] || 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastPage }}</td>
             <td class="doc-table__td">{{ item.ip }}</td>
@@ -152,7 +155,7 @@
             <td class="doc-table__td">{{ item.email }}</td>
             <td class="doc-table__td">{{ item.phone }}</td>
             <td class="doc-table__td">{{ item.tag }}</td>
-            <td class="doc-table__td">{{ item.channelType === 'email' ? 'Email' : 'Web' }}</td>
+            <td class="doc-table__td">{{ channelTypeLabel[item.channelType] || 'Web' }}</td>
             <td class="doc-table__td">{{ item.firstVisit }}</td>
             <td class="doc-table__td">{{ item.lastVisit }}</td>
             <td class="doc-table__td" style="text-align: center;">{{ item.traceCount }}</td>
@@ -308,7 +311,7 @@ interface AllVisitorItem {
   email: string;
   phone: string;
   tag: string;
-  channelType: "web" | "email";
+  channelType: "web" | "widget" | "email";
   firstVisit: string;
   lastVisit: string;
   traceCount: number;
@@ -322,16 +325,18 @@ interface OnlineVisitorItem {
   email: string;
   phone: string;
   tag: string;
-  channelType: "web" | "email";
+  channelType: "web" | "widget" | "email";
   firstVisit: string;
   lastPage: string;
   ip: string;
 }
 
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+
 const onlineVisitorsList = ref<OnlineVisitorItem[]>([
   { id: 101, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 09:12", lastPage: "/pricing", ip: "192.168.1.23" },
   { id: 102, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-17 10:05", lastPage: "/products/detail", ip: "10.0.0.45" },
-  { id: 103, name: "James", remark: "老客户", email: "james@corp.io", phone: "+44 7700-900123", tag: "VIP", channelType: "web", firstVisit: "2026-03-16 14:30", lastPage: "/support/faq", ip: "172.16.0.88" },
+  { id: 103, name: "James", remark: "老客户", email: "james@corp.io", phone: "+44 7700-900123", tag: "VIP", channelType: "widget", firstVisit: "2026-03-16 14:30", lastPage: "/support/faq", ip: "172.16.0.88" },
   { id: 104, name: "Sophia", remark: "–", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-17 11:22", lastPage: "/home", ip: "203.0.113.12" },
   { id: 105, name: "Liam", remark: "潜在客户", email: "liam@startup.co", phone: "+86 138-0000-1234", tag: "普通", channelType: "web", firstVisit: "2026-03-17 08:45", lastPage: "/demo", ip: "198.51.100.7" },
 ]);
@@ -341,7 +346,7 @@ const allVisitorsList = ref<AllVisitorItem[]>([
   { id: 2, name: "Visitor2", remark: "超级无敌SuperVIP", email: "–", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-06 15:14", lastVisit: "2026-03-06 15:14:19", traceCount: 1, ip: "10.0.0.55" },
   { id: 3, name: "Visitor1", remark: "–", email: "–", phone: "–", tag: "123", channelType: "web", firstVisit: "2026-02-12 11:35", lastVisit: "2026-03-06 13:15:09", traceCount: 4, ip: "172.16.0.22" },
   { id: 4, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-10 09:12", lastVisit: "2026-03-17 09:12:33", traceCount: 8, ip: "192.168.1.23" },
-  { id: 5, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-12 10:05", lastVisit: "2026-03-17 10:05:47", traceCount: 3, ip: "10.0.0.45" },
+  { id: 5, name: "Emily", remark: "–", email: "emily@mail.com", phone: "–", tag: "普通", channelType: "widget", firstVisit: "2026-03-12 10:05", lastVisit: "2026-03-17 10:05:47", traceCount: 3, ip: "10.0.0.45" },
   { id: 6, name: "Michael Brown", remark: "–", email: "michael.brown@acme.com", phone: "–", tag: "–", channelType: "email", firstVisit: "2026-03-18 16:30", lastVisit: "2026-03-18 16:45:12", traceCount: 1, ip: "–" },
   { id: 7, name: "Sarah Johnson", remark: "–", email: "sarah.johnson@techcorp.io", phone: "–", tag: "VIP", channelType: "email", firstVisit: "2026-03-15 13:00", lastVisit: "2026-03-18 14:20:33", traceCount: 3, ip: "–" },
 ]);
