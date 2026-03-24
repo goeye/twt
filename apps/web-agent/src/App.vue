@@ -92,7 +92,7 @@
       <SessionQueueNav
         v-if="isConversationRoute"
         :key="currentSubnavRenderKey"
-        title="收件箱"
+        title="消息"
         :active-key="activeQueueKey"
         :groups="queueGroups"
         @select="handleQueueSelect"
@@ -819,7 +819,7 @@ interface InfoSection {
 
 const mainNavItemsBase: NavItem[] = [
   { key: "home", label: "首页", icon: "home" },
-  { key: "conversation", label: "收件箱", icon: "conversation" },
+  { key: "conversation", label: "消息", icon: "conversation" },
   { key: "files", label: "档案", icon: "files" },
   { key: "visitors", label: "访客", icon: "visitors" },
   { key: "customer", label: "客户", icon: "customer" },
@@ -1017,6 +1017,16 @@ const detailTabs: Array<{ key: DetailTabKey; label: string }> = [
   { key: "visitor", label: "访客信息" },
   { key: "session", label: "会话信息" }
 ];
+
+const NO_REPLY_RE = /^(no[-_]?reply|do[-_]?not[-_]?reply|mailer-daemon)@/i;
+
+function isNoReplyEmail(addr: string): boolean {
+  return NO_REPLY_RE.test(addr);
+}
+
+function isNoReplySession(s: ConversationSession): boolean {
+  return s.channelType === "email" && !!s.email && isNoReplyEmail(s.email);
+}
 
 const allSessions = ref<ConversationSession[]>([
   {
@@ -1323,8 +1333,37 @@ const allSessions = ref<ConversationSession[]>([
     acceptedAt: "11:16",
     assignee: "刘昊",
     assistants: []
+  },
+  {
+    id: "s-email-noreply-01",
+    queueKey: "pending-reply",
+    customerName: "System Notification",
+    preview: "This is an automated message, please do not reply.",
+    updatedAt: "08:10",
+    unreadCount: 1,
+    tag: "访客",
+    avatarText: "N",
+    avatarColor: "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
+    channel: "邮件",
+    channelType: "email",
+    fromEmail: "support@company.gmail.com",
+    visitorName: "No Reply",
+    visitorId: "999999",
+    phone: "",
+    email: "noreply@notifications.example.com",
+    entryPage: "",
+    visitStats: "1 会话",
+    deviceIp: "",
+    os: "",
+    browser: "",
+    startedAt: "08:10",
+    acceptedAt: "08:10",
+    assignee: "系统",
+    assistants: []
   }
 ]);
+
+const displaySessions = computed(() => allSessions.value.filter((s) => !isNoReplySession(s)));
 
 const messageMap = ref<Record<string, MessageItem[]>>({
   "s-6001": [
@@ -1622,7 +1661,7 @@ const queueGroups = computed(() =>
     ...group,
     items: group.items.map((item) => ({
       ...item,
-      count: allSessions.value.filter((session) => session.queueKey === item.key).length
+      count: displaySessions.value.filter((session) => session.queueKey === item.key).length
     }))
   }))
 );
@@ -1677,7 +1716,7 @@ const queueAssignableAgents = computed(() => {
 
 const conversationBadgeCount = computed(() => {
   const queueKeys = queueGroupSeed.flatMap((group) => group.items.map((item) => item.key));
-  return allSessions.value.filter((session) => queueKeys.includes(session.queueKey)).length;
+  return displaySessions.value.filter((session) => queueKeys.includes(session.queueKey)).length;
 });
 
 const mainNavItems = computed<NavItem[]>(() =>
@@ -1741,7 +1780,7 @@ const currentModuleLabel = computed(() => {
   return item?.label ?? "模块";
 });
 
-const queueSessionList = computed(() => allSessions.value.filter((session) => session.queueKey === activeQueueKey.value));
+const queueSessionList = computed(() => displaySessions.value.filter((session) => session.queueKey === activeQueueKey.value));
 
 watch(activeQueueKey, () => { sessionFilterType.value = "all"; });
 

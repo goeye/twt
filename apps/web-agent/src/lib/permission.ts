@@ -38,7 +38,7 @@ export const PERMISSION_TREE: PermGroup[] = [
   },
   {
     key: 'conversation',
-    label: '收件箱',
+    label: '消息',
     locked: true,
     lockedLabel: '管理',
   },
