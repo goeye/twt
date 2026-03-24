@@ -388,11 +388,35 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
                   <p class="wh-field__desc">{{ whCurrentChannel.urlHint }}</p>
                 </label>
 
-                <label class="wh-field">
+                <label v-if="whCurrentChannel.hasSecret" class="wh-field">
                   <span class="wh-field__label">{{ whCurrentChannel.secretLabel }}</span>
                   <input v-model="whDraftSecret" class="agent-input" type="password" placeholder="请输入" />
                   <p class="wh-field__desc">{{ whCurrentChannel.secretHint }}</p>
                 </label>
+
+                <div class="wh-field">
+                  <span class="wh-field__label">展示字段</span>
+                  <p class="wh-field__desc">选择推送消息中需要展示的字段，至少勾选一项</p>
+                  <div class="wh-field-checkboxes">
+                    <label v-for="field in AVAILABLE_FIELDS" :key="field.key" class="wh-checkbox-item">
+                      <input
+                        type="checkbox"
+                        :value="field.key"
+                        :checked="whDraftDisplayFields.includes(field.key)"
+                        @change="(e) => {
+                          const checked = (e.target as HTMLInputElement).checked;
+                          if (checked) {
+                            whDraftDisplayFields.push(field.key);
+                          } else {
+                            const idx = whDraftDisplayFields.indexOf(field.key);
+                            if (idx > -1) whDraftDisplayFields.splice(idx, 1);
+                          }
+                        }"
+                      />
+                      <span>{{ field.label }}</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -803,6 +827,7 @@ interface WebhookEntry {
   createdBy: string;
   webhookUrl: string;
   secret: string;
+  displayFields: string[];
 }
 
 const CHANNEL_META: ChannelMeta[] = [
@@ -811,17 +836,17 @@ const CHANNEL_META: ChannelMeta[] = [
     urlPlaceholder: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
     urlHint: '在飞书群设置中添加自定义机器人，复制 Webhook 地址',
     secretLabel: '签名密钥',
-    secretPlaceholder: '可选。在飞书机器人安全设置中开启签名校验后填写',
-    secretHint: '可选。在飞书机器人安全设置中开启签名校验后填写',
-    secretRequired: false,
+    secretPlaceholder: '在飞书机器人安全设置中开启签名校验后填写',
+    secretHint: '在飞书机器人安全设置中开启签名校验后填写',
+    secretRequired: true,
   },
   {
     id: 'dingtalk', label: '钉钉', setupHint: '在钉钉群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true,
     urlPlaceholder: 'https://oapi.dingtalk.com/robot/send?access_token=xx',
     urlHint: '在钉钉群设置中添加自定义机器人，复制 Webhook 地址',
     secretLabel: '加签密钥',
-    secretPlaceholder: '必填。在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
-    secretHint: '必填。在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
+    secretPlaceholder: '在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
+    secretHint: '在钉钉机器人安全设置中开启加签，复制密钥（SEC开头）',
     secretRequired: true,
   },
   {
@@ -829,36 +854,53 @@ const CHANNEL_META: ChannelMeta[] = [
     urlPlaceholder: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key',
     urlHint: '在企业微信群中添加群机器人，复制 Webhook 地址',
     secretLabel: '签名密钥',
-    secretPlaceholder: '可选。用于验证请求来源',
-    secretHint: '可选。用于验证请求来源',
-    secretRequired: false,
+    secretPlaceholder: '用于验证请求来源',
+    secretHint: '用于验证请求来源',
+    secretRequired: true,
   },
   {
     id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: true,
     urlPlaceholder: 'https://hooks.slack.com/services/xxx/xxx/xxx',
     urlHint: '在 Slack App 中启用 Incoming Webhooks，复制 Webhook URL',
     secretLabel: '签名密钥',
-    secretPlaceholder: '可选。用于验证请求来源',
-    secretHint: '可选。用于验证请求来源',
-    secretRequired: false,
+    secretPlaceholder: '用于验证请求来源',
+    secretHint: '用于验证请求来源',
+    secretRequired: true,
   },
   {
-    id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: true,
+    id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: false,
     urlPlaceholder: 'https://your-service.com/webhook',
-    urlHint: '输入您的自定义 Webhook 接收地址',
-    secretLabel: 'HMAC 密钥（选填）',
-    secretPlaceholder: '可选。用于生成请求签名，接收方可用于验证消息来源',
-    secretHint: '可选。用于生成请求签名，接收方可用于验证消息来源',
+    urlHint: '输入你的自定义 Webhook 接收地址',
+    secretLabel: '',
+    secretPlaceholder: '',
+    secretHint: '',
     secretRequired: false,
   },
 ];
 
 const CHANNEL_MAP = Object.fromEntries(CHANNEL_META.map(c => [c.id, c])) as Record<WebhookChannel, ChannelMeta>;
 
+// 可选的展示字段
+const AVAILABLE_FIELDS = [
+  { key: 'subject', label: '会话主题' },
+  { key: 'visitor_name', label: '访客姓名' },
+  { key: 'created_at', label: '消息创建时间' },
+  { key: 'message_content', label: '消息内容' },
+  { key: 'property_name', label: '项目名称' },
+  { key: 'visitor_nickname', label: '访客备注名' },
+  { key: 'sbs', label: '客户标识' },
+  { key: 'status', label: '状态' },
+  { key: 'push_times', label: '推送次数' },
+  { key: 'time_sec', label: '超时时间（秒）' },
+  { key: 'assigned_agent_nickname', label: '服务客服名称' },
+];
+
+const DEFAULT_FIELDS = ['subject', 'visitor_name', 'message_content', 'assigned_agent_nickname'];
+
 const webhookEntries = ref<WebhookEntry[]>([
-  { id: '1', channel: 'feishu', name: '飞书-研发告警', enabled: true, createdAt: '2025-01-10', createdBy: '张三', webhookUrl: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx', secret: '' },
-  { id: '2', channel: 'slack', name: 'Slack-客服通知', enabled: true, createdAt: '2025-02-20', createdBy: '李四', webhookUrl: 'https://hooks.slack.com/services/xxx', secret: '' },
-  { id: '3', channel: 'custom', name: '自定义 Webhook', enabled: false, createdAt: '2025-03-01', createdBy: '王五', webhookUrl: '', secret: '' },
+  { id: '1', channel: 'feishu', name: '飞书-研发告警', enabled: true, createdAt: '2025-01-10', createdBy: '张三', webhookUrl: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx', secret: '', displayFields: DEFAULT_FIELDS },
+  { id: '2', channel: 'slack', name: 'Slack-客服通知', enabled: true, createdAt: '2025-02-20', createdBy: '李四', webhookUrl: 'https://hooks.slack.com/services/xxx', secret: '', displayFields: DEFAULT_FIELDS },
+  { id: '3', channel: 'custom', name: '自定义 Webhook', enabled: false, createdAt: '2025-03-01', createdBy: '王五', webhookUrl: '', secret: '', displayFields: DEFAULT_FIELDS },
 ]);
 
 let whNextId = 4;
@@ -872,6 +914,7 @@ const whDraftChannel = ref<WebhookChannel | null>(null);
 const whDraftName = ref('');
 const whDraftUrl = ref('');
 const whDraftSecret = ref('');
+const whDraftDisplayFields = ref<string[]>([]);
 
 const whDeleteModalOpen = ref(false);
 const whDeleteTargetId = ref('');
@@ -887,6 +930,7 @@ const whCanSave = computed(() => {
   const base = whDraftName.value.trim() && whDraftUrl.value.trim();
   if (!base) return false;
   if (whCurrentChannel.value?.secretRequired && !whDraftSecret.value.trim()) return false;
+  if (whDraftDisplayFields.value.length === 0) return false;
   return true;
 });
 
@@ -902,6 +946,7 @@ const openAddWebhook = () => {
   whDraftName.value = '';
   whDraftUrl.value = '';
   whDraftSecret.value = '';
+  whDraftDisplayFields.value = [...DEFAULT_FIELDS];
   whModalOpen.value = true;
 };
 
@@ -930,11 +975,23 @@ const openEditWebhook = (entry: WebhookEntry) => {
   whDraftName.value = entry.name;
   whDraftUrl.value = entry.webhookUrl;
   whDraftSecret.value = entry.secret;
+  whDraftDisplayFields.value = [...entry.displayFields];
   whModalOpen.value = true;
 };
 
 const saveWebhook = () => {
   if (!whCanSave.value || !whDraftChannel.value) return;
+
+  // URL 唯一性校验
+  const trimmedUrl = whDraftUrl.value.trim();
+  const isDuplicate = webhookEntries.value.some(e =>
+    e.webhookUrl === trimmedUrl && e.id !== whDraftId.value
+  );
+  if (isDuplicate) {
+    emitToast('该 Webhook 地址已存在，请勿重复添加');
+    return;
+  }
+
   if (whModalMode.value === 'add') {
     webhookEntries.value.push({
       id: String(whNextId++),
@@ -943,15 +1000,17 @@ const saveWebhook = () => {
       enabled: true,
       createdAt: new Date().toISOString().slice(0, 10),
       createdBy: '当前用户',
-      webhookUrl: whDraftUrl.value.trim(),
+      webhookUrl: trimmedUrl,
       secret: whDraftSecret.value,
+      displayFields: [...whDraftDisplayFields.value],
     });
   } else {
     const entry = webhookEntries.value.find(e => e.id === whDraftId.value);
     if (entry) {
       entry.name = whDraftName.value.trim();
-      entry.webhookUrl = whDraftUrl.value.trim();
+      entry.webhookUrl = trimmedUrl;
       entry.secret = whDraftSecret.value;
+      entry.displayFields = [...whDraftDisplayFields.value];
     }
   }
   whModalOpen.value = false;
@@ -1737,6 +1796,28 @@ const unrepliedContentRows: WebhookTableRow[] = [
   font-size: 12px;
   line-height: 1.4;
   margin: 4px 0 0;
+}
+
+.wh-field-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--agent-space-12);
+  margin-top: var(--agent-space-8);
+}
+
+.wh-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--agent-space-8);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  color: var(--agent-color-text-primary);
+}
+
+.wh-checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .wh-save-btn {
