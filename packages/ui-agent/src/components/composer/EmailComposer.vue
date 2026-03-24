@@ -176,7 +176,7 @@ const emit = defineEmits<{
 
 const MAX_TEXT_LENGTH = 2000;
 const MAX_ATTACHMENTS = 10;
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 const editorRef = ref<HTMLDivElement>();
 const fileInputRef = ref<HTMLInputElement>();
@@ -227,7 +227,7 @@ function handleImageSelect(e: Event) {
     }
   }
   if (exceededFileSize) {
-    emit("toast", "图片大小不能超过20MB");
+    emit("toast", "图片大小不能超过10MB");
   }
   input.value = '';
   syncEditorState();
@@ -347,10 +347,10 @@ function handleFileSelect(e: Event) {
   }
 
   if (exceededFileSize) {
-    emit("toast", "附件和图片大小不能超过20MB");
+    emit("toast", "附件大小不能超过10MB");
   }
   if (reachedAttachmentLimit) {
-    emit("toast", `最多添加${MAX_ATTACHMENTS}个附件`);
+    emit("toast", "最多只能上传10个附件");
   }
 
   input.value = '';

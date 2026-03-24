@@ -31,7 +31,7 @@
         <select v-model="filterChannel" class="visitor-select visitor-select--channel">
           <option value="">来源渠道</option>
           <option value="web">Web</option>
-          <option value="widget">聊天插件</option>
+          <option value="widget">网页插件</option>
           <option value="email">Email</option>
         </select>
 
@@ -357,7 +357,7 @@ interface OnlineVisitorItem {
   ip: string;
 }
 
-const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
 
 const onlineVisitorsList = ref<OnlineVisitorItem[]>([
   { id: 101, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 09:12", lastPage: "/pricing", ip: "192.168.1.23" },

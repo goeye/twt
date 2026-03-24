@@ -196,7 +196,7 @@ defineEmits<{
   (e: "close"): void;
 }>();
 
-const channelLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+const channelLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
 
 const collapsedSections = ref<string[]>([]);
 

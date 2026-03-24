@@ -135,7 +135,10 @@
     <section v-else-if="activeKey === 'team'" class="settings-team-page">
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
-          <h2 class="agent-settings-feature-title">成员不活跃</h2>
+          <h2 class="agent-settings-feature-title">
+            成员不活跃
+            <span class="settings-tooltip-icon" title="此设置仅适用于 Web 和网页插件渠道，不影响 Email 渠道">?</span>
+          </h2>
           <button
             type="button"
             role="switch"
@@ -156,7 +159,10 @@
 
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
-          <h2 class="agent-settings-feature-title">会话超时</h2>
+          <h2 class="agent-settings-feature-title">
+            会话超时
+            <span class="settings-tooltip-icon" title="此设置仅适用于 Web 和网页插件渠道，不影响 Email 渠道">?</span>
+          </h2>
           <button
             type="button"
             role="switch"
@@ -2168,5 +2174,19 @@ const unrepliedContentRows: WebhookTableRow[] = [
   .advanced-config__body {
     padding: 0 var(--agent-space-16) var(--agent-space-16);
   }
+}
+
+.settings-tooltip-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #75869c;
+  color: #fff;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+  cursor: help;
 }
 </style>

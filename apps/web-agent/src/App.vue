@@ -1207,7 +1207,7 @@ const allSessions = ref<ConversationSession[]>([
     tag: "访客",
     avatarText: "T",
     avatarColor: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
-    channel: "聊天插件",
+    channel: "网页插件",
     channelType: "widget",
     remarkName: "",
     visitorOnline: true,
@@ -1970,7 +1970,7 @@ const activeInfoSections = computed<InfoSection[]>(() => {
   }
 
   const isEmailSession = activeSession.value.channelType === "email";
-  const channelLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+  const channelLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
 
   const sections: InfoSection[] = [
     {

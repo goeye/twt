@@ -32,7 +32,7 @@
         <select v-model="filterChannel" class="customer-select customer-select--channel">
           <option value="">来源渠道</option>
           <option value="web">Web</option>
-          <option value="widget">聊天插件</option>
+          <option value="widget">网页插件</option>
           <option value="email">Email</option>
         </select>
 
@@ -251,7 +251,7 @@ const openMenuId = ref<number | null>(null);
 const sortKey = ref("");
 const sortDir = ref<"asc" | "desc">("asc");
 
-const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
 
 interface CustomerItem {
   id: number;

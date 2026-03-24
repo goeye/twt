@@ -83,7 +83,7 @@
           <select v-model="draftFilters.channelType" class="archive-field__control archive-field__control--select">
             <option value="all">来源渠道</option>
             <option value="web">Web</option>
-            <option value="widget">聊天插件</option>
+            <option value="widget">网页插件</option>
             <option value="email">Email</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
@@ -426,7 +426,7 @@ const emit = defineEmits<{
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const channelTypeLabel: Record<string, string> = { web: "Web", widget: "聊天插件", email: "Email" };
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
 
 const statusLabelMap: Record<ConversationStatus, string> = {
   "pending-reply": "待回复",
@@ -1420,13 +1420,33 @@ const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
     const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
     return isServiceAgent ? "进入会话" : "加入会话";
   }
-  return row.owner === aiAgentArchiveName ? "接管会话" : "分配会话";
+  return row.owner === aiAgentArchiveName ? "分配会话" : "分配会话";
 };
 
 const getDrawerVariant = (row: ConversationRecord | null): "default" | "join" => {
   if (!row) return "default";
   if (row.channelType === "email" && row.status !== "queueing") return "join";
   return "default";
+};
+
+/**
+ * 格式化 Email 消息展示
+ * @param message 消息对象，包含 content(文本), images(图片数组), attachments(附件数组)
+ * @returns 格式化后的展示文本
+ */
+const formatEmailMessage = (message: { content?: string; images?: any[]; attachments?: any[] }): string => {
+  const hasImage = message.images && message.images.length > 0;
+  const hasAttachment = message.attachments && message.attachments.length > 0;
+  const text = message.content || "";
+
+  let prefix = "";
+  if (hasImage) prefix += "[图片]";
+  if (hasAttachment) prefix += "[附件]";
+
+  const maxLength = hasImage && hasAttachment ? 20 : hasImage || hasAttachment ? 30 : 50;
+  const truncated = text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+
+  return prefix + truncated;
 };
 
 const handleDrawerAssign = (row: ConversationRecord) => {

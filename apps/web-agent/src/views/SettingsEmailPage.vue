@@ -15,7 +15,7 @@
         </button>
       </header>
 
-      <p class="email-panel__desc">统一收发其他邮箱服务商的邮件，所有邮件都会以会话形式呈现，便于统一管理</p>
+      <p class="email-panel__desc">统一收发邮箱服务商的邮件，所有邮件都会以会话形式呈现，便于统一管理</p>
 
       <div v-if="connectedEmails.length === 0" class="email-panel__empty">
         <p class="email-panel__empty-text">暂未连接任何邮箱，点击上方按钮添加</p>
