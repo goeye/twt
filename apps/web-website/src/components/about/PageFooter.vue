@@ -6,9 +6,9 @@
           <h4>产品</h4>
           <a href="#">Chat</a>
           <a href="#">Community</a>
-          <a href="#">Mail</a>
-          <a href="#">Message</a>
-          <a href="#">GMSSH</a>
+          <a href="#" class="disabled">Link</a>
+          <a href="#" class="disabled">Domains</a>
+          <a href="#" class="disabled">Mail</a>
         </div>
         <div class="footer-col">
           <h4>关于我们</h4>
@@ -75,6 +75,12 @@
 
 .footer-col a:hover {
   opacity: 0.8;
+}
+
+.footer-col a.disabled {
+  color: #666;
+  pointer-events: none;
+  cursor: default;
 }
 
 .footer-logo {

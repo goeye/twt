@@ -14,7 +14,7 @@
         <div class="timeline-item right">
           <div class="year-badge">2021</div>
           <div class="content-card">
-            <p>· <strong>推出GMSSH运维管理平台</strong>，实现服务器可视化管理和自动化运维</p>
+            <p>· <strong>推出Link</strong>（私有化聊天平台），为企业打造的私有化部署即时通讯解决方案，提供端到端加密、完全自主可控的数据安全保障</p>
           </div>
         </div>
         <div class="timeline-item left">
@@ -33,8 +33,7 @@
         <div class="timeline-item left">
           <div class="year-badge">2018</div>
           <div class="content-card">
-            <p>· 发布 <strong>Message</strong>（短信服务平台）</p>
-            <p>· 推出 <strong>Mail</strong> （企业邮件服务）</p>
+            <p>· 推出 <strong>Mail</strong>（企业邮件服务），为企业提供专业、安全、稳定的邮件通信解决方案</p>
           </div>
         </div>
         <div class="timeline-item right">
