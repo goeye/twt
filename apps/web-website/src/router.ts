@@ -5,6 +5,11 @@ const router = createRouter({
   routes: [
     { path: "/", redirect: "/links" },
     {
+      path: "/about",
+      name: "about",
+      component: () => import("./views/AboutPage.vue"),
+    },
+    {
       path: "/links",
       name: "links-list",
       component: () => import("./views/LinksListPage.vue"),
