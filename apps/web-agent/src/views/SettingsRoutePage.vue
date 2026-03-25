@@ -265,7 +265,7 @@
 
       <!-- Card 2: 事件设置（保留） -->
       <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">支持的事件</h2>
+        <h2 class="settings-card__title agent-settings-feature-title">支持事件</h2>
         <p class="agent-settings-feature-description">当前系统支持的 Webhook 事件类型</p>
 
         <div class="webhooks-event-card">
@@ -282,7 +282,7 @@
               <span class="settings-toggle__thumb" />
             </button>
           </div>
-          <p class="settings-card__inline-desc">
+          <p v-show="unrepliedEventEnabled" class="settings-card__inline-desc">
             当访客发送消息后，若客服未回复：首次于
             <TimeDurationInput v-model="unrepliedFirstSeconds" />
             后提醒，后续每
@@ -295,8 +295,19 @@
 
       <!-- Card 3: 配置说明（保留） -->
       <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
-        <p class="webhooks-link-text">如何正确配置和使用 Webhooks</p>
+        <div class="wh-config-header" @click="whConfigExpanded = !whConfigExpanded">
+          <div>
+            <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
+            <p class="webhooks-link-text">如何正确配置和使用 Webhooks</p>
+          </div>
+          <button type="button" class="wh-expand-btn" :class="{ 'wh-expand-btn--expanded': whConfigExpanded }">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div v-show="whConfigExpanded" class="wh-config-content">
 
         <div class="webhooks-steps">
           <p class="webhooks-step">1. 签名校验：在开发设置中生成「AppSecret」，并通过 x-chat-signature 头部发送。X-Chat-Signature:HMAC-SHA256(secret, raw_body)</p>
@@ -341,6 +352,7 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
     }
   ]
 }</code></pre>
+        </div>
         </div>
       </article>
 
@@ -722,7 +734,7 @@ const sessionTimeoutSeconds = ref(540);
 const languageExampleUrl = computed(() => `${chatPageBaseUrl}?lang=en`);
 const customerSignExampleUrl = computed(() => `${chatPageBaseUrl}?sbs={sbs}&sbs_mm={sbs_mm}&ranstr={ranstr}`);
 
-const emitToast = (message: string) => emit("toast", message);
+const emitToast = (message: string, type: "success" | "error" = "success") => emit("toast", message, type);
 
 const copyChatPageUrl = async () => {
   if (!navigator?.clipboard?.writeText) {
@@ -944,6 +956,8 @@ const whDeleteTargetId = ref('');
 const whNameError = ref('');
 const whUrlError = ref('');
 
+const whConfigExpanded = ref(false);
+
 const whModalTitle = computed(() => {
   if (whModalMode.value === 'edit') return '编辑 Webhook';
   return whModalStep.value === 1 ? '添加' : '添加 Webhook';
@@ -1040,7 +1054,7 @@ const saveWebhook = () => {
     e.webhookUrl === trimmedUrl && e.id !== whDraftId.value
   );
   if (isDuplicate) {
-    emitToast('该 Webhook 地址已存在，请勿重复添加');
+    emitToast('重复 Webhooks URL', 'error');
     return;
   }
 
@@ -1537,6 +1551,31 @@ const unrepliedContentRows: WebhookTableRow[] = [
   color: #75869c;
   font-size: var(--agent-font-size-sm);
   margin: 0;
+}
+
+.wh-config-header {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.wh-expand-btn {
+  background: transparent;
+  border: none;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--agent-motion-fast);
+}
+
+.wh-expand-btn--expanded {
+  transform: rotate(180deg);
+}
+
+.wh-config-content {
+  margin-top: var(--agent-space-16);
 }
 
 .webhooks-steps {

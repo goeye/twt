@@ -535,7 +535,7 @@
       </template>
     </BaseModal>
 
-    <AgentToast :message="toastMessage" :visible="showToast" />
+    <AgentToast :message="toastMessage" :visible="showToast" :type="toastType" />
 
     <FeatureLockedModal
       :open="upgradeModalState.visible"
@@ -1635,6 +1635,7 @@ const proactiveCampaignDirty = ref(false);
 const allowProactiveCampaignRouteLeaveOnce = ref(false);
 const showToast = ref(false);
 const toastMessage = ref("");
+const toastType = ref<"success" | "error">("success");
 let toastTimer: number | undefined;
 
 const transferModalOpen = ref(false);
@@ -2313,8 +2314,9 @@ watch(
   }
 );
 
-const showTopToast = (message: string) => {
+const showTopToast = (message: string, type: "success" | "error" = "success") => {
   toastMessage.value = message;
+  toastType.value = type;
   showToast.value = true;
 
   if (toastTimer) {

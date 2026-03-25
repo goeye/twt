@@ -1,7 +1,8 @@
 <template>
   <transition name="agent-toast-fade">
     <div v-if="visible" class="agent-toast" role="status" aria-live="polite">
-      <span v-if="type === 'success'" class="agent-toast__icon" aria-hidden="true" />
+      <span v-if="type === 'success'" class="agent-toast__icon agent-toast__icon--success" aria-hidden="true" />
+      <span v-if="type === 'error'" class="agent-toast__icon agent-toast__icon--error" aria-hidden="true" />
       <span class="agent-toast__message">{{ message }}</span>
     </div>
   </transition>
@@ -12,7 +13,7 @@ withDefaults(
   defineProps<{
     visible: boolean;
     message: string;
-    type?: "success";
+    type?: "success" | "error";
   }>(),
   {
     type: "success"
@@ -43,7 +44,6 @@ withDefaults(
 }
 
 .agent-toast__icon {
-  background: #52c41a;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -52,7 +52,11 @@ withDefaults(
   width: 20px;
 }
 
-.agent-toast__icon::after {
+.agent-toast__icon--success {
+  background: #52c41a;
+}
+
+.agent-toast__icon--success::after {
   border-bottom: 2px solid #fff;
   border-right: 2px solid #fff;
   content: "";
@@ -62,6 +66,29 @@ withDefaults(
   top: 3px;
   transform: rotate(40deg);
   width: 4px;
+}
+
+.agent-toast__icon--error {
+  background: #ff4d4f;
+}
+
+.agent-toast__icon--error::before,
+.agent-toast__icon--error::after {
+  background: #fff;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  width: 10px;
+}
+
+.agent-toast__icon--error::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.agent-toast__icon--error::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .agent-toast__message {
