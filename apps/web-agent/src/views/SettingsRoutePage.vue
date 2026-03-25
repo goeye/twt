@@ -378,25 +378,47 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
               <div class="wh-form">
 
                 <label class="wh-field">
-                  <span class="wh-field__label">配置名称</span>
-                  <input v-model="whDraftName" class="agent-input" placeholder="请输入" maxlength="50" @input="handleNameInput" />
+                  <span class="wh-field__label-wrapper">
+                    <span class="wh-field__label-required">*</span>
+                    <span class="wh-field__label">配置名称</span>
+                  </span>
+                  <input v-model="whDraftName" class="agent-input" placeholder="请输入" maxlength="50" @input="handleNameInput" @blur="validateName" />
+                  <p v-if="whNameError" class="wh-field__error">{{ whNameError }}</p>
                 </label>
 
                 <label class="wh-field">
-                  <span class="wh-field__label">Webhook URL</span>
-                  <input v-model="whDraftUrl" class="agent-input" type="url" :placeholder="whCurrentChannel.urlPlaceholder" />
-                  <p class="wh-field__desc">{{ whCurrentChannel.urlHint }}</p>
+                  <span class="wh-field__label-wrapper">
+                    <span class="wh-field__label-required">*</span>
+                    <span class="wh-field__label">Webhook URL</span>
+                    <span class="wh-field__help">
+                      <button type="button" class="wh-field__help-icon">?</button>
+                      <span class="wh-field__tooltip">{{ whCurrentChannel.urlHint }}</span>
+                    </span>
+                  </span>
+                  <input v-model="whDraftUrl" class="agent-input" type="url" :placeholder="whCurrentChannel.urlPlaceholder" maxlength="500" @blur="validateUrl" />
+                  <p v-if="whUrlError" class="wh-field__error">{{ whUrlError }}</p>
                 </label>
 
                 <label v-if="whCurrentChannel.hasSecret" class="wh-field">
-                  <span class="wh-field__label">{{ whCurrentChannel.secretLabel }}</span>
+                  <span class="wh-field__label-wrapper">
+                    <span v-if="whCurrentChannel.secretRequired" class="wh-field__label-required">*</span>
+                    <span class="wh-field__label">{{ whCurrentChannel.secretLabel }}</span>
+                    <span class="wh-field__help">
+                      <button type="button" class="wh-field__help-icon">?</button>
+                      <span class="wh-field__tooltip">{{ whCurrentChannel.secretHint }}</span>
+                    </span>
+                  </span>
                   <input v-model="whDraftSecret" class="agent-input" type="password" placeholder="请输入" />
-                  <p class="wh-field__desc">{{ whCurrentChannel.secretHint }}</p>
                 </label>
 
                 <div class="wh-field">
-                  <span class="wh-field__label">展示字段</span>
-                  <p class="wh-field__desc">选择推送消息中需要展示的字段，至少勾选一项</p>
+                  <span class="wh-field__label-wrapper">
+                    <span class="wh-field__label">展示字段</span>
+                    <span class="wh-field__help">
+                      <button type="button" class="wh-field__help-icon">?</button>
+                      <span class="wh-field__tooltip">选择推送消息中需要展示的字段，至少勾选一项</span>
+                    </span>
+                  </span>
                   <div class="wh-field-checkboxes">
                     <label v-for="field in AVAILABLE_FIELDS" :key="field.key" class="wh-checkbox-item">
                       <input
@@ -837,8 +859,8 @@ const CHANNEL_META: ChannelMeta[] = [
     urlHint: '在飞书群设置中添加自定义机器人，复制 Webhook 地址',
     secretLabel: '签名密钥',
     secretPlaceholder: '在飞书机器人安全设置中开启签名校验后填写',
-    secretHint: '在飞书机器人安全设置中开启签名校验后填写',
-    secretRequired: true,
+    secretHint: '选填. 在飞书机器人安全设置中开启签名校验后填写',
+    secretRequired: false,
   },
   {
     id: 'dingtalk', label: '钉钉', setupHint: '在钉钉群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true,
@@ -855,8 +877,8 @@ const CHANNEL_META: ChannelMeta[] = [
     urlHint: '在企业微信群中添加群机器人，复制 Webhook 地址',
     secretLabel: '签名密钥',
     secretPlaceholder: '用于验证请求来源',
-    secretHint: '用于验证请求来源',
-    secretRequired: true,
+    secretHint: '选填. 用于验证请求来源',
+    secretRequired: false,
   },
   {
     id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: true,
@@ -864,8 +886,8 @@ const CHANNEL_META: ChannelMeta[] = [
     urlHint: '在 Slack App 中启用 Incoming Webhooks，复制 Webhook URL',
     secretLabel: '签名密钥',
     secretPlaceholder: '用于验证请求来源',
-    secretHint: '用于验证请求来源',
-    secretRequired: true,
+    secretHint: '选填. 用于验证请求来源',
+    secretRequired: false,
   },
   {
     id: 'custom', label: '自定义', setupHint: '输入你的服务端 HTTP 接收地址', hasSecret: false,
@@ -919,9 +941,12 @@ const whDraftDisplayFields = ref<string[]>([]);
 const whDeleteModalOpen = ref(false);
 const whDeleteTargetId = ref('');
 
+const whNameError = ref('');
+const whUrlError = ref('');
+
 const whModalTitle = computed(() => {
   if (whModalMode.value === 'edit') return '编辑 Webhook';
-  return whModalStep.value === 1 ? '添加' : '返回';
+  return whModalStep.value === 1 ? '添加' : '添加 Webhook';
 });
 
 const whCurrentChannel = computed(() => whDraftChannel.value ? CHANNEL_MAP[whDraftChannel.value] : null);
@@ -933,6 +958,24 @@ const whCanSave = computed(() => {
   if (whDraftDisplayFields.value.length === 0) return false;
   return true;
 });
+
+const validateName = () => {
+  whNameError.value = whDraftName.value.trim() ? '' : '请输入配置名称';
+};
+
+const validateUrl = () => {
+  const trimmed = whDraftUrl.value.trim();
+  if (!trimmed) {
+    whUrlError.value = '请输入 Webhook URL';
+    return;
+  }
+  try {
+    new URL(trimmed);
+    whUrlError.value = '';
+  } catch {
+    whUrlError.value = '无效URL';
+  }
+};
 
 const openAddWebhook = () => {
   if (!guardFeature(FEATURES.WEBHOOKS)) return;
@@ -947,6 +990,8 @@ const openAddWebhook = () => {
   whDraftUrl.value = '';
   whDraftSecret.value = '';
   whDraftDisplayFields.value = [...DEFAULT_FIELDS];
+  whNameError.value = '';
+  whUrlError.value = '';
   whModalOpen.value = true;
 };
 
@@ -976,11 +1021,18 @@ const openEditWebhook = (entry: WebhookEntry) => {
   whDraftUrl.value = entry.webhookUrl;
   whDraftSecret.value = entry.secret;
   whDraftDisplayFields.value = [...entry.displayFields];
+  whNameError.value = '';
+  whUrlError.value = '';
   whModalOpen.value = true;
 };
 
 const saveWebhook = () => {
   if (!whCanSave.value || !whDraftChannel.value) return;
+
+  // 执行验证
+  validateName();
+  validateUrl();
+  if (whNameError.value || whUrlError.value) return;
 
   // URL 唯一性校验
   const trimmedUrl = whDraftUrl.value.trim();
@@ -1785,6 +1837,93 @@ const unrepliedContentRows: WebhookTableRow[] = [
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
+}
+
+.wh-field__label-wrapper {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.wh-field__label-required {
+  color: #ef4444;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.wh-field__help {
+  position: relative;
+  display: inline-flex;
+  margin-left: 4px;
+}
+
+.wh-field__help-icon {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  color: #6b7280;
+  cursor: help;
+  display: inline-flex;
+  font-size: 12px;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: all var(--agent-motion-fast);
+  width: 16px;
+}
+
+.wh-field__help-icon:hover {
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.wh-field__tooltip {
+  background: #1f2937;
+  border-radius: 6px;
+  bottom: calc(100% + 8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #fff;
+  font-size: 12px;
+  left: 50%;
+  line-height: 1.5;
+  max-width: 250px;
+  min-width: 150px;
+  opacity: 0;
+  padding: 8px 12px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%) translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+  visibility: hidden;
+  white-space: normal;
+  width: max-content;
+  word-break: break-word;
+  z-index: 1000;
+}
+
+.wh-field__tooltip::after {
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+  content: '';
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+.wh-field__help:hover .wh-field__tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  visibility: visible;
+}
+
+.wh-field__error {
+  color: #ef4444;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 4px;
 }
 
 .wh-field__required {
