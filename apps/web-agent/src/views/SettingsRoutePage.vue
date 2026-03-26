@@ -207,8 +207,39 @@
     <section v-else-if="activeKey === 'webhooks'" class="settings-webhooks">
       <p class="webhooks-subtitle">通过 Webhook 将 Chat 平台事件实时推送至外部服务</p>
 
-      <!-- Card 1: 渠道列表 -->
+      <!-- Card 1: 通知事件（原支持事件，移到最上方） -->
       <article class="settings-card agent-panel">
+        <div class="settings-card__title-row">
+          <h2 class="agent-settings-feature-title">通知事件</h2>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="notificationEventEnabled"
+            class="settings-toggle"
+            :class="{ 'settings-toggle--on': notificationEventEnabled }"
+            @click="toggleNotificationEvent"
+          >
+            <span class="settings-toggle__thumb" />
+          </button>
+        </div>
+        <p class="agent-settings-feature-description">开启后可配置 Webhook 渠道，将事件通知推送至外部服务</p>
+
+        <div v-show="notificationEventEnabled" class="webhooks-event-card">
+          <div class="webhooks-event-card__header">
+            <span class="webhooks-event-card__name">访客消息未回复</span>
+          </div>
+          <p class="settings-card__inline-desc">
+            当访客发送消息后，若客服未回复：首次于
+            <TimeDurationInput v-model="unrepliedFirstSeconds" />
+            后提醒，后续每
+            <TimeDurationInput v-model="unrepliedRepeatSeconds" />
+            后再次提醒，最多提醒4次。
+          </p>
+        </div>
+      </article>
+
+      <!-- Card 2: 渠道列表 -->
+      <article v-if="notificationEventEnabled" class="settings-card agent-panel">
         <div class="wh-header">
           <div>
             <h2 class="settings-card__title agent-settings-feature-title">Webhook 渠道</h2>
@@ -263,38 +294,8 @@
         </table>
       </article>
 
-      <!-- Card 2: 事件设置（保留） -->
-      <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">支持事件</h2>
-        <p class="agent-settings-feature-description">当前系统支持的 Webhook 事件类型</p>
-
-        <div class="webhooks-event-card">
-          <div class="webhooks-event-card__header">
-            <span class="webhooks-event-card__name">访客消息未回复</span>
-            <button
-              type="button"
-              role="switch"
-              :aria-checked="unrepliedEventEnabled"
-              class="settings-toggle"
-              :class="{ 'settings-toggle--on': unrepliedEventEnabled }"
-              @click="toggleUnrepliedEvent"
-            >
-              <span class="settings-toggle__thumb" />
-            </button>
-          </div>
-          <p v-show="unrepliedEventEnabled" class="settings-card__inline-desc">
-            当访客发送消息后，若客服未回复：首次于
-            <TimeDurationInput v-model="unrepliedFirstSeconds" />
-            后提醒，后续每
-            <TimeDurationInput v-model="unrepliedRepeatSeconds" />
-            后再次提醒，最多提醒4次。
-          </p>
-        </div>
-
-      </article>
-
-      <!-- Card 3: 配置说明（保留） -->
-      <article class="settings-card agent-panel">
+      <!-- Card 3: 配置说明 -->
+      <article v-if="notificationEventEnabled" class="settings-card agent-panel">
         <div class="wh-config-header" @click="whConfigExpanded = !whConfigExpanded">
           <div>
             <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
@@ -866,6 +867,15 @@ interface WebhookEntry {
 
 const CHANNEL_META: ChannelMeta[] = [
   {
+    id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: true,
+    urlPlaceholder: 'https://hooks.slack.com/services/xxx/xxx/xxx',
+    urlHint: '在 Slack App 中启用 Incoming Webhooks，复制 Webhook URL',
+    secretLabel: '签名密钥',
+    secretPlaceholder: '用于验证请求来源',
+    secretHint: '选填. 用于验证请求来源',
+    secretRequired: false,
+  },
+  {
     id: 'feishu', label: '飞书', setupHint: '在飞书群中添加「自定义机器人」，复制 Webhook 地址', hasSecret: true,
     urlPlaceholder: 'https://open.feishu.cn/open-apis/bot/v2/hook/xxx',
     urlHint: '在飞书群设置中添加自定义机器人，复制 Webhook 地址',
@@ -887,15 +897,6 @@ const CHANNEL_META: ChannelMeta[] = [
     id: 'wecom', label: '企业微信', setupHint: '在企业微信群中添加「群机器人」，复制 Webhook 地址', hasSecret: true,
     urlPlaceholder: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key',
     urlHint: '在企业微信群中添加群机器人，复制 Webhook 地址',
-    secretLabel: '签名密钥',
-    secretPlaceholder: '用于验证请求来源',
-    secretHint: '选填. 用于验证请求来源',
-    secretRequired: false,
-  },
-  {
-    id: 'slack', label: 'Slack', setupHint: '在 Slack 创建 Incoming Webhook，复制地址', hasSecret: true,
-    urlPlaceholder: 'https://hooks.slack.com/services/xxx/xxx/xxx',
-    urlHint: '在 Slack App 中启用 Incoming Webhooks，复制 Webhook URL',
     secretLabel: '签名密钥',
     secretPlaceholder: '用于验证请求来源',
     secretHint: '选填. 用于验证请求来源',
@@ -1097,6 +1098,14 @@ const confirmDeleteWebhook = () => {
 const toggleWebhookEntry = (entry: WebhookEntry) => {
   if (!entry.enabled && !guardFeature(FEATURES.WEBHOOKS)) return;
   entry.enabled = !entry.enabled;
+};
+
+const notificationEventEnabled = ref(canUse(FEATURES.WEBHOOKS));
+
+const toggleNotificationEvent = () => {
+  const next = !notificationEventEnabled.value;
+  if (next && !guardFeature(FEATURES.WEBHOOKS)) return;
+  notificationEventEnabled.value = next;
 };
 
 const unrepliedEventEnabled = ref(canUse(FEATURES.WEBHOOKS));
