@@ -79,7 +79,8 @@ export const PERMISSION_TREE: PermGroup[] = [
     key: 'report',
     label: '报表',
     children: [
-      { key: 'report-overview', label: '会话概览', features: [{ key: 'report-overview-view', label: '查看' }] },
+      { key: 'report-manual', label: '人工客服', features: [{ key: 'report-manual-view', label: '查看' }] },
+      { key: 'report-autopilot', label: 'Autopilot', features: [{ key: 'report-autopilot-view', label: '查看' }] },
       { key: 'report-evaluation', label: '会话评价', features: [{ key: 'report-evaluation-view', label: '查看' }] },
     ],
   },

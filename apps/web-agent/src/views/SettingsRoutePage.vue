@@ -683,7 +683,7 @@ const handleViewRole = (roleId: string) => {
     roleDetailPerms.value = [
       "archive-conversation", "archive-conversation-manage",
       "visitor-online", "visitor-online-manage",
-      "report-overview", "report-overview-view",
+      "report-manual", "report-manual-view",
       "report-evaluation", "report-evaluation-view",
       "public-reply", "public-reply-manage",
       "personal-reply", "personal-reply-manage",
