@@ -23,9 +23,10 @@
           <a-menu-item key="feature-stats" @click="$router.push('/feature-stats')">会话功能统计</a-menu-item>
         </a-sub-menu>
 
-        <a-sub-menu key="prompt" disabled>
+        <a-sub-menu key="prompt">
           <template #icon><FileTextOutlined /></template>
           <template #title>提示词管理</template>
+          <a-menu-item key="prompt-list" @click="$router.push('/prompt/list')">提示词列表</a-menu-item>
         </a-sub-menu>
 
         <a-sub-menu key="project" disabled>
@@ -173,6 +174,10 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
     breadcrumbs: [{ title: "数据看板", path: "/dashboard" }, { title: "会话功能统计" }],
     tabTitle: "会话功能统计",
   },
+  "/prompt/list": {
+    breadcrumbs: [{ title: "提示词管理" }, { title: "提示词列表" }],
+    tabTitle: "提示词列表",
+  },
   "/compliance/agreements": {
     breadcrumbs: [{ title: "合规管理" }, { title: "协议管理" }],
     tabTitle: "协议管理",
@@ -266,6 +271,7 @@ function closeTab(tab: TabItem) {
 /* ---- 侧边栏选中 ---- */
 function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
+  if (path === "/prompt/list") return "prompt-list";
   if (path === "/compliance/agreements") return "agreements";
   if (path.startsWith("/compliance/sensitive-words")) return "sensitive-words";
   if (path === "/compliance/alerts") return "alerts";
@@ -276,6 +282,7 @@ function routeToKey(path: string): string {
 }
 
 function routeToOpenKeys(path: string): string[] {
+  if (path.startsWith("/prompt")) return ["prompt"];
   if (path.startsWith("/compliance")) return ["compliance"];
   if (path.startsWith("/links")) return ["resource"];
   return ["data"];

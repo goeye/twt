@@ -16,6 +16,10 @@ const router = createRouter({
       component: () => import("./views/FeatureStatsPage.vue"),
     },
     {
+      path: "/prompt/list",
+      component: () => import("./views/PromptListPage.vue"),
+    },
+    {
       path: "/compliance/agreements",
       component: () => import("./views/AgreementsPage.vue"),
     },
