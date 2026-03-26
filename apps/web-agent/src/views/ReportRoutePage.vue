@@ -347,9 +347,9 @@
       </div>
     </template>
 
-    <!-- 会话评价分析 -->
+    <!-- 会话评价 -->
     <template v-else-if="activeKey === 'evaluation-analysis'">
-      <h1 class="report-page__title">会话评价分析</h1>
+      <h1 class="report-page__title">会话评价</h1>
 
       <div v-if="!canUse(FEATURES.EVALUATION_ANALYSIS)" class="report-locked-state">
         <div class="report-locked-state__illustration">
@@ -372,7 +372,7 @@
             <rect x="68" y="82" width="36" height="6" rx="3" fill="#d0dce8" />
           </svg>
         </div>
-        <p class="report-locked-state__text">会话评价分析为专业版功能</p>
+        <p class="report-locked-state__text">会话评价为专业版功能</p>
         <button type="button" class="agent-btn agent-btn--primary" @click="openConsole">立即升级</button>
       </div>
 

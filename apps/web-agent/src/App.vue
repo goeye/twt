@@ -984,7 +984,7 @@ const reportNavGroups = [
     items: [
       { key: "data-overview", label: "人工客服", leadingEmoji: "📈" },
       { key: "ai-agent-report", label: "Autopilot", leadingEmoji: "🤖" },
-      { key: "evaluation-analysis", label: "会话评价分析", leadingEmoji: "😊" }
+      { key: "evaluation-analysis", label: "会话评价", leadingEmoji: "😊" }
     ]
   }
 ];

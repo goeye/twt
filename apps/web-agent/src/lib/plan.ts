@@ -102,7 +102,7 @@ export const FEATURE_INFO: Record<string, { name: string; description: string }>
     description: '隐藏默认联系入口，自定义客户触达方式',
   },
   [FEATURES.EVALUATION_ANALYSIS]: {
-    name: '会话评价分析',
+    name: '会话评价',
     description: '深度分析会话评价数据，持续优化服务质量',
   },
   [FEATURES.TRUSTED_DOMAINS]: {
