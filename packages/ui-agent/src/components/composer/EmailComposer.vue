@@ -118,17 +118,7 @@
     </div>
 
     <div class="email-composer__footer">
-      <div class="email-composer__split-btn">
-        <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">发送</button>
-        <button class="email-composer__split-arrow" type="button" :disabled="isSendDisabled" @click.stop="toggleSendMenu">
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-      <div v-if="sendMenuOpen" class="email-composer__send-menu">
-        <button type="button" @click="handleMenuSend">发送</button>
-        <button type="button" @click="handleMenuSendPending">发送并标记为待处理</button>
-        <button type="button" @click="handleMenuSendResolve">发送并结束</button>
-      </div>
+      <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">发送</button>
     </div>
     </template>
   </section>
@@ -402,7 +392,25 @@ function handleQuickReplyClose() {
   showQuickReply.value = false;
 }
 
-defineExpose({ getAttachments, clearAttachments, hasSendableContent });
+function replaceContent(text: string, images?: { name: string; url: string }[]) {
+  if (!editorRef.value) return;
+  editorRef.value.innerHTML = "";
+  const textHtml = escapeHtml(text).replace(/\n/g, "<br>");
+  editorRef.value.innerHTML = textHtml;
+  if (images) {
+    for (const img of images) {
+      const safeName = escapeHtml(img.name);
+      editorRef.value.insertAdjacentHTML(
+        "beforeend",
+        `<p><br></p><img src="${img.url}" alt="${safeName}" style="max-width:100%;border-radius:4px;margin:4px 0;" />`
+      );
+    }
+  }
+  placeCaretAtEnd(editorRef.value);
+  syncEditorState();
+}
+
+defineExpose({ getAttachments, clearAttachments, hasSendableContent, replaceContent });
 
 const toggleSendMenu = () => {
   if (isSendDisabled.value) return;
@@ -776,7 +784,7 @@ onBeforeUnmount(() => {
   align-items: center;
   background: #f0f3f8;
   border: 0;
-  border-radius: 10px 0 0 10px;
+  border-radius: 10px;
   color: #9ca8ba;
   cursor: pointer;
   display: inline-flex;

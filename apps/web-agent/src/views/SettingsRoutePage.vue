@@ -137,7 +137,7 @@
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">
             成员不活跃
-            <span class="settings-tooltip-icon" title="此设置仅适用于 Web 和网页插件渠道，不影响 Email 渠道">?</span>
+            <span class="settings-tooltip-icon" title="当成员超时未操作时自动更改为离开状态，适用于所有渠道">?</span>
           </h2>
           <button
             type="button"
@@ -161,7 +161,7 @@
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">
             会话超时
-            <span class="settings-tooltip-icon" title="此设置仅适用于 Web 和网页插件渠道，不影响 Email 渠道">?</span>
+            <span class="settings-tooltip-icon" title="当成员超时未回复时会话自动进入排队，适用于所有渠道">?</span>
           </h2>
           <button
             type="button"

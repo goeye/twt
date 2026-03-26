@@ -283,13 +283,12 @@
           :to="activeSession?.email ?? ''"
           :from-options="activeSessionFromOptions"
           :selected-from="selectedFromEmail"
-          :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
+          :show-translate="false"
           :quick-reply-categories="quickReplyCategories"
           @update:selected-from="selectedFromEmail = $event"
           @attachment="track(TrackEvent.ATTACHMENT)"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
           @toast="showTopToast"
-          @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
           @send="handleSendEmail"
           @send-and-pending="handleSendEmailAndPending"
           @send-and-resolve="handleSendEmailAndClose"
@@ -2001,7 +2000,7 @@ const activeInfoSections = computed<InfoSection[]>(() => {
       title: "附加信息",
       type: "fields",
       fields: [
-        ...(isEmailSession ? [] : [{ key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage }]),
+        ...(isEmailSession ? [{ key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage || "–" }] : [{ key: "visitor-entry", label: "起点页面", value: activeSession.value.entryPage }]),
         { key: "visitor-channel", label: "来源渠道", value: channelLabel[activeSession.value.channelType ?? "web"] ?? "Web" },
         { key: "visitor-stat", label: "会话总数", value: "6 个会话" }
       ]

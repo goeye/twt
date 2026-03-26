@@ -18,7 +18,10 @@
       <p class="email-panel__desc">统一收发邮箱服务商的邮件，所有邮件都会以会话形式呈现，便于统一管理</p>
 
       <div v-if="connectedEmails.length === 0" class="email-panel__empty">
-        <p class="email-panel__empty-text">暂未连接任何邮箱，点击上方按钮添加</p>
+        <div class="email-panel__empty-content">
+          <p class="email-panel__empty-title">还未添加任何邮箱</p>
+          <p class="email-panel__empty-desc">添加邮箱统一收发邮件</p>
+        </div>
       </div>
 
       <template v-else>
@@ -107,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 interface ConnectedEmail {
   id: string;
@@ -135,24 +138,33 @@ const showDeleteModal = ref(false);
 const deleteTarget = ref<ConnectedEmail | null>(null);
 
 let nextId = 100;
-const handleConnectGmail = () => {
-  showConnectModal.value = false;
-  window.open(
-    "https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=https://mail.google.com/&access_type=offline&prompt=consent",
-    "_blank"
-  );
-  setTimeout(() => {
-    const fakeEmail = `user${nextId++}@gmail.com`;
+
+// OAuth 回跳处理：检查 URL 中的 oauth_success 参数
+onMounted(() => {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("oauth_success") === "1") {
+    const oauthEmail = url.searchParams.get("email") || `user${nextId++}@gmail.com`;
     connectedEmails.value.push({
-      id: String(nextId),
-      email: fakeEmail,
+      id: String(nextId++),
+      email: oauthEmail,
       createdAt: new Date().toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
       createdBy: "客服主管",
       avatarText: "主",
       avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     });
     emit("toast", "邮箱连接成功");
-  }, 800);
+    // 清除 URL 参数
+    url.searchParams.delete("oauth_success");
+    url.searchParams.delete("email");
+    window.history.replaceState({}, "", url.toString());
+  }
+});
+
+const handleConnectGmail = () => {
+  showConnectModal.value = false;
+  // 在当前页面打开 Gmail OAuth 授权，授权成功后回跳到邮件设置页面
+  const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname + "#/settings/email?oauth_success=1");
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUri}&response_type=code&scope=https://mail.google.com/&access_type=offline&prompt=consent`;
 };
 
 const confirmDelete = (item: ConnectedEmail) => {
@@ -239,7 +251,18 @@ const handleDelete = () => {
   min-height: 200px;
 }
 
-.email-panel__empty-text {
+.email-panel__empty-content {
+  text-align: center;
+}
+
+.email-panel__empty-title {
+  color: var(--agent-color-text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 6px;
+}
+
+.email-panel__empty-desc {
   color: var(--agent-color-text-tertiary);
   font-size: 13px;
   margin: 0;

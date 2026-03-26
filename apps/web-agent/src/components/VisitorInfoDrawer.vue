@@ -79,7 +79,7 @@
               </button>
               <div v-show="!isSectionCollapsed('extra')" class="vd-section__body">
                 <dl class="vd-fields">
-                  <div v-if="visitor.channelType !== 'email'" class="vd-field">
+                  <div class="vd-field">
                     <dt>起始页面</dt>
                     <dd class="vd-field__link">{{ visitor.entryPage || '–' }}</dd>
                   </div>

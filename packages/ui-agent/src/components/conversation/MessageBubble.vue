@@ -95,7 +95,19 @@
           <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
           <span v-else>{{ content }}</span>
           <div v-if="parsedEmail.attachments.length > 0" class="message__attachments">
-            <div v-for="(att, idx) in parsedEmail.attachments" :key="idx" class="message__attachment" v-html="att" />
+            <button
+              v-for="(att, idx) in parsedEmail.attachments"
+              :key="idx"
+              type="button"
+              class="message__attachment-card"
+              @click="handleAttachmentClick(att)"
+            >
+              <span class="message__attachment-thumb" :data-ext="att.ext">{{ att.icon }}</span>
+              <div class="message__attachment-info">
+                <span class="message__attachment-name">{{ att.name }}</span>
+                <span class="message__attachment-size">{{ att.size }}</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -147,6 +159,18 @@ const selectedTranslateLang = ref("");
 function getPlainText(): string {
   if (props.contentType === 'html') {
     const doc = new DOMParser().parseFromString(props.content, 'text/html');
+    // 移除图片和附件区域，只保留纯文本用于翻译
+    for (const img of Array.from(doc.body.querySelectorAll('img'))) {
+      img.remove();
+    }
+    // 移除附件 div（包含文件 emoji 和文件大小的 div）
+    for (const div of Array.from(doc.body.children)) {
+      if (div.tagName !== 'DIV') continue;
+      const text = div.textContent || '';
+      if (/[\u{1F4C4}\u{1F4CB}\u{1F4CE}\u{1F4C1}]/u.test(text) && /\d+(\.\d+)?\s*(MB|KB|GB|B)\b/i.test(text)) {
+        div.remove();
+      }
+    }
     return doc.body.textContent || '';
   }
   return props.content;
@@ -211,22 +235,71 @@ const sanitizedContent = computed(() => {
   return sanitizeHtml(props.content);
 });
 
-function extractAttachments(html: string): { body: string; attachments: string[] } {
+interface ParsedAttachment {
+  name: string;
+  size: string;
+  icon: string;
+  ext: string;
+  rawHtml: string;
+}
+
+function getFileIcon(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (ext === 'pdf') return '\u{1F4C4}';
+  if (['doc', 'docx'].includes(ext)) return '\u{1F4DD}';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return '\u{1F4CA}';
+  if (['zip', 'rar', '7z'].includes(ext)) return '\u{1F4E6}';
+  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) return '\u{1F5BC}';
+  return '\u{1F4CE}';
+}
+
+function getFileExt(name: string): string {
+  return (name.split('.').pop() || '').toUpperCase();
+}
+
+function extractAttachments(html: string): { body: string; attachments: ParsedAttachment[] } {
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  const attachments: string[] = [];
+  const attachments: ParsedAttachment[] = [];
   for (const div of Array.from(doc.body.children)) {
     if (div.tagName !== 'DIV') continue;
     const text = div.textContent || '';
     if (/[\u{1F4C4}\u{1F4CB}\u{1F4CE}\u{1F4C1}]/u.test(text) && /\d+(\.\d+)?\s*(MB|KB|GB|B)\b/i.test(text)) {
-      attachments.push(div.outerHTML);
+      // 提取附件名称和大小
+      const nameEl = div.querySelector('div[style*="font-weight"]') || div.querySelector('div:first-child');
+      const sizeEl = div.querySelector('div[style*="font-size: 11px"]') || div.querySelector('div:last-child');
+      const fileName = nameEl?.textContent?.trim() || '未知文件';
+      const fileSize = sizeEl?.textContent?.trim() || '';
+      attachments.push({
+        name: fileName,
+        size: fileSize,
+        icon: getFileIcon(fileName),
+        ext: getFileExt(fileName),
+        rawHtml: div.outerHTML,
+      });
       div.remove();
     }
   }
   return { body: doc.body.innerHTML, attachments };
 }
 
+function handleAttachmentClick(att: ParsedAttachment) {
+  // 模拟查看附件：在新窗口预览
+  const previewWindow = window.open('', '_blank');
+  if (previewWindow) {
+    previewWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head><title>${att.name}</title>
+      <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f6f8;}
+      .card{background:#fff;border-radius:16px;padding:40px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+      .icon{font-size:64px;margin-bottom:16px}.name{font-size:18px;font-weight:600;color:#222;margin:0 0 8px}.size{font-size:14px;color:#75869c}</style>
+      </head><body><div class="card"><div class="icon">${att.icon}</div><p class="name">${att.name}</p><p class="size">${att.size}</p></div></body></html>
+    `);
+    previewWindow.document.close();
+  }
+}
+
 const parsedEmail = computed(() => {
-  if (props.contentType !== 'html') return { body: props.content, attachments: [] as string[] };
+  if (props.contentType !== 'html') return { body: props.content, attachments: [] as ParsedAttachment[] };
   const sanitized = sanitizeHtml(props.content);
   return extractAttachments(sanitized);
 });
@@ -379,8 +452,58 @@ const parsedEmail = computed(() => {
   padding-top: 10px;
 }
 
-.message__attachment :deep(div) {
+.message__attachment-card {
+  align-items: center;
+  background: var(--agent-color-bg-muted, #f5f7fa);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.message__attachment-card:hover {
+  background: var(--agent-color-bg-secondary, #eef1f6);
+  border-color: var(--agent-color-brand-primary);
+}
+
+.message__attachment-thumb {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 22px;
+  height: 40px;
+  justify-content: center;
+  line-height: 1;
+  width: 40px;
+}
+
+.message__attachment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.message__attachment-name {
+  color: var(--agent-color-text-primary);
   font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message__attachment-size {
+  color: var(--agent-color-text-tertiary);
+  font-size: 11px;
 }
 
 /* --- Action toolbar --- */
