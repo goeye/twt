@@ -108,6 +108,7 @@
               <div v-if="openMenuId === item.id" class="customer-action-menu">
                 <button type="button" class="customer-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button type="button" class="customer-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button type="button" class="customer-action-menu__item" @click="handleSendEmail(item)">发送邮件</button>
               </div>
             </td>
           </tr>
@@ -176,6 +177,7 @@
               <div v-if="openMenuId === item.id" class="customer-action-menu">
                 <button type="button" class="customer-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button type="button" class="customer-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button type="button" class="customer-action-menu__item" @click="handleSendEmail(item)">发送邮件</button>
               </div>
             </td>
           </tr>
@@ -321,6 +323,33 @@ const toggleActionMenu = (id: number) => {
 const handleMenuAction = (action: string) => {
   openMenuId.value = null;
   emit("toast", `${action}功能开发中`);
+};
+
+const handleSendEmail = (item: OnlineCustomerItem | CustomerItem) => {
+  openMenuId.value = null;
+
+  const emailChannels = localStorage.getItem("email_channels");
+  let hasChannels = false;
+  if (emailChannels) {
+    try {
+      const channels = JSON.parse(emailChannels);
+      hasChannels = Array.isArray(channels) && channels.length > 0;
+    } catch (e) {
+      // 解析失败
+    }
+  }
+
+  if (!hasChannels) {
+    emit("toast", "未配置邮箱渠道，无法发送");
+    return;
+  }
+
+  if (!item.email || item.email === "–") {
+    emit("toast", "访客邮箱为空，无法发送");
+    return;
+  }
+
+  emit("toast", "发送邮件功能开发中");
 };
 </script>
 

@@ -104,9 +104,10 @@
                 </svg>
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
-                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="openSendEmailDialog(item)">发送邮件</button>
+                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="handleSendEmailClick(item)">发送邮件</button>
                 <button v-else type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleSendEmailClick(item)">发送邮件</button>
               </div>
             </td>
           </tr>
@@ -171,9 +172,10 @@
                 </svg>
               </button>
               <div v-if="openMenuId === item.id" class="visitor-action-menu">
-                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="openSendEmailDialog(item)">发送邮件</button>
+                <button v-if="item.channelType === 'email'" type="button" class="visitor-action-menu__item" @click="handleSendEmailClick(item)">发送邮件</button>
                 <button v-else type="button" class="visitor-action-menu__item" @click="handleMenuAction('创建会话')">创建会话</button>
                 <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleMenuAction('发起聊天')">发起聊天</button>
+                <button v-if="item.channelType !== 'email'" type="button" class="visitor-action-menu__item" @click="handleSendEmailClick(item)">发送邮件</button>
               </div>
             </td>
           </tr>
@@ -391,6 +393,33 @@ const toggleActionMenu = (id: number) => {
 const handleMenuAction = (action: string) => {
   openMenuId.value = null;
   emit("toast", `${action}功能开发中`);
+};
+
+const handleSendEmailClick = (item: OnlineVisitorItem | AllVisitorItem) => {
+  openMenuId.value = null;
+
+  const emailChannels = localStorage.getItem("email_channels");
+  let hasChannels = false;
+  if (emailChannels) {
+    try {
+      const channels = JSON.parse(emailChannels);
+      hasChannels = Array.isArray(channels) && channels.length > 0;
+    } catch (e) {
+      // 解析失败
+    }
+  }
+
+  if (!hasChannels) {
+    emit("toast", "未配置邮箱渠道，无法发送");
+    return;
+  }
+
+  if (!item.email || item.email === "–") {
+    emit("toast", "访客邮箱为空，无法发送");
+    return;
+  }
+
+  openSendEmailDialog(item);
 };
 
 const openSendEmailDialog = (item: OnlineVisitorItem | AllVisitorItem) => {

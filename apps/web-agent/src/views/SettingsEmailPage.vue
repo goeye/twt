@@ -139,8 +139,24 @@ const deleteTarget = ref<ConnectedEmail | null>(null);
 
 let nextId = 100;
 
+const syncToLocalStorage = () => {
+  localStorage.setItem("email_channels", JSON.stringify(connectedEmails.value));
+};
+
 // OAuth 回跳处理：检查 URL 中的 oauth_success 参数
 onMounted(() => {
+  const stored = localStorage.getItem("email_channels");
+  if (stored) {
+    try {
+      connectedEmails.value = JSON.parse(stored);
+    } catch (e) {
+      // 忽略解析错误
+    }
+  } else {
+    // 首次加载，同步默认数据到 localStorage
+    syncToLocalStorage();
+  }
+
   const url = new URL(window.location.href);
   if (url.searchParams.get("oauth_success") === "1") {
     const oauthEmail = url.searchParams.get("email") || `user${nextId++}@gmail.com`;
@@ -152,6 +168,7 @@ onMounted(() => {
       avatarText: "主",
       avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
     });
+    syncToLocalStorage();
     emit("toast", "邮箱连接成功");
     // 清除 URL 参数
     url.searchParams.delete("oauth_success");
@@ -175,6 +192,7 @@ const confirmDelete = (item: ConnectedEmail) => {
 const handleDelete = () => {
   if (deleteTarget.value) {
     connectedEmails.value = connectedEmails.value.filter(e => e.id !== deleteTarget.value!.id);
+    syncToLocalStorage();
     emit("toast", "删除成功");
   }
   showDeleteModal.value = false;
