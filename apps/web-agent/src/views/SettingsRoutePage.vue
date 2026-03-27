@@ -137,7 +137,10 @@
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">
             成员不活跃
-            <span class="settings-tooltip-icon" title="当成员超时未操作时自动更改为离开状态，适用于所有渠道">?</span>
+            <span class="wh-field__help" style="margin-left: 6px; vertical-align: middle;">
+              <button type="button" class="wh-field__help-icon">?</button>
+              <span class="wh-field__tooltip">此设置对 Email 渠道会话不生效</span>
+            </span>
           </h2>
           <button
             type="button"
@@ -161,7 +164,10 @@
         <div class="settings-card__title-row">
           <h2 class="agent-settings-feature-title">
             会话超时
-            <span class="settings-tooltip-icon" title="当成员超时未回复时会话自动进入排队，适用于所有渠道">?</span>
+            <span class="wh-field__help" style="margin-left: 6px; vertical-align: middle;">
+              <button type="button" class="wh-field__help-icon">?</button>
+              <span class="wh-field__tooltip">此设置对 Email 渠道会话不生效</span>
+            </span>
           </h2>
           <button
             type="button"
@@ -2444,17 +2450,4 @@ const unrepliedContentRows: WebhookTableRow[] = [
   }
 }
 
-.settings-tooltip-icon {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-left: 6px;
-  border-radius: 50%;
-  background: #75869c;
-  color: #fff;
-  font-size: 11px;
-  line-height: 14px;
-  text-align: center;
-  cursor: help;
-}
 </style>
