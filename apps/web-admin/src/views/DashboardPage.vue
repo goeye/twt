@@ -26,6 +26,7 @@
             :format="'YYYY-MM-DD'"
             :presets="rangePresets"
             :disabled-date="disabledDate"
+            :placeholder="['开始时间', '结束时间']"
             style="width: 280px"
           />
           <a-select v-model:value="projectFilter" style="width: 120px">

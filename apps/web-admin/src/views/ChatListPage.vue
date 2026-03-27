@@ -23,6 +23,7 @@
         <a-select v-model:value="filters.status" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
           <a-select-option value="活跃">活跃</a-select-option>
+          <a-select-option value="解散">解散</a-select-option>
         </a-select>
 
         <span class="filter-label">分类：</span>
@@ -38,14 +39,15 @@
 
       <div class="filter-row">
         <span class="filter-label">发起时间：</span>
-        <a-range-picker v-model:value="filters.createTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.createTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">最后更新时间：</span>
-        <a-range-picker v-model:value="filters.lastUpdateTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.lastUpdateTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">删除状态：</span>
         <a-select v-model:value="filters.deleteStatus" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
+          <a-select-option value="删除">删除</a-select-option>
           <a-select-option value="正常">正常</a-select-option>
         </a-select>
 
@@ -91,9 +93,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import { chatsData } from "../mock/chatsData";
+
+const route = useRoute();
 
 const filters = ref({
   title: "",
@@ -162,6 +167,13 @@ function handleTableChange(pag: any) {
   pagination.value.current = pag.current;
   pagination.value.pageSize = pag.pageSize;
 }
+
+onMounted(() => {
+  const projectId = route.query.projectId;
+  if (projectId) {
+    filters.value.projectId = String(projectId);
+  }
+});
 </script>
 
 <style scoped>

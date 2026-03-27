@@ -71,6 +71,10 @@ const router = createRouter({
       path: "/project/domains",
       component: () => import("./views/DomainListPage.vue"),
     },
+    {
+      path: "/project/visitors",
+      component: () => import("./views/VisitorListPage.vue"),
+    },
   ],
 });
 

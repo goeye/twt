@@ -9,6 +9,7 @@
             format="YYYY-MM-DD"
             :presets="rangePresets"
             :disabled-date="disabledDate"
+            :placeholder="['开始时间', '结束时间']"
             style="width: 280px"
           />
           <span class="filter-label">项目名称</span>

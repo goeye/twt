@@ -26,8 +26,10 @@
         <span class="filter-label">状态：</span>
         <a-select v-model:value="filters.status" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
-          <a-select-option value="已回复">已回复</a-select-option>
           <a-select-option value="待回复">待回复</a-select-option>
+          <a-select-option value="排队中">排队中</a-select-option>
+          <a-select-option value="待处理">待处理</a-select-option>
+          <a-select-option value="已回复">已回复</a-select-option>
           <a-select-option value="已结束">已结束</a-select-option>
         </a-select>
 
@@ -35,11 +37,14 @@
         <a-input v-model:value="filters.assignedStaff" placeholder="请输入" style="width: 150px" />
 
         <span class="filter-label">发起时间：</span>
-        <a-range-picker v-model:value="filters.createTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.createTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">访客评价：</span>
         <a-select v-model:value="filters.visitorRating" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
+          <a-select-option value="满意">满意</a-select-option>
+          <a-select-option value="一般">一般</a-select-option>
+          <a-select-option value="不满意">不满意</a-select-option>
         </a-select>
       </div>
 
@@ -47,6 +52,7 @@
         <span class="filter-label">删除状态：</span>
         <a-select v-model:value="filters.deleteStatus" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
+          <a-select-option value="删除">删除</a-select-option>
           <a-select-option value="正常">正常</a-select-option>
         </a-select>
 
@@ -91,9 +97,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import { sessionsData } from "../mock/sessionsData";
+
+const route = useRoute();
 
 const filters = ref({
   title: "",
@@ -167,6 +176,13 @@ function handleTableChange(pag: any) {
   pagination.value.current = pag.current;
   pagination.value.pageSize = pag.pageSize;
 }
+
+onMounted(() => {
+  const projectId = route.query.projectId;
+  if (projectId) {
+    filters.value.projectId = String(projectId);
+  }
+});
 </script>
 
 <style scoped>

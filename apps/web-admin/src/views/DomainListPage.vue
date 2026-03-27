@@ -22,12 +22,15 @@
         <span class="filter-label">语言环境：</span>
         <a-select v-model:value="filters.language" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
+          <a-select-option value="简体中文">简体中文</a-select-option>
+          <a-select-option value="繁体中文">繁体中文</a-select-option>
+          <a-select-option value="English">English</a-select-option>
         </a-select>
       </div>
 
       <div class="filter-row">
         <span class="filter-label">接入时间：</span>
-        <a-range-picker v-model:value="filters.accessTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.accessTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <div style="margin-left: auto; display: flex; gap: 12px">
           <a-button type="primary" @click="handleSearch">
@@ -68,9 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import { domainsData } from "../mock/domainsData";
+
+const route = useRoute();
 
 const filters = ref({
   domain: "",
@@ -128,6 +134,13 @@ function handleTableChange(pag: any) {
   pagination.value.current = pag.current;
   pagination.value.pageSize = pag.pageSize;
 }
+
+onMounted(() => {
+  const projectId = route.query.projectId;
+  if (projectId) {
+    filters.value.projectId = String(projectId);
+  }
+});
 </script>
 
 <style scoped>

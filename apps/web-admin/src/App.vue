@@ -226,6 +226,10 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
     breadcrumbs: [{ title: "项目管理" }, { title: "域名列表" }],
     tabTitle: "域名列表",
   },
+  "/project/visitors": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "访客列表" }],
+    tabTitle: "访客列表",
+  },
 };
 
 function getRouteMeta(path: string): { breadcrumbs: BreadcrumbItem[]; tabTitle: string } {
@@ -297,6 +301,7 @@ function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
   if (path === "/prompt/list") return "prompt-list";
   if (path === "/project/list") return "project-list";
+  if (path === "/project/visitors") return "project-list";
   if (path === "/project/clients") return "project-clients";
   if (path === "/project/sessions") return "project-sessions";
   if (path === "/project/chats") return "project-chats";

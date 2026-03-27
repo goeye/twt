@@ -10,7 +10,7 @@
         <a-select v-model:value="filters.serviceVersion" style="width: 150px">
           <a-select-option value="">全部</a-select-option>
           <a-select-option value="专业版">专业版</a-select-option>
-          <a-select-option value="专业版（试用）">专业版（试用）</a-select-option>
+          <a-select-option value="免费版">免费版</a-select-option>
         </a-select>
 
         <span class="filter-label">是否付费：</span>
@@ -20,18 +20,25 @@
           <a-select-option value="no">否</a-select-option>
         </a-select>
 
-        <span class="filter-label">是否使用：</span>
-        <a-select v-model:value="filters.isUsed" style="width: 120px">
+        <span class="filter-label">是否试用：</span>
+        <a-select v-model:value="filters.isTrial" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
           <a-select-option value="yes">是</a-select-option>
           <a-select-option value="no">否</a-select-option>
         </a-select>
 
         <span class="filter-label">最近消息时间：</span>
-        <a-range-picker v-model:value="filters.lastMessageTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.lastMessageTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
       </div>
 
       <div class="filter-row">
+        <span class="filter-label">隐藏官方标识：</span>
+        <a-select v-model:value="filters.hideOfficialMark" style="width: 120px">
+          <a-select-option value="">全部</a-select-option>
+          <a-select-option value="yes">是</a-select-option>
+          <a-select-option value="no">否</a-select-option>
+        </a-select>
+
         <span class="filter-label">站点状态：</span>
         <a-select v-model:value="filters.siteStatus" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
@@ -40,21 +47,21 @@
         </a-select>
 
         <span class="filter-label">创建时间：</span>
-        <a-range-picker v-model:value="filters.createTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.createTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">到期时间：</span>
-        <a-range-picker v-model:value="filters.expireTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.expireTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
       </div>
 
       <div class="filter-row">
         <span class="filter-label">首次付费时间：</span>
-        <a-range-picker v-model:value="filters.firstPayTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.firstPayTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">最新付费时间：</span>
-        <a-range-picker v-model:value="filters.lastRenewTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.lastRenewTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <span class="filter-label">计数周期：</span>
-        <a-range-picker v-model:value="filters.countPeriod" style="width: 240px" />
+        <a-range-picker v-model:value="filters.countPeriod" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
       </div>
 
       <div class="filter-row">
@@ -64,7 +71,9 @@
         <span class="filter-label">语言环境：</span>
         <a-select v-model:value="filters.language" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
-          <a-select-option value="zh-cn">zh-cn</a-select-option>
+          <a-select-option value="简体中文">简体中文</a-select-option>
+          <a-select-option value="繁体中文">繁体中文</a-select-option>
+          <a-select-option value="English">English</a-select-option>
         </a-select>
 
         <span class="filter-label">有效项目：</span>
@@ -126,14 +135,19 @@
             {{ record.lastRenewTime || '-' }}
           </template>
           <template v-else-if="column.key === 'creatorEmail'">
-            {{ record.creatorEmail }}
-            <EyeOutlined style="color: #1890ff; margin-left: 4px; cursor: pointer" />
+            <template v-if="revealedEmails.has(record.id)">
+              {{ record.fullEmail }}
+            </template>
+            <template v-else>
+              {{ record.creatorEmail }}
+              <EyeOutlined style="color: #1890ff; margin-left: 4px; cursor: pointer" @click="revealedEmails.add(record.id)" />
+            </template>
           </template>
           <template v-else-if="column.key === 'isCodeEntered'">
             {{ record.isCodeEntered ? '已接入' : '未接入' }}
           </template>
           <template v-else-if="column.key === 'connectedDomains'">
-            <a v-if="record.connectedDomains > 0" style="color: #1890ff">{{ record.connectedDomains }}</a>
+            <a v-if="record.connectedDomains > 0" style="color: #1890ff" @click="router.push({ path: '/project/domains', query: { projectId: record.id } })">{{ record.connectedDomains }}</a>
             <span v-else>-</span>
           </template>
           <template v-else-if="column.key === 'lastConsoleTime'">
@@ -143,13 +157,13 @@
             {{ record.hasOfficialVerify ? '否' : '否' }}
           </template>
           <template v-else-if="column.key === 'clientCount'">
-            <a style="color: #1890ff">{{ record.clientCount }}</a>
+            <a style="color: #1890ff" @click="router.push({ path: '/project/clients', query: { projectId: record.id } })">{{ record.clientCount }}</a>
           </template>
           <template v-else-if="column.key === 'visitorCount'">
-            <a style="color: #1890ff">{{ record.visitorCount }}</a>
+            <a style="color: #1890ff" @click="router.push({ path: '/project/visitors', query: { projectId: record.id, type: 'visitor' } })">{{ record.visitorCount }}</a>
           </template>
           <template v-else-if="column.key === 'customerCount'">
-            <a style="color: #1890ff">{{ record.customerCount }}</a>
+            <a style="color: #1890ff" @click="router.push({ path: '/project/visitors', query: { projectId: record.id, type: 'customer' } })">{{ record.customerCount }}</a>
           </template>
           <template v-else-if="column.key === 'sessionWindowOpenCount'">
             {{ record.sessionWindowOpenCount }}
@@ -158,10 +172,10 @@
             {{ record.sessionWindowIndependentOpenCount }}
           </template>
           <template v-else-if="column.key === 'sessionCount'">
-            <a style="color: #1890ff">{{ record.sessionCount }}</a>
+            <a style="color: #1890ff" @click="router.push({ path: '/project/sessions', query: { projectId: record.id } })">{{ record.sessionCount }}</a>
           </template>
           <template v-else-if="column.key === 'chatDays'">
-            {{ record.chatDays }}
+            <a style="color: #1890ff" @click="router.push({ path: '/project/chats', query: { projectId: record.id } })">{{ record.chatDays }}</a>
           </template>
           <template v-else-if="column.key === 'sessionIndependentVisitorCount'">
             <a style="color: #1890ff">{{ record.sessionIndependentVisitorCount }}</a>
@@ -178,26 +192,21 @@
             </span>
           </template>
           <template v-else-if="column.key === 'action'">
-            <a-dropdown>
-              <a style="color: #1890ff">
-                更多 <DownOutlined />
-              </a>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item>
-                    <span style="color: #ff4d4f">{{ record.siteStatus === '启用' ? '禁用' : '启用' }}</span>
-                  </a-menu-item>
-                  <a-menu-item>
-                    <span style="color: #1890ff">更多</span>
-                  </a-menu-item>
-                  <a-menu-item>修改到期时间</a-menu-item>
-                  <a-menu-item>修改坐席数</a-menu-item>
-                  <a-menu-item>
-                    <span style="color: #ff4d4f">修改试用状态</span>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <a style="color: #ff4d4f">{{ record.siteStatus === '启用' ? '禁用' : '启用' }}</a>
+              <a-dropdown>
+                <a style="color: #1890ff">
+                  更多 <DownOutlined />
+                </a>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item>修改到期时间</a-menu-item>
+                    <a-menu-item>修改坐席数</a-menu-item>
+                    <a-menu-item>修改试用状态</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </div>
           </template>
         </template>
       </a-table>
@@ -206,16 +215,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
+import { useRouter } from "vue-router";
 import { SearchOutlined, ReloadOutlined, EyeOutlined, DownOutlined } from "@ant-design/icons-vue";
 import { projectsData } from "../mock/projectsData";
 import type { TableProps } from "ant-design-vue";
+
+const router = useRouter();
+const revealedEmails = reactive(new Set<number>());
 
 const filters = ref({
   projectName: "",
   serviceVersion: "",
   isPaid: "",
-  isUsed: "",
+  isTrial: "",
+  hideOfficialMark: "",
   lastMessageTime: null as any,
   siteStatus: "",
   createTime: null as any,
@@ -288,7 +302,8 @@ function handleReset() {
     projectName: "",
     serviceVersion: "",
     isPaid: "",
-    isUsed: "",
+    isTrial: "",
+  hideOfficialMark: "",
     lastMessageTime: null,
     siteStatus: "",
     createTime: null,

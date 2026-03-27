@@ -31,7 +31,7 @@
         </a-select>
 
         <span class="filter-label">创建时间：</span>
-        <a-range-picker v-model:value="filters.createTime" style="width: 240px" />
+        <a-range-picker v-model:value="filters.createTime" :placeholder="['开始时间', '结束时间']" style="width: 240px" />
 
         <div style="margin-left: auto; display: flex; gap: 12px">
           <a-button type="primary" @click="handleSearch">
@@ -74,9 +74,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { SearchOutlined, ReloadOutlined, EyeOutlined } from "@ant-design/icons-vue";
 import { clientsData } from "../mock/clientsData";
+
+const route = useRoute();
 
 const filters = ref({
   id: "",
@@ -140,6 +143,13 @@ function handleTableChange(pag: any) {
   pagination.value.current = pag.current;
   pagination.value.pageSize = pag.pageSize;
 }
+
+onMounted(() => {
+  const projectId = route.query.projectId;
+  if (projectId) {
+    filters.value.projectId = String(projectId);
+  }
+});
 </script>
 
 <style scoped>

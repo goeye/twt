@@ -9,6 +9,7 @@ export interface Project {
   createDate: string;
   creatorId: string;
   creatorEmail: string;
+  fullEmail: string;
   sourceChannel: string;
   utmSource: string;
   isCodeEntered: boolean;
@@ -42,6 +43,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-26",
     creatorId: "100000448",
     creatorEmail: "d***n@qq.com",
+    fullEmail: "damon@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: true,
@@ -73,6 +75,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-26",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -104,6 +107,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-26",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -135,6 +139,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-26",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -166,6 +171,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-25",
     creatorId: "100000211",
     creatorEmail: "sj***33@gmail.com",
+    fullEmail: "sjchen33@gmail.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -197,6 +203,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-25",
     creatorId: "100000121",
     creatorEmail: "37***84@qq.com",
+    fullEmail: "3796584@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -228,6 +235,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-24",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -259,6 +267,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-24",
     creatorId: "100000121",
     creatorEmail: "37***84@qq.com",
+    fullEmail: "3796584@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -290,6 +299,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-23",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: false,
@@ -321,6 +331,7 @@ export const projectsData: Project[] = [
     createDate: "2026-03-23",
     creatorId: "100000447",
     creatorEmail: "hu***un@qq.com",
+    fullEmail: "huangjieyun@qq.com",
     sourceChannel: "",
     utmSource: "",
     isCodeEntered: true,
