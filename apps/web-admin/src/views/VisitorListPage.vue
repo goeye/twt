@@ -17,6 +17,14 @@
 
         <span class="filter-label">电话：</span>
         <a-input v-model:value="filters.phone" placeholder="请输入" style="width: 150px" />
+
+        <span class="filter-label">来源渠道：</span>
+        <a-select v-model:value="filters.sourceChannel" style="width: 120px">
+          <a-select-option value="">全部</a-select-option>
+          <a-select-option value="web">web</a-select-option>
+          <a-select-option value="网页插件">网页插件</a-select-option>
+          <a-select-option value="Email">Email</a-select-option>
+        </a-select>
       </div>
 
       <div class="filter-row">
@@ -100,6 +108,10 @@
             <a :href="currentVisitor?.sourceUrl" target="_blank" style="color: #1890ff">{{ currentVisitor?.sourceUrl }}</a>
           </div>
           <div class="detail-row">
+            <span class="detail-label">来源渠道</span>
+            <span class="detail-value">{{ currentVisitor?.sourceChannel }}</span>
+          </div>
+          <div class="detail-row">
             <span class="detail-label">会话总数</span>
             <span class="detail-value">{{ currentVisitor?.sessionCount }} 个会话</span>
           </div>
@@ -155,6 +167,7 @@ const filters = ref({
   email: "",
   customerLabel: "",
   phone: "",
+  sourceChannel: "",
   firstVisit: null as any,
   lastVisit: null as any,
 });
@@ -172,6 +185,7 @@ const columns = [
   { title: "客户标识", key: "customerLabel", width: 120 },
   { title: "邮箱", key: "email", width: 180 },
   { title: "电话", key: "phone", width: 120 },
+  { title: "来源渠道", dataIndex: "sourceChannel", key: "sourceChannel", width: 100 },
   { title: "首次访问", dataIndex: "firstVisit", key: "firstVisit", width: 160, sorter: true },
   { title: "最后访问", dataIndex: "lastVisit", key: "lastVisit", width: 160, sorter: true },
   { title: "访问轨迹数", dataIndex: "trackCount", key: "trackCount", width: 100 },
@@ -204,6 +218,7 @@ function handleReset() {
     email: "",
     customerLabel: "",
     phone: "",
+    sourceChannel: "",
     firstVisit: null,
     lastVisit: null,
   };

@@ -12,6 +12,7 @@ export interface Session {
   assignedStaff: string;
   clientCount: number;
   tags: string;
+  sourceChannel: string;
   createTime: string;
   acceptTime: string;
   serviceDuration: string;
@@ -34,6 +35,7 @@ export const sessionsData: Session[] = [
     assignedStaff: "潘金莲与武大郎的灰姑娘故事",
     clientCount: 2,
     tags: "-",
+    sourceChannel: "web",
     createTime: "2026-03-27 12:01:59",
     acceptTime: "2026-03-27 12:02:08",
     serviceDuration: "-",
@@ -54,6 +56,7 @@ export const sessionsData: Session[] = [
     assignedStaff: "aaaa",
     clientCount: 1,
     tags: "-",
+    sourceChannel: "网页插件",
     createTime: "2026-03-27 11:48:16",
     acceptTime: "2026-03-27 11:48:16",
     serviceDuration: "-",
@@ -74,6 +77,7 @@ export const sessionsData: Session[] = [
     assignedStaff: "aaaa",
     clientCount: 1,
     tags: "-",
+    sourceChannel: "Email",
     createTime: "2026-03-27 11:47:15",
     acceptTime: "2026-03-27 11:47:15",
     serviceDuration: "-",
@@ -94,6 +98,7 @@ export const sessionsData: Session[] = [
     assignedStaff: "&#65308;script&#65310;alert(&#65282;xss&#65282;)&#65308;//script&#65310;//",
     clientCount: 2,
     tags: "-",
+    sourceChannel: "web",
     createTime: "2026-03-27 11:46:47",
     acceptTime: "2026-03-27 11:46:47",
     serviceDuration: "13分42秒",
@@ -114,6 +119,7 @@ export const sessionsData: Session[] = [
     assignedStaff: "aaaa",
     clientCount: 1,
     tags: "-",
+    sourceChannel: "网页插件",
     createTime: "2026-03-27 11:40:38",
     acceptTime: "2026-03-27 11:40:38",
     serviceDuration: "-",

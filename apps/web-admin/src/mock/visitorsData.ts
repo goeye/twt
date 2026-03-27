@@ -4,6 +4,7 @@ export interface Visitor {
   customerLabel: string;
   email: string;
   phone: string;
+  sourceChannel: string;
   firstVisit: string;
   lastVisit: string;
   trackCount: number;
@@ -28,6 +29,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "",
     email: "",
     phone: "",
+    sourceChannel: "web",
     firstVisit: "2026-03-27 17:53",
     lastVisit: "2026-03-27 17:53",
     trackCount: 1,
@@ -52,6 +54,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "",
     email: "",
     phone: "",
+    sourceChannel: "网页插件",
     firstVisit: "2026-03-26 15:43",
     lastVisit: "2026-03-26 15:43",
     trackCount: 1,
@@ -68,6 +71,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "",
     email: "",
     phone: "",
+    sourceChannel: "Email",
     firstVisit: "2026-03-26 15:43",
     lastVisit: "2026-03-26 15:43",
     trackCount: 1,
@@ -84,6 +88,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "",
     email: "",
     phone: "",
+    sourceChannel: "web",
     firstVisit: "2026-03-26 15:29",
     lastVisit: "2026-03-26 15:29",
     trackCount: 1,
@@ -100,6 +105,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "VIP客户",
     email: "visitor2@example.com",
     phone: "13800138002",
+    sourceChannel: "网页插件",
     firstVisit: "2026-03-26 15:29",
     lastVisit: "2026-03-27 12:01",
     trackCount: 2,
@@ -116,6 +122,7 @@ export const visitorsData: Visitor[] = [
     customerLabel: "企业客户",
     email: "visitor1@example.com",
     phone: "13800138001",
+    sourceChannel: "Email",
     firstVisit: "2026-03-26 15:28",
     lastVisit: "2026-03-27 17:27",
     trackCount: 37,

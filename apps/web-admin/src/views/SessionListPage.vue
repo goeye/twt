@@ -23,6 +23,14 @@
         <span class="filter-label">项目ID：</span>
         <a-input v-model:value="filters.projectId" placeholder="请输入" style="width: 150px" />
 
+        <span class="filter-label">来源渠道：</span>
+        <a-select v-model:value="filters.sourceChannel" style="width: 120px">
+          <a-select-option value="">全部</a-select-option>
+          <a-select-option value="web">web</a-select-option>
+          <a-select-option value="网页插件">网页插件</a-select-option>
+          <a-select-option value="Email">Email</a-select-option>
+        </a-select>
+
         <span class="filter-label">状态：</span>
         <a-select v-model:value="filters.status" style="width: 120px">
           <a-select-option value="">全部</a-select-option>
@@ -111,6 +119,7 @@ const filters = ref({
   customerLabel: "",
   projectName: "",
   projectId: "",
+  sourceChannel: "",
   status: "",
   assignedStaff: "",
   createTime: null as any,
@@ -138,6 +147,7 @@ const columns = [
   { title: "负责人", dataIndex: "assignedStaff", key: "assignedStaff", width: 120 },
   { title: "客服数", dataIndex: "clientCount", key: "clientCount", width: 80 },
   { title: "标签", dataIndex: "tags", key: "tags", width: 80 },
+  { title: "来源渠道", dataIndex: "sourceChannel", key: "sourceChannel", width: 100 },
   { title: "发起时间", dataIndex: "createTime", key: "createTime", width: 150, sorter: true },
   { title: "接待时间", dataIndex: "acceptTime", key: "acceptTime", width: 150, sorter: true },
   { title: "服务时长", dataIndex: "serviceDuration", key: "serviceDuration", width: 100 },
@@ -163,6 +173,7 @@ function handleReset() {
     customerLabel: "",
     projectName: "",
     projectId: "",
+    sourceChannel: "",
     status: "",
     assignedStaff: "",
     createTime: null,
