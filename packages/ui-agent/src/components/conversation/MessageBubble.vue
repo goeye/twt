@@ -91,9 +91,29 @@
                 </div>
               </div>
             </div>
+            <!-- 查看原始邮件按钮 -->
+            <button v-if="contentType === 'html' && parsedEmail.quoted" class="message__action-btn" title="查看引用内容" @click="quotedExpanded = !quotedExpanded">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
+            </button>
           </div>
           <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
           <span v-else>{{ content }}</span>
+
+          <!-- 引用内容区域 -->
+          <div v-if="parsedEmail.quoted" class="message__quoted-section">
+            <button
+              v-if="!quotedExpanded"
+              class="message__quoted-toggle"
+              @click="quotedExpanded = true"
+            >
+              ...
+            </button>
+            <div v-if="quotedExpanded" class="message__quoted-content">
+              <div class="message__quoted-inner" v-html="parsedEmail.quoted" />
+              <button class="message__quoted-collapse" @click="quotedExpanded = false">收起</button>
+            </div>
+          </div>
+
           <div v-if="parsedEmail.attachments.length > 0" class="message__attachments">
             <button
               v-for="(att, idx) in parsedEmail.attachments"
@@ -155,6 +175,7 @@ const hovered = ref(false);
 const moreMenuOpen = ref(false);
 const translatePanelOpen = ref(false);
 const selectedTranslateLang = ref("");
+const quotedExpanded = ref(false);
 
 function getPlainText(): string {
   if (props.contentType === 'html') {
@@ -257,6 +278,32 @@ function getFileExt(name: string): string {
   return (name.split('.').pop() || '').toUpperCase();
 }
 
+function extractQuotedContent(html: string): { body: string; quoted: string } {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  let quotedHtml = '';
+
+  // 方法1：提取 blockquote 标签
+  const blockquotes = doc.querySelectorAll('blockquote');
+  if (blockquotes.length > 0) {
+    quotedHtml = Array.from(blockquotes).map(bq => bq.outerHTML).join('');
+    blockquotes.forEach(bq => bq.remove());
+    return { body: doc.body.innerHTML, quoted: quotedHtml };
+  }
+
+  // 方法2：检测归属行（On ... wrote:）
+  const bodyHtml = doc.body.innerHTML;
+  const match = bodyHtml.match(/(On .+? wrote:|在 .+? 写道：|-----Original Message-----)/i);
+  if (match && match.index !== undefined) {
+    const splitIndex = match.index;
+    return {
+      body: bodyHtml.substring(0, splitIndex).trim(),
+      quoted: bodyHtml.substring(splitIndex).trim()
+    };
+  }
+
+  return { body: html, quoted: '' };
+}
+
 function extractAttachments(html: string): { body: string; attachments: ParsedAttachment[] } {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const attachments: ParsedAttachment[] = [];
@@ -299,9 +346,13 @@ function handleAttachmentClick(att: ParsedAttachment) {
 }
 
 const parsedEmail = computed(() => {
-  if (props.contentType !== 'html') return { body: props.content, attachments: [] as ParsedAttachment[] };
+  if (props.contentType !== 'html') return { body: props.content, attachments: [] as ParsedAttachment[], quoted: '' };
   const sanitized = sanitizeHtml(props.content);
-  return extractAttachments(sanitized);
+  // 提取引用内容
+  const { body, quoted } = extractQuotedContent(sanitized);
+  // 提取附件
+  const result = extractAttachments(body);
+  return { ...result, quoted };
 });
 </script>
 
@@ -692,5 +743,55 @@ const parsedEmail = computed(() => {
 .message__email-translate-panel--agent {
   right: 100%;
   padding-right: 6px;
+}
+
+/* 引用内容区域 */
+.message__quoted-section {
+  margin-top: 8px;
+}
+
+.message__quoted-toggle {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 0;
+}
+
+.message__quoted-toggle:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+.message__quoted-content {
+  margin-top: 8px;
+}
+
+.message__quoted-inner {
+  border-left: 3px solid var(--agent-color-border-default);
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.5;
+  padding-left: 12px;
+}
+
+.message__quoted-inner :deep(blockquote) {
+  border-left: 2px solid var(--agent-color-border-light);
+  margin: 4px 0;
+  padding-left: 8px;
+}
+
+.message__quoted-collapse {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-xs);
+  margin-top: 4px;
+  padding: 0;
+}
+
+.message__quoted-collapse:hover {
+  color: var(--agent-color-brand-primary);
 }
 </style>
