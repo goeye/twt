@@ -51,6 +51,26 @@ const router = createRouter({
       path: "/links/resources/:id",
       component: () => import("./views/ResourceEditPage.vue"),
     },
+    {
+      path: "/project/list",
+      component: () => import("./views/ProjectListPage.vue"),
+    },
+    {
+      path: "/project/clients",
+      component: () => import("./views/ClientListPage.vue"),
+    },
+    {
+      path: "/project/sessions",
+      component: () => import("./views/SessionListPage.vue"),
+    },
+    {
+      path: "/project/chats",
+      component: () => import("./views/ChatListPage.vue"),
+    },
+    {
+      path: "/project/domains",
+      component: () => import("./views/DomainListPage.vue"),
+    },
   ],
 });
 

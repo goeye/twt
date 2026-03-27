@@ -20,7 +20,6 @@
           <template #icon><BarChartOutlined /></template>
           <template #title>数据看板</template>
           <a-menu-item key="dashboard" @click="$router.push('/dashboard')">数据看板</a-menu-item>
-          <a-menu-item key="feature-stats" @click="$router.push('/feature-stats')">会话功能统计</a-menu-item>
         </a-sub-menu>
 
         <a-sub-menu key="prompt">
@@ -29,9 +28,14 @@
           <a-menu-item key="prompt-list" @click="$router.push('/prompt/list')">提示词列表</a-menu-item>
         </a-sub-menu>
 
-        <a-sub-menu key="project" disabled>
+        <a-sub-menu key="project">
           <template #icon><ProjectOutlined /></template>
           <template #title>项目管理</template>
+          <a-menu-item key="project-list" @click="$router.push('/project/list')">项目列表</a-menu-item>
+          <a-menu-item key="project-clients" @click="$router.push('/project/clients')">客服列表</a-menu-item>
+          <a-menu-item key="project-sessions" @click="$router.push('/project/sessions')">会话列表</a-menu-item>
+          <a-menu-item key="project-chats" @click="$router.push('/project/chats')">聊天列表</a-menu-item>
+          <a-menu-item key="project-domains" @click="$router.push('/project/domains')">域名列表</a-menu-item>
         </a-sub-menu>
 
         <a-sub-menu key="compliance">
@@ -202,6 +206,26 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
     breadcrumbs: [{ title: "资源管理" }, { title: "资源管理" }],
     tabTitle: "资源管理",
   },
+  "/project/list": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "项目列表" }],
+    tabTitle: "项目列表",
+  },
+  "/project/clients": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "客服列表" }],
+    tabTitle: "客服列表",
+  },
+  "/project/sessions": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "会话列表" }],
+    tabTitle: "会话列表",
+  },
+  "/project/chats": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "聊天列表" }],
+    tabTitle: "聊天列表",
+  },
+  "/project/domains": {
+    breadcrumbs: [{ title: "项目管理" }, { title: "域名列表" }],
+    tabTitle: "域名列表",
+  },
 };
 
 function getRouteMeta(path: string): { breadcrumbs: BreadcrumbItem[]; tabTitle: string } {
@@ -272,6 +296,11 @@ function closeTab(tab: TabItem) {
 function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
   if (path === "/prompt/list") return "prompt-list";
+  if (path === "/project/list") return "project-list";
+  if (path === "/project/clients") return "project-clients";
+  if (path === "/project/sessions") return "project-sessions";
+  if (path === "/project/chats") return "project-chats";
+  if (path === "/project/domains") return "project-domains";
   if (path === "/compliance/agreements") return "agreements";
   if (path.startsWith("/compliance/sensitive-words")) return "sensitive-words";
   if (path === "/compliance/alerts") return "alerts";
@@ -283,6 +312,7 @@ function routeToKey(path: string): string {
 
 function routeToOpenKeys(path: string): string[] {
   if (path.startsWith("/prompt")) return ["prompt"];
+  if (path.startsWith("/project")) return ["project"];
   if (path.startsWith("/compliance")) return ["compliance"];
   if (path.startsWith("/links")) return ["resource"];
   return ["data"];
