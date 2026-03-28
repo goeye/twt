@@ -20,6 +20,7 @@
           <time>{{ time }}</time>
         </header>
 
+        <div class="message__bubble-row">
         <div class="message__bubble">
           <!-- 非邮件会话：完整工具栏 -->
           <div
@@ -96,7 +97,8 @@
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
             </button>
           </div>
-          <div v-if="contentType === 'html'" class="message__html-content" v-html="parsedEmail.body" />
+          <div v-if="contentType === 'html' && parsedEmail.body && parsedEmail.body.trim()" class="message__html-content" v-html="parsedEmail.body" />
+          <div v-else-if="contentType === 'html'" class="message__empty-body">（无邮件内容）</div>
           <span v-else>{{ content }}</span>
 
           <!-- 引用内容区域 -->
@@ -130,6 +132,13 @@
             </button>
           </div>
         </div>
+        <div v-if="sendStatus === 'sending'" class="message__send-status message__send-status--sending">
+          <span class="message__sending-spinner" />
+        </div>
+        <button v-if="sendStatus === 'failed'" type="button" class="message__send-status message__send-status--failed" @click="$emit('retry')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#ef4444" stroke-width="1.5"/><line x1="8" y1="4.5" x2="8" y2="9" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="#ef4444"/></svg>
+        </button>
+        </div>
       </div>
     </template>
   </article>
@@ -151,6 +160,7 @@ const props = withDefaults(
     subject?: string;
     showActions?: boolean;
     channelType?: 'web' | 'email';
+    sendStatus?: 'sending' | 'failed' | 'sent';
     translationLanguages?: { label: string; value: string }[];
   }>(),
   {
@@ -169,6 +179,7 @@ const emit = defineEmits<{
   (e: 'copy'): void;
   (e: 'translate'): void;
   (e: 'revoke'): void;
+  (e: 'retry'): void;
 }>();
 
 const hovered = ref(false);
@@ -422,6 +433,12 @@ const parsedEmail = computed(() => {
   color: var(--agent-color-text-secondary);
 }
 
+.message__bubble-row {
+  align-items: flex-end;
+  display: flex;
+  gap: 6px;
+}
+
 .message__bubble {
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-lg);
@@ -466,6 +483,40 @@ const parsedEmail = computed(() => {
   line-height: 1.6;
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+.message__empty-body {
+  color: var(--agent-color-text-tertiary, #9ca3af);
+  font-size: var(--agent-font-size-sm, 13px);
+  font-style: italic;
+}
+
+.message__send-status {
+  align-items: center;
+  align-self: flex-end;
+  display: flex;
+  margin-left: 6px;
+}
+
+.message__send-status--failed {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.message__sending-spinner {
+  animation: spin 1s linear infinite;
+  border: 2px solid #e5e7eb;
+  border-radius: 50%;
+  border-top-color: var(--agent-color-brand-primary, #2f6bff);
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .message__html-content :deep(p) {

@@ -30,6 +30,7 @@
             <thead>
               <tr>
                 <th>邮箱地址</th>
+                <th>状态</th>
                 <th>创建时间</th>
                 <th>创建人</th>
                 <th>操作</th>
@@ -40,6 +41,10 @@
                 <td>
                   <span class="email-table__addr">{{ item.email }}</span>
                 </td>
+                <td>
+                  <span v-if="item.status === 'expired'" class="email-table__status email-table__status--expired">连接失效</span>
+                  <span v-else class="email-table__status email-table__status--active">正常</span>
+                </td>
                 <td class="email-table__time">{{ item.createdAt }}</td>
                 <td>
                   <div class="email-table__creator">
@@ -48,6 +53,7 @@
                   </div>
                 </td>
                 <td>
+                  <button v-if="item.status === 'expired'" type="button" class="email-table__reconnect-btn" @click="handleReconnect(item)">重新连接</button>
                   <button type="button" class="email-table__delete-btn" @click="confirmDelete(item)">删除</button>
                 </td>
               </tr>
@@ -119,6 +125,7 @@ interface ConnectedEmail {
   createdBy: string;
   avatarText: string;
   avatarColor: string;
+  status?: 'active' | 'expired';
 }
 
 const emit = defineEmits<{
@@ -128,9 +135,9 @@ const emit = defineEmits<{
 const maxEmails = 99;
 
 const connectedEmails = ref<ConnectedEmail[]>([
-  { id: "1", email: "support@company.gmail.com", createdAt: "2026-03-15 10:30", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)" },
-  { id: "2", email: "sales@company.gmail.com", createdAt: "2026-03-16 14:20", createdBy: "王珂", avatarText: "王", avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)" },
-  { id: "3", email: "hello@team.gmail.com", createdAt: "2026-03-18 09:15", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)" },
+  { id: "1", email: "support@company.gmail.com", createdAt: "2026-03-15 10:30", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", status: "active" },
+  { id: "2", email: "sales@company.gmail.com", createdAt: "2026-03-16 14:20", createdBy: "王珂", avatarText: "王", avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)", status: "active" },
+  { id: "3", email: "hello@team.gmail.com", createdAt: "2026-03-18 09:15", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", status: "expired" },
 ]);
 
 const showConnectModal = ref(false);
@@ -179,9 +186,46 @@ onMounted(() => {
 
 const handleConnectGmail = () => {
   showConnectModal.value = false;
-  // 在当前页面打开 Gmail OAuth 授权，授权成功后回跳到邮件设置页面
-  const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname + "#/settings/email?oauth_success=1");
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUri}&response_type=code&scope=https://mail.google.com/&access_type=offline&prompt=consent`;
+  // 模拟在新窗口打开 Gmail OAuth 授权
+  const oauthWindow = window.open("about:blank", "gmail-oauth", "width=500,height=600");
+  if (oauthWindow) {
+    oauthWindow.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#333'><div style='text-align:center'><h2>Google OAuth 授权中...</h2><p>模拟授权流程，窗口将自动关闭</p></div></body></html>");
+  }
+  // 模拟 2 秒后授权成功
+  setTimeout(() => {
+    if (oauthWindow && !oauthWindow.closed) oauthWindow.close();
+    const mockEmail = `user${nextId}@gmail.com`;
+    // 重复检查
+    if (connectedEmails.value.some(e => e.email.toLowerCase() === mockEmail.toLowerCase())) {
+      emit("toast", "该邮箱已添加，请勿重复操作");
+      return;
+    }
+    connectedEmails.value.push({
+      id: String(nextId++),
+      email: mockEmail,
+      createdAt: new Date().toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      createdBy: "客服主管",
+      avatarText: "主",
+      avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)",
+      status: "active",
+    });
+    syncToLocalStorage();
+    emit("toast", "邮箱连接成功");
+  }, 2000);
+};
+
+const handleReconnect = (item: ConnectedEmail) => {
+  // 模拟重新授权
+  const oauthWindow = window.open("about:blank", "gmail-oauth", "width=500,height=600");
+  if (oauthWindow) {
+    oauthWindow.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#333'><div style='text-align:center'><h2>重新授权中...</h2><p>模拟授权流程，窗口将自动关闭</p></div></body></html>");
+  }
+  setTimeout(() => {
+    if (oauthWindow && !oauthWindow.closed) oauthWindow.close();
+    item.status = "active";
+    syncToLocalStorage();
+    emit("toast", "邮箱连接成功");
+  }, 2000);
 };
 
 const confirmDelete = (item: ConnectedEmail) => {
@@ -319,10 +363,11 @@ const handleDelete = () => {
   padding-top: 8px;
 }
 
-.email-table th:nth-child(1) { width: 35%; }
-.email-table th:nth-child(2) { width: 25%; }
+.email-table th:nth-child(1) { width: 28%; }
+.email-table th:nth-child(2) { width: 12%; }
 .email-table th:nth-child(3) { width: 22%; }
 .email-table th:nth-child(4) { width: 18%; }
+.email-table th:nth-child(5) { width: 20%; }
 
 .email-table__addr {
   color: #222222;
@@ -364,6 +409,37 @@ const handleDelete = () => {
 
 .email-table__delete-btn:hover {
   text-decoration: underline;
+}
+
+.email-table__reconnect-btn {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-brand-primary, #2f6bff);
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: 12px;
+  padding: 0;
+}
+
+.email-table__reconnect-btn:hover {
+  text-decoration: underline;
+}
+
+.email-table__status {
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.email-table__status--active {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.email-table__status--expired {
+  background: #fef2f2;
+  color: #ef4444;
 }
 
 /* Modal overlay — same pattern as roles-modal */

@@ -42,6 +42,7 @@ export interface MessageItem {
   subject?: string;
   fromEmail?: string;
   toEmail?: string;
+  sendStatus?: 'sending' | 'failed' | 'sent';
 }
 
 export interface TableColumn<T = Record<string, unknown>> {

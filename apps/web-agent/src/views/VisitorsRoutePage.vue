@@ -220,6 +220,15 @@
                 <option v-for="email in fromEmailOptions" :key="email" :value="email">{{ email }}</option>
               </select>
             </div>
+            <div class="send-email-modal__field">
+              <label class="send-email-modal__label">Subject:</label>
+              <input
+                v-model="sendEmailSubject"
+                class="send-email-modal__subject-input"
+                placeholder="请输入邮件主题"
+                maxlength="200"
+              />
+            </div>
           </div>
           <div class="send-email-modal__editor-area">
             <div class="send-email-modal__toolbar">
@@ -233,9 +242,19 @@
               <button class="send-email-modal__tool-btn" type="button" aria-label="无序列表" @click="execEmailFormat('insertUnorderedList')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
               </button>
-              <button class="send-email-modal__tool-btn" type="button" aria-label="链接" @click="insertEmailLink">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              </button>
+              <div class="send-email-modal__link-wrapper">
+                <button class="send-email-modal__tool-btn" type="button" aria-label="链接" @click="showEmailLinkPopover = !showEmailLinkPopover">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                <div v-if="showEmailLinkPopover" class="send-email-modal__link-popover">
+                  <input v-model="emailLinkUrl" class="send-email-modal__link-input" placeholder="https://" maxlength="500" @input="emailLinkError = ''" @keydown.enter.prevent="confirmEmailLink" />
+                  <span v-if="emailLinkError" class="send-email-modal__link-error">{{ emailLinkError }}</span>
+                  <div class="send-email-modal__link-actions">
+                    <button type="button" class="send-email-modal__link-cancel" @click="showEmailLinkPopover = false">取消</button>
+                    <button type="button" class="send-email-modal__link-confirm" :disabled="!emailLinkUrl.trim()" @click="confirmEmailLink">插入</button>
+                  </div>
+                </div>
+              </div>
               <span class="send-email-modal__toolbar-divider" />
               <button class="send-email-modal__tool-btn" type="button" aria-label="附件" @click="emailFileInputRef?.click()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -320,12 +339,17 @@ const sendEmailOpen = ref(false);
 const sendEmailTarget = ref("");
 const sendEmailTargetEmail = ref("");
 const sendEmailFrom = ref("support@company.gmail.com");
+const sendEmailSubject = ref("");
 const fromEmailOptions = ["support@company.gmail.com", "help@company.gmail.com"];
 const emailEditorRef = ref<HTMLDivElement>();
 const emailFileInputRef = ref<HTMLInputElement>();
 const emailImageInputRef = ref<HTMLInputElement>();
 const emailAttachments = reactive<{ name: string; size: number }[]>([]);
+const showEmailLinkPopover = ref(false);
+const emailLinkUrl = ref("https://");
+const emailLinkError = ref("");
 const emailCanSend = computed(() => {
+  if (!sendEmailSubject.value.trim()) return false;
   if (!emailEditorRef.value) return false;
   const hasText = (emailEditorRef.value.textContent || "").trim().length > 0;
   const hasImage = emailEditorRef.value.querySelector("img") !== null;
@@ -427,15 +451,37 @@ const openSendEmailDialog = (item: OnlineVisitorItem | AllVisitorItem) => {
   sendEmailTarget.value = item.name;
   sendEmailTargetEmail.value = item.email;
   sendEmailFrom.value = fromEmailOptions[0];
+  sendEmailSubject.value = "";
   sendEmailOpen.value = true;
   emailAttachments.splice(0, emailAttachments.length);
+  showEmailLinkPopover.value = false;
   setTimeout(() => {
     if (emailEditorRef.value) emailEditorRef.value.innerHTML = "";
   });
 };
 
 const handleEmailInput = () => {
-  // 触发 computed 重新计算（emailCanSend 已读取 DOM）
+  // 2000 字符上限：静默阻止
+  if (emailEditorRef.value) {
+    const text = emailEditorRef.value.textContent || "";
+    if (text.length > 2000) {
+      // Trim to limit
+      const walker = document.createTreeWalker(emailEditorRef.value, NodeFilter.SHOW_TEXT);
+      let total = 0;
+      while (walker.nextNode()) {
+        const node = walker.currentNode as Text;
+        if (total + node.length > 2000) {
+          node.textContent = node.textContent!.substring(0, 2000 - total);
+          // Remove all subsequent text nodes
+          while (walker.nextNode()) {
+            (walker.currentNode as Text).textContent = "";
+          }
+          break;
+        }
+        total += node.length;
+      }
+    }
+  }
 };
 
 const execEmailFormat = (command: string) => {
@@ -443,12 +489,16 @@ const execEmailFormat = (command: string) => {
   emailEditorRef.value?.focus();
 };
 
-const insertEmailLink = () => {
-  const url = prompt("输入链接地址：", "https://");
-  if (url) {
-    document.execCommand("createLink", false, url);
-    emailEditorRef.value?.focus();
-  }
+const confirmEmailLink = () => {
+  let url = emailLinkUrl.value.trim();
+  if (!url) { emailLinkError.value = "请输入URL"; return; }
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  try { new URL(url); } catch { emailLinkError.value = "无效URL"; return; }
+  document.execCommand("createLink", false, url);
+  emailEditorRef.value?.focus();
+  showEmailLinkPopover.value = false;
+  emailLinkUrl.value = "https://";
+  emailLinkError.value = "";
 };
 
 const formatFileSize = (bytes: number): string => {
@@ -940,6 +990,90 @@ const handleSendEmail = () => {
 
 .send-email-modal__from-select:focus {
   border-color: var(--agent-color-brand-primary);
+}
+
+.send-email-modal__subject-input {
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  flex: 1;
+  font-size: var(--agent-font-size-sm);
+  height: 28px;
+  outline: none;
+  padding: 0 8px;
+}
+
+.send-email-modal__subject-input:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.send-email-modal__link-wrapper {
+  position: relative;
+}
+
+.send-email-modal__link-popover {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  left: 0;
+  padding: 12px;
+  position: absolute;
+  top: calc(100% + 4px);
+  width: 280px;
+  z-index: 100;
+}
+
+.send-email-modal__link-input {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  padding: 6px 10px;
+  width: 100%;
+}
+
+.send-email-modal__link-input:focus {
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+}
+
+.send-email-modal__link-error {
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.send-email-modal__link-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.send-email-modal__link-cancel,
+.send-email-modal__link-confirm {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 12px;
+}
+
+.send-email-modal__link-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.send-email-modal__link-confirm {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  color: #fff;
+}
+
+.send-email-modal__link-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .send-email-modal__editor-area {

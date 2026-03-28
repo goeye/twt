@@ -207,11 +207,99 @@
       :visitor="selectedVisitor"
       @close="visitorDrawerOpen = false"
     />
+
+    <!-- 发送邮件弹窗 -->
+    <Teleport to="body">
+      <div v-if="sendEmailOpen" class="send-email-overlay" @click.self="sendEmailOpen = false">
+        <div class="send-email-modal">
+          <header class="send-email-modal__header">
+            <h2 class="send-email-modal__title">发送邮件</h2>
+            <button type="button" class="send-email-modal__close" @click="sendEmailOpen = false">&times;</button>
+          </header>
+          <p class="send-email-modal__recipient">发送给: {{ sendEmailTarget }}</p>
+          <div class="send-email-modal__fields">
+            <div class="send-email-modal__field">
+              <label class="send-email-modal__label">To:</label>
+              <span class="send-email-modal__value">{{ sendEmailTargetEmail }}</span>
+            </div>
+            <div class="send-email-modal__field">
+              <label class="send-email-modal__label">From:</label>
+              <select v-model="sendEmailFrom" class="send-email-modal__from-select">
+                <option v-for="email in fromEmailOptions" :key="email" :value="email">{{ email }}</option>
+              </select>
+            </div>
+            <div class="send-email-modal__field">
+              <label class="send-email-modal__label">Subject:</label>
+              <input
+                v-model="sendEmailSubject"
+                class="send-email-modal__subject-input"
+                placeholder="请输入邮件主题"
+                maxlength="200"
+              />
+            </div>
+          </div>
+          <div class="send-email-modal__editor-area">
+            <div class="send-email-modal__toolbar">
+              <button class="send-email-modal__tool-btn" type="button" aria-label="加粗" @click="execEmailFormat('bold')"><b>B</b></button>
+              <button class="send-email-modal__tool-btn" type="button" aria-label="斜体" @click="execEmailFormat('italic')"><i>I</i></button>
+              <button class="send-email-modal__tool-btn" type="button" aria-label="下划线" @click="execEmailFormat('underline')"><u>U</u></button>
+              <span class="send-email-modal__toolbar-divider" />
+              <button class="send-email-modal__tool-btn" type="button" aria-label="有序列表" @click="execEmailFormat('insertOrderedList')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="3" y="7" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="3" y="13" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="3" y="19" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg>
+              </button>
+              <button class="send-email-modal__tool-btn" type="button" aria-label="无序列表" @click="execEmailFormat('insertUnorderedList')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+              </button>
+              <div class="send-email-modal__link-wrapper">
+                <button class="send-email-modal__tool-btn" type="button" aria-label="链接" @click="showEmailLinkPopover = !showEmailLinkPopover">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                <div v-if="showEmailLinkPopover" class="send-email-modal__link-popover">
+                  <input v-model="emailLinkUrl" class="send-email-modal__link-input" placeholder="https://" maxlength="500" @input="emailLinkError = ''" @keydown.enter.prevent="confirmEmailLink" />
+                  <span v-if="emailLinkError" class="send-email-modal__link-error">{{ emailLinkError }}</span>
+                  <div class="send-email-modal__link-actions">
+                    <button type="button" class="send-email-modal__link-cancel" @click="showEmailLinkPopover = false">取消</button>
+                    <button type="button" class="send-email-modal__link-confirm" :disabled="!emailLinkUrl.trim()" @click="confirmEmailLink">插入</button>
+                  </div>
+                </div>
+              </div>
+              <span class="send-email-modal__toolbar-divider" />
+              <button class="send-email-modal__tool-btn" type="button" aria-label="附件" @click="emailFileInputRef?.click()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <button class="send-email-modal__tool-btn" type="button" aria-label="图片" @click="emailImageInputRef?.click()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+            </div>
+            <input ref="emailFileInputRef" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.zip,.rar,.7z,.txt" style="display:none" @change="handleEmailFileSelect" />
+            <input ref="emailImageInputRef" type="file" multiple accept="image/*" style="display:none" @change="handleEmailImageSelect" />
+            <div
+              ref="emailEditorRef"
+              class="send-email-modal__editor"
+              contenteditable="true"
+              data-placeholder="请输入消息"
+              @input="handleEmailInput"
+            />
+          </div>
+          <div v-if="emailAttachments.length > 0" class="send-email-modal__attachments">
+            <div v-for="(file, idx) in emailAttachments" :key="idx" class="send-email-modal__att-card">
+              <span class="send-email-modal__att-name">{{ file.name }}</span>
+              <span class="send-email-modal__att-size">{{ formatFileSize(file.size) }}</span>
+              <button type="button" class="send-email-modal__att-remove" @click="emailAttachments.splice(idx, 1)">&times;</button>
+            </div>
+          </div>
+          <footer class="send-email-modal__footer">
+            <button type="button" class="agent-btn agent-btn--ghost" @click="sendEmailOpen = false">取消</button>
+            <button type="button" class="agent-btn agent-btn--primary" :disabled="!emailCanSend" @click="handleSendEmailAction">确认发送</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive, computed } from "vue";
 import VisitorInfoDrawer, { type VisitorDrawerData } from "../components/VisitorInfoDrawer.vue";
 
 type CustomerNavKey = "online-customer" | "all-customer";
@@ -222,6 +310,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: "toast", message: string): void;
+  (e: "navigate-to-inbox", queueKey: string): void;
 }>();
 
 const visitorDrawerOpen = ref(false);
@@ -345,11 +434,130 @@ const handleSendEmail = (item: OnlineCustomerItem | CustomerItem) => {
   }
 
   if (!item.email || item.email === "–") {
-    emit("toast", "访客邮箱为空，无法发送");
+    emit("toast", "客户邮箱为空，无法发送");
     return;
   }
 
-  emit("toast", "发送邮件功能开发中");
+  openSendEmailDialog(item);
+};
+
+// ---- 发送邮件弹窗 ----
+const sendEmailOpen = ref(false);
+const sendEmailTarget = ref("");
+const sendEmailTargetEmail = ref("");
+const sendEmailFrom = ref("");
+const sendEmailSubject = ref("");
+const fromEmailOptions = ref<string[]>([]);
+const emailEditorRef = ref<HTMLDivElement>();
+const emailFileInputRef = ref<HTMLInputElement>();
+const emailImageInputRef = ref<HTMLInputElement>();
+const emailAttachments = reactive<{ name: string; size: number }[]>([]);
+const showEmailLinkPopover = ref(false);
+const emailLinkUrl = ref("https://");
+const emailLinkError = ref("");
+
+const emailCanSend = computed(() => {
+  if (!sendEmailSubject.value.trim()) return false;
+  if (!emailEditorRef.value) return false;
+  const hasText = (emailEditorRef.value.textContent || "").trim().length > 0;
+  const hasImage = emailEditorRef.value.querySelector("img") !== null;
+  return hasText || hasImage || emailAttachments.length > 0;
+});
+
+const openSendEmailDialog = (item: OnlineCustomerItem | CustomerItem) => {
+  sendEmailTarget.value = item.name;
+  sendEmailTargetEmail.value = item.email;
+  sendEmailSubject.value = "";
+  showEmailLinkPopover.value = false;
+  emailAttachments.splice(0, emailAttachments.length);
+
+  // 获取已连接邮箱
+  try {
+    const channels = JSON.parse(localStorage.getItem("email_channels") || "[]");
+    fromEmailOptions.value = channels.map((c: { email: string }) => c.email);
+  } catch { fromEmailOptions.value = []; }
+  sendEmailFrom.value = fromEmailOptions.value[0] || "";
+  sendEmailOpen.value = true;
+  setTimeout(() => { if (emailEditorRef.value) emailEditorRef.value.innerHTML = ""; });
+};
+
+const handleEmailInput = () => {
+  if (emailEditorRef.value) {
+    const text = emailEditorRef.value.textContent || "";
+    if (text.length > 2000) {
+      const walker = document.createTreeWalker(emailEditorRef.value, NodeFilter.SHOW_TEXT);
+      let total = 0;
+      while (walker.nextNode()) {
+        const node = walker.currentNode as Text;
+        if (total + node.length > 2000) {
+          node.textContent = node.textContent!.substring(0, 2000 - total);
+          while (walker.nextNode()) { (walker.currentNode as Text).textContent = ""; }
+          break;
+        }
+        total += node.length;
+      }
+    }
+  }
+};
+
+const execEmailFormat = (command: string) => {
+  document.execCommand(command, false);
+  emailEditorRef.value?.focus();
+};
+
+const confirmEmailLink = () => {
+  let url = emailLinkUrl.value.trim();
+  if (!url) { emailLinkError.value = "请输入URL"; return; }
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  try { new URL(url); } catch { emailLinkError.value = "无效URL"; return; }
+  document.execCommand("createLink", false, url);
+  emailEditorRef.value?.focus();
+  showEmailLinkPopover.value = false;
+  emailLinkUrl.value = "https://";
+  emailLinkError.value = "";
+};
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+};
+
+const handleEmailFileSelect = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+  for (const file of Array.from(input.files)) {
+    if (file.size > 10 * 1024 * 1024) { emit("toast", "附件大小不能超过10MB"); continue; }
+    if (file.type.startsWith("image/")) { insertEmailImage(file); }
+    else { emailAttachments.push({ name: file.name, size: file.size }); }
+  }
+  input.value = "";
+};
+
+const handleEmailImageSelect = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+  for (const file of Array.from(input.files)) {
+    if (file.size > 10 * 1024 * 1024) { emit("toast", "图片大小不能超过10MB"); continue; }
+    insertEmailImage(file);
+  }
+  input.value = "";
+};
+
+const insertEmailImage = (file: File) => {
+  const url = URL.createObjectURL(file);
+  const img = `<br/><img src="${url}" style="max-width:100%;border-radius:4px" /><br/>`;
+  if (emailEditorRef.value) {
+    emailEditorRef.value.focus();
+    document.execCommand("insertHTML", false, img);
+  }
+};
+
+const handleSendEmailAction = () => {
+  if (!emailCanSend.value) return;
+  sendEmailOpen.value = false;
+  emit("toast", "发送成功");
+  emit("navigate-to-inbox", "replied");
 };
 </script>
 
@@ -674,5 +882,277 @@ const handleSendEmail = (item: OnlineCustomerItem | CustomerItem) => {
   gap: 4px;
   height: 32px;
   padding: 0 10px;
+}
+
+/* 发送邮件弹窗 */
+.send-email-overlay {
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 1000;
+}
+
+.send-email-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  max-width: 640px;
+  width: 90%;
+}
+
+.send-email-modal__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.send-email-modal__title {
+  color: #252525;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.send-email-modal__close {
+  background: transparent;
+  border: 0;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.send-email-modal__recipient {
+  color: #75869c;
+  font-size: 13px;
+  margin: 8px 24px 0;
+}
+
+.send-email-modal__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 24px;
+}
+
+.send-email-modal__field {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.send-email-modal__label {
+  color: #75869c;
+  font-size: 13px;
+  min-width: 56px;
+}
+
+.send-email-modal__value {
+  color: #252525;
+  font-size: 13px;
+}
+
+.send-email-modal__from-select {
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  height: 28px;
+  outline: none;
+  padding: 0 8px;
+}
+
+.send-email-modal__subject-input {
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  flex: 1;
+  font-size: var(--agent-font-size-sm);
+  height: 28px;
+  outline: none;
+  padding: 0 8px;
+}
+
+.send-email-modal__subject-input:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.send-email-modal__editor-area {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  flex-direction: column;
+  margin: 0 24px;
+}
+
+.send-email-modal__toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px;
+}
+
+.send-email-modal__tool-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.send-email-modal__tool-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.send-email-modal__toolbar-divider {
+  background: var(--agent-color-border-default);
+  height: 16px;
+  margin: 0 4px;
+  width: 1px;
+}
+
+.send-email-modal__editor {
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.6;
+  min-height: 120px;
+  outline: none;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.send-email-modal__editor:empty::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.send-email-modal__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 24px 0;
+}
+
+.send-email-modal__att-card {
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  font-size: 12px;
+  gap: 8px;
+  padding: 6px 10px;
+}
+
+.send-email-modal__att-name {
+  color: #374151;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.send-email-modal__att-size {
+  color: #9ca3af;
+}
+
+.send-email-modal__att-remove {
+  background: transparent;
+  border: 0;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+}
+
+.send-email-modal__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+}
+
+.send-email-modal__link-wrapper {
+  position: relative;
+}
+
+.send-email-modal__link-popover {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  left: 0;
+  padding: 12px;
+  position: absolute;
+  top: calc(100% + 4px);
+  width: 280px;
+  z-index: 100;
+}
+
+.send-email-modal__link-input {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  padding: 6px 10px;
+  width: 100%;
+}
+
+.send-email-modal__link-input:focus {
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+}
+
+.send-email-modal__link-error {
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.send-email-modal__link-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.send-email-modal__link-cancel,
+.send-email-modal__link-confirm {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 12px;
+}
+
+.send-email-modal__link-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.send-email-modal__link-confirm {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  color: #fff;
+}
+
+.send-email-modal__link-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 </style>

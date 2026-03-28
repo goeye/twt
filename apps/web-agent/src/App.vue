@@ -254,10 +254,12 @@
             :show-actions="true"
             :channel-type="activeSession?.channelType ?? 'web'"
             :translation-languages="translationLanguages"
+            :send-status="message.sendStatus"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
             @revoke="showTopToast('撤回功能开发中')"
+            @retry="showTopToast('重新发送开发中')"
           />
         </div>
 
@@ -1334,6 +1336,33 @@ const allSessions = ref<ConversationSession[]>([
     assistants: []
   },
   {
+    id: "s-email-04",
+    queueKey: "pending-reply",
+    customerName: "Empty Email Test",
+    preview: "（无邮件内容）",
+    updatedAt: "09:00",
+    unreadCount: 1,
+    tag: "访客",
+    avatarText: "E",
+    avatarColor: "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
+    channel: "邮件",
+    channelType: "email" as const,
+    fromEmail: "support@company.gmail.com",
+    visitorName: "Empty Content Test",
+    visitorId: "770204",
+    phone: "",
+    email: "empty@test.com",
+    entryPage: "",
+    visitStats: "1 会话",
+    deviceIp: "",
+    os: "",
+    browser: "",
+    startedAt: "09:00",
+    acceptedAt: "09:00",
+    assignee: "客服主管",
+    assistants: []
+  },
+  {
     id: "s-email-noreply-01",
     queueKey: "pending-reply",
     customerName: "System Notification",
@@ -1578,6 +1607,19 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       subject: "账单地址变更请求",
       fromEmail: "david.wilson@globalinc.com",
       toEmail: "billing@company.gmail.com"
+    }
+  ],
+  "s-email-04": [
+    {
+      id: "m-email-30",
+      role: "customer" as const,
+      sender: "Empty Content Test",
+      content: "",
+      time: "09:00",
+      contentType: "html" as const,
+      subject: "Empty Body Test Email",
+      fromEmail: "empty@test.com",
+      toEmail: "support@company.gmail.com"
     }
   ]
 });
@@ -1883,8 +1925,12 @@ const activeSessionTitle = computed(() => {
   if (!session) return "会话详情";
   if (session.channelType === "email") {
     const messages = messageMap.value[session.id] ?? [];
-    const lastWithSubject = [...messages].reverse().find(m => m.subject);
-    return lastWithSubject?.subject ?? session.customerName ?? "邮件会话";
+    const firstWithSubject = messages.find(m => m.subject);
+    if (firstWithSubject?.subject) return firstWithSubject.subject;
+    if (session.remarkName) return session.remarkName;
+    if (session.visitorName) return session.visitorName;
+    if (session.email) return session.email;
+    return "邮件会话";
   }
   return session.customerName ?? "会话详情";
 });
@@ -2577,7 +2623,8 @@ const handleSendEmail = () => {
     contentType: "html",
     subject: emailComposerSubject.value ? `Re: ${emailComposerSubject.value}` : "",
     fromEmail: selectedFromEmail.value,
-    toEmail: activeSession.value.email
+    toEmail: activeSession.value.email,
+    sendStatus: "sending"
   };
 
   const history = messageMap.value[activeSession.value.id] ?? [];
@@ -2585,6 +2632,19 @@ const handleSendEmail = () => {
     ...messageMap.value,
     [activeSession.value.id]: [...history, nextMessage]
   };
+
+  // 模拟发送完成
+  const msgId = nextMessage.id;
+  const sessionId = activeSession.value.id;
+  setTimeout(() => {
+    const msgs = messageMap.value[sessionId];
+    if (msgs) {
+      messageMap.value = {
+        ...messageMap.value,
+        [sessionId]: msgs.map(m => m.id === msgId ? { ...m, sendStatus: "sent" as const } : m)
+      };
+    }
+  }, 1500);
 
   emailComposerBody.value = "";
   emailComposerRef.value?.clearAttachments?.();

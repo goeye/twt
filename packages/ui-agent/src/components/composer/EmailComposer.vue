@@ -53,9 +53,26 @@
         <button class="email-composer__tool-btn" type="button" aria-label="无序列表" @click="execFormat('insertUnorderedList')">
           <AgentIcon name="list-unordered" :size="14" />
         </button>
-        <button class="email-composer__tool-btn" type="button" aria-label="链接" @click="insertLink">
-          <AgentIcon name="link" :size="14" />
-        </button>
+        <div class="email-composer__link-wrapper">
+          <button class="email-composer__tool-btn" type="button" aria-label="链接" @click="showLinkPopover = !showLinkPopover">
+            <AgentIcon name="link" :size="14" />
+          </button>
+          <div v-if="showLinkPopover" class="email-composer__link-popover">
+            <input
+              v-model="linkUrl"
+              class="email-composer__link-input"
+              placeholder="https://"
+              maxlength="500"
+              @input="linkError = ''"
+              @keydown.enter.prevent="confirmInsertLink"
+            />
+            <span v-if="linkError" class="email-composer__link-error">{{ linkError }}</span>
+            <div class="email-composer__link-actions">
+              <button type="button" class="email-composer__link-cancel" @click="showLinkPopover = false">取消</button>
+              <button type="button" class="email-composer__link-confirm" :disabled="!linkUrl.trim()" @click="confirmInsertLink">插入</button>
+            </div>
+          </div>
+        </div>
         <span class="email-composer__divider" />
         <button class="tool-icon" type="button" aria-label="附件" @click="triggerFileSelect">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -451,9 +468,6 @@ function handleInput() {
   const exceeded = trimEditorTextToLimit();
   if (exceeded) {
     placeCaretAtEnd(editorRef.value);
-    if (!textLimitReached.value) {
-      emit("toast", `文本最多支持${MAX_TEXT_LENGTH}字符`);
-    }
   }
   textLimitReached.value = exceeded;
   if (!exceeded) {
@@ -482,12 +496,20 @@ function execFormat(command: string) {
   editorRef.value?.focus();
 }
 
-function insertLink() {
-  const url = prompt("输入链接地址：", "https://");
-  if (url) {
-    document.execCommand("createLink", false, url);
-    editorRef.value?.focus();
-  }
+const showLinkPopover = ref(false);
+const linkUrl = ref("https://");
+const linkError = ref("");
+
+function confirmInsertLink() {
+  let url = linkUrl.value.trim();
+  if (!url) { linkError.value = "请输入URL"; return; }
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  try { new URL(url); } catch { linkError.value = "无效URL"; return; }
+  document.execCommand("createLink", false, url);
+  editorRef.value?.focus();
+  showLinkPopover.value = false;
+  linkUrl.value = "https://";
+  linkError.value = "";
 }
 
 watch(() => props.modelValue, (val) => {
@@ -694,6 +716,74 @@ onBeforeUnmount(() => {
   height: 16px;
   margin: 0 4px;
   width: 1px;
+}
+
+.email-composer__link-wrapper {
+  position: relative;
+}
+
+.email-composer__link-popover {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  left: 0;
+  padding: 12px;
+  position: absolute;
+  top: calc(100% + 4px);
+  width: 300px;
+  z-index: 100;
+}
+
+.email-composer__link-input {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  padding: 6px 10px;
+  width: 100%;
+}
+
+.email-composer__link-input:focus {
+  border-color: var(--agent-color-brand-primary, #2f6bff);
+}
+
+.email-composer__link-error {
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.email-composer__link-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.email-composer__link-cancel,
+.email-composer__link-confirm {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 12px;
+}
+
+.email-composer__link-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.email-composer__link-confirm {
+  background: var(--agent-color-brand-primary, #2f6bff);
+  color: #fff;
+}
+
+.email-composer__link-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .email-composer__editor-wrap {
