@@ -152,7 +152,15 @@ flowchart TD
         
     *   按钮：「取消」 + 「删除」
         
-    *   确认后从列表移除，Toast 提示"删除成功"
+    *   确认后执行以下操作：
+
+        *   调用 Gmail API 撤销 OAuth token（`POST https://oauth2.googleapis.com/revoke`）
+
+        *   删除本地存储的 access_token 和 refresh_token
+
+        *   从列表中移除该邮箱
+
+        *   Toast 提示"删除成功"
         
 3.  **表格字段**：
     
