@@ -273,8 +273,12 @@
           <button type="button" class="agent-btn agent-btn--primary" @click="handleClaimQueueSession">领取会话</button>
         </div>
 
-        <div v-else-if="isClosedSession" class="chat-pane__closed">
+        <div v-else-if="isClosedSession && activeSession?.channelType !== 'email'" class="chat-pane__closed">
           <span class="chat-pane__closed-tag">会话已结束</span>
+        </div>
+
+        <div v-else-if="isClosedSession && activeSession?.channelType === 'email'" class="chat-pane__closed">
+          <button type="button" class="agent-btn agent-btn--primary chat-pane__reopen-btn" @click="handleReopenEmailSession">重新开启</button>
         </div>
 
         <EmailComposer
@@ -2791,9 +2795,15 @@ const handleOpenCloseEmailSession = () => {
 
 const handleConfirmCloseEmailSession = () => {
   if (!activeSession.value) return;
-  allSessions.value = allSessions.value.filter((s) => s.id !== activeSession.value!.id);
+  activeSession.value.closed = true;
   closeEmailSessionModalOpen.value = false;
   showTopToast("会话已结束");
+};
+
+const handleReopenEmailSession = () => {
+  if (!activeSession.value) return;
+  activeSession.value.closed = false;
+  showTopToast("会话已重新开启");
 };
 
 const handleOpenCloseSession = () => {
@@ -3486,6 +3496,12 @@ onBeforeUnmount(() => {
   border: 1px solid var(--agent-color-border-default);
   border-radius: 20px;
   color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  padding: 6px 20px;
+}
+
+.chat-pane__reopen-btn {
+  border-radius: 20px;
   font-size: var(--agent-font-size-sm);
   padding: 6px 20px;
 }

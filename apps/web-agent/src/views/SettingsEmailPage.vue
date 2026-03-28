@@ -31,8 +31,8 @@
               <tr>
                 <th>邮箱地址</th>
                 <th>状态</th>
-                <th>创建时间</th>
                 <th>创建人</th>
+                <th>创建时间</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -42,19 +42,26 @@
                   <span class="email-table__addr">{{ item.email }}</span>
                 </td>
                 <td>
-                  <span v-if="item.status === 'expired'" class="email-table__status email-table__status--expired">连接失效</span>
+                  <span v-if="item.status === 'expired'" class="email-table__status email-table__status--expired">失效</span>
                   <span v-else class="email-table__status email-table__status--active">正常</span>
                 </td>
-                <td class="email-table__time">{{ item.createdAt }}</td>
                 <td>
                   <div class="email-table__creator">
                     <span class="email-table__creator-avatar" :style="{ background: item.avatarColor }">{{ item.avatarText }}</span>
                     <span>{{ item.createdBy }}</span>
                   </div>
                 </td>
+                <td class="email-table__time">{{ item.createdAt }}</td>
                 <td>
-                  <button v-if="item.status === 'expired'" type="button" class="email-table__reconnect-btn" @click="handleReconnect(item)">重新连接</button>
-                  <button type="button" class="email-table__delete-btn" @click="confirmDelete(item)">删除</button>
+                  <div class="email-table__actions-wrap">
+                    <button type="button" class="email-table__more-btn" @click.stop="toggleMenu(item.id)">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="#6b7280"/><circle cx="8" cy="8" r="1.2" fill="#6b7280"/><circle cx="8" cy="13" r="1.2" fill="#6b7280"/></svg>
+                    </button>
+                    <div v-if="openMenuId === item.id" class="email-table__dropdown">
+                      <button v-if="item.status === 'expired'" type="button" class="email-table__dropdown-item" @click="handleReconnect(item); openMenuId = null">重新连接</button>
+                      <button type="button" class="email-table__dropdown-item email-table__dropdown-item--danger" @click="confirmDelete(item); openMenuId = null">删除</button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -116,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 interface ConnectedEmail {
   id: string;
@@ -138,11 +145,21 @@ const connectedEmails = ref<ConnectedEmail[]>([
   { id: "1", email: "support@company.gmail.com", createdAt: "2026-03-15 10:30", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", status: "active" },
   { id: "2", email: "sales@company.gmail.com", createdAt: "2026-03-16 14:20", createdBy: "王珂", avatarText: "王", avatarColor: "linear-gradient(135deg, #7f6bff 0%, #a259ff 100%)", status: "active" },
   { id: "3", email: "hello@team.gmail.com", createdAt: "2026-03-18 09:15", createdBy: "客服主管", avatarText: "主", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", status: "expired" },
+  { id: "4", email: "info@business.gmail.com", createdAt: "2026-03-10 16:45", createdBy: "李明", avatarText: "李", avatarColor: "linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)", status: "expired" },
 ]);
 
 const showConnectModal = ref(false);
 const showDeleteModal = ref(false);
 const deleteTarget = ref<ConnectedEmail | null>(null);
+const openMenuId = ref<string | null>(null);
+
+const toggleMenu = (id: string) => {
+  openMenuId.value = openMenuId.value === id ? null : id;
+};
+
+const closeMenu = () => {
+  openMenuId.value = null;
+};
 
 let nextId = 100;
 
@@ -152,6 +169,8 @@ const syncToLocalStorage = () => {
 
 // OAuth 回跳处理：检查 URL 中的 oauth_success 参数
 onMounted(() => {
+  document.addEventListener("click", closeMenu);
+
   const stored = localStorage.getItem("email_channels");
   if (stored) {
     try {
@@ -182,6 +201,10 @@ onMounted(() => {
     url.searchParams.delete("email");
     window.history.replaceState({}, "", url.toString());
   }
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", closeMenu);
 });
 
 const handleConnectGmail = () => {
@@ -365,8 +388,8 @@ const handleDelete = () => {
 
 .email-table th:nth-child(1) { width: 28%; }
 .email-table th:nth-child(2) { width: 12%; }
-.email-table th:nth-child(3) { width: 22%; }
-.email-table th:nth-child(4) { width: 18%; }
+.email-table th:nth-child(3) { width: 18%; }
+.email-table th:nth-child(4) { width: 22%; }
 .email-table th:nth-child(5) { width: 20%; }
 
 .email-table__addr {
@@ -398,31 +421,64 @@ const handleDelete = () => {
   width: 28px;
 }
 
-.email-table__delete-btn {
+.email-table__actions-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.email-table__more-btn {
+  align-items: center;
   background: transparent;
   border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.email-table__more-btn:hover {
+  background: #f3f4f6;
+}
+
+.email-table__dropdown {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 50;
+}
+
+.email-table__dropdown-item {
+  background: transparent;
+  border: 0;
+  color: #374151;
+  cursor: pointer;
+  display: block;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.email-table__dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.email-table__dropdown-item--danger {
   color: #ef4444;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
 }
 
-.email-table__delete-btn:hover {
-  text-decoration: underline;
-}
-
-.email-table__reconnect-btn {
-  background: transparent;
-  border: 0;
-  color: var(--agent-color-brand-primary, #2f6bff);
-  cursor: pointer;
-  font-size: 13px;
-  margin-right: 12px;
-  padding: 0;
-}
-
-.email-table__reconnect-btn:hover {
-  text-decoration: underline;
+.email-table__dropdown-item--danger:hover {
+  background: #fef2f2;
 }
 
 .email-table__status {
