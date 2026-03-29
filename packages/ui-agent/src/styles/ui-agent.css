@@ -55,7 +55,7 @@
 .agent-btn--primary {
   background: var(--agent-color-brand-primary);
   border-color: var(--agent-color-brand-primary);
-  color: #ffffff;
+  color: var(--agent-color-bg-panel);
 }
 
 .agent-btn--primary:hover:enabled {
@@ -69,7 +69,7 @@
 }
 
 .agent-btn--danger {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-color: var(--agent-color-status-error);
   color: var(--agent-color-status-error);
 }
@@ -91,7 +91,7 @@
 
 .agent-scroll {
   overflow: auto;
-  scrollbar-color: #d5d9e0 transparent;
+  scrollbar-color: var(--agent-color-border-default) transparent;
 }
 
 .agent-settings-page-title {
@@ -111,7 +111,7 @@
 }
 
 .agent-settings-feature-description {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
@@ -176,4 +176,72 @@
   .agent-content-page {
     padding: var(--agent-space-16);
   }
+}
+
+/* Link */
+.agent-link {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.agent-link:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+/* Tag */
+.agent-tag {
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.agent-tag--success {
+  color: var(--agent-color-status-success);
+}
+
+.agent-tag--warning {
+  color: var(--agent-color-status-warning);
+}
+
+.agent-tag--error {
+  color: var(--agent-color-status-error);
+}
+
+.agent-tag--info {
+  color: var(--agent-color-status-info);
+}
+
+/* Avatar */
+.agent-avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: var(--agent-color-bg-panel);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+  height: 40px;
+  justify-content: center;
+  overflow: hidden;
+  width: 40px;
+}
+
+.agent-avatar img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Empty state */
+.agent-empty {
+  color: var(--agent-color-text-tertiary);
+  padding: 42px 0;
+  text-align: center;
 }
