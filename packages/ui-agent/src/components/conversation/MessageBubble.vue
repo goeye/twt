@@ -247,8 +247,19 @@ function sanitizeHtml(html: string): string {
         continue;
       }
       for (const attr of Array.from(el.attributes)) {
-        if (!ALLOWED_ATTRS.has(attr.name.toLowerCase())) {
+        const attrName = attr.name.toLowerCase();
+        if (!ALLOWED_ATTRS.has(attrName)) {
           el.removeAttribute(attr.name);
+        } else if (attrName === 'href' || attrName === 'src') {
+          const value = attr.value.trim().toLowerCase();
+          if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+            el.removeAttribute(attr.name);
+          }
+        } else if (attrName === 'style') {
+          const styleValue = attr.value.toLowerCase();
+          if (styleValue.includes('javascript:') || styleValue.includes('expression(')) {
+            el.removeAttribute(attr.name);
+          }
         }
       }
       if (el.tagName === 'A') {

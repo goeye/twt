@@ -12,66 +12,69 @@
         </template>
         <template #footer="{ expanded }">
           <div class="rail-footer" :class="{ 'rail-footer--expanded': expanded }">
-            <div class="plan-switcher-wrap" :class="{ 'plan-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPlanSwitcherHover()" @mouseleave="expanded && closePlanSwitcherHover()">
-              <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="!expanded && (planSwitcherOpen = !planSwitcherOpen)">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
-                </svg>
-                <span v-if="expanded" class="rail-footer__label">服务版本</span>
-              </button>
-              <span v-if="!expanded" class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
-              <div v-if="planSwitcherOpen" class="plan-switcher-panel" @click.stop>
-                <h4 class="plan-switcher-panel__title">切换服务版本</h4>
-                <p class="plan-switcher-panel__desc">仅供开发调试，快速预览不同版本下的功能限制</p>
-                <div class="plan-switcher-panel__options">
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'pro' && !currentPlan.isExpired }" @click="switchToPro">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">PRO</span>
-                    <span class="plan-switcher-option__label">专业版</span>
-                    <span class="plan-switcher-option__hint">所有功能可用</span>
-                  </button>
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'free' && !currentPlan.isExpired }" @click="switchToFree">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--free">FREE</span>
-                    <span class="plan-switcher-option__label">免费版</span>
-                    <span class="plan-switcher-option__hint">部分功能受限</span>
-                  </button>
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentPlan.isExpired }" @click="switchToExpired">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">过期</span>
-                    <span class="plan-switcher-option__label">专业版已过期</span>
-                    <span class="plan-switcher-option__hint">部分功能受限</span>
-                  </button>
+            <!-- 开发环境调试工具 -->
+            <template v-if="isDev">
+              <div class="plan-switcher-wrap" :class="{ 'plan-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPlanSwitcherHover()" @mouseleave="expanded && closePlanSwitcherHover()">
+                <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="!expanded && (planSwitcherOpen = !planSwitcherOpen)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
+                  </svg>
+                  <span v-if="expanded" class="rail-footer__label">服务版本</span>
+                </button>
+                <span v-if="!expanded" class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
+                <div v-if="planSwitcherOpen" class="plan-switcher-panel" @click.stop>
+                  <h4 class="plan-switcher-panel__title">切换服务版本</h4>
+                  <p class="plan-switcher-panel__desc">仅供开发调试，快速预览不同版本下的功能限制</p>
+                  <div class="plan-switcher-panel__options">
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'pro' && !currentPlan.isExpired }" @click="switchToPro">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">PRO</span>
+                      <span class="plan-switcher-option__label">专业版</span>
+                      <span class="plan-switcher-option__hint">所有功能可用</span>
+                    </button>
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': effectiveLevel === 'free' && !currentPlan.isExpired }" @click="switchToFree">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--free">FREE</span>
+                      <span class="plan-switcher-option__label">免费版</span>
+                      <span class="plan-switcher-option__hint">部分功能受限</span>
+                    </button>
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentPlan.isExpired }" @click="switchToExpired">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">过期</span>
+                      <span class="plan-switcher-option__label">专业版已过期</span>
+                      <span class="plan-switcher-option__hint">部分功能受限</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="perm-switcher-wrap" :class="{ 'perm-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPermSwitcherHover()" @mouseleave="expanded && closePermSwitcherHover()">
-              <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="!expanded && (permSwitcherOpen = !permSwitcherOpen)">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
-                </svg>
-                <span v-if="expanded" class="rail-footer__label">角色权限</span>
-              </button>
-              <span v-if="!expanded" class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
-              <div v-if="permSwitcherOpen" class="perm-switcher-panel" @click.stop>
-                <h4 class="perm-switcher-panel__title">切换角色权限</h4>
-                <p class="perm-switcher-panel__desc">仅供开发调试，模拟不同角色的权限</p>
-                <div class="perm-switcher-panel__options">
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'admin' }" @click="switchPermRole('admin')">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">ALL</span>
-                    <span class="plan-switcher-option__label">管理员</span>
-                    <span class="plan-switcher-option__hint">所有权限</span>
-                  </button>
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'agent' }" @click="switchPermRole('agent')">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--free">CS</span>
-                    <span class="plan-switcher-option__label">成员</span>
-                    <span class="plan-switcher-option__hint">基础权限</span>
-                  </button>
-                  <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'limited' }" @click="switchPermRole('limited')">
-                    <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">LT</span>
-                    <span class="plan-switcher-option__label">受限</span>
-                    <span class="plan-switcher-option__hint">仅档案查看</span>
-                  </button>
+              <div class="perm-switcher-wrap" :class="{ 'perm-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPermSwitcherHover()" @mouseleave="expanded && closePermSwitcherHover()">
+                <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="!expanded && (permSwitcherOpen = !permSwitcherOpen)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
+                  </svg>
+                  <span v-if="expanded" class="rail-footer__label">角色权限</span>
+                </button>
+                <span v-if="!expanded" class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
+                <div v-if="permSwitcherOpen" class="perm-switcher-panel" @click.stop>
+                  <h4 class="perm-switcher-panel__title">切换角色权限</h4>
+                  <p class="perm-switcher-panel__desc">仅供开发调试，模拟不同角色的权限</p>
+                  <div class="perm-switcher-panel__options">
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'admin' }" @click="switchPermRole('admin')">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--pro">ALL</span>
+                      <span class="plan-switcher-option__label">管理员</span>
+                      <span class="plan-switcher-option__hint">所有权限</span>
+                    </button>
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'agent' }" @click="switchPermRole('agent')">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--free">CS</span>
+                      <span class="plan-switcher-option__label">成员</span>
+                      <span class="plan-switcher-option__hint">基础权限</span>
+                    </button>
+                    <button type="button" class="plan-switcher-option" :class="{ 'plan-switcher-option--active': currentMockRole === 'limited' }" @click="switchPermRole('limited')">
+                      <span class="plan-switcher-option__badge plan-switcher-option__badge--expired">LT</span>
+                      <span class="plan-switcher-option__label">受限</span>
+                      <span class="plan-switcher-option__hint">仅档案查看</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
               <AgentIcon name="help" :size="16" />
               <span v-if="expanded" class="rail-footer__label">支持</span>
@@ -574,6 +577,8 @@ import CampaignRoutePage from "./views/CampaignRoutePage.vue";
 import CustomerRoutePage from "./views/CustomerRoutePage.vue";
 import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
+
+const isDev = import.meta.env.DEV;
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
@@ -2708,7 +2713,7 @@ const handleSendEmail = () => {
     const attHtmlParts = attachments.map(att => {
       const ext = att.name.split('.').pop()?.toLowerCase() || '';
       const emoji = fileEmojiMap[ext] || '\u{1F4CE}';
-      return `<div style="padding:6px 0;font-size:13px;">${emoji} ${att.name} <span style="color:#8c95a6;margin-left:4px;">${fmtSize(att.size)}</span></div>`;
+      return `<div style="padding:var(--agent-space-8) 0;font-size:var(--agent-font-size-sm);">${emoji} ${att.name} <span style="color:var(--agent-color-text-tertiary);margin-left:var(--agent-space-4);">${fmtSize(att.size)}</span></div>`;
     });
     contentHtml += attHtmlParts.join('');
   }
@@ -2897,31 +2902,31 @@ onBeforeUnmount(() => {
 
 .brand-mark {
   align-items: center;
-  background: linear-gradient(135deg, #2f6bff 0%, #00b5ff 100%);
+  background: var(--agent-color-brand-primary);
   border: 0;
   border-radius: var(--agent-radius-md);
-  color: #ffffff;
+  color: var(--agent-color-bg-panel);
   cursor: pointer;
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--agent-font-size-xs);
   font-weight: var(--agent-font-weight-semibold);
-  height: 24px;
+  height: var(--agent-space-24);
   justify-content: center;
-  width: 24px;
+  width: var(--agent-space-24);
 }
 
 .brand-expanded {
   align-items: center;
   display: flex;
-  gap: 8px;
-  padding: 0 4px;
+  gap: var(--agent-space-8);
+  padding: 0 var(--agent-space-4);
   width: 100%;
 }
 
 .brand-expanded__name {
   color: var(--agent-color-text-primary);
-  font-size: 14px;
+  font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-semibold);
   white-space: nowrap;
 }
@@ -2940,7 +2945,7 @@ onBeforeUnmount(() => {
 
 .rail-footer--expanded {
   align-items: stretch;
-  gap: 2px;
+  gap: var(--agent-space-4);
 }
 
 .rail-footer__icon {
@@ -2951,16 +2956,16 @@ onBeforeUnmount(() => {
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
-  height: 30px;
+  height: var(--agent-space-24);
   justify-content: center;
-  width: 30px;
+  width: var(--agent-space-24);
 }
 
 .rail-footer--expanded .rail-footer__icon {
-  gap: 10px;
-  height: 36px;
+  gap: var(--agent-space-8);
+  height: var(--agent-space-24);
   justify-content: flex-start;
-  padding: 0 10px;
+  padding: 0 var(--agent-space-8);
   width: 100%;
 }
 
@@ -2976,13 +2981,13 @@ onBeforeUnmount(() => {
 }
 
 .rail-footer__profile {
-  background: radial-gradient(circle at 30% 25%, #f8dfb8 0%, #d4986f 48%, #8b6042 100%);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-border-default);
   border-radius: 50%;
   cursor: pointer;
-  height: 30px;
+  height: var(--agent-space-24);
   position: relative;
-  width: 30px;
+  width: var(--agent-space-24);
 }
 
 .rail-footer--expanded .rail-footer__profile {

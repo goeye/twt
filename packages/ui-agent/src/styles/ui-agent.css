@@ -31,6 +31,22 @@
   margin: 0;
 }
 
+/* Base button utility - can be used standalone or with .agent-btn */
+.agent-btn-base {
+  align-items: center;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  gap: var(--agent-space-8);
+  justify-content: center;
+  line-height: 1;
+  padding: var(--agent-space-8) var(--agent-space-12);
+  transition: all var(--agent-motion-fast) ease;
+}
+
 .agent-btn {
   align-items: center;
   border: 1px solid var(--agent-color-border-default);
