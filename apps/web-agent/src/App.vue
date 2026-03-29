@@ -3077,10 +3077,10 @@ onBeforeUnmount(() => {
 }
 
 .plan-switcher-panel {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-lg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--agent-shadow-lg);
   left: calc(100% + 8px);
   padding: 16px;
   position: absolute;
@@ -3230,10 +3230,10 @@ onBeforeUnmount(() => {
 }
 
 .perm-switcher-panel {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-lg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--agent-shadow-lg);
   left: calc(100% + 8px);
   padding: 16px;
   position: absolute;
@@ -3460,18 +3460,18 @@ onBeforeUnmount(() => {
 }
 
 .ai-takeover-bar__assign-btn {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-color: var(--agent-color-brand-primary);
   color: var(--agent-color-brand-primary);
 }
 
 .ai-takeover-bar__assign-btn:hover {
-  background: rgba(47, 107, 255, 0.06);
+  background: var(--agent-color-brand-bg-hover);
 }
 
 .queue-claim-bar {
   align-items: center;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-top: 1px solid var(--agent-color-border-default);
   display: flex;
   gap: var(--agent-space-12);
@@ -3480,13 +3480,13 @@ onBeforeUnmount(() => {
 }
 
 .queue-claim-bar__assign-btn {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-color: var(--agent-color-brand-primary);
   color: var(--agent-color-brand-primary);
 }
 
 .queue-claim-bar__assign-btn:hover {
-  background: rgba(47, 107, 255, 0.06);
+  background: var(--agent-color-brand-bg-hover);
 }
 
 .chat-pane__closed {
@@ -3695,7 +3695,7 @@ onBeforeUnmount(() => {
 }
 
 .detail-agent-row__badge--owner {
-  background: rgba(47, 107, 255, 0.1);
+  background: var(--agent-color-brand-bg-hover);
   color: var(--agent-color-brand-primary);
 }
 
