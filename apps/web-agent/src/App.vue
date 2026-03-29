@@ -3,10 +3,47 @@
     <template #nav-rail>
       <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
         <template #brand="{ expanded }">
-          <div v-if="expanded" class="brand-expanded">
-            <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
-            <span class="brand-expanded__name">TWT Chat</span>
-            <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
+          <div v-if="expanded" class="brand-expanded-wrap" @mouseenter="openProjectSwitcherHover" @mouseleave="closeProjectSwitcherHover">
+            <div class="brand-expanded">
+              <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+              <span class="brand-expanded__name">TWT Chat</span>
+              <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
+            </div>
+            <div v-if="projectSwitcherOpen" class="project-switcher-panel" @click.stop>
+              <div v-if="!projectManageOpen">
+                <div class="project-switcher-panel__header">
+                  <h4 class="project-switcher-panel__title">切换项目</h4>
+                  <button type="button" class="project-switcher-panel__manage-btn" @click="projectManageOpen = true">管理</button>
+                </div>
+                <div class="project-switcher-panel__list">
+                  <button type="button" class="project-item" :class="{ 'project-item--active': project.id === currentProjectId }" v-for="project in projects" :key="project.id" @click="switchProject(project.id)">
+                    <div class="project-item__avatar" :style="{ background: project.color }">{{ project.name.charAt(0) }}</div>
+                    <span class="project-item__name">{{ project.name }}</span>
+                    <span v-if="project.id === currentProjectId" class="project-item__check-badge"></span>
+                  </button>
+                </div>
+                <button type="button" class="project-switcher-panel__add-btn">
+                  <AgentIcon name="plus" :size="16" />
+                  <span>添加项目</span>
+                </button>
+              </div>
+              <div v-else>
+                <div class="project-switcher-panel__header">
+                  <h4 class="project-switcher-panel__title">切换项目</h4>
+                  <button type="button" class="project-switcher-panel__manage-btn" @click="projectManageOpen = false">完成</button>
+                </div>
+                <div class="project-switcher-panel__list">
+                  <div class="project-manage-item" v-for="project in projects" :key="project.id">
+                    <div class="project-manage-item__info">
+                      <div class="project-item__avatar" :style="{ background: project.color }">{{ project.name.charAt(0) }}</div>
+                      <span class="project-item__name">{{ project.name }}</span>
+                      <AgentIcon v-if="project.id === currentProjectId" name="check" :size="16" class="project-item__check" />
+                    </div>
+                    <button v-if="project.id !== currentProjectId" type="button" class="project-manage-item__exit-btn" @click="exitProject(project.id)">退出</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <button v-else type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
         </template>
@@ -633,6 +670,46 @@ const {
 const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 
 const permSwitcherOpen = ref(false);
+
+// 项目切换
+const projectSwitcherOpen = ref(false);
+const projectManageOpen = ref(false);
+const currentProjectId = ref("1");
+let projectHoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+const projects = ref([
+  { id: "1", name: "TWT Chat", color: "#FF6B35" },
+  { id: "2", name: "研发线上验收项目", color: "#4ECDC4" },
+  { id: "3", name: "test-1", color: "#556FB5" }
+]);
+
+const openProjectSwitcherHover = () => {
+  if (projectHoverTimer) clearTimeout(projectHoverTimer);
+  projectHoverTimer = setTimeout(() => {
+    projectSwitcherOpen.value = true;
+    projectManageOpen.value = false;
+  }, 200);
+};
+
+const closeProjectSwitcherHover = () => {
+  if (projectHoverTimer) clearTimeout(projectHoverTimer);
+  projectHoverTimer = setTimeout(() => {
+    if (!projectManageOpen.value) {
+      projectSwitcherOpen.value = false;
+    }
+  }, 200);
+};
+
+const switchProject = (id: string) => {
+  currentProjectId.value = id;
+  projectSwitcherOpen.value = false;
+  showTopToast(`已切换到 ${projects.value.find(p => p.id === id)?.name}`);
+};
+
+const exitProject = (id: string) => {
+  const project = projects.value.find(p => p.id === id);
+  showTopToast(`已退出项目 ${project?.name}`);
+};
 
 // 权限变化时，如果当前页面已无权限，立即弹窗
 watch(currentPermissions, () => {
@@ -2916,12 +2993,24 @@ onBeforeUnmount(() => {
   width: var(--agent-space-24);
 }
 
+.brand-expanded-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .brand-expanded {
   align-items: center;
+  cursor: pointer;
   display: flex;
   gap: var(--agent-space-8);
   padding: 0 var(--agent-space-4);
   width: 100%;
+  border-radius: var(--agent-radius-md);
+  transition: background var(--agent-motion-fast);
+}
+
+.brand-expanded:hover {
+  background: var(--agent-color-bg-muted);
 }
 
 .brand-expanded__name {
@@ -2934,6 +3023,172 @@ onBeforeUnmount(() => {
 .brand-expanded__arrow {
   color: var(--agent-color-text-secondary);
   margin-left: auto;
+}
+
+.project-switcher-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 320px;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: var(--agent-space-8);
+  padding: var(--agent-space-12);
+  z-index: 100;
+}
+
+.project-switcher-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--agent-space-12);
+}
+
+.project-switcher-panel__title {
+  font-size: var(--agent-font-size-base);
+  font-weight: var(--agent-font-weight-semibold);
+  color: var(--agent-color-text-primary);
+  margin: 0;
+}
+
+.project-switcher-panel__manage-btn {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 0;
+}
+
+.project-switcher-panel__manage-btn:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.project-switcher-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-4);
+  margin-bottom: var(--agent-space-12);
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: var(--agent-space-12);
+  padding: var(--agent-space-8);
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background var(--agent-motion-fast);
+}
+
+.project-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.project-item--active {
+  background: var(--agent-color-bg-muted);
+}
+
+.project-item__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.project-item__name {
+  flex: 1;
+  font-size: var(--agent-font-size-sm);
+  color: var(--agent-color-text-primary);
+}
+
+.project-item__check {
+  color: var(--agent-color-brand-primary);
+  flex-shrink: 0;
+}
+
+.project-item__check-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--agent-color-brand-primary);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.project-item__check-badge::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  width: 4px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.project-switcher-panel__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--agent-space-8);
+  width: 100%;
+  padding: var(--agent-space-8);
+  background: transparent;
+  border: 1px dashed var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  transition: all var(--agent-motion-fast);
+}
+
+.project-switcher-panel__add-btn:hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.project-manage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--agent-space-8);
+  border-radius: var(--agent-radius-md);
+}
+
+.project-manage-item__info {
+  display: flex;
+  align-items: center;
+  gap: var(--agent-space-12);
+  flex: 1;
+}
+
+.project-manage-item__exit-btn {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-status-error);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: var(--agent-space-4) var(--agent-space-8);
+  border-radius: var(--agent-radius-sm);
+  transition: background var(--agent-motion-fast);
+}
+
+.project-manage-item__exit-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .rail-footer {
