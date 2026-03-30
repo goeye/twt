@@ -7,9 +7,8 @@
 
       <section class="updates-hero">
         <div class="container">
-          <span class="updates-hero__eyebrow">Release notes</span>
-          <h1>Chat 更新日志</h1>
-          <p class="subtitle">记录每一次功能上线、体验优化与关键修复，帮你快速看懂版本变化。</p>
+          <h1>👋 欢迎来到 Chat 产品动态</h1>
+          <p class="subtitle">记录每一次功能上线、快速看懂版本变化</p>
         </div>
       </section>
 
@@ -22,7 +21,7 @@
 
                 <div class="card-sections">
                   <div v-for="section in item.sections" :key="section.label + section.text" class="section-item">
-                    <span :class="['section-tag', `section-tag--${section.type}`]">{{ section.label }}</span>
+                    <span class="section-tag">【{{ section.label }}】</span>
                     <p class="section-text">{{ section.text }}</p>
                   </div>
                 </div>
@@ -174,12 +173,13 @@ const updates: UpdateItem[] = [
 }
 
 .updates-shell {
-  background: linear-gradient(180deg, #f2f5fb 0 320px, #ffffff 320px);
+  background: #fff;
 }
 
 .updates-hero {
-  padding: 74px 0 88px;
+  padding: 82px 0 88px;
   text-align: center;
+  background: #f5f7fa;
 }
 
 .container {
@@ -188,26 +188,10 @@ const updates: UpdateItem[] = [
   padding: 0 24px;
 }
 
-.updates-hero__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(22, 119, 255, 0.12);
-  color: var(--links-color-primary);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .updates-hero h1 {
-  margin: 20px 0 16px;
-  font-size: clamp(36px, 5vw, 56px);
-  line-height: 1.12;
+  margin: 0 0 16px;
+  font-size: clamp(34px, 4.8vw, 52px);
+  line-height: 1.2;
   color: var(--links-color-text-primary);
 }
 
@@ -219,7 +203,7 @@ const updates: UpdateItem[] = [
 }
 
 .updates-content {
-  padding: 0 0 88px;
+  padding: 56px 0 88px;
 }
 
 .timeline {
@@ -242,7 +226,7 @@ const updates: UpdateItem[] = [
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--timeline-marker-width) var(--timeline-date-width);
   align-items: start;
-  margin-bottom: 32px;
+  margin-bottom: 42px;
 }
 
 .timeline-item:last-child {
@@ -250,16 +234,12 @@ const updates: UpdateItem[] = [
 }
 
 .timeline-card {
-  padding: 28px 30px;
-  border-radius: 28px;
-  border: 1px solid rgba(232, 233, 240, 0.92);
-  background: #fff;
-  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+  padding: 0;
 }
 
 .timeline-card h2 {
-  margin: 0 0 18px;
-  font-size: 22px;
+  margin: 0 0 16px;
+  font-size: 24px;
   line-height: 1.45;
   color: var(--links-color-text-primary);
 }
@@ -267,40 +247,21 @@ const updates: UpdateItem[] = [
 .card-sections {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .section-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 12px;
+  display: flex;
+  gap: 6px;
   align-items: start;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(232, 233, 240, 0.88);
-  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 
 .section-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 50px;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.section-tag--new {
-  background: #f0f8e8;
-  color: #3f8a1d;
-}
-
-.section-tag--optimize {
-  background: #eaf3ff;
-  color: #1677ff;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.85;
+  color: var(--links-color-text-primary);
 }
 
 .section-text {
@@ -334,20 +295,14 @@ const updates: UpdateItem[] = [
 }
 
 .date-text {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: #f7f9fc;
   color: var(--links-color-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {
   .updates-hero {
-    padding: 56px 0 72px;
+    padding: 64px 0 72px;
   }
 
   .container {
@@ -368,12 +323,7 @@ const updates: UpdateItem[] = [
   }
 
   .timeline-item {
-    margin-bottom: 24px;
-  }
-
-  .timeline-card {
-    padding: 22px 20px;
-    border-radius: 22px;
+    margin-bottom: 32px;
   }
 
   .timeline-card h2 {
@@ -381,8 +331,7 @@ const updates: UpdateItem[] = [
   }
 
   .section-item {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    display: block;
   }
 }
 </style>

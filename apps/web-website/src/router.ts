@@ -32,6 +32,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/developer-docs",
+      name: "developer-docs",
+      component: () => import("./views/DeveloperDocsPage.vue"),
+      meta: {
+        marketing: true,
+      },
+    },
+    {
       path: "/links",
       name: "links-list",
       component: () => import("./views/LinksListPage.vue"),

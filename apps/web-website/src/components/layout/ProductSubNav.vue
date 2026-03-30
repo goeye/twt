@@ -24,24 +24,28 @@
 
         <div class="product-subnav__actions">
           <div class="product-subnav__links">
-            <a href="#">下载</a>
-            <a href="#">功能介绍</a>
-            <a href="#">版本价格</a>
+            <a href="#" class="product-subnav__nav-link">下载</a>
+            <a href="#" class="product-subnav__nav-link">功能介绍</a>
+            <a href="#" class="product-subnav__nav-link">版本价格</a>
+
             <div class="product-subnav__dropdown">
-              <button type="button" class="product-subnav__dropdown-trigger">
-                {{ isPinned ? '帮助中心' : '帮助与支持' }}
+              <button
+                type="button"
+                class="product-subnav__dropdown-trigger"
+              >
+                支持与帮助
                 <svg class="product-subnav__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
               <div class="product-subnav__menu">
-                <RouterLink to="/updates">更新日志</RouterLink>
+                <RouterLink to="/updates">产品动态</RouterLink>
                 <RouterLink to="/help-center">帮助中心</RouterLink>
-                <RouterLink to="/help-center">快速开始</RouterLink>
+                <RouterLink to="/developer-docs">开发文档</RouterLink>
               </div>
             </div>
           </div>
-          <a v-if="isPinned" href="#" class="product-subnav__cta">立即使用</a>
+          <a v-if="isPinned && showCta" href="#" class="product-subnav__cta">立即使用</a>
         </div>
       </div>
     </div>
@@ -51,6 +55,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+
+withDefaults(defineProps<{
+  activeKey?: 'help-center' | 'developer-docs';
+  showCta?: boolean;
+}>(), {
+  activeKey: undefined,
+  showCta: true
+});
 
 const isPinned = ref(false);
 const stickyThreshold = ref(64);
@@ -172,7 +184,7 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.product-subnav__links > a,
+.product-subnav__nav-link,
 .product-subnav__dropdown-trigger {
   display: inline-flex;
   align-items: center;
@@ -188,7 +200,7 @@ onBeforeUnmount(() => {
   transition: color var(--links-motion-fast);
 }
 
-.product-subnav__links > a:hover,
+.product-subnav__nav-link:hover,
 .product-subnav__dropdown-trigger:hover {
   color: var(--links-color-primary);
 }
@@ -318,7 +330,7 @@ onBeforeUnmount(() => {
     display: none;
   }
 
-  .product-subnav__links > a,
+  .product-subnav__nav-link,
   .product-subnav__dropdown-trigger {
     font-size: 13px;
     white-space: nowrap;

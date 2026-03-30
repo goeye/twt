@@ -3,13 +3,12 @@
     <MarketingHeader />
 
     <div class="help-center-shell">
-      <ProductSubNav />
+      <ProductSubNav active-key="help-center" :show-cta="false" />
 
       <section class="help-center-hero">
         <div class="help-center-hero__inner">
-          <span class="help-center-hero__eyebrow">Help center</span>
           <h1>👋 欢迎来到 Chat 帮助中心</h1>
-          <p>在这里可以快速找到 Chat 的核心能力说明、接入步骤和日常使用方法。</p>
+          <p>在这里可以找到你想要的答案～</p>
         </div>
       </section>
 
@@ -17,11 +16,6 @@
         <div class="help-center-body__container">
           <aside class="help-center-sidebar">
             <div class="help-center-sidebar__inner">
-              <div class="help-center-sidebar__header">
-                <span class="help-center-sidebar__eyebrow">文档导航</span>
-                <h2>使用帮助</h2>
-              </div>
-
               <div v-for="group in helpCenterGroups" :key="group.id" class="help-group">
                 <button
                   type="button"
@@ -53,36 +47,39 @@
           </aside>
 
           <main class="help-center-article">
-            <div class="help-center-article__header">
-              <div>
-                <span class="help-center-article__eyebrow">{{ currentArticle.category }}</span>
-                <h2>{{ currentArticle.title }}</h2>
-              </div>
-              <span class="help-center-article__updated">更新于 {{ currentArticle.updatedAt }}</span>
-            </div>
+            <h2>{{ currentArticle.title }}</h2>
 
-            <p class="help-center-article__lead">{{ currentArticle.lead }}</p>
+            <section class="help-center-article__intro">
+              <h3>{{ currentArticle.subheading ?? currentArticle.title }}</h3>
+              <p v-for="paragraph in currentArticle.intro" :key="paragraph" class="help-center-article__paragraph">
+                {{ paragraph }}
+              </p>
+            </section>
 
             <section
               v-for="section in currentArticle.sections"
               :key="section.title"
               class="help-center-article__section"
             >
-              <h3>{{ section.title }}</h3>
+              <h4>{{ section.title }}</h4>
 
-              <p v-for="paragraph in section.paragraphs" :key="paragraph" class="help-center-article__paragraph">
+              <p
+                v-for="paragraph in section.paragraphs ?? []"
+                :key="paragraph"
+                class="help-center-article__paragraph"
+              >
                 {{ paragraph }}
               </p>
 
-              <div v-if="section.items?.length" class="help-center-article__grid">
-                <article v-for="item in section.items" :key="item.title" class="help-center-article__card">
+              <ul v-if="section.items?.length" class="help-center-article__list">
+                <li v-for="item in section.items" :key="item.title" class="help-center-article__list-item">
                   <span class="help-center-article__dot" aria-hidden="true"></span>
                   <div>
-                    <h4>{{ item.title }}</h4>
-                    <p>{{ item.description }}</p>
+                    <div class="help-center-article__list-title">{{ item.title }}</div>
+                    <p class="help-center-article__paragraph">{{ item.description }}</p>
                   </div>
-                </article>
-              </div>
+                </li>
+              </ul>
             </section>
           </main>
         </div>
@@ -99,7 +96,7 @@ import MarketingHeader from '../components/layout/MarketingHeader.vue';
 import ProductSubNav from '../components/layout/ProductSubNav.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
 
-type HelpArticleSectionItem = {
+type HelpArticleItem = {
   title: string;
   description: string;
 };
@@ -107,15 +104,14 @@ type HelpArticleSectionItem = {
 type HelpArticleSection = {
   title: string;
   paragraphs?: string[];
-  items?: HelpArticleSectionItem[];
+  items?: HelpArticleItem[];
 };
 
 type HelpArticle = {
   id: string;
-  category: string;
   title: string;
-  lead: string;
-  updatedAt: string;
+  subheading?: string;
+  intro: string[];
   sections: HelpArticleSection[];
 };
 
@@ -128,16 +124,18 @@ type HelpGroup = {
   }>;
 };
 
-const latestUpdatedAt = '2026-03-30';
-
-const buildSection = (
+const article = (
+  id: string,
   title: string,
-  items: HelpArticleSectionItem[],
-  paragraphs: string[] = []
-): HelpArticleSection => ({
+  intro: string[],
+  sections: HelpArticleSection[],
+  subheading?: string
+): HelpArticle => ({
+  id,
   title,
-  paragraphs,
-  items
+  subheading,
+  intro,
+  sections
 });
 
 const helpCenterGroups: HelpGroup[] = [
@@ -148,32 +146,24 @@ const helpCenterGroups: HelpGroup[] = [
       { id: 'chat-intro', label: 'Chat 介绍' },
       { id: 'create-project', label: '创建项目' },
       { id: 'project-management', label: '项目管理' },
+      { id: 'login-chat', label: '登录 Chat' },
       { id: 'getting-started', label: '开始使用' }
     ]
   },
   {
     id: 'conversation',
     title: '会话',
-    items: [
-      { id: 'session-overview', label: '会话总览' },
-      { id: 'session-routing', label: '分配与流转' }
-    ]
+    items: [{ id: 'session-overview', label: '会话总览' }]
   },
   {
     id: 'chat',
     title: '聊天',
-    items: [
-      { id: 'quick-reply', label: '快捷回复' },
-      { id: 'group-mention', label: '@ 提及协作' }
-    ]
+    items: [{ id: 'quick-reply', label: '快捷回复' }]
   },
   {
     id: 'visitor',
     title: '访客与客户',
-    items: [
-      { id: 'customer-profile', label: '客户资料管理' },
-      { id: 'customer-api', label: '客户接入 API' }
-    ]
+    items: [{ id: 'customer-profile', label: '客户资料管理' }]
   },
   {
     id: 'install',
@@ -188,640 +178,247 @@ const helpCenterGroups: HelpGroup[] = [
   {
     id: 'marketing',
     title: '营销',
-    items: [
-      { id: 'proactive-campaign', label: '主动营销' },
-      { id: 'template-library', label: '模板管理' }
-    ]
+    items: [{ id: 'proactive-campaign', label: '主动营销' }]
   },
   {
     id: 'ai-agent',
     title: 'AI Agent',
-    items: [
-      { id: 'copilot', label: 'Copilot 协作' },
-      { id: 'knowledge-base', label: '知识库接入' }
-    ]
+    items: [{ id: 'copilot', label: 'Copilot 协作' }]
   },
   {
     id: 'settings',
     title: '设置',
-    items: [
-      { id: 'roles-permission', label: '角色与权限' },
-      { id: 'website-settings', label: '站点与小部件' }
-    ]
+    items: [{ id: 'roles-permission', label: '角色与权限' }]
   }
 ];
 
 const helpArticles: Record<string, HelpArticle> = {
-  'chat-intro': {
-    id: 'chat-intro',
-    category: '快速开始',
-    title: 'Chat 介绍',
-    lead: 'TWT Chat 是面向全球化团队的全渠道客服与实时协同平台，帮助网站、App 与社媒消息统一接入、统一协作、统一沉淀。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection(
-        '核心能力概览',
-        [
-          {
-            title: '全渠道消息聚合',
-            description: '统一接入网页、App、社媒和官网表单消息，客服无需再在多个后台来回切换。'
-          },
-          {
-            title: '客服与 AI 协作',
-            description: '通过 Copilot、知识库与自动化规则辅助首响、分配和回复，提高服务一致性。'
-          },
-          {
-            title: '多端同步处理',
-            description: '支持 Web、客户端和移动端同时协作，团队随时接手，服务不中断。'
-          }
-        ],
-        ['如果你刚开始接触 Chat，先理解消息流、分配流和知识流这三件事，后面所有配置都会顺很多。']
-      ),
-      buildSection('推荐落地顺序', [
-        {
-          title: '先跑通消息接入',
-          description: '优先完成网站嵌码或 API 接入，确认消息能够稳定进入工作台。'
-        },
-        {
-          title: '再配置协作规则',
-          description: '补齐客服组、分配规则、标签和快捷回复，让团队流程先标准化。'
-        },
-        {
-          title: '最后引入 AI',
-          description: '在知识库与常见问题沉淀之后再启用 Copilot，命中率和可靠性会高很多。'
-        }
-      ])
+  'chat-intro': article(
+    'chat-intro',
+    'Chat 介绍',
+    [
+      'TWT Chat 是 TWT 旗下的全渠道客服与实时聊天平台，帮助网站、App 与社媒在一个后台统一接待全球访客，集消息聚合、知识库、自动化分配和数据看板于一体。',
+      '如果你是第一次接触 Chat，建议先看完 Chat 介绍、创建项目和开始使用这几个章节，先把一条真实会话完整跑通。'
+    ],
+    [
+      {
+        title: '核心能力',
+        items: [
+          { title: '统一消息接待', description: '网页、App、社媒和直聊链接的消息都可以在同一个工作台接收和处理。' },
+          { title: '客服协作', description: '支持会话分配、转接、待处理和快捷回复，避免团队在多个工具之间来回切换。' },
+          { title: '知识与数据沉淀', description: '常见问题、客户资料和运营数据可以持续积累，后续优化更有抓手。' }
+        ]
+      },
+      {
+        title: '推荐上手顺序',
+        items: [
+          { title: '先接入消息来源', description: '优先完成网站嵌码或直聊链接部署，确保消息能稳定进入系统。' },
+          { title: '再配置协作规则', description: '先补齐客服组、分配规则、标签和快捷回复，让团队流程先统一。' },
+          { title: '最后看报表和优化', description: '等业务跑起来后，再看首响、处理时长和满意度这些指标。' }
+        ]
+      }
+    ],
+    'Chat 介绍'
+  ),
+  'create-project': article(
+    'create-project',
+    '创建项目',
+    [
+      '项目是 Chat 的业务容器。通常一个品牌、一个站点或者一条独立业务线，都建议使用单独项目管理。'
+    ],
+    [
+      {
+        title: '创建前准备',
+        items: [
+          { title: '确定项目边界', description: '先明确这个项目服务哪个网站、品牌或业务场景，避免不同团队混用同一套规则。' },
+          { title: '准备基础信息', description: '项目名称、默认语言、时区和客服组会直接影响后续接入与协作。' }
+        ]
+      },
+      {
+        title: '创建流程',
+        items: [
+          { title: '填写基础配置', description: '先完成名称、语言、时区和品牌信息，再进入渠道接入。' },
+          { title: '接入真实渠道', description: '至少跑通一个真实消息来源，避免创建完成后仍然是空项目。' }
+        ]
+      }
     ]
-  },
-  'create-project': {
-    id: 'create-project',
-    category: '快速开始',
-    title: '创建项目',
-    lead: '项目是 Chat 的业务容器，一个品牌、一条业务线或一个独立站点，通常都建议单独建立项目管理。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('创建前先想清楚', [
-        {
-          title: '服务对象是谁',
-          description: '先明确这个项目面向哪个站点、品牌或市场，避免不同业务混到同一个工作台。'
-        },
-        {
-          title: '谁会参与协作',
-          description: '提前梳理客服、运营、管理员角色，后面配权限时会更省事。'
-        },
-        {
-          title: '会接入哪些渠道',
-          description: '网站、小部件、表单、API 或社媒渠道可以按业务优先级逐步接入。'
-        }
-      ]),
-      buildSection('标准创建流程', [
-        {
-          title: '填写基础信息',
-          description: '先完成项目名称、默认语言、时区和展示品牌配置，保证对外信息统一。'
-        },
-        {
-          title: '补齐接入渠道',
-          description: '至少完成一个真实渠道接入，确保创建后不是空壳项目。'
-        },
-        {
-          title: '邀请成员并分组',
-          description: '按客服组、业务组拆分成员，后面做分配规则时更容易扩展。'
-        }
-      ])
+  ),
+  'project-management': article(
+    'project-management',
+    '项目管理',
+    [
+      '项目管理的重点不是堆配置，而是把业务边界、成员职责和消息流转先理顺。'
+    ],
+    [
+      {
+        title: '推荐管理方式',
+        items: [
+          { title: '按业务拆分项目', description: '不同品牌、不同语种或不同服务策略的业务，建议独立管理。' },
+          { title: '统一命名规范', description: '项目、客服组、标签和快捷回复最好提前约定命名方式，后续检索会轻松很多。' }
+        ]
+      }
     ]
-  },
-  'project-management': {
-    id: 'project-management',
-    category: '快速开始',
-    title: '项目管理',
-    lead: '当你有多个品牌、多语言站点或多个业务团队时，项目管理的关键不是堆配置，而是把边界划清楚。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('建议的组织方式', [
-        {
-          title: '按品牌或业务线拆分',
-          description: '不同服务策略、不同客服团队的业务，优先用独立项目管理，避免规则互相污染。'
-        },
-        {
-          title: '渠道统一归档',
-          description: '同一品牌下的网站、App 与 API 接入尽量放在同一项目，客户视图更完整。'
-        },
-        {
-          title: '成员按职责分组',
-          description: '客服、运营、管理员分层管理，既方便授权，也方便后期审计。'
-        }
-      ]),
-      buildSection('管理时要盯住的点', [
-        {
-          title: '命名统一',
-          description: '项目、客服组、标签和快捷回复都建议统一命名规范，不然后期一定会乱。'
-        },
-        {
-          title: '权限最小化',
-          description: '不要一开始就给所有人管理员权限，越省事的配置，后面越容易埋雷。'
-        },
-        {
-          title: '定期清理',
-          description: '每月清理不用的规则、成员和渠道，保持项目结构轻量。'
-        }
-      ])
+  ),
+  'login-chat': article(
+    'login-chat',
+    '登录 Chat',
+    [
+      '登录前请先确认你的账号已经加入对应项目，并且拥有正确的角色权限。'
+    ],
+    [
+      {
+        title: '登录方式',
+        items: [
+          { title: '邮箱或账号密码登录', description: '使用管理员邀请的邮箱或企业账号进入工作台。' },
+          { title: '多端同步使用', description: 'Web、客户端和移动端可按团队习惯选择，消息与会话状态保持同步。' }
+        ]
+      }
     ]
-  },
-  'getting-started': {
-    id: 'getting-started',
-    category: '快速开始',
-    title: '开始使用',
-    lead: '真正的上手不是把页面点一遍，而是让一条完整的客户消息，从进入系统到被解决，真的跑通一次。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('第一周建议完成这些事', [
-        {
-          title: '完成真实环境测试',
-          description: '用站点、测试账号和真实客服账号各走一遍，确认通知、分配和回复链路没断。'
-        },
-        {
-          title: '准备基础素材',
-          description: '把欢迎语、快捷回复、常见问题、标签和客服组一次性补齐。'
-        },
-        {
-          title: '约定处理规范',
-          description: '至少先统一首响时限、待处理标准和转接规则，不然团队会各干各的。'
-        }
-      ]),
-      buildSection('怎么判断已经上手成功', [
-        {
-          title: '消息不丢',
-          description: '任意来源的测试消息都能进入工作台，并且能追踪到处理人和处理状态。'
-        },
-        {
-          title: '人能协作',
-          description: '客服之间能顺畅转接、提及和补充备注，而不是靠私聊喊人。'
-        },
-        {
-          title: '问题能复用',
-          description: '常见问题开始沉淀成知识库和快捷回复，重复劳动明显下降。'
-        }
-      ])
+  ),
+  'getting-started': article(
+    'getting-started',
+    '开始使用',
+    [
+      '真正的上手，不是把按钮点一遍，而是让一条真实消息从进入系统到被解决，完整跑通一次。'
+    ],
+    [
+      {
+        title: '建议优先完成',
+        items: [
+          { title: '跑通一条完整会话', description: '确认访客发起消息、客服接收、回复、转接和关闭会话都正常。' },
+          { title: '准备基础素材', description: '欢迎语、快捷回复、常见问题和标签先补齐，团队使用起来会更顺。' }
+        ]
+      }
     ]
-  },
-  'session-overview': {
-    id: 'session-overview',
-    category: '会话',
-    title: '会话总览',
-    lead: '会话页是客服的主战场，重点不是把列表做满，而是让人能在最短时间内判断优先级。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('你会看到什么', [
-        {
-          title: '状态分层',
-          description: '待接入、处理中、待处理、已关闭等状态帮助客服快速识别当前动作。'
-        },
-        {
-          title: '筛选与搜索',
-          description: '可按渠道、标签、客服、满意度和时间范围定位会话，减少翻找成本。'
-        },
-        {
-          title: '访客上下文',
-          description: '同屏查看客户资料、访问路径、历史会话和备注，避免重复发问。'
-        }
-      ]),
-      buildSection('高效处理的原则', [
-        {
-          title: '先看优先级',
-          description: '排队时长长、情绪风险高和高价值客户的会话，永远优先处理。'
-        },
-        {
-          title: '不要把列表当仓库',
-          description: '能关闭就关闭，能标记待处理就标记，列表越干净，团队越高效。'
-        }
-      ])
+  ),
+  'session-overview': article(
+    'session-overview',
+    '会话总览',
+    [
+      '会话页是客服的主工作区，重点是帮助坐席快速判断优先级并完成处理动作。'
+    ],
+    [
+      {
+        title: '核心视图',
+        items: [
+          { title: '状态与筛选', description: '按待接入、处理中、待处理、已关闭等状态快速筛选会话。' },
+          { title: '访客上下文', description: '结合来源、页面、历史记录和备注，减少重复提问。' }
+        ]
+      }
     ]
-  },
-  'session-routing': {
-    id: 'session-routing',
-    category: '会话',
-    title: '分配与流转',
-    lead: '会话分配不是一个开关，而是一套责任机制。谁先接、谁可转、什么时候回队列，这些都要定义清楚。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('常见流转方式', [
-        {
-          title: '自动分配',
-          description: '按在线状态、轮询规则或客服组自动派单，适合稳定的大批量接待场景。'
-        },
-        {
-          title: '手动转接',
-          description: '当问题涉及售后、技术或特定语言能力时，由当前客服主动转给目标同事。'
-        },
-        {
-          title: '标记待处理',
-          description: '需要等待用户补充信息或内部确认时，先保留上下文，再回来继续处理。'
-        }
-      ]),
-      buildSection('建议的配置原则', [
-        {
-          title: '规则越少越稳',
-          description: '先用最简单的轮询或客服组分发，别一上来就堆十几条复杂条件。'
-        },
-        {
-          title: '转接要有记录',
-          description: '每次转接都应该能追踪原因和处理人，不然问题一多就开始甩锅。'
-        }
-      ])
+  ),
+  'quick-reply': article(
+    'quick-reply',
+    '快捷回复',
+    [
+      '快捷回复用于统一高频场景表达，减少重复输入，同时保证服务口径一致。'
+    ],
+    [
+      {
+        title: '推荐沉淀内容',
+        items: [
+          { title: '标准问候语', description: '覆盖开场、排队说明、结束语等高频场景。' },
+          { title: '常见问题答案', description: '支付、物流、售后等高频问题建议整理成模板。' }
+        ]
+      }
     ]
-  },
-  'quick-reply': {
-    id: 'quick-reply',
-    category: '聊天',
-    title: '快捷回复',
-    lead: '快捷回复不是为了偷懒，是为了把高频问题的表达统一起来，让服务质量别全靠个人发挥。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('适合沉淀哪些内容', [
-        {
-          title: '标准问候语',
-          description: '覆盖开场、排队说明、结束语等高频场景，确保品牌语气一致。'
-        },
-        {
-          title: '常见问题答案',
-          description: '把支付、物流、售后、账号问题的标准回复固定下来，减少重复输入。'
-        },
-        {
-          title: '多语言模板',
-          description: '结合翻译能力整理常见语言版本，跨语种服务时更稳定。'
-        }
-      ]),
-      buildSection('维护时的建议', [
-        {
-          title: '按主题分组',
-          description: '不要把所有快捷回复堆在一个列表里，按售前、售后、系统通知分类最实用。'
-        },
-        {
-          title: '定期淘汰旧模板',
-          description: '业务一变就要跟着改，不然客服越用越乱，客户也能明显感觉到不一致。'
-        }
-      ])
+  ),
+  'customer-profile': article(
+    'customer-profile',
+    '客户资料管理',
+    [
+      '客户资料页的目标，是帮助客服在极短时间内判断客户是谁、来自哪里、历史发生过什么。'
+    ],
+    [
+      {
+        title: '建议维护的信息',
+        items: [
+          { title: '基础身份信息', description: '姓名、邮箱、电话、地区等字段用于建立客户识别能力。' },
+          { title: '标签与备注', description: '用标签表达阶段与类型，用备注补充个性化背景。' }
+        ]
+      }
     ]
-  },
-  'group-mention': {
-    id: 'group-mention',
-    category: '聊天',
-    title: '@ 提及协作',
-    lead: '@ 提及的意义不是热闹，而是让正确的人，在正确的时候，被准确叫到当前会话里。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('适合使用的场景', [
-        {
-          title: '跨部门协同',
-          description: '需要售后、技术或运营补充信息时，在当前会话中直接提及对应成员即可。'
-        },
-        {
-          title: '复杂问题会审',
-          description: '多人共同判断风险、退款或技术异常时，提及可以保留沟通上下文。'
-        }
-      ]),
-      buildSection('怎么用得不烦人', [
-        {
-          title: '先写清需求',
-          description: '提及时把问题背景和期望动作说完整，别只丢一个名字过去。'
-        },
-        {
-          title: '控制提及频率',
-          description: '不是所有问题都要拉人，能靠知识库和备注解决的，先自己解决。'
-        }
-      ])
+  ),
+  'web-install': article(
+    'web-install',
+    '网站接入',
+    [
+      '网站接入的核心目标，是让消息入口展示在正确的位置，并确保访客消息稳定进入工作台。'
+    ],
+    [
+      {
+        title: '接入检查项',
+        items: [
+          { title: '确认嵌码位置', description: '建议放在站点公共布局中，避免部分页面漏挂。' },
+          { title: '验证真实环境', description: '上线前至少在桌面端和移动端各走一遍完整会话。' }
+        ]
+      }
     ]
-  },
-  'customer-profile': {
-    id: 'customer-profile',
-    category: '访客与客户',
-    title: '客户资料管理',
-    lead: '资料页的价值不在于字段多，而在于让客服在 5 秒内判断这个人是谁、来过几次、值不值得优先跟进。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('建议重点维护的信息', [
-        {
-          title: '基础身份信息',
-          description: '姓名、邮箱、电话、国家地区等基础字段，用来建立客户识别能力。'
-        },
-        {
-          title: '业务标签与备注',
-          description: '用标签标记客户阶段、来源和关注点，用备注补充个性化背景。'
-        },
-        {
-          title: '历史轨迹',
-          description: '会话记录、访问页面和最近动作可以帮助客服快速判断客户意图。'
-        }
-      ]),
-      buildSection('维护资料时别踩坑', [
-        {
-          title: '字段别堆太多',
-          description: '填不动的字段等于没有字段，只保留真正会影响服务动作的信息。'
-        },
-        {
-          title: '标签要有统一规则',
-          description: '同一类客户别出现好几个名字，不然筛选和报表都会失真。'
-        }
-      ])
+  ),
+  'dashboard': article(
+    'dashboard',
+    '运营看板',
+    [
+      '看板的价值，不是摆数据，而是帮团队看清忙不忙、慢不慢、值不值。'
+    ],
+    [
+      {
+        title: '重点关注指标',
+        items: [
+          { title: '会话量与首响', description: '先看量，再看速度，这是最直接的负载反馈。' },
+          { title: '处理时长与满意度', description: '效率和质量要一起看，别只盯一个平均值。' }
+        ]
+      }
     ]
-  },
-  'customer-api': {
-    id: 'customer-api',
-    category: '访客与客户',
-    title: '客户接入 API',
-    lead: '如果你已经在 CRM、订单系统或会员系统里有客户资料，就别让客服再手抄一遍，直接通过 API 同步进来。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('常见接入内容', [
-        {
-          title: '唯一客户标识',
-          description: '先确保每个客户有稳定的唯一 ID，这是串联资料和历史会话的基础。'
-        },
-        {
-          title: '扩展资料字段',
-          description: '支持补充备注名、姓名、电话、邮箱等业务字段，客服接待前就能看到。'
-        },
-        {
-          title: '业务状态同步',
-          description: '订单状态、会员等级或风险信息也可以同步，方便客服快速做判断。'
-        }
-      ]),
-      buildSection('接入建议', [
-        {
-          title: '先少量字段试跑',
-          description: '别一开始就同步几十个字段，先验证核心识别链路稳定，再逐步扩展。'
-        },
-        {
-          title: '处理好更新时机',
-          description: '客户资料频繁变化时，要先想好是实时更新还是定时同步，别把旧数据当真数据。'
-        }
-      ])
+  ),
+  'proactive-campaign': article(
+    'proactive-campaign',
+    '主动营销',
+    [
+      '主动营销不是乱弹窗，而是在合适时机，把合适的信息推给最可能转化的人。'
+    ],
+    [
+      {
+        title: '推荐做法',
+        items: [
+          { title: '基于行为触发', description: '根据页面、停留时长和来源渠道进行差异化触发。' },
+          { title: '控制触达频次', description: '频次过高只会打扰用户，反而伤害体验和转化。' }
+        ]
+      }
     ]
-  },
-  'web-install': {
-    id: 'web-install',
-    category: '安装',
-    title: '网站接入',
-    lead: '网站接入的目标很简单，让访客在正确的页面、正确的时机看到入口，并且每一条消息都能稳定到达。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('上线前需要确认', [
-        {
-          title: '嵌码位置',
-          description: '将代码放在全站公共布局中，避免部分页面漏挂导致消息入口消失。'
-        },
-        {
-          title: '可信域名',
-          description: '提前配置站点域名与环境，减少跨域、拦截或脚本加载异常。'
-        },
-        {
-          title: '展示策略',
-          description: '确定小部件在哪些页面展示、是否默认展开、是否跟随业务时段显示。'
-        }
-      ]),
-      buildSection('上线后怎么验收', [
-        {
-          title: '多设备测试',
-          description: '桌面端和移动端都要验证一次，别只在自己电脑上看着没问题就算完。'
-        },
-        {
-          title: '消息闭环测试',
-          description: '从访客发消息到客服收到通知、回复成功、客户看到回复，这一整链必须走通。'
-        }
-      ])
+  ),
+  'copilot': article(
+    'copilot',
+    'Copilot 协作',
+    [
+      'Copilot 的意义，是帮客服降低重复劳动，把精力放到真正需要判断的问题上。'
+    ],
+    [
+      {
+        title: '主要能力',
+        items: [
+          { title: '推荐回复', description: '结合上下文与知识库生成建议回复，缩短响应时间。' },
+          { title: '多语言辅助', description: '帮助客服在跨语种服务场景中更高效理解和表达。' }
+        ]
+      }
     ]
-  },
-  'dashboard': {
-    id: 'dashboard',
-    category: '报表',
-    title: '运营看板',
-    lead: '看板不是给人看热闹的，它应该帮你回答三个问题，忙不忙、慢不慢、值不值。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('建议重点关注的指标', [
-        {
-          title: '会话量与首响',
-          description: '先看会话是否上涨，再看首响是否被拖慢，这能最快暴露团队负载问题。'
-        },
-        {
-          title: '处理时长与满意度',
-          description: '时长只看效率，满意度才看质量，两个指标要一起看才不容易误判。'
-        },
-        {
-          title: '来源与转化',
-          description: '识别高价值来源页面和高转化渠道，方便把资源投到最有效的地方。'
-        }
-      ]),
-      buildSection('看板使用建议', [
-        {
-          title: '按周期复盘',
-          description: '至少每周做一次团队复盘，把数据波动和具体动作对上。'
-        },
-        {
-          title: '别只看平均值',
-          description: '平均值最会骗人，高峰时段、重点渠道和异常客服要单独拆出来看。'
-        }
-      ])
+  ),
+  'roles-permission': article(
+    'roles-permission',
+    '角色与权限',
+    [
+      '权限设计的本质，是让每个人只接触自己必须接触的能力和数据。'
+    ],
+    [
+      {
+        title: '配置建议',
+        items: [
+          { title: '按岗位分层授权', description: '管理员、主管、客服分别配置不同能力，别把所有权限堆给所有人。' },
+          { title: '保留操作边界', description: '删除数据、修改规则和查看报表等高风险能力要单独控制。' }
+        ]
+      }
     ]
-  },
-  'proactive-campaign': {
-    id: 'proactive-campaign',
-    category: '营销',
-    title: '主动营销',
-    lead: '主动营销不是乱弹窗，而是在最合适的时机，把最合适的信息，推给最可能转化的人。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('常见触发方式', [
-        {
-          title: '基于页面行为触发',
-          description: '根据停留时长、访问页面或滚动深度触发消息，更贴近用户真实意图。'
-        },
-        {
-          title: '基于来源渠道触发',
-          description: '不同广告渠道、不同活动页可以配置不同话术，减少千人一面的打扰感。'
-        },
-        {
-          title: '基于客户标签触发',
-          description: '对老客户、新访客或高价值客户使用差异化策略，提升命中率。'
-        }
-      ]),
-      buildSection('别把它做成骚扰', [
-        {
-          title: '控制频次',
-          description: '同一访客短时间内不要反复弹，多一次曝光不一定多一次转化。'
-        },
-        {
-          title: '明确目标',
-          description: '每个活动最好只追一个目标，是留资、咨询还是转化，别什么都想要。'
-        }
-      ])
-    ]
-  },
-  'template-library': {
-    id: 'template-library',
-    category: '营销',
-    title: '模板管理',
-    lead: '模板库不是素材堆放区，它应该是一套可复用、可维护、可快速调用的营销资产系统。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('适合收进模板库的内容', [
-        {
-          title: '欢迎类模板',
-          description: '用于新访客首屏引导或首访问候，帮助快速建立对话。'
-        },
-        {
-          title: '促销类模板',
-          description: '适合活动页、限时折扣和大促提醒，但要注意频次和时机。'
-        },
-        {
-          title: '服务引导模板',
-          description: '用于主动邀请咨询、引导留资或推荐客服入口，提升会话转化。'
-        }
-      ]),
-      buildSection('维护模板的方式', [
-        {
-          title: '按用途命名',
-          description: '模板名称要一眼看出用途、渠道和阶段，不然团队根本找不到。'
-        },
-        {
-          title: '上线前先预览',
-          description: '文字、按钮、图片和跳转都要在预览里确认一次，别把低级错误发给用户。'
-        }
-      ])
-    ]
-  },
-  'copilot': {
-    id: 'copilot',
-    category: 'AI Agent',
-    title: 'Copilot 协作',
-    lead: 'Copilot 的价值不是替人偷懒，而是把客服从重复劳动里解放出来，让人把精力放到真正需要判断的问题上。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('Copilot 能帮你做什么', [
-        {
-          title: '推荐回复',
-          description: '结合上下文与知识库，给出可直接编辑的回复建议，缩短响应时间。'
-        },
-        {
-          title: '多语言辅助',
-          description: '在跨语言服务场景下辅助理解与组织表达，减少沟通损耗。'
-        },
-        {
-          title: '整理信息',
-          description: '帮助快速提炼用户问题、总结重点信息，降低接手成本。'
-        }
-      ]),
-      buildSection('怎么用更靠谱', [
-        {
-          title: '先有人审',
-          description: '重要场景先保持人工审核，别把 AI 当免责工具，那是给自己挖坑。'
-        },
-        {
-          title: '知识库先打底',
-          description: '没有稳定知识库时，推荐回复会漂，先把标准答案沉淀好再放量使用。'
-        }
-      ])
-    ]
-  },
-  'knowledge-base': {
-    id: 'knowledge-base',
-    category: 'AI Agent',
-    title: '知识库接入',
-    lead: '知识库是 AI 输出质量的地基。地基松，楼再漂亮也会歪，这事别想偷懒。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('适合纳入知识库的内容', [
-        {
-          title: 'FAQ 与标准流程',
-          description: '把重复问题和标准处理流程先结构化，这是命中率最高的一批内容。'
-        },
-        {
-          title: '产品说明与政策',
-          description: '定价、功能、售后、物流、退款规则等正式口径都应沉淀进去。'
-        },
-        {
-          title: '内部协作规则',
-          description: '哪些问题要升级、哪些问题能直接处理，也应该写清楚。'
-        }
-      ]),
-      buildSection('维护知识库的建议', [
-        {
-          title: '宁可少，不要脏',
-          description: '过期内容、互相冲突的内容，会比没有知识库更害人。'
-        },
-        {
-          title: '和业务版本同步',
-          description: '产品规则一变，知识库就该跟着变，不然客服和 AI 都会一起说错话。'
-        }
-      ])
-    ]
-  },
-  'roles-permission': {
-    id: 'roles-permission',
-    category: '设置',
-    title: '角色与权限',
-    lead: '权限设计的本质，是让每个人都只接触自己必须接触的能力和数据，这才叫安全，也才叫可控。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('推荐的角色层级', [
-        {
-          title: '管理员',
-          description: '负责项目配置、成员管理和规则维护，数量不宜过多。'
-        },
-        {
-          title: '客服主管',
-          description: '负责团队排班、质量管理和会话复盘，通常需要看报表和转接能力。'
-        },
-        {
-          title: '普通客服',
-          description: '聚焦接待、回复、转接和备注，不建议开放过多系统级设置。'
-        }
-      ]),
-      buildSection('配置时的注意点', [
-        {
-          title: '先定义动作边界',
-          description: '哪些人能删数据、哪些人能改规则、哪些人能看报表，提前划线。'
-        },
-        {
-          title: '按岗位，不按人',
-          description: '权限模板要围绕岗位来设计，不要围绕某个同事的特殊习惯来配。'
-        }
-      ])
-    ]
-  },
-  'website-settings': {
-    id: 'website-settings',
-    category: '设置',
-    title: '站点与小部件',
-    lead: '小部件不是挂上去就完事，它既是客服入口，也是品牌触点，丑和乱都会直接影响转化。',
-    updatedAt: latestUpdatedAt,
-    sections: [
-      buildSection('建议重点配置的内容', [
-        {
-          title: '展示位置与时机',
-          description: '根据页面类型、停留时长和设备端决定入口位置，别挡内容，也别太难找。'
-        },
-        {
-          title: '品牌视觉',
-          description: '头像、颜色、欢迎语和按钮文案最好统一，否则看起来就像临时拼起来的。'
-        },
-        {
-          title: '表单与预设问题',
-          description: '在对话前补充必要字段，能明显减少客服后续反复追问。'
-        }
-      ]),
-      buildSection('上线前检查', [
-        {
-          title: '移动端兼容',
-          description: '手机端弹层、输入框和浮窗位置一定要测，很多体验问题都死在这里。'
-        },
-        {
-          title: '品牌一致性',
-          description: '确认文案、按钮和跳转都符合你当前站点的品牌语气，不要像拼接广告。'
-        }
-      ])
-    ]
-  }
+  )
 };
 
 const defaultArticleId = 'chat-intro';
@@ -857,130 +454,56 @@ const setActiveArticle = (groupId: string, articleId: string) => {
 }
 
 .help-center-shell {
-  background: linear-gradient(180deg, #f2f5fb 0 360px, #ffffff 360px);
+  background: #fff;
 }
 
 .help-center-hero {
-  position: relative;
-  overflow: hidden;
-  padding: 72px 24px 92px;
+  background: #f3f6fc;
+  padding: 82px 24px 92px;
   text-align: center;
 }
 
-.help-center-hero::before,
-.help-center-hero::after {
-  content: '';
-  position: absolute;
-  border-radius: 999px;
-  pointer-events: none;
-  filter: blur(2px);
-}
-
-.help-center-hero::before {
-  top: -120px;
-  left: 8%;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, rgba(22, 119, 255, 0.16) 0%, rgba(22, 119, 255, 0) 70%);
-}
-
-.help-center-hero::after {
-  right: 10%;
-  bottom: -150px;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(255, 181, 77, 0.18) 0%, rgba(255, 181, 77, 0) 72%);
-}
-
 .help-center-hero__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 860px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-.help-center-hero__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(22, 119, 255, 0.12);
-  color: var(--links-color-primary);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .help-center-hero h1 {
-  margin: 20px 0 18px;
-  font-size: clamp(36px, 5vw, 56px);
-  line-height: 1.12;
+  margin: 0;
+  font-size: clamp(38px, 5.1vw, 72px);
+  line-height: 1.18;
+  font-weight: 600;
   color: var(--links-color-text-primary);
 }
 
 .help-center-hero p {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.8;
-  color: var(--links-color-text-secondary);
+  margin: 28px 0 0;
+  font-size: 16px;
+  color: #70788c;
 }
 
 .help-center-body {
-  padding: 0 0 88px;
+  padding: 42px 0 88px;
 }
 
 .help-center-body__container {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 32px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 44px;
   align-items: start;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
-.help-center-sidebar {
-  position: sticky;
-  top: calc(var(--links-product-nav-height) + 24px);
-}
-
 .help-center-sidebar__inner {
-  max-height: calc(100vh - var(--links-product-nav-height) - 48px);
-  overflow: auto;
-  padding: 14px;
-  border-radius: 26px;
-  border: 1px solid rgba(232, 233, 240, 0.88);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(16px);
-}
-
-.help-center-sidebar__header {
-  padding: 10px 10px 16px;
-}
-
-.help-center-sidebar__eyebrow {
-  display: inline-block;
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--links-color-text-muted);
-}
-
-.help-center-sidebar__header h2 {
-  margin: 0;
-  font-size: 26px;
-  color: var(--links-color-text-primary);
+  padding: 22px 18px;
+  border-radius: 16px;
+  background: #f7f8fb;
 }
 
 .help-group + .help-group {
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .help-group__trigger {
@@ -988,28 +511,24 @@ const setActiveArticle = (groupId: string, articleId: string) => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  padding: 12px 12px;
   border: none;
-  border-radius: 16px;
   background: transparent;
-  padding: 12px 14px;
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--links-color-text-primary);
+  text-align: left;
   cursor: pointer;
-  transition:
-    background-color var(--links-motion-fast),
-    color var(--links-motion-fast);
 }
 
-.help-group__trigger:hover,
 .help-group__trigger--open {
-  background: #f5f8ff;
   color: var(--links-color-primary);
 }
 
 .help-group__arrow {
   flex-shrink: 0;
+  color: #8b93a6;
   transition: transform var(--links-motion-fast);
 }
 
@@ -1018,210 +537,121 @@ const setActiveArticle = (groupId: string, articleId: string) => {
 }
 
 .help-group__items {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 4px 0 10px 24px;
-  padding: 6px 0 4px 16px;
-  border-left: 1px solid var(--links-color-border);
+  margin: 4px 0 10px 22px;
+  padding: 6px 0 2px 24px;
 }
 
 .help-group__item {
+  display: block;
   width: 100%;
+  padding: 12px 0;
   border: none;
-  border-radius: 14px;
   background: transparent;
-  padding: 10px 12px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
+  color: #3f4758;
   text-align: left;
-  color: var(--links-color-text-secondary);
   cursor: pointer;
-  transition:
-    background-color var(--links-motion-fast),
-    color var(--links-motion-fast),
-    transform var(--links-motion-fast);
-}
-
-.help-group__item:hover {
-  background: #f7f9fc;
-  color: var(--links-color-text-primary);
-  transform: translateX(2px);
 }
 
 .help-group__item--active {
-  background: var(--links-color-primary-light);
   color: var(--links-color-primary);
-  box-shadow: inset 0 0 0 1px rgba(22, 119, 255, 0.12);
 }
 
 .help-center-article {
-  padding: 38px 40px 42px;
-  border-radius: 32px;
-  border: 1px solid rgba(232, 233, 240, 0.92);
-  background: #fff;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+  min-width: 0;
+  color: #2e3445;
 }
 
-.help-center-article__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.help-center-article__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #f4f7ff;
-  color: var(--links-color-primary);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.help-center-article__header h2 {
-  margin: 16px 0 0;
-  font-size: clamp(30px, 4vw, 46px);
-  line-height: 1.14;
+.help-center-article h2 {
+  margin: 0 0 38px;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.18;
+  font-weight: 600;
   color: var(--links-color-text-primary);
 }
 
-.help-center-article__updated {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: #f7f9fc;
-  color: var(--links-color-text-secondary);
-  font-size: 13px;
-  white-space: nowrap;
+.help-center-article__intro {
+  margin-bottom: 32px;
 }
 
-.help-center-article__lead {
-  margin: 20px 0 0;
-  font-size: 17px;
-  line-height: 1.9;
-  color: var(--links-color-text-secondary);
+.help-center-article__intro h3,
+.help-center-article__section h4 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--links-color-text-primary);
 }
 
 .help-center-article__section {
-  padding-top: 34px;
   margin-top: 34px;
-  border-top: 1px solid rgba(232, 233, 240, 0.88);
-}
-
-.help-center-article__section h3 {
-  margin: 0 0 18px;
-  font-size: 24px;
-  line-height: 1.3;
-  color: var(--links-color-text-primary);
 }
 
 .help-center-article__paragraph {
   margin: 0 0 16px;
-  font-size: 15px;
-  line-height: 1.9;
-  color: var(--links-color-text-secondary);
+  font-size: 16px;
+  line-height: 1.95;
+  color: #3f4758;
 }
 
-.help-center-article__grid {
+.help-center-article__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.help-center-article__list-item {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.help-center-article__card {
-  display: flex;
-  align-items: flex-start;
+  grid-template-columns: 12px minmax(0, 1fr);
   gap: 12px;
-  min-height: 100%;
-  padding: 18px 18px 18px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(232, 233, 240, 0.92);
-  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+  align-items: start;
+  margin-bottom: 20px;
 }
 
 .help-center-article__dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 7px;
+  width: 12px;
+  height: 12px;
+  margin-top: 9px;
   border-radius: 50%;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #44d2ff 0%, #1677ff 100%);
-  box-shadow: 0 0 0 6px rgba(22, 119, 255, 0.08);
+  background: var(--links-color-text-primary);
 }
 
-.help-center-article__card h4 {
-  margin: 0 0 8px;
+.help-center-article__list-title {
+  margin-bottom: 8px;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.8;
+  font-weight: 500;
   color: var(--links-color-text-primary);
 }
 
-.help-center-article__card p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--links-color-text-secondary);
-}
-
-@media (max-width: 1080px) {
-  .help-center-body__container {
-    gap: 24px;
-  }
-
-  .help-center-article {
-    padding: 32px;
-  }
-}
-
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .help-center-body__container {
     grid-template-columns: 1fr;
-  }
-
-  .help-center-sidebar {
-    position: static;
-  }
-
-  .help-center-sidebar__inner {
-    max-height: none;
+    gap: 32px;
   }
 }
 
 @media (max-width: 768px) {
   .help-center-hero {
-    padding: 56px 20px 72px;
-  }
-
-  .help-center-hero p {
-    font-size: 16px;
+    padding: 62px 16px 72px;
   }
 
   .help-center-body {
-    padding-bottom: 72px;
+    padding: 28px 0 72px;
   }
 
   .help-center-body__container {
     padding: 0 16px;
   }
 
-  .help-center-article {
-    padding: 26px 22px 28px;
-    border-radius: 24px;
+  .help-center-article h2 {
+    margin-bottom: 26px;
   }
 
-  .help-center-article__header {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .help-center-article__grid {
-    grid-template-columns: 1fr;
+  .help-center-article__paragraph,
+  .help-center-article__list-title {
+    font-size: 15px;
   }
 }
 </style>
