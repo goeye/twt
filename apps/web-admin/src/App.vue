@@ -28,6 +28,12 @@
           <a-menu-item key="prompt-list" @click="$router.push('/prompt/list')">提示词列表</a-menu-item>
         </a-sub-menu>
 
+        <a-sub-menu key="content">
+          <template #icon><ReadOutlined /></template>
+          <template #title>内容管理</template>
+          <a-menu-item key="api-docs" @click="$router.push('/content/api-docs')">API 文档</a-menu-item>
+        </a-sub-menu>
+
         <a-sub-menu key="project">
           <template #icon><ProjectOutlined /></template>
           <template #title>项目管理</template>
@@ -133,6 +139,7 @@ import {
   DashboardOutlined,
   BarChartOutlined,
   FileTextOutlined,
+  ReadOutlined,
   ProjectOutlined,
   SafetyOutlined,
   CloudServerOutlined,
@@ -181,6 +188,10 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
   "/prompt/list": {
     breadcrumbs: [{ title: "提示词管理" }, { title: "提示词列表" }],
     tabTitle: "提示词列表",
+  },
+  "/content/api-docs": {
+    breadcrumbs: [{ title: "内容管理" }, { title: "API 文档" }],
+    tabTitle: "API 文档",
   },
   "/compliance/agreements": {
     breadcrumbs: [{ title: "合规管理" }, { title: "协议管理" }],
@@ -262,6 +273,18 @@ function getRouteMeta(path: string): { breadcrumbs: BreadcrumbItem[]; tabTitle: 
       tabTitle: isNew ? "新增资源" : "编辑资源",
     };
   }
+  const apiDocMatch = path.match(/^\/content\/api-docs\/(.+)$/);
+  if (apiDocMatch) {
+    const isNew = apiDocMatch[1] === "new";
+    return {
+      breadcrumbs: [
+        { title: "内容管理" },
+        { title: "API 文档", path: "/content/api-docs" },
+        { title: isNew ? "新增文档" : "编辑文档" },
+      ],
+      tabTitle: isNew ? "新增文档" : "编辑文档",
+    };
+  }
   return { breadcrumbs: [{ title: "数据看板" }], tabTitle: "页面" };
 }
 
@@ -300,6 +323,7 @@ function closeTab(tab: TabItem) {
 function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
   if (path === "/prompt/list") return "prompt-list";
+  if (path.startsWith("/content/api-docs")) return "api-docs";
   if (path === "/project/list") return "project-list";
   if (path === "/project/visitors") return "project-list";
   if (path === "/project/clients") return "project-clients";
@@ -317,6 +341,7 @@ function routeToKey(path: string): string {
 
 function routeToOpenKeys(path: string): string[] {
   if (path.startsWith("/prompt")) return ["prompt"];
+  if (path.startsWith("/content")) return ["content"];
   if (path.startsWith("/project")) return ["project"];
   if (path.startsWith("/compliance")) return ["compliance"];
   if (path.startsWith("/links")) return ["resource"];

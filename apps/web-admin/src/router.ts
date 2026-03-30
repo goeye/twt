@@ -52,6 +52,14 @@ const router = createRouter({
       component: () => import("./views/ResourceEditPage.vue"),
     },
     {
+      path: "/content/api-docs",
+      component: () => import("./views/ApiDocsListPage.vue"),
+    },
+    {
+      path: "/content/api-docs/:id",
+      component: () => import("./views/ApiDocEditPage.vue"),
+    },
+    {
       path: "/project/list",
       component: () => import("./views/ProjectListPage.vue"),
     },
