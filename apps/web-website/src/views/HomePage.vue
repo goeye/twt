@@ -44,7 +44,6 @@
           <div class="hero-right">
             <div class="product-preview">
               <div class="glow"></div>
-              <img src="https://via.placeholder.com/600x700/ffffff/e6f4ff?text=Product+UI" alt="TWT Chat 产品界面" />
             </div>
           </div>
         </div>
@@ -172,44 +171,96 @@
         <h2>面向多行业，提供真正匹配业务的解决方案</h2>
         <p class="solutions-subtitle">为真实客户沟通场景而设计，不同行业,同样高效</p>
 
-        <div class="solutions-tabs">
-          <button class="tab-btn active">SaaS / B2B 团队</button>
-          <button class="tab-btn">电商独立站/D2C品牌</button>
-          <button class="tab-btn">教培/在线课程团队</button>
-          <button class="tab-btn">金融/投资服务团队</button>
+        <div class="solutions-carousel">
+          <div class="carousel-track" :style="{ transform: `translateX(-${currentIndex * 100}%)` }">
+            <div v-for="(solution, index) in solutions" :key="index" class="carousel-slide">
+              <div class="solution-content">
+                <div class="solution-card">
+                  <h3>{{ solution.title }}</h3>
+                  <div class="solution-features">
+                    <p class="feature-title">我们提供</p>
+                    <ul>
+                      <li v-for="(feature, i) in solution.features" :key="i" v-html="feature"></li>
+                    </ul>
+                    <n-button type="primary" size="large" round class="solution-btn">立即咨询</n-button>
+                  </div>
+                </div>
+                <div class="solution-image">
+                  <div class="image-placeholder"></div>
+                </div>
+              </div>
+              <div class="solution-tab">{{ solution.tab }}</div>
+            </div>
+          </div>
         </div>
 
-        <div class="solutions-content">
-          <div class="solution-card">
-            <h3>把原本要来回十几封邮件的问题，一次讲清楚。</h3>
-            <div class="solution-features">
-              <p class="feature-title">我们提供</p>
-              <ul>
-                <li>一键生成<strong>链接协助</strong>，屏幕共享+语音说明</li>
-                <li>使用<strong>实时标注</strong>，操作步骤一目了然</li>
-                <li><strong>Copilot 智能推荐</strong>回复，降低对人工经验的依赖</li>
-                <li>在同一工作台实现<strong>客户支持与团队协作</strong>，减少反复沟通</li>
-              </ul>
-              <n-button type="primary" size="large" round class="solution-btn">立即咨询</n-button>
-            </div>
+        <div class="carousel-nav">
+          <button class="nav-btn" :disabled="currentIndex === 0" @click="prevSolution">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="nav-btn" :disabled="currentIndex === solutions.length - 1" @click="nextSolution">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能特性 -->
+    <section class="features">
+      <div class="container">
+        <h2>更极速、更智能、更安全</h2>
+        <p class="features-subtitle">让每一次体验都高效靠谱</p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>高效极速接入</h3>
+            <p>3 分钟完成网站代码部署<br>无需下载，注册即可使用<br>操作简单，团队快速上手</p>
           </div>
 
-          <div class="solution-image">
-            <div class="image-placeholder"></div>
+          <div class="feature-card">
+            <div class="feature-icon">💻</div>
+            <h3>多端协同响应</h3>
+            <p>支持 App、Web、客户端<br>数据实时同步，多端无缝切换<br>消息集中处理，避免客户遗漏</p>
           </div>
 
-          <div class="solution-card">
-            <h3>让每一次咨询，都更有机会变成订单。</h3>
-            <div class="solution-features">
-              <p class="feature-title">我们提供</p>
-              <ul>
-                <li><strong>快捷回复+实时翻译</strong>，缩短等待时间，提升下单转化</li>
-                <li><strong>不限会话数、不限时段</strong>，高峰期也能稳定承接咨询</li>
-                <li>内置<strong>自动翻译</strong>，直接服务不同语系和语言的客户</li>
-                <li>将客户从人<strong>售后转化</strong>，订单与问题全程可追踪</li>
-              </ul>
-            </div>
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>AI 智能赋能</h3>
+            <p>AI 深度学习企业知识库<br>Copilot 智能辅助，推荐高质量回复<br>减少重复沟通，提升客服效率</p>
           </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">👤</div>
+            <h3>专业服务支持</h3>
+            <p>专业客户成功团队全程支持<br>7x24 小时服务响应，问题快速解决<br>专属服务经理，1 对 1 指导接入与使用</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>数据安全保障</h3>
+            <p>全站 HTTPS / SSL 加密传输<br>遵循GDPR数据保护原则<br>客户数据所有权与控制权完全归企业</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔌</div>
+            <h3>开放能力扩展</h3>
+            <p>提供开放 API 与开发能力<br>支持各种自定义接入与扩展方式<br>Webhook 支持，轻松对接各系统</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+      <div class="container">
+        <h2>常见问题</h2>
+        <div class="faq-list">
+          <div v-for="q in faqList" :key="q" class="faq-item">{{ q }}</div>
         </div>
       </div>
     </section>
@@ -249,71 +300,50 @@
       </div>
     </section>
 
-    <!-- FAQ -->
-    <section class="faq">
-      <div class="container">
-        <h2>常见问题</h2>
-        <div class="faq-list">
-          <div v-for="q in faqList" :key="q" class="faq-item">{{ q }}</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Certificates -->
-    <section class="certs">
-      <div class="container">
-        <h2>平台资质</h2>
-        <div class="cert-grid">
-          <img v-for="i in 3" :key="i" :src="`https://via.placeholder.com/300x200/f5f6fa/666?text=Cert+${i}`" alt="证书" />
-        </div>
-      </div>
-    </section>
-
     <!-- 预约专家演示 -->
     <section class="demo">
       <div class="container">
         <div class="demo-content">
-          <div class="demo-left">
-            <h2>预约专家演示</h2>
-            <p class="demo-subtitle">预约后，会有技术专家联系您进行产品演示，帮助您更好的了解 Chat。</p>
+          <h2>预约专家演示</h2>
+          <p class="demo-subtitle">预约后，会有技术专家联系您进行产品演示，帮助您更好的了解 Chat。</p>
 
-            <form class="demo-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <input type="text" placeholder="姓名" required />
-                </div>
-                <div class="form-group">
-                  <input type="email" placeholder="邮箱" required />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <input type="date" placeholder="预约时间" />
-                </div>
-                <div class="form-group phone-group">
-                  <select class="country-code">
-                    <option>+86</option>
-                    <option>+1</option>
-                    <option>+44</option>
-                  </select>
-                  <input type="tel" placeholder="联系电话" />
-                </div>
-              </div>
-
+          <form class="demo-form">
+            <div class="form-row">
               <div class="form-group">
-                <input type="text" placeholder="公司名称" />
+                <span class="required">*</span>
+                <input type="text" placeholder="姓名" required />
               </div>
+              <div class="form-group">
+                <span class="required">*</span>
+                <input type="email" placeholder="邮箱" required />
+              </div>
+            </div>
 
-              <n-button type="primary" size="large" class="submit-btn">提交预约</n-button>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="date" placeholder="预约时间" />
+              </div>
+              <div class="form-group">
+                <div class="phone-input">
+                  <n-select
+                    v-model:value="countryCode"
+                    :options="countryOptions"
+                    class="country-select"
+                    :consistent-menu-width="false"
+                  />
+                  <input type="tel" placeholder="联系电话" class="phone-number" />
+                </div>
+              </div>
+            </div>
 
-              <p class="form-note">*为必填项，请如实填写您的信息，我们将于1个工作日内与您取得联系。</p>
-            </form>
-          </div>
+            <div class="form-group">
+              <input type="text" placeholder="公司名称" />
+            </div>
 
-          <div class="demo-right">
-            <div class="expert-image"></div>
-          </div>
+            <n-button type="primary" size="large" class="submit-btn">提交预约</n-button>
+
+            <p class="form-note">*为必填项，请如实填写您的信息，我们将于1个工作日内与您取得联系。</p>
+          </form>
         </div>
       </div>
     </section>
@@ -338,9 +368,78 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NCard } from 'naive-ui';
+import { ref } from 'vue';
+import { NButton, NCard, NSelect } from 'naive-ui';
 import MarketingHeader from '../components/layout/MarketingHeader.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
+
+const countryCode = ref('+86');
+const countryOptions = [
+  { label: '+86', value: '+86' },
+  { label: '+93', value: '+93' },
+  { label: '+297', value: '+297' },
+  { label: '+968', value: '+968' },
+  { label: '+971', value: '+971' },
+  { label: '+251', value: '+251' },
+  { label: '+1', value: '+1' },
+  { label: '+44', value: '+44' },
+];
+
+const currentIndex = ref(0);
+const solutions = [
+  {
+    tab: 'SaaS / B2B 团队',
+    title: '把原本要来回十几封邮件的问题，一次讲清楚。',
+    features: [
+      '一键生成<strong>链接协助</strong>，屏幕共享+语音说明',
+      '使用<strong>实时标注</strong>，操作步骤一目了然',
+      '<strong>Copilot 智能推荐</strong>回复，降低对人工经验的依赖',
+      '在同一工作台实现<strong>客户支持与团队协作</strong>，减少反复沟通'
+    ]
+  },
+  {
+    tab: '电商独立站/D2C品牌',
+    title: '让每一次咨询，都更有机会变成订单。',
+    features: [
+      '<strong>快捷回复+实时翻译</strong>，缩短等待时间，提升下单转化',
+      '<strong>不限会话数、不限时段</strong>，高峰期也能稳定承接咨询',
+      '内置<strong>自动翻译</strong>，直接服务不同语系和语言的客户',
+      '将客户从人<strong>售后转化</strong>，订单与问题全程可追踪'
+    ]
+  },
+  {
+    tab: '教培/在线课程团队',
+    title: '让学员问题得到及时响应，提升课程完成率。',
+    features: [
+      '<strong>多渠道接入</strong>，学员随时随地提问',
+      '<strong>智能分配</strong>，问题快速流转到对应老师',
+      '<strong>知识库沉淀</strong>，常见问题自动回复',
+      '<strong>学习进度跟踪</strong>，主动关怀提升留存'
+    ]
+  },
+  {
+    tab: '金融/投资服务团队',
+    title: '在合规前提下，提供专业高效的客户服务。',
+    features: [
+      '<strong>数据加密传输</strong>，符合金融行业安全标准',
+      '<strong>会话记录留存</strong>，满足合规审计要求',
+      '<strong>专业术语库</strong>，确保服务专业性',
+      '<strong>VIP客户标识</strong>，提供差异化服务体验'
+    ]
+  }
+];
+
+const prevSolution = () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+  }
+};
+
+const nextSolution = () => {
+  if (currentIndex.value < solutions.length - 1) {
+    currentIndex.value++;
+  }
+};
 
 const whyList = [
   {
@@ -722,35 +821,27 @@ const faqList = [
   text-align: center;
   font-size: 16px;
   color: var(--links-color-text-secondary);
-  margin: 0 0 40px;
+  margin: 0 0 60px;
 }
 
-.solutions-tabs {
+.solutions-carousel {
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.carousel-track {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 60px;
+  transition: transform 0.5s ease;
 }
 
-.tab-btn {
-  padding: 10px 24px;
-  border: none;
-  border-radius: 20px;
-  background: #fff;
-  color: var(--links-color-text-primary);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all var(--links-motion-base);
+.carousel-slide {
+  min-width: 100%;
+  padding: 0 60px;
 }
 
-.tab-btn.active {
-  background: #000;
-  color: #fff;
-}
-
-.solutions-content {
+.solution-content {
   display: grid;
-  grid-template-columns: 1fr 400px 1fr;
+  grid-template-columns: 1fr 400px;
   gap: 40px;
   align-items: start;
 }
@@ -803,6 +894,56 @@ const faqList = [
 
 .solution-btn {
   width: 100%;
+}
+
+.solution-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.solution-tab {
+  text-align: center;
+  margin-top: 24px;
+  padding: 10px 24px;
+  background: #fff;
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--links-color-text-primary);
+  display: inline-block;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.carousel-nav {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.nav-btn {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--links-color-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--links-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--links-motion-base);
+}
+
+.nav-btn:hover:not(:disabled) {
+  border-color: var(--links-color-primary);
+  color: var(--links-color-primary);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .solution-image {
@@ -896,6 +1037,68 @@ const faqList = [
   color: var(--links-color-primary);
 }
 
+/* 功能特性 */
+.features {
+  padding: 80px 0;
+  background: #fafafa;
+}
+
+.features h2 {
+  text-align: center;
+  font-size: 32px;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+
+.features-subtitle {
+  text-align: center;
+  font-size: 16px;
+  color: var(--links-color-text-secondary);
+  margin: 0 0 60px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  background: #fff;
+  padding: 40px 24px;
+  border-radius: 12px;
+  text-align: center;
+  transition: box-shadow var(--links-motion-base);
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.feature-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.feature-card p {
+  font-size: 14px;
+  color: var(--links-color-text-secondary);
+  line-height: 1.8;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* FAQ */
 .faq {
   padding: 80px 0;
@@ -908,7 +1111,7 @@ const faqList = [
 }
 
 .faq-list {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -949,13 +1152,11 @@ const faqList = [
 }
 
 .demo-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.demo-left h2 {
+.demo-content h2 {
   font-size: 32px;
   font-weight: 600;
   margin: 0 0 16px;
@@ -970,8 +1171,7 @@ const faqList = [
 }
 
 .demo-form {
-  max-width: 500px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .form-row {
@@ -985,6 +1185,16 @@ const faqList = [
   position: relative;
 }
 
+.form-group .required {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff4d4f;
+  font-size: 14px;
+  z-index: 1;
+}
+
 .form-group input,
 .form-group select {
   width: 100%;
@@ -995,14 +1205,42 @@ const faqList = [
   background: #fff;
 }
 
-.phone-group {
-  display: flex;
-  gap: 8px;
+.form-group .required + input {
+  padding-left: 32px;
 }
 
-.country-code {
+.phone-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--links-color-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.country-select {
   width: 80px;
   flex-shrink: 0;
+}
+
+.country-select :deep(.n-base-selection) {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.divider {
+  color: var(--links-color-border);
+  font-size: 16px;
+}
+
+.phone-number {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
 }
 
 .submit-btn {
