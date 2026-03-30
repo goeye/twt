@@ -3,11 +3,17 @@ import { createRouter, createWebHistory } from "vue-router";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: "/", redirect: "/about" },
+    {
+      path: "/",
+      name: "home",
+      component: () => import("./views/HomePage.vue"),
+      meta: {
+        marketing: true,
+      },
+    },
     {
       path: "/about",
-      name: "about",
-      component: () => import("./views/AboutPage.vue"),
+      redirect: "/",
     },
     {
       path: "/links",
@@ -20,7 +26,7 @@ const router = createRouter({
       component: () => import("./views/LinkDetailPage.vue"),
       props: true,
     },
-    { path: "/:pathMatch(.*)*", redirect: "/links" },
+    { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) return savedPosition;

@@ -57,6 +57,12 @@ const isExpanded = ref(false);
 
 <style scoped>
 .nav-rail {
+  --nav-rail-item-size: 30px;
+  --nav-rail-section-inline-padding: var(--agent-space-4);
+  --nav-rail-expanded-label-gap: var(--agent-space-8);
+  --nav-rail-expanded-icon-offset: calc(
+    (var(--agent-layout-nav-rail-width) - var(--nav-rail-item-size)) / 2 - var(--nav-rail-section-inline-padding)
+  );
   bottom: 0;
   display: flex;
   flex-direction: column;
@@ -80,12 +86,13 @@ const isExpanded = ref(false);
 
 .nav-rail__brand {
   display: grid;
+  min-height: var(--nav-rail-item-size);
+  padding: 0 var(--nav-rail-section-inline-padding);
   place-items: center;
 }
 
 .nav-rail--expanded .nav-rail__brand {
   place-items: start;
-  padding: 0 var(--agent-space-12);
 }
 
 .nav-rail__brand-text {
@@ -100,17 +107,17 @@ const isExpanded = ref(false);
   flex: 1;
   flex-direction: column;
   gap: var(--agent-space-4);
-  padding: 0 var(--agent-space-4);
+  padding: 0 var(--nav-rail-section-inline-padding);
 }
 
 .nav-rail__footer {
   display: grid;
+  padding: 0 var(--nav-rail-section-inline-padding);
   place-items: center;
 }
 
 .nav-rail--expanded .nav-rail__footer {
   place-items: stretch;
-  padding: 0 var(--agent-space-4);
 }
 
 .avatar-btn {

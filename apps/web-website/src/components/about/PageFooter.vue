@@ -1,124 +1,106 @@
 <template>
   <footer class="page-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h4>产品</h4>
-          <a href="#">Chat</a>
-          <a href="#">Community</a>
-          <a href="#" class="disabled">Link</a>
-          <a href="#" class="disabled">Domains</a>
-          <a href="#" class="disabled">Mail</a>
+    <div class="page-footer__inner">
+      <div class="page-footer__brand">
+        <div class="page-footer__logo">
+          <span>T</span>
+          <strong>TWT Chat</strong>
         </div>
-        <div class="footer-col">
-          <h4>关于我们</h4>
-          <a href="#">了解TWT</a>
-          <a href="#">平台资讯</a>
-          <a href="#">推广联盟</a>
-          <a href="#">联系我们</a>
-        </div>
-        <div class="footer-col">
-          <h4>法律事务</h4>
-          <a href="#">服务条款</a>
-          <a href="#">隐私协议</a>
-        </div>
-        <div class="footer-col">
-          <div class="footer-logo">
-            <div class="logo-icon">TWT</div>
-          </div>
-          <a href="mailto:support@twt.com" class="email">support@twt.com</a>
-          <div class="social-icons">
-            <a href="#" class="social-icon">📱</a>
-            <a href="#" class="social-icon">💬</a>
-            <a href="#" class="social-icon">📧</a>
-          </div>
-          <p class="copyright">© 2025 TWT. Powered by TWT</p>
-        </div>
+        <p>统一客服、AI 与业务流程，让服务这件事不再靠蛮力硬扛。</p>
+      </div>
+
+      <div class="page-footer__links">
+        <a href="#product">产品介绍</a>
+        <a href="#solutions">行业方案</a>
+        <a href="#faq">常见问题</a>
+        <RouterLink to="/links">资源导航</RouterLink>
+      </div>
+
+      <div class="page-footer__meta">
+        <a href="mailto:support@twtchat.com">support@twtchat.com</a>
+        <span>© 2026 TWT. All rights reserved.</span>
       </div>
     </div>
   </footer>
 </template>
 
+<script setup lang="ts">
+import { RouterLink } from "vue-router";
+</script>
+
 <style scoped>
 .page-footer {
-  padding: 44px 0;
-  background: #1d1e2e;
+  padding: 10px 0 42px;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 120px;
-}
-
-.footer-grid {
+.page-footer__inner {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 24px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 30px 34px;
+  border-radius: 28px;
+  border: 1px solid rgba(211, 221, 246, 0.92);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 20px 50px rgba(70, 98, 156, 0.08);
 }
 
-.footer-col h4 {
-  font-size: 15px;
-  line-height: 22px;
-  color: #999;
-  margin-bottom: 18px;
+.page-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.footer-col a {
-  display: block;
-  font-size: 15px;
-  line-height: 22px;
-  color: #fff;
-  margin-bottom: 18px;
-  transition: opacity 0.2s;
-}
-
-.footer-col a:hover {
-  opacity: 0.8;
-}
-
-.footer-col a.disabled {
-  color: #666;
-  pointer-events: none;
-  cursor: default;
-}
-
-.footer-logo {
-  margin-bottom: 16px;
-}
-
-.logo-icon {
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.email {
-  text-decoration: underline;
-  margin-bottom: 24px;
-}
-
-.social-icons {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.social-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
+.page-footer__logo span {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #3d3e4b;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1762ff 0%, #1aa2ff 100%);
+  color: #ffffff;
   font-size: 18px;
+  font-weight: 800;
 }
 
-.copyright {
+.page-footer__logo strong {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.page-footer__brand p {
+  max-width: 360px;
+  margin-top: 16px;
+  color: #62728e;
+  line-height: 1.8;
+}
+
+.page-footer__links {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.page-footer__links a,
+.page-footer__meta a {
+  color: #435169;
+  font-weight: 600;
+}
+
+.page-footer__meta {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  color: #6b7c95;
   font-size: 14px;
-  line-height: 22px;
-  color: #bbb;
-  margin: 0;
+}
+
+@media (max-width: 920px) {
+  .page-footer__inner {
+    grid-template-columns: 1fr;
+    width: min(100% - 32px, 1180px);
+  }
 }
 </style>

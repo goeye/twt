@@ -1,152 +1,138 @@
 <template>
   <header class="page-header">
     <div class="page-header__inner">
-      <div class="page-header__left">
-        <div class="page-header__logo">
-          <div class="logo-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" fill="#105EFF"/>
-            </svg>
-          </div>
-          <div class="logo-content">
-            <span class="logo-text">TWT</span>
-            <span class="logo-tagline">Talk, Work and Thrive Easier</span>
-          </div>
-        </div>
-        <nav class="page-header__nav">
-          <a href="#" class="nav-item">产品</a>
-          <a href="#" class="nav-item active">了解TWT</a>
-          <a href="#" class="nav-item">平台资讯</a>
-          <a href="#" class="nav-item">推广联盟</a>
-          <a href="#" class="nav-item">联系我们</a>
-        </nav>
-      </div>
-      <div class="page-header__right">
-        <button class="lang-btn">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M2 10h16M10 2c-2.5 3-2.5 13 0 16M10 2c2.5 3 2.5 13 0 16" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-        </button>
-        <button class="auth-btn">登录/注册</button>
+      <a href="#top" class="page-header__logo">
+        <span class="logo-mark">T</span>
+        <span class="logo-text">TWT</span>
+      </a>
+
+      <nav class="page-header__nav">
+        <a href="#product">产品</a>
+        <a href="#features">功能</a>
+        <a href="#solutions">方案</a>
+        <a href="#news">资讯</a>
+        <a href="#faq">常见问题</a>
+      </nav>
+
+      <div class="page-header__actions">
+        <RouterLink to="/links" class="page-header__link">资源导航</RouterLink>
+        <a href="#consult" class="page-header__cta">立即咨询</a>
       </div>
     </div>
   </header>
 </template>
 
+<script setup lang="ts">
+import { RouterLink } from "vue-router";
+</script>
+
 <style scoped>
 .page-header {
-  height: 72px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  padding-top: 18px;
 }
 
 .page-header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1440px;
-  height: 100%;
+  gap: 24px;
+  width: min(1180px, calc(100% - 48px));
+  min-height: 72px;
   margin: 0 auto;
-  padding: 0 32px;
-}
-
-.page-header__left {
-  display: flex;
-  align-items: center;
-  gap: 56px;
+  padding: 0 22px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(214, 225, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(64, 94, 154, 0.08);
+  backdrop-filter: blur(16px);
 }
 
 .page-header__logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
-.logo-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.logo-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: #181c29;
-  line-height: 1;
-}
-
-.logo-tagline {
-  font-size: 11px;
-  color: #828897;
-  line-height: 1;
-}
-
-.page-header__nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.nav-item {
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #181c29;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-
-.nav-item:hover {
-  background: #f5f5f5;
-}
-
-.nav-item.active {
-  color: #000;
-  font-weight: 500;
-}
-
-.page-header__right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.lang-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
+.logo-mark {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #181c29;
-  transition: background 0.2s;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1762ff 0%, #1aa2ff 100%);
+  color: #ffffff;
+  font-size: 18px;
 }
 
-.lang-btn:hover {
-  background: #f5f5f5;
+.page-header__nav,
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-.auth-btn {
-  padding: 8px 20px;
-  background: #181c29;
-  color: #fff;
+.page-header__nav a,
+.page-header__link {
+  color: #4c5b75;
   font-size: 14px;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  font-weight: 600;
+  transition: color 180ms ease;
 }
 
-.auth-btn:hover {
-  opacity: 0.9;
+.page-header__nav a:hover,
+.page-header__link:hover {
+  color: #105eff;
+}
+
+.page-header__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 104px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #101828;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .page-header__inner {
+    width: min(100% - 32px, 1180px);
+  }
+
+  .page-header__nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-header {
+    padding-top: 12px;
+  }
+
+  .page-header__inner {
+    min-height: 62px;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .page-header__actions {
+    gap: 10px;
+  }
+
+  .page-header__link {
+    display: none;
+  }
 }
 </style>

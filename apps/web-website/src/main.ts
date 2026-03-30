@@ -5,4 +5,6 @@ import "./styles/reset.css";
 import "./styles/tokens.css";
 import "./styles/global.css";
 
-createApp(App).use(router).mount("#app");
+const app = createApp(App);
+app.use(router);
+app.mount("#app");

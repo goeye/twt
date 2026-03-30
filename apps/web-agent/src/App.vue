@@ -5,7 +5,9 @@
         <template #brand="{ expanded }">
           <div v-if="expanded" class="brand-expanded-wrap" @mouseenter="openProjectSwitcherHover" @mouseleave="closeProjectSwitcherHover">
             <div class="brand-expanded">
-              <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+              <span class="brand-expanded__glyph">
+                <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+              </span>
               <span class="brand-expanded__name">TWT Chat</span>
               <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
             </div>
@@ -18,7 +20,10 @@
                 <div class="project-switcher-panel__list">
                   <button type="button" class="project-item" :class="{ 'project-item--active': project.id === currentProjectId }" v-for="project in projects" :key="project.id" @click="switchProject(project.id)">
                     <div class="project-item__avatar" :style="{ background: project.color }">{{ project.name.charAt(0) }}</div>
-                    <span class="project-item__name">{{ project.name }}</span>
+                    <span class="project-item__meta">
+                      <span class="project-item__name">{{ project.name }}</span>
+                      <span class="project-item__role">{{ project.role }}</span>
+                    </span>
                     <span v-if="project.id === currentProjectId" class="project-item__check-badge"></span>
                   </button>
                 </div>
@@ -36,7 +41,10 @@
                   <div class="project-manage-item" v-for="project in projects" :key="project.id">
                     <div class="project-manage-item__info">
                       <div class="project-item__avatar" :style="{ background: project.color }">{{ project.name.charAt(0) }}</div>
-                      <span class="project-item__name">{{ project.name }}</span>
+                      <span class="project-item__meta">
+                        <span class="project-item__name">{{ project.name }}</span>
+                        <span class="project-item__role">{{ project.role }}</span>
+                      </span>
                       <AgentIcon v-if="project.id === currentProjectId" name="check" :size="16" class="project-item__check" />
                     </div>
                     <button v-if="project.id !== currentProjectId" type="button" class="project-manage-item__exit-btn" @click="exitProject(project.id)">退出</button>
@@ -53,9 +61,11 @@
             <template v-if="isDev">
               <div class="plan-switcher-wrap" :class="{ 'plan-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPlanSwitcherHover()" @mouseleave="expanded && closePlanSwitcherHover()">
                 <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="!expanded && (planSwitcherOpen = !planSwitcherOpen)">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
-                  </svg>
+                  <span class="rail-footer__glyph">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1l2.35 4.76L16 6.53l-4 3.9.94 5.5L8 13.27l-4.94 2.66.94-5.5-4-3.9 5.65-.77L8 1z" fill="currentColor" />
+                    </svg>
+                  </span>
                   <span v-if="expanded" class="rail-footer__label">服务版本</span>
                 </button>
                 <span v-if="!expanded" class="plan-switcher__badge" :class="planSwitcherClass">{{ planSwitcherLabel }}</span>
@@ -83,9 +93,11 @@
               </div>
               <div class="perm-switcher-wrap" :class="{ 'perm-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPermSwitcherHover()" @mouseleave="expanded && closePermSwitcherHover()">
                 <button type="button" class="rail-footer__icon perm-switcher-trigger" aria-label="切换角色权限" @click.stop="!expanded && (permSwitcherOpen = !permSwitcherOpen)">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
-                  </svg>
+                  <span class="rail-footer__glyph">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 1L3 4v4c0 3.5 2.1 6.4 5 7.5 2.9-1.1 5-4 5-7.5V4L8 1z" stroke="currentColor" stroke-width="1.5" fill="none" />
+                    </svg>
+                  </span>
                   <span v-if="expanded" class="rail-footer__label">角色权限</span>
                 </button>
                 <span v-if="!expanded" class="perm-switcher__badge" :class="'perm-switcher__badge--' + currentMockRole">{{ currentMockRoleLabel }}</span>
@@ -113,16 +125,61 @@
               </div>
             </template>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
-              <AgentIcon name="help" :size="16" />
+              <span class="rail-footer__glyph">
+                <AgentIcon name="help" :size="16" />
+              </span>
               <span v-if="expanded" class="rail-footer__label">支持</span>
             </button>
             <button type="button" class="rail-footer__icon" aria-label="设置" @click="openSettingsPage">
-              <AgentIcon name="settings" :size="16" />
+              <span class="rail-footer__glyph">
+                <AgentIcon name="settings" :size="16" />
+              </span>
               <span v-if="expanded" class="rail-footer__label">设置</span>
             </button>
-            <button type="button" class="rail-footer__profile" aria-label="当前客服账号">
-              <span v-if="expanded" class="rail-footer__label">个人资料</span>
-            </button>
+            <div class="profile-card-wrap" :class="{ 'profile-card-wrap--expanded': expanded }" @mouseenter="expanded && openProfileCardHover()" @mouseleave="expanded && closeProfileCardHover()">
+              <button type="button" class="rail-footer__profile" aria-label="当前客服账号">
+                <span class="rail-footer__glyph rail-footer__glyph--avatar">
+                  <span class="rail-footer__profile-avatar" aria-hidden="true"></span>
+                </span>
+                <span v-if="expanded" class="rail-footer__label">个人资料</span>
+              </button>
+              <div v-if="expanded && profileCardOpen" class="profile-card-panel" @click.stop>
+                <div class="profile-card-panel__header">
+                  <div class="profile-card-panel__identity">
+                    <span class="profile-card-panel__avatar">{{ getInitial(profileDisplayName) }}</span>
+                    <span class="profile-card-panel__meta">
+                      <span class="profile-card-panel__name">{{ profileDisplayName }}</span>
+                      <span class="profile-card-panel__role">{{ profileRoleLabel }}</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="profile-card-panel__section">
+                  <div class="profile-card-panel__status">
+                    <span class="profile-card-panel__status-info">
+                      <span class="profile-card-panel__status-dot" :class="{ 'profile-card-panel__status-dot--offline': !profileOnline }"></span>
+                      <span class="profile-card-panel__status-label">{{ profileOnline ? "在线" : "离线" }}</span>
+                    </span>
+                    <button type="button" class="profile-card-panel__switch" :class="{ 'profile-card-panel__switch--on': profileOnline }" @click="profileOnline = !profileOnline">
+                      <span class="profile-card-panel__switch-thumb"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="profile-card-panel__section">
+                  <button type="button" class="profile-card-panel__action" @click="handleProfileAction('account')">我的账号</button>
+                  <button type="button" class="profile-card-panel__action" @click="handleProfileAction('password')">修改密码</button>
+                </div>
+                <div class="profile-card-panel__section">
+                  <button type="button" class="profile-card-panel__action" @click="handleProfileAction('notification')">通知设置</button>
+                  <button type="button" class="profile-card-panel__action profile-card-panel__action--with-arrow" @click="handleProfileAction('language')">
+                    <span>语言</span>
+                    <AgentIcon name="chevron-right" :size="14" class="profile-card-panel__action-arrow" />
+                  </button>
+                </div>
+                <div class="profile-card-panel__section">
+                  <button type="button" class="profile-card-panel__action profile-card-panel__action--danger" @click="handleProfileAction('logout')">退出</button>
+                </div>
+              </div>
+            </div>
           </div>
         </template>
       </PrimaryNavRail>
@@ -678,9 +735,9 @@ const currentProjectId = ref("1");
 let projectHoverTimer: ReturnType<typeof setTimeout> | null = null;
 
 const projects = ref([
-  { id: "1", name: "TWT Chat", color: "#FF6B35" },
-  { id: "2", name: "研发线上验收项目", color: "#4ECDC4" },
-  { id: "3", name: "test-1", color: "#556FB5" }
+  { id: "1", name: "TWT Chat", role: "超级管理员", color: "#FF6B35" },
+  { id: "2", name: "研发线上验收项目", role: "主管", color: "#4ECDC4" },
+  { id: "3", name: "test-1", role: "客服", color: "#556FB5" }
 ]);
 
 const openProjectSwitcherHover = () => {
@@ -720,8 +777,12 @@ watch(currentPermissions, () => {
 });
 
 const planSwitcherOpen = ref(false);
+const profileCardOpen = ref(false);
+const profileOnline = ref(true);
 let planHoverTimer: ReturnType<typeof setTimeout> | null = null;
 let permHoverTimer: ReturnType<typeof setTimeout> | null = null;
+let profileHoverTimer: ReturnType<typeof setTimeout> | null = null;
+const profileDisplayName = "tuski";
 
 const openPlanSwitcherHover = () => {
   planHoverTimer = setTimeout(() => { planSwitcherOpen.value = true; }, 220);
@@ -736,6 +797,39 @@ const openPermSwitcherHover = () => {
 const closePermSwitcherHover = () => {
   if (permHoverTimer) { clearTimeout(permHoverTimer); permHoverTimer = null; }
   permSwitcherOpen.value = false;
+};
+
+const openProfileCardHover = () => {
+  if (profileHoverTimer) clearTimeout(profileHoverTimer);
+  profileHoverTimer = setTimeout(() => {
+    profileCardOpen.value = true;
+  }, 180);
+};
+
+const closeProfileCardHover = () => {
+  if (profileHoverTimer) {
+    clearTimeout(profileHoverTimer);
+    profileHoverTimer = null;
+  }
+  profileCardOpen.value = false;
+};
+
+const profileRoleLabel = computed(() => {
+  if (currentMockRole.value === "admin") return "超级管理员";
+  if (currentMockRole.value === "agent") return "客服";
+  return "受限客服";
+});
+
+const handleProfileAction = (action: "account" | "password" | "notification" | "language" | "logout") => {
+  const actionTextMap = {
+    account: "我的账号功能开发中",
+    password: "修改密码功能开发中",
+    notification: "通知设置功能开发中",
+    language: "语言设置功能开发中",
+    logout: "退出登录功能开发中"
+  } as const;
+  profileCardOpen.value = false;
+  showTopToast(actionTextMap[action]);
 };
 
 const planSwitcherLabel = computed(() => {
@@ -2965,6 +3059,18 @@ onBeforeUnmount(() => {
   if (toastTimer) {
     window.clearTimeout(toastTimer);
   }
+  if (profileHoverTimer) {
+    clearTimeout(profileHoverTimer);
+  }
+  if (planHoverTimer) {
+    clearTimeout(planHoverTimer);
+  }
+  if (permHoverTimer) {
+    clearTimeout(permHoverTimer);
+  }
+  if (projectHoverTimer) {
+    clearTimeout(projectHoverTimer);
+  }
 });
 </script>
 
@@ -3002,11 +3108,21 @@ onBeforeUnmount(() => {
   align-items: center;
   cursor: pointer;
   display: flex;
-  gap: var(--agent-space-8);
-  padding: 0 var(--agent-space-4);
+  gap: var(--nav-rail-expanded-label-gap, var(--agent-space-8));
+  min-height: var(--nav-rail-item-size, 30px);
+  padding: 0 var(--agent-space-8) 0 var(--nav-rail-expanded-icon-offset, var(--agent-space-4));
   width: 100%;
   border-radius: var(--agent-radius-md);
   transition: background var(--agent-motion-fast);
+}
+
+.brand-expanded__glyph {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 var(--nav-rail-item-size, 30px);
+  height: var(--nav-rail-item-size, 30px);
+  justify-content: center;
+  width: var(--nav-rail-item-size, 30px);
 }
 
 .brand-expanded:hover {
@@ -3109,9 +3225,31 @@ onBeforeUnmount(() => {
 }
 
 .project-item__name {
-  flex: 1;
+  display: block;
   font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
   color: var(--agent-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-item__meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.project-item__role {
+  color: var(--agent-color-text-secondary);
+  display: block;
+  font-size: var(--agent-font-size-xs);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-item__check {
@@ -3174,6 +3312,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--agent-space-12);
   flex: 1;
+  min-width: 0;
 }
 
 .project-manage-item__exit-btn {
@@ -3200,7 +3339,7 @@ onBeforeUnmount(() => {
 
 .rail-footer--expanded {
   align-items: stretch;
-  gap: var(--agent-space-4);
+  gap: var(--agent-space-8);
 }
 
 .rail-footer__icon {
@@ -3211,17 +3350,32 @@ onBeforeUnmount(() => {
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
-  height: var(--agent-space-24);
+  height: var(--nav-rail-item-size, 30px);
   justify-content: center;
-  width: var(--agent-space-24);
+  width: var(--nav-rail-item-size, 30px);
+}
+
+.rail-footer__glyph {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: var(--nav-rail-item-size, 30px);
+  justify-content: center;
+  width: var(--nav-rail-item-size, 30px);
 }
 
 .rail-footer--expanded .rail-footer__icon {
-  gap: var(--agent-space-8);
-  height: var(--agent-space-24);
+  gap: var(--nav-rail-expanded-label-gap, var(--agent-space-8));
+  height: var(--nav-rail-item-size, 30px);
   justify-content: flex-start;
-  padding: 0 var(--agent-space-8);
+  padding: 0 var(--agent-space-8) 0 var(--nav-rail-expanded-icon-offset, var(--agent-space-4));
   width: 100%;
+}
+
+.rail-footer--expanded .rail-footer__glyph {
+  flex: 0 0 var(--nav-rail-item-size, 30px);
+  height: var(--nav-rail-item-size, 30px);
+  width: var(--nav-rail-item-size, 30px);
 }
 
 .rail-footer__icon:hover {
@@ -3235,43 +3389,51 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.rail-footer__profile {
-  background: var(--agent-color-brand-primary);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 50%;
-  cursor: pointer;
-  height: var(--agent-space-24);
+.profile-card-wrap {
   position: relative;
-  width: var(--agent-space-24);
 }
 
-.rail-footer--expanded .rail-footer__profile {
+.profile-card-wrap--expanded {
+  width: 100%;
+}
+
+.rail-footer__profile {
   align-items: center;
   background: transparent;
   border: 0;
   border-radius: var(--agent-radius-md);
-  display: flex;
-  gap: 10px;
-  height: 36px;
-  padding: 0 10px;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: var(--nav-rail-item-size, 30px);
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: var(--nav-rail-item-size, 30px);
+}
+
+.rail-footer--expanded .rail-footer__profile {
+  gap: var(--nav-rail-expanded-label-gap, var(--agent-space-8));
+  height: var(--nav-rail-item-size, 30px);
+  justify-content: flex-start;
+  padding: 0 var(--agent-space-8) 0 var(--nav-rail-expanded-icon-offset, var(--agent-space-4));
   width: 100%;
 }
 
-.rail-footer--expanded .rail-footer__profile::before {
+.rail-footer__glyph--avatar {
+  position: relative;
+}
+
+.rail-footer__profile-avatar {
   background: radial-gradient(circle at 30% 25%, #f8dfb8 0%, #d4986f 48%, #8b6042 100%);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  content: "";
-  flex-shrink: 0;
-  height: 22px;
-  width: 22px;
+  display: block;
+  height: var(--agent-space-24);
+  width: var(--agent-space-24);
 }
 
-.rail-footer--expanded .rail-footer__profile:hover {
-  background: var(--agent-color-bg-muted);
-}
-
-.rail-footer__profile::after {
+.rail-footer__glyph--avatar::after {
   background: var(--agent-color-status-success);
   border: 2px solid var(--agent-color-bg-panel);
   border-radius: 50%;
@@ -3283,8 +3445,191 @@ onBeforeUnmount(() => {
   width: 9px;
 }
 
-.rail-footer--expanded .rail-footer__profile::after {
+.rail-footer--expanded .rail-footer__profile-avatar {
+  height: 22px;
+  width: 22px;
+}
+
+.rail-footer--expanded .rail-footer__profile:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.rail-footer--expanded .rail-footer__glyph--avatar::after {
   display: none;
+}
+
+.profile-card-panel {
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 24px;
+  bottom: -10px;
+  box-shadow: var(--agent-shadow-lg);
+  left: calc(100% + 12px);
+  padding: var(--agent-space-12);
+  position: absolute;
+  width: 260px;
+  z-index: var(--agent-z-dropdown);
+}
+
+.profile-card-panel::before {
+  bottom: 0;
+  content: "";
+  left: -12px;
+  position: absolute;
+  top: 0;
+  width: 12px;
+}
+
+.profile-card-panel__header {
+  padding-bottom: var(--agent-space-12);
+}
+
+.profile-card-panel__identity {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-12);
+}
+
+.profile-card-panel__avatar {
+  align-items: center;
+  background: linear-gradient(135deg, #ffb57d 0%, #c47550 100%);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+  height: 52px;
+  justify-content: center;
+  text-transform: uppercase;
+  width: 52px;
+}
+
+.profile-card-panel__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profile-card-panel__name {
+  color: var(--agent-color-text-primary);
+  display: block;
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-regular);
+  line-height: 1.4;
+}
+
+.profile-card-panel__role {
+  color: var(--agent-color-text-tertiary);
+  display: block;
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-regular);
+  line-height: 1.4;
+}
+
+.profile-card-panel__section {
+  border-top: 1px solid var(--agent-color-border-default);
+  padding: var(--agent-space-12) 0 0;
+}
+
+.profile-card-panel__section + .profile-card-panel__section {
+  margin-top: var(--agent-space-12);
+}
+
+.profile-card-panel__status {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.profile-card-panel__status-info {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.profile-card-panel__status-dot {
+  background: #55c667;
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+}
+
+.profile-card-panel__status-dot--offline {
+  background: var(--agent-color-text-disabled);
+}
+
+.profile-card-panel__status-label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-regular);
+  line-height: 1.4;
+}
+
+.profile-card-panel__switch {
+  align-items: center;
+  background: var(--agent-color-text-disabled);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: flex-start;
+  padding: 4px;
+  transition: background var(--agent-motion-fast);
+  width: 58px;
+}
+
+.profile-card-panel__switch--on {
+  background: var(--agent-color-brand-primary);
+}
+
+.profile-card-panel__switch-thumb {
+  background: var(--agent-color-bg-panel);
+  border-radius: 50%;
+  display: block;
+  height: 24px;
+  transform: translateX(0);
+  transition: transform var(--agent-motion-fast);
+  width: 24px;
+}
+
+.profile-card-panel__switch--on .profile-card-panel__switch-thumb {
+  transform: translateX(26px);
+}
+
+.profile-card-panel__action {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-regular);
+  justify-content: space-between;
+  line-height: 1.4;
+  padding: 6px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.profile-card-panel__action:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+.profile-card-panel__action--with-arrow {
+  color: var(--agent-color-text-primary);
+}
+
+.profile-card-panel__action-arrow {
+  color: var(--agent-color-text-tertiary);
+}
+
+.profile-card-panel__action--danger {
+  color: var(--agent-color-text-primary);
 }
 
 /* 版本切换器 */

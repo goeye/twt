@@ -1,7 +1,7 @@
 <template>
-  <SiteHeader v-if="route.name !== 'about'" />
+  <SiteHeader v-if="!route.meta.marketing" />
   <RouterView />
-  <SiteFooter v-if="route.name !== 'about'" />
+  <SiteFooter v-if="!route.meta.marketing" />
 </template>
 
 <script setup lang="ts">

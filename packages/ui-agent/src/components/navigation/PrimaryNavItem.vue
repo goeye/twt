@@ -33,6 +33,11 @@ defineEmits<{
 
 <style scoped>
 .nav-item {
+  --nav-item-size: var(--nav-rail-item-size, 30px);
+  --nav-item-icon-offset: var(
+    --nav-rail-expanded-icon-offset,
+    calc((var(--agent-layout-nav-rail-width) - var(--nav-item-size)) / 2 - var(--agent-space-4))
+  );
   align-items: center;
   background: transparent;
   border: 0;
@@ -40,11 +45,11 @@ defineEmits<{
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
-  height: 30px;
+  height: var(--nav-item-size);
   justify-content: center;
   margin: 0 auto;
   position: relative;
-  width: 30px;
+  width: var(--nav-item-size);
 }
 
 .nav-item:hover {
@@ -64,7 +69,9 @@ defineEmits<{
   align-items: center;
   display: inline-flex;
   flex-shrink: 0;
+  height: var(--nav-item-size);
   justify-content: center;
+  width: var(--nav-item-size);
 }
 
 .nav-item__badge {
@@ -84,6 +91,7 @@ defineEmits<{
   color: inherit;
   font-size: 13px;
   font-weight: 500;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -91,11 +99,11 @@ defineEmits<{
 
 /* Expanded state */
 .nav-item--expanded {
-  gap: 10px;
-  height: 36px;
+  gap: var(--nav-rail-expanded-label-gap, var(--agent-space-8));
+  height: var(--nav-item-size);
   justify-content: flex-start;
   margin: 0;
-  padding: 0 10px;
+  padding: 0 var(--agent-space-8) 0 var(--nav-item-icon-offset);
   width: 100%;
 }
 

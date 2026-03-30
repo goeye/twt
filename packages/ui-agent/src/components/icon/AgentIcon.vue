@@ -169,6 +169,10 @@
       <path d="M15 9l-6 6" />
     </g>
 
+    <g v-else-if="name === 'check'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 12.5l3.1 3.1L17.5 8.2" />
+    </g>
+
     <g v-else-if="name === 'check-circle'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="8" />
       <path d="M9 12l2 2l4-4" />

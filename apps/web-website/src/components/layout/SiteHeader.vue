@@ -6,7 +6,7 @@
         <span class="site-header__logo-sub">资源导航</span>
       </router-link>
       <nav class="site-header__nav">
-        <a href="https://www.twt.com" target="_blank" rel="noopener noreferrer">官网首页</a>
+        <router-link to="/">官网首页</router-link>
         <a href="https://www.twt.com/zh-CN/pricing" target="_blank" rel="noopener noreferrer">价格</a>
         <router-link to="/links">资源导航</router-link>
       </nav>
