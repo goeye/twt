@@ -1,0 +1,33 @@
+# gstack
+
+- 所有网页浏览使用 /browse skill，永远不要使用 mcp__claude-in-chrome__* 工具
+- 可用的 skills：
+  - /office-hours - YC 办公时间模式
+  - /plan-ceo-review - CEO 视角的计划审查
+  - /plan-eng-review - 工程经理视角的计划审查
+  - /plan-design-review - 设计师视角的计划审查
+  - /design-consultation - 设计咨询
+  - /design-shotgun - 生成多个设计变体
+  - /review - PR 代码审查
+  - /ship - 发布工作流
+  - /land-and-deploy - 合并和部署
+  - /canary - 部署后监控
+  - /benchmark - 性能基准测试
+  - /browse - 无头浏览器测试
+  - /connect-chrome - 连接真实 Chrome
+  - /qa - QA 测试并修复
+  - /qa-only - 仅 QA 测试报告
+  - /design-review - 设计视觉审查
+  - /setup-browser-cookies - 导入浏览器 cookies
+  - /setup-deploy - 配置部署设置
+  - /retro - 工程回顾
+  - /investigate - 系统化调试
+  - /document-release - 发布后文档更新
+  - /codex - OpenAI Codex CLI
+  - /cso - 安全审计
+  - /autoplan - 自动审查流程
+  - /careful - 危险命令警告
+  - /freeze - 限制编辑目录
+  - /guard - 完整安全模式
+  - /unfreeze - 解除编辑限制
+  - /gstack-upgrade - 升级 gstack
