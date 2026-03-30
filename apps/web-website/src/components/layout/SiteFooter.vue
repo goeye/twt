@@ -6,9 +6,9 @@
           <h4>产品</h4>
           <a href="#">Chat</a>
           <a href="#">Community</a>
-          <a href="#">Link</a>
-          <a href="#">Domains</a>
-          <a href="#">Mail</a>
+          <span class="disabled">Link</span>
+          <span class="disabled">Domains</span>
+          <span class="disabled">Mail</span>
         </div>
 
         <div class="footer-col">
@@ -110,6 +110,14 @@
   color: #fff;
 }
 
+.footer-col .disabled {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 12px;
+  cursor: not-allowed;
+}
+
 .footer-brand {
   display: flex;
   flex-direction: column;
@@ -146,8 +154,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1;
   transition: background 0.2s;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .social-icon:hover {

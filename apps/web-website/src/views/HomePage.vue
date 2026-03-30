@@ -332,12 +332,15 @@
     </section>
 
     <button class="floating-chat">💬</button>
+
+    <SiteFooter />
   </div>
 </template>
 
 <script setup lang="ts">
 import { NButton, NCard } from 'naive-ui';
 import MarketingHeader from '../components/layout/MarketingHeader.vue';
+import SiteFooter from '../components/layout/SiteFooter.vue';
 
 const whyList = [
   {
