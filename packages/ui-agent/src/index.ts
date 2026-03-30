@@ -11,6 +11,7 @@ export { default as AiSettingsNav } from "./components/navigation/AiSettingsNav.
 export { default as SessionList } from "./components/session/SessionList.vue";
 export { default as SessionListItem } from "./components/session/SessionListItem.vue";
 export { default as SessionQueueNav } from "./components/session/SessionQueueNav.vue";
+export { default as StartChatModal } from "./components/session/StartChatModal.vue";
 
 export { default as ConversationHeader } from "./components/conversation/ConversationHeader.vue";
 export { default as MessageBubble } from "./components/conversation/MessageBubble.vue";

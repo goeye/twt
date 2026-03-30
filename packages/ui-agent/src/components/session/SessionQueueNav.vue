@@ -6,12 +6,17 @@
 
     <div class="queue-nav__body agent-scroll">
       <section v-for="group in groups" :key="group.key" class="queue-nav__group">
-        <button class="queue-nav__group-trigger" type="button" @click="toggleGroup(group.key)">
-          <span class="queue-nav__group-title">{{ group.title }}</span>
-          <span class="queue-nav__group-arrow" :class="{ 'queue-nav__group-arrow--collapsed': isGroupCollapsed(group.key) }">
-            <AgentIcon :name="isGroupCollapsed(group.key) ? 'chevron-right' : 'chevron-down'" :size="14" />
-          </span>
-        </button>
+        <div class="queue-nav__group-header">
+          <button class="queue-nav__group-trigger" type="button" @click="toggleGroup(group.key)">
+            <span class="queue-nav__group-title">{{ group.title }}</span>
+            <span class="queue-nav__group-arrow" :class="{ 'queue-nav__group-arrow--collapsed': isGroupCollapsed(group.key) }">
+              <AgentIcon :name="isGroupCollapsed(group.key) ? 'chevron-right' : 'chevron-down'" :size="14" />
+            </span>
+          </button>
+          <button v-if="group.key === 'online-chat'" class="queue-nav__add-btn" type="button" @click="$emit('add-chat')" title="发起聊天">
+            <AgentIcon name="plus" :size="14" />
+          </button>
+        </div>
 
         <div v-show="!isGroupCollapsed(group.key)" class="queue-nav__items">
           <button
@@ -50,6 +55,7 @@ defineProps<{
 
 defineEmits<{
   (e: "select", key: string): void;
+  (e: "add-chat"): void;
 }>();
 
 const collapsedGroups = ref<string[]>([]);
@@ -103,6 +109,12 @@ const shouldShowBadge = (itemKey: string, count?: number) => {
   gap: var(--agent-space-4);
 }
 
+.queue-nav__group-header {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-4);
+}
+
 .queue-nav__group-trigger {
   align-items: center;
   background: transparent;
@@ -110,10 +122,30 @@ const shouldShowBadge = (itemKey: string, count?: number) => {
   border-radius: var(--agent-radius-md);
   cursor: pointer;
   display: inline-flex;
+  flex: 1;
   justify-content: space-between;
   padding: var(--agent-space-8);
   text-align: left;
-  width: 100%;
+}
+
+.queue-nav__add-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  transition: all var(--agent-motion-fast);
+  width: 28px;
+}
+
+.queue-nav__add-btn:hover {
+  background: var(--agent-color-bg-panel);
+  color: var(--agent-color-text-primary);
 }
 
 .queue-nav__group-title {

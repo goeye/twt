@@ -191,6 +191,7 @@
         :active-key="activeQueueKey"
         :groups="queueGroups"
         @select="handleQueueSelect"
+        @add-chat="startChatModalOpen = true"
       />
       <ArchiveSubNav
         v-else-if="isFilesRoute"
@@ -656,6 +657,12 @@
       @dismiss="dismissUpdate"
       @refresh="doRefresh"
     />
+
+    <StartChatModal
+      :open="startChatModalOpen"
+      @close="startChatModalOpen = false"
+      @confirm="handleStartChat"
+    />
   </AgentAppShell>
 </template>
 
@@ -698,6 +705,7 @@ import {
   PrimaryNavRail,
   SessionListItem,
   SessionQueueNav,
+  StartChatModal,
   TransferModal,
   type MessageItem,
   type NavItem,
@@ -724,6 +732,9 @@ const {
 const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 
 const permSwitcherOpen = ref(false);
+
+// 发起聊天弹窗
+const startChatModalOpen = ref(false);
 
 // 项目切换
 const projectSwitcherOpen = ref(false);
@@ -2531,6 +2542,11 @@ const handleReportNavSelect = (key: string) => {
 const handleQueueSelect = (key: string) => {
   activeQueueKey.value = resolveScopedKey(key, validQueueKeys, defaultQueueKey);
   searchKeyword.value = "";
+};
+
+const handleStartChat = (items: any[]) => {
+  startChatModalOpen.value = false;
+  console.log("发起聊天:", items);
 };
 
 const handleFilesNavSelect = (key: string) => {
