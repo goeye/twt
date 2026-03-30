@@ -16,7 +16,7 @@
           <a href="#">功能介绍</a>
           <a href="#">版本价格</a>
           <a href="#">下载中心</a>
-          <a href="#">帮助中心</a>
+          <a href="#">帮助与支持</a>
         </div>
 
         <div class="footer-col">

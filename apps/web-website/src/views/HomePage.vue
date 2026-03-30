@@ -15,7 +15,14 @@
               <a href="#">下载</a>
               <a href="#">功能介绍</a>
               <a href="#">版本价格</a>
-              <a href="#">帮助中心</a>
+              <div class="help-dropdown">
+                <a href="#" class="help-trigger">帮助与支持 <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                <div class="help-menu">
+                  <a href="/updates" target="_blank">产品动态</a>
+                  <a href="#">常见问题</a>
+                  <a href="#">使用教程</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -537,6 +544,84 @@ const faqList = [
 
 .hero .product-links a:hover {
   color: var(--links-color-primary);
+}
+
+/* 帮助与支持下拉菜单 */
+.hero .help-dropdown {
+  position: relative;
+}
+
+.hero .help-trigger {
+  color: var(--links-color-text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color var(--links-motion-fast);
+  cursor: pointer;
+}
+
+.hero .help-trigger:hover {
+  color: var(--links-color-primary);
+}
+
+.hero .help-trigger .arrow {
+  display: inline-block;
+  font-size: 12px;
+  transition: transform var(--links-motion-fast);
+}
+
+.hero .help-dropdown:hover .help-trigger .arrow {
+  transform: rotate(180deg);
+}
+
+.hero .help-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-top: 0;
+}
+
+.hero .help-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+}
+
+.hero .help-dropdown:hover .help-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero .help-menu a {
+  white-space: nowrap;
+  padding: 8px 20px;
+  font-size: 14px;
+  color: var(--links-color-text-primary);
+  text-decoration: none;
+  background: #fff;
+  transition: all var(--links-motion-fast);
+}
+
+.hero .help-menu a:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.hero .help-menu a:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.hero .help-menu a:hover {
+  color: var(--links-color-primary);
+  background: var(--links-color-bg-page);
+}
+
+.hero .help-dropdown:hover .help-menu {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 .hero-content {

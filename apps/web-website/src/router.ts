@@ -16,6 +16,14 @@ const router = createRouter({
       redirect: "/",
     },
     {
+      path: "/updates",
+      name: "updates",
+      component: () => import("./views/UpdatesPage.vue"),
+      meta: {
+        marketing: true,
+      },
+    },
+    {
       path: "/links",
       name: "links-list",
       component: () => import("./views/LinksListPage.vue"),
