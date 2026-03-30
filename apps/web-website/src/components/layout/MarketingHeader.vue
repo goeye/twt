@@ -3,7 +3,7 @@
     <nav class="main-nav">
       <div class="container">
         <div class="nav-content">
-          <div class="logo">
+          <RouterLink to="/" class="logo" aria-label="返回首页">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z" fill="currentColor"/>
             </svg>
@@ -11,7 +11,7 @@
               <span class="brand">TWT</span>
               <span class="tagline">Talk, Work and Thrive Easier</span>
             </div>
-          </div>
+          </RouterLink>
           <div class="nav-menu">
             <a href="#">产品</a>
             <a href="#">了解TWT</a>
@@ -91,6 +91,9 @@ defineProps<{
   display: flex;
   align-items: center;
   gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .logo svg {
