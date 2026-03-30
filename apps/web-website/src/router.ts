@@ -24,6 +24,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/help-center",
+      name: "help-center",
+      component: () => import("./views/HelpCenterPage.vue"),
+      meta: {
+        marketing: true,
+      },
+    },
+    {
       path: "/links",
       name: "links-list",
       component: () => import("./views/LinksListPage.vue"),

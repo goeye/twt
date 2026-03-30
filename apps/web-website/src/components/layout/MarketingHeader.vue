@@ -223,6 +223,17 @@ defineProps<{
   position: relative;
 }
 
+.help-dropdown:hover::after,
+.help-dropdown:focus-within::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max(100%, 172px);
+  height: 18px;
+}
+
 .help-trigger {
   color: var(--links-color-text-primary);
   text-decoration: none;
@@ -248,19 +259,11 @@ defineProps<{
 .help-menu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 14px);
   left: 50%;
   transform: translateX(-50%);
+  z-index: 1;
   padding-top: 0;
-}
-
-.help-menu::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 0;
 }
 
 .help-dropdown:hover .help-menu {

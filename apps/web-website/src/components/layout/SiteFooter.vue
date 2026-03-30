@@ -4,7 +4,7 @@
       <div class="footer-content">
         <div class="footer-col">
           <h4>产品</h4>
-          <a href="#">Chat</a>
+          <RouterLink to="/">Chat</RouterLink>
           <a href="#">Community</a>
           <span class="disabled">Link</span>
           <span class="disabled">Domains</span>
@@ -16,7 +16,8 @@
           <a href="#">功能介绍</a>
           <a href="#">版本价格</a>
           <a href="#">下载中心</a>
-          <a href="#">帮助与支持</a>
+          <RouterLink to="/updates">更新日志</RouterLink>
+          <RouterLink to="/help-center">帮助中心</RouterLink>
         </div>
 
         <div class="footer-col">
@@ -88,6 +89,7 @@
 </template>
 
 <script setup lang="ts">
+import { RouterLink } from "vue-router";
 </script>
 
 <style scoped>

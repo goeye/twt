@@ -1,116 +1,170 @@
 <template>
   <div class="updates-page">
-    <MarketingHeader :show-product-nav="false" />
+    <MarketingHeader />
 
-    <div class="updates-container">
-      <div class="product-nav">
+    <div class="updates-shell">
+      <ProductSubNav />
+
+      <section class="updates-hero">
         <div class="container">
-          <div class="product-nav-content">
-            <div class="product-logo">
-              <span class="chat-icon">💬</span>
-              <span class="product-name">Chat</span>
-            </div>
-            <div class="product-links">
-              <a href="#">下载</a>
-              <a href="#">功能介绍</a>
-              <a href="#">版本价格</a>
-              <div class="help-dropdown">
-                <a href="#" class="help-trigger">帮助与支持 <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                <div class="help-menu">
-                  <a href="/updates" target="_blank">产品动态</a>
-                  <a href="#">常见问题</a>
-                  <a href="#">使用教程</a>
-                </div>
-              </div>
-            </div>
-          </div>
+          <span class="updates-hero__eyebrow">Release notes</span>
+          <h1>Chat 更新日志</h1>
+          <p class="subtitle">记录每一次功能上线、体验优化与关键修复，帮你快速看懂版本变化。</p>
         </div>
-      </div>
+      </section>
 
-      <div class="updates-hero">
-        <h1>👋 欢迎来到 Chat 帮助中心</h1>
-        <p class="subtitle">在这里可以找到你想要的答案～</p>
-      </div>
-
-      <div class="updates-content">
+      <section class="updates-content">
         <div class="container">
           <div class="timeline">
-            <div class="timeline-item" v-for="item in updates" :key="item.id">
-              <div class="timeline-date">
-                <span class="date-circle"></span>
-                <span class="date-text">{{ item.date }}</span>
-              </div>
+            <article v-for="item in updates" :key="item.id" class="timeline-item">
               <div class="timeline-card">
                 <h2>{{ item.title }}</h2>
+
                 <div class="card-sections">
-                  <div class="section-item" v-for="section in item.sections" :key="section.type">
-                    <span class="section-tag">【{{ section.label }}】</span>
-                    <span class="section-text">{{ section.text }}</span>
+                  <div v-for="section in item.sections" :key="section.label + section.text" class="section-item">
+                    <span :class="['section-tag', `section-tag--${section.type}`]">{{ section.label }}</span>
+                    <p class="section-text">{{ section.text }}</p>
                   </div>
                 </div>
               </div>
-            </div>
+
+              <div class="timeline-marker" aria-hidden="true">
+                <span class="date-circle"></span>
+              </div>
+
+              <div class="timeline-date">
+                <span class="date-text">{{ item.date }}</span>
+              </div>
+            </article>
           </div>
         </div>
-      </div>
+      </section>
+
+      <SiteFooter />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import MarketingHeader from '../components/layout/MarketingHeader.vue';
+import ProductSubNav from '../components/layout/ProductSubNav.vue';
+import SiteFooter from '../components/layout/SiteFooter.vue';
 
-const updates = ref([
+type UpdateSection = {
+  type: 'new' | 'optimize';
+  label: string;
+  text: string;
+};
+
+type UpdateItem = {
+  id: number;
+  title: string;
+  date: string;
+  sections: UpdateSection[];
+};
+
+const updates: UpdateItem[] = [
   {
     id: 1,
-    title: '新增排队提醒设置，优化会话档案评价多选操作',
+    title: '排队提醒上线，会话档案维护更高效',
     date: '2026-03-27',
     sections: [
-      { type: 'new', label: '新增', text: '自定义模块新增排队提醒，访客进入排队时，消息预览显示当前排队信息' },
-      { type: 'optimize', label: '优化', text: '会话档案评价支持多选操作，新增标签与标题编辑能力，提升档案维护效率' }
+      {
+        type: 'new',
+        label: '新增',
+        text: '自定义模块新增排队提醒配置，访客进入队列后可即时展示等待状态与排队信息。'
+      },
+      {
+        type: 'optimize',
+        label: '优化',
+        text: '会话档案评价支持多选，同时补充标签与标题编辑能力，归档整理更顺手。'
+      }
     ]
   },
   {
     id: 2,
-    title: '权限管理升级，新增角色权限配置与成员邀请记录查询',
+    title: '角色权限配置升级，邀请记录支持追踪',
     date: '2026-03-26',
     sections: [
-      { type: 'new', label: '新增', text: '权限角色管理功能，支持按不同角色差异化配置操作权限' },
-      { type: 'new', label: '新增', text: '成员列表新增邀请记录，可查看历史邀请详情、状态' }
+      {
+        type: 'new',
+        label: '新增',
+        text: '支持按角色配置后台操作权限，团队分工更清晰，权限管理更可控。'
+      },
+      {
+        type: 'new',
+        label: '新增',
+        text: '成员列表新增邀请记录视图，可查看邀请时间、状态与历史详情。'
+      }
     ]
   },
   {
     id: 3,
-    title: '新增自定义聊天小部件，支持翻译非律宾英语，优化时间配置精度至秒级',
+    title: '小部件自定义能力扩展，时间配置精确到秒',
     date: '2026-03-20',
     sections: [
-      { type: 'new', label: '新增', text: '新增自定义聊天小部件功能，支持自定义聊天小部件位置、内容、行为与品牌展示' },
-      { type: 'new', label: '新增', text: '聊天翻译，边写边译支持翻译为非律宾英语' },
-      { type: 'optimize', label: '优化', text: '系统内时间配置精度支持时、分、秒级设置，可以更精确的控制时间范围' }
+      {
+        type: 'new',
+        label: '新增',
+        text: '聊天小部件支持自定义位置、展示内容、交互行为与品牌露出，接入更灵活。'
+      },
+      {
+        type: 'new',
+        label: '新增',
+        text: '边写边译新增菲律宾英语支持，跨语种沟通更自然。'
+      },
+      {
+        type: 'optimize',
+        label: '优化',
+        text: '系统时间配置支持时、分、秒三级精度，触发条件设置更精细。'
+      }
     ]
   },
   {
     id: 4,
-    title: '新增主动营销、@提及等功能，优化会话待处理交互',
+    title: '主动营销与协作能力增强，会话待处理交互简化',
     date: '2026-03-18',
     sections: [
-      { type: 'new', label: '新增', text: '营销模块新增主动营销功能，支持创建定向营销活动，实现个性化消息推送与产品推广' },
-      { type: 'new', label: '新增', text: '群聊新增 @成员提及功能' },
-      { type: 'new', label: '新增', text: '客户接入 API 现已支持在客户标识之外，额外传入备注名、姓名、电话、邮箱' },
-      { type: 'optimize', label: '优化', text: '优化会话"标记为待处理"交互：无需发送消息即可将会话标记为待处理，已标记的会话可通过历史消息能够得到理态' }
+      {
+        type: 'new',
+        label: '新增',
+        text: '主动营销支持创建定向活动，向指定访客发送个性化消息与推广内容。'
+      },
+      {
+        type: 'new',
+        label: '新增',
+        text: '群聊支持 @成员提及，团队协同沟通更直接。'
+      },
+      {
+        type: 'new',
+        label: '新增',
+        text: '客户接入 API 现支持附加备注名、姓名、电话、邮箱等扩展字段。'
+      },
+      {
+        type: 'optimize',
+        label: '优化',
+        text: '会话支持不发送消息直接标记为待处理，状态流转与历史记录展示更清晰。'
+      }
     ]
   },
   {
     id: 5,
-    title: '新增在线会话客服转移与添加，新增访客/客户列表编辑功能',
+    title: '在线会话转移与访客资料编辑能力上线',
     date: '2026-03-09',
     sections: [
-      { type: 'new', label: '新增', text: '在线会话支持「会话转移」及「添加客服」' },
-      { type: 'new', label: '新增', text: '访客列表、客户列表支持会话表中「访客信息」面板支持编辑功能' }
+      {
+        type: 'new',
+        label: '新增',
+        text: '在线会话支持转移会话与添加客服，复杂问题交接更顺畅。'
+      },
+      {
+        type: 'new',
+        label: '新增',
+        text: '访客列表、客户列表以及会话中的访客信息面板支持直接编辑基础资料。'
+      }
     ]
   }
-]);
+];
 </script>
 
 <style scoped>
@@ -119,225 +173,95 @@ const updates = ref([
   background: #fff;
 }
 
-.updates-container {
-  background: #f5f7fa;
-  min-height: calc(100vh - 64px);
-}
-
-/* 产品导航 */
-.product-nav {
-  height: 56px;
-  background: transparent;
-}
-
-.product-nav .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 48px;
-}
-
-.product-nav-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-}
-
-.product-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.chat-icon {
-  font-size: 20px;
-}
-
-.product-name {
-  font-size: 16px;
-  color: var(--links-color-text-primary);
-}
-
-.product-links {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-}
-
-.product-links a {
-  color: var(--links-color-text-primary);
-  text-decoration: none;
-  font-size: 14px;
-  transition: color var(--links-motion-fast);
-}
-
-.product-links a:hover {
-  color: var(--links-color-primary);
-}
-
-/* 帮助与支持下拉菜单 */
-.help-dropdown {
-  position: relative;
-}
-
-.help-trigger {
-  color: var(--links-color-text-primary);
-  text-decoration: none;
-  font-size: 14px;
-  transition: color var(--links-motion-fast);
-  cursor: pointer;
-}
-
-.help-trigger:hover {
-  color: var(--links-color-primary);
-}
-
-.help-trigger .arrow {
-  display: inline-block;
-  transition: transform var(--links-motion-fast);
-}
-
-.help-dropdown:hover .help-trigger .arrow {
-  transform: rotate(180deg);
-}
-
-.help-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding-top: 0;
-}
-
-.help-menu::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 0;
-}
-
-.help-dropdown:hover .help-menu {
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
-.help-menu a {
-  white-space: nowrap;
-  padding: 8px 20px;
-  font-size: 14px;
-  color: var(--links-color-text-primary);
-  text-decoration: none;
-  background: #fff;
-  transition: all var(--links-motion-fast);
-}
-
-.help-menu a:first-child {
-  border-radius: 8px 8px 0 0;
-}
-
-.help-menu a:last-child {
-  border-radius: 0 0 8px 8px;
-}
-
-.help-menu a:hover {
-  color: var(--links-color-primary);
-  background: var(--links-color-bg-page);
+.updates-shell {
+  background: linear-gradient(180deg, #f2f5fb 0 320px, #ffffff 320px);
 }
 
 .updates-hero {
-  background: #f5f7fa;
-  padding: 80px 24px;
+  padding: 74px 0 88px;
   text-align: center;
-  color: var(--links-color-text-primary);
-}
-
-.updates-hero h1 {
-  font-size: 42px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
-.subtitle {
-  font-size: 16px;
-  color: var(--links-color-text-secondary);
-}
-
-.updates-content {
-  padding: 64px 0;
-  background: #fff;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
+.updates-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(22, 119, 255, 0.12);
+  color: var(--links-color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.updates-hero h1 {
+  margin: 20px 0 16px;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.12;
+  color: var(--links-color-text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--links-color-text-secondary);
+}
+
+.updates-content {
+  padding: 0 0 88px;
+}
+
 .timeline {
+  --timeline-date-width: 132px;
+  --timeline-marker-width: 60px;
   position: relative;
 }
 
 .timeline::before {
   content: '';
   position: absolute;
-  right: 106px;
-  top: 0;
-  bottom: 0;
+  right: calc(var(--timeline-date-width) + (var(--timeline-marker-width) / 2) - 1px);
+  top: 18px;
+  bottom: 18px;
   width: 2px;
   background: var(--links-color-border);
 }
 
 .timeline-item {
-  display: flex;
-  flex-direction: row-reverse;
-  gap: 32px;
-  margin-bottom: 48px;
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--timeline-marker-width) var(--timeline-date-width);
+  align-items: start;
+  margin-bottom: 32px;
 }
 
-.timeline-date {
-  width: 100px;
-  flex-shrink: 0;
-  text-align: left;
-  padding-top: 4px;
-  position: relative;
-}
-
-.date-circle {
-  position: absolute;
-  left: -7px;
-  top: 8px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  border: 3px solid var(--links-color-primary);
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.date-text {
-  display: block;
-  font-size: 14px;
-  color: var(--links-color-text-tertiary);
-  line-height: 1.5;
+.timeline-item:last-child {
+  margin-bottom: 0;
 }
 
 .timeline-card {
-  flex: 1;
+  padding: 28px 30px;
+  border-radius: 28px;
+  border: 1px solid rgba(232, 233, 240, 0.92);
+  background: #fff;
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
 }
 
 .timeline-card h2 {
-  font-size: 18px;
-  font-weight: 600;
+  margin: 0 0 18px;
+  font-size: 22px;
+  line-height: 1.45;
   color: var(--links-color-text-primary);
-  margin-bottom: 16px;
-  line-height: 1.5;
 }
 
 .card-sections {
@@ -347,39 +271,118 @@ const updates = ref([
 }
 
 .section-item {
-  font-size: 14px;
-  line-height: 1.8;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(232, 233, 240, 0.88);
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 
 .section-tag {
-  font-weight: 600;
-  margin-right: 4px;
-  color: var(--links-color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-tag--new {
+  background: #f0f8e8;
+  color: #3f8a1d;
+}
+
+.section-tag--optimize {
+  background: #eaf3ff;
+  color: #1677ff;
 }
 
 .section-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.85;
   color: var(--links-color-text-secondary);
 }
 
+.timeline-marker {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.date-circle {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--links-color-primary);
+  z-index: 1;
+}
+
+.timeline-date {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding-top: 1px;
+}
+
+.date-text {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #f7f9fc;
+  color: var(--links-color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
-  .updates-hero h1 {
-    font-size: 32px;
+  .updates-hero {
+    padding: 56px 0 72px;
   }
 
-  .timeline::before {
-    right: 70px;
+  .container {
+    padding: 0 16px;
   }
 
-  .timeline-date {
-    width: 70px;
+  .subtitle {
+    font-size: 16px;
   }
 
-  .date-circle {
-    left: -18px;
+  .updates-content {
+    padding-bottom: 72px;
+  }
+
+  .timeline {
+    --timeline-date-width: 92px;
+    --timeline-marker-width: 40px;
   }
 
   .timeline-item {
-    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .timeline-card {
+    padding: 22px 20px;
+    border-radius: 22px;
+  }
+
+  .timeline-card h2 {
+    font-size: 18px;
+  }
+
+  .section-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
 </style>
