@@ -57,8 +57,7 @@
         </template>
         <template #footer="{ expanded }">
           <div class="rail-footer" :class="{ 'rail-footer--expanded': expanded }">
-            <!-- 开发环境调试工具 -->
-            <template v-if="isDev">
+            <!-- 调试工具：服务版本 & 角色权限切换 -->
               <div class="plan-switcher-wrap" :class="{ 'plan-switcher-wrap--expanded': expanded }" @mouseenter="expanded && openPlanSwitcherHover()" @mouseleave="expanded && closePlanSwitcherHover()">
                 <button type="button" class="rail-footer__icon plan-switcher-trigger" aria-label="切换服务版本" @click.stop="!expanded && (planSwitcherOpen = !planSwitcherOpen)">
                   <span class="rail-footer__glyph">
@@ -123,7 +122,6 @@
                   </div>
                 </div>
               </div>
-            </template>
             <button type="button" class="rail-footer__icon" aria-label="帮助中心">
               <span class="rail-footer__glyph">
                 <AgentIcon name="help" :size="16" />
@@ -672,7 +670,6 @@ import CustomerRoutePage from "./views/CustomerRoutePage.vue";
 import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
 
-const isDev = import.meta.env.DEV;
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import ReportRoutePage from "./views/ReportRoutePage.vue";
 import SettingsRoutePage from "./views/SettingsRoutePage.vue";
