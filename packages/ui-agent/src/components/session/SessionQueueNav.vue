@@ -6,12 +6,31 @@
 
     <div class="queue-nav__body agent-scroll">
       <section v-for="group in groups" :key="group.key" class="queue-nav__group">
-        <button class="queue-nav__group-trigger" type="button" @click="toggleGroup(group.key)">
-          <span class="queue-nav__group-title">{{ group.title }}</span>
-          <span class="queue-nav__group-arrow" :class="{ 'queue-nav__group-arrow--collapsed': isGroupCollapsed(group.key) }">
-            <AgentIcon :name="isGroupCollapsed(group.key) ? 'chevron-right' : 'chevron-down'" :size="14" />
-          </span>
-        </button>
+        <div class="queue-nav__group-header">
+          <button class="queue-nav__group-trigger" type="button" @click="toggleGroup(group.key)">
+            <span class="queue-nav__group-trigger-main">
+              <span class="queue-nav__group-title">{{ group.title }}</span>
+              <span class="queue-nav__group-arrow" :class="{ 'queue-nav__group-arrow--collapsed': isGroupCollapsed(group.key) }">
+                <AgentIcon :name="isGroupCollapsed(group.key) ? 'chevron-right' : 'chevron-down'" :size="14" />
+              </span>
+            </span>
+          </button>
+
+          <div v-if="group.actions?.length" class="queue-nav__group-actions">
+            <button
+              v-for="action in group.actions"
+              :key="action.key"
+              type="button"
+              class="queue-nav__group-action"
+              :aria-label="action.label"
+              :title="action.label"
+              @click.stop="$emit('group-action', { groupKey: group.key, actionKey: action.key })"
+            >
+              <AgentIcon v-if="action.icon" :name="action.icon" :size="14" />
+              <span v-else class="queue-nav__group-action-text">{{ action.text ?? "+" }}</span>
+            </button>
+          </div>
+        </div>
 
         <div v-show="!isGroupCollapsed(group.key)" class="queue-nav__items">
           <button
@@ -50,6 +69,7 @@ defineProps<{
 
 defineEmits<{
   (e: "select", key: string): void;
+  (e: "group-action", payload: { groupKey: string; actionKey: string }): void;
 }>();
 
 const collapsedGroups = ref<string[]>([]);
@@ -103,6 +123,13 @@ const shouldShowBadge = (itemKey: string, count?: number) => {
   gap: var(--agent-space-4);
 }
 
+.queue-nav__group-header {
+  align-items: center;
+  display: flex;
+  gap: var(--agent-space-4);
+  justify-content: space-between;
+}
+
 .queue-nav__group-trigger {
   align-items: center;
   background: transparent;
@@ -110,10 +137,18 @@ const shouldShowBadge = (itemKey: string, count?: number) => {
   border-radius: var(--agent-radius-md);
   cursor: pointer;
   display: inline-flex;
-  justify-content: space-between;
+  flex: 1;
+  justify-content: flex-start;
+  min-width: 0;
   padding: var(--agent-space-8);
   text-align: left;
-  width: 100%;
+}
+
+.queue-nav__group-trigger-main {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+  min-width: 0;
 }
 
 .queue-nav__group-title {
@@ -130,6 +165,38 @@ const shouldShowBadge = (itemKey: string, count?: number) => {
 
 .queue-nav__group-arrow--collapsed {
   color: var(--agent-color-text-tertiary);
+}
+
+.queue-nav__group-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.queue-nav__group-action {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0 6px;
+  transition: background-color var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
+}
+
+.queue-nav__group-action:hover {
+  background: var(--agent-color-bg-panel);
+  color: var(--agent-color-text-primary);
+}
+
+.queue-nav__group-action-text {
+  font-size: 22px;
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
 }
 
 .queue-nav__items {

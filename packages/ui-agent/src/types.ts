@@ -26,10 +26,18 @@ export interface SessionQueueItem {
   icon?: string;
 }
 
+export interface SessionQueueGroupAction {
+  key: string;
+  label: string;
+  icon?: string;
+  text?: string;
+}
+
 export interface SessionQueueGroup {
   key: string;
   title: string;
   items: SessionQueueItem[];
+  actions?: SessionQueueGroupAction[];
 }
 
 export interface MessageItem {

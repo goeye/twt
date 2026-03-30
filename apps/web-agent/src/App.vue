@@ -191,6 +191,7 @@
         :active-key="activeQueueKey"
         :groups="queueGroups"
         @select="handleQueueSelect"
+        @group-action="handleQueueGroupAction"
       />
       <ArchiveSubNav
         v-else-if="isFilesRoute"
@@ -595,6 +596,14 @@
       @confirm="handleConfirmInvite"
     />
 
+    <StartChatModal
+      :open="startChatModalOpen"
+      :candidates="startChatCandidates"
+      :pinned-contact="startChatPinnedContact"
+      @close="startChatModalOpen = false"
+      @confirm="handleStartChatConfirm"
+    />
+
     <BaseModal
       :open="closeSessionModalOpen"
       title="结束会话"
@@ -669,6 +678,7 @@ import CampaignRoutePage from "./views/CampaignRoutePage.vue";
 import CustomerRoutePage from "./views/CustomerRoutePage.vue";
 import FilesRoutePage from "./views/FilesRoutePage.vue";
 import HomeRoutePage from "./views/HomeRoutePage.vue";
+import StartChatModal from "./components/StartChatModal.vue";
 
 import ProactiveCampaignRoutePage from "./views/ProactiveCampaignRoutePage.vue";
 import ReportRoutePage from "./views/ReportRoutePage.vue";
@@ -885,6 +895,21 @@ interface AgentEntry {
   online: boolean;
   avatarText: string;
   avatarColor: string;
+}
+
+type StartChatContactType = "visitor" | "customer" | "agent" | "manual";
+
+interface StartChatContact {
+  id: string;
+  type: StartChatContactType;
+  name: string;
+  avatarText: string;
+  avatarColor: string;
+  online?: boolean;
+  visitorId?: string;
+  email?: string;
+  phone?: string;
+  sourceSessionId?: string;
 }
 
 interface DisplayMessage extends MessageItem {
@@ -1182,6 +1207,7 @@ const queueGroupSeed: SessionQueueGroup[] = [
   {
     key: "online-chat",
     title: "在线聊天",
+    actions: [{ key: "start-chat", label: "发起聊天", text: "+" }],
     items: [{ key: "chat-room", label: "聊天", leadingEmoji: "💬" }]
   },
   {
@@ -1959,6 +1985,7 @@ const pendingTransferAgentId = ref<string | null>(null);
 
 const inviteModalOpen = ref(false);
 const inviteKeyword = ref("");
+const startChatModalOpen = ref(false);
 const closeSessionModalOpen = ref(false);
 const closeEmailSessionModalOpen = ref(false);
 const aiAssignModalOpen = ref(false);
@@ -2026,6 +2053,42 @@ const queueAssignableAgents = computed(() => {
     .filter((a) => keyword.length === 0 || a.name.toLowerCase().includes(keyword))
     .sort((a, b) => (a.online === b.online ? 0 : a.online ? -1 : 1))
     .map((a) => ({ id: a.id, name: a.name, online: a.online, avatarText: a.avatarText, avatarColor: a.avatarColor }));
+});
+
+const startChatVisitorCandidates: StartChatContact[] = [
+  { id: "visitor:56", type: "visitor", name: "Visitor56", avatarText: "VI", avatarColor: "#9fc4ee", online: false, visitorId: "56" },
+  { id: "visitor:123-a", type: "visitor", name: "123", avatarText: "12", avatarColor: "#c6e48b", online: false, visitorId: "123-a" },
+  { id: "visitor:54", type: "visitor", name: "Visitor54", avatarText: "VI", avatarColor: "#bedf7f", online: false, visitorId: "54" },
+  { id: "visitor:53", type: "visitor", name: "Visitor53", avatarText: "VI", avatarColor: "#93e0c2", online: false, visitorId: "53" },
+  { id: "visitor:123-b", type: "visitor", name: "123", avatarText: "12", avatarColor: "#c6e48b", online: false, visitorId: "123-b" },
+  { id: "visitor:51", type: "visitor", name: "Visitor51", avatarText: "VI", avatarColor: "#df97d9", online: false, visitorId: "51" },
+  { id: "visitor:50", type: "visitor", name: "Visitor50", avatarText: "VI", avatarColor: "#9be3df", online: false, visitorId: "50" },
+  { id: "visitor:49", type: "visitor", name: "Visitor49", avatarText: "VI", avatarColor: "#93e0c2", online: false, visitorId: "49" },
+  { id: "visitor:48", type: "visitor", name: "Visitor48", avatarText: "VI", avatarColor: "#9f9ff0", online: false, visitorId: "48" }
+];
+
+const startChatCustomerCandidates: StartChatContact[] = [
+  { id: "customer:tuski", type: "customer", name: "tuski", avatarText: "T", avatarColor: "#d3a272", online: false, visitorId: "customer-tuski" },
+  { id: "customer:jack", type: "customer", name: "Jack", avatarText: "J", avatarColor: "#8ab4ff", online: false, visitorId: "customer-jack" },
+  { id: "customer:linda", type: "customer", name: "Linda", avatarText: "L", avatarColor: "#98d8aa", online: false, visitorId: "customer-linda" },
+  { id: "customer:zoe", type: "customer", name: "Zoe", avatarText: "Z", avatarColor: "#f7b267", online: false, visitorId: "customer-zoe" }
+];
+
+const startChatPinnedContact: StartChatContact = startChatCustomerCandidates[0];
+
+const startChatCandidates = computed<StartChatContact[]>(() => {
+  const agents = agentPool
+    .filter((agent) => agent.name !== currentAgentName)
+    .map<StartChatContact>((agent) => ({
+      id: `agent:${agent.id}`,
+      type: "agent",
+      name: agent.name,
+      avatarText: agent.avatarText,
+      avatarColor: agent.avatarColor,
+      online: agent.online
+    }));
+
+  return [...startChatVisitorCandidates, ...startChatCustomerCandidates, ...agents];
 });
 
 const conversationBadgeCount = computed(() => {
@@ -2528,6 +2591,12 @@ const handleReportNavSelect = (key: string) => {
   }
 };
 
+const handleQueueGroupAction = ({ groupKey, actionKey }: { groupKey: string; actionKey: string }) => {
+  if (groupKey === "online-chat" && actionKey === "start-chat") {
+    startChatModalOpen.value = true;
+  }
+};
+
 const handleQueueSelect = (key: string) => {
   activeQueueKey.value = resolveScopedKey(key, validQueueKeys, defaultQueueKey);
   searchKeyword.value = "";
@@ -2654,6 +2723,122 @@ const handleOpenTransfer = () => {
 const handleOpenInvite = () => {
   inviteKeyword.value = "";
   inviteModalOpen.value = true;
+};
+
+const findExistingChatRoom = (contact: StartChatContact) => {
+  if (contact.type === "manual") {
+    return null;
+  }
+
+  return allSessions.value.find((session) => {
+    if (session.queueKey !== "chat-room") {
+      return false;
+    }
+
+    if (contact.visitorId) {
+      return session.visitorId === contact.visitorId;
+    }
+
+    if (contact.email) {
+      return session.email === contact.email;
+    }
+
+    return session.customerName === contact.name;
+  }) ?? null;
+};
+
+const buildStartChatSession = (contacts: StartChatContact[]) => {
+  const now = new Date();
+  const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const first = contacts[0];
+  const sourceSession = first?.sourceSessionId
+    ? allSessions.value.find((session) => session.id === first.sourceSessionId) ?? null
+    : null;
+  const isGroupChat = contacts.length > 1;
+  const names = contacts.map((contact) => contact.name);
+  const title = isGroupChat
+    ? `${names.slice(0, 3).join("、")}${contacts.length > 3 ? ` 等${contacts.length}人` : ""}`
+    : first.name;
+  const preview = isGroupChat
+    ? `群聊已创建，成员：${names.join("、")}`
+    : `已发起与${first.name}的聊天`;
+  const channel = first.type === "agent" ? "内部聊天" : "发起聊天";
+  const sessionId = `s-chat-${now.getTime()}`;
+
+  const session: ConversationSession = {
+    id: sessionId,
+    queueKey: "chat-room",
+    customerName: title,
+    preview,
+    updatedAt: time,
+    unreadCount: 0,
+    tag: first.type === "visitor" ? "访客" : "客户",
+    avatarText: isGroupChat ? "群" : first.avatarText,
+    avatarColor: isGroupChat ? "linear-gradient(135deg, #7c3aed 0%, #60a5fa 100%)" : first.avatarColor,
+    channel,
+    channelType: sourceSession?.channelType === "email" ? "web" : sourceSession?.channelType ?? "web",
+    remarkName: isGroupChat ? `${contacts.length}人群聊` : first.name,
+    visitorOnline: contacts.some((contact) => contact.online),
+    visitorName: title,
+    visitorId: isGroupChat ? `group-${now.getTime()}` : first.visitorId ?? `manual-${now.getTime()}`,
+    phone: isGroupChat ? "" : first.phone ?? "",
+    email: isGroupChat ? "" : first.email ?? "",
+    entryPage: sourceSession?.entryPage ?? "",
+    visitStats: isGroupChat ? `${contacts.length} 人群聊` : sourceSession?.visitStats ?? "0 会话，0 聊天",
+    deviceIp: sourceSession?.deviceIp ?? "",
+    os: sourceSession?.os ?? "",
+    browser: sourceSession?.browser ?? "",
+    startedAt: time,
+    acceptedAt: time,
+    assignee: currentAgentName,
+    assistants: [],
+    claimed: true,
+    isGroupChat
+  };
+
+  const initialMessage: MessageItem = {
+    id: `m-${sessionId}-created`,
+    role: "system",
+    sender: "系统",
+    content: preview,
+    time
+  };
+
+  return { session, initialMessage };
+};
+
+const handleStartChatConfirm = (contacts: StartChatContact[]) => {
+  const effectiveContacts = contacts.filter((contact) => contact.id !== startChatPinnedContact.id);
+
+  if (effectiveContacts.length === 0) {
+    return;
+  }
+
+  if (effectiveContacts.length === 1) {
+    const existingSession = findExistingChatRoom(effectiveContacts[0]);
+    if (existingSession) {
+      activeQueueKey.value = "chat-room";
+      activeSessionId.value = existingSession.id;
+      searchKeyword.value = "";
+      startChatModalOpen.value = false;
+      showTopToast(`已打开与 ${effectiveContacts[0].name} 的聊天`);
+      return;
+    }
+  }
+
+  const { session, initialMessage } = buildStartChatSession(effectiveContacts);
+
+  allSessions.value = [session, ...allSessions.value];
+  messageMap.value = {
+    ...messageMap.value,
+    [session.id]: [initialMessage]
+  };
+
+  activeQueueKey.value = "chat-room";
+  activeSessionId.value = session.id;
+  searchKeyword.value = "";
+  startChatModalOpen.value = false;
+  showTopToast(effectiveContacts.length > 1 ? "群聊已创建" : "聊天已创建");
 };
 
 const handleRequestTransfer = (id: string) => {
