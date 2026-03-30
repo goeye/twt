@@ -57,4 +57,13 @@
   --links-motion-fast: 120ms;
   --links-motion-base: 200ms;
   --links-motion-slow: 300ms;
+
+  /* Hero 专用 */
+  --links-hero-bg-start: #f0f5ff;
+  --links-hero-bg-end: #ffffff;
+  --links-hero-glow: rgba(22, 119, 255, 0.3);
+  --links-hero-title-size: 56px;
+  --links-hero-subtitle-size: 18px;
+  --links-main-nav-height: 64px;
+  --links-product-nav-height: 56px;
 }
