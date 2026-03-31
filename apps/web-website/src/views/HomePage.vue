@@ -245,7 +245,22 @@
       <div class="container">
         <h2>常见问题</h2>
         <div class="faq-list">
-          <div v-for="q in faqList" :key="q" class="faq-item">{{ q }}</div>
+          <div v-for="(item, index) in faqItems" :key="item.q" class="faq-item">
+            <button
+              type="button"
+              class="faq-question"
+              :class="{ 'faq-question--active': activeFaqIndex === index }"
+              @click="toggleFaq(index)"
+            >
+              <span>{{ item.q }}</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="faq-icon">
+                <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div v-show="activeFaqIndex === index" class="faq-answer">
+              <p v-for="(line, i) in item.a" :key="i">{{ line }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -454,12 +469,46 @@ const featList = [
   { icon: '🔌', title: '开放能力扩展', desc: 'API 与 Webhook' }
 ];
 
-const faqList = [
-  '如何开始使用 TWT Chat?',
-  '支持哪些渠道接入?',
-  '如何收费?',
-  '数据安全如何保障?'
+const faqItems = [
+  {
+    q: 'TWT Chat 是什么？',
+    a: ['TWT Chat 是一个集 AI客服、在线工单、聊天、音视频与远程协助于一体的全渠道客户服务解决方案，简单易用，让小团队也能轻松服务客户。']
+  },
+  {
+    q: '你们是怎么收费的？',
+    a: ['我们的专业版是按照席位收费的，推荐您直接按年订阅，目前订阅费用$11.88/席位/年，价格非常划算。您订阅专业版后我们会建专属服务群，由客服、运营、产品、技术给您提供专属服务']
+  },
+  {
+    q: '专业版和免费的区别是什么？',
+    a: ['核心差异在于自定义功能和 AI 拓展能力：比如隐藏平台标识、推荐回复、AI 机器人、双向实时翻译等等。您新建项目后会自动赠送 14 天的专业版体验权益，到期前您可以选择续费，到期后也可手动降级为免费版。详细功能对比可见定价页面：https://www.twt.com/chat/pricing']
+  },
+  {
+    q: '14 天体验期到期后会怎样？',
+    a: ['项目到期后您依旧可以正常使用，但需要您在控制台手动降级项目的订阅版本为免费版，免费版可永久享受 1 个席位的基础功能，您可根据实际业务进行选择。']
+  },
+  {
+    q: '如何注册/新建Chat项目？',
+    a: ['进入平台官网 https://www.twt.com，点击页面中间的【14天免费试用】或【登录/注册】按钮，进入控制台新建项目，点击跳转至客服工作台进行设置管理即可。']
+  },
+  {
+    q: '你们有客户端吗？',
+    a: ['我们电脑端支持网页、PWA应用。PWA是一种便捷的类似客户端的实现形式，您仅需一键添加，无需下载安装即可在电脑上完成 TWT Chat在电脑桌面新增入口，使用起来更加方便。原生客户端我们将在 6 月份正式上线，会提前发布通知。']
+  },
+  {
+    q: '你们有App吗？',
+    a: ['我们支持网页端、PWA及手机App。苹果手机可在 AppStore 直接搜索 TWT Chat 下载，支持Google服务手机可在 GooglePlay 搜索下载，其他安卓手机访问官网下载地址即可。']
+  },
+  {
+    q: 'AI 是用的什么大模型？',
+    a: ['目前采用的是OpenAI+QWen大模型组合，我们会根据市面上最新的大模型进行动态调整。']
+  }
 ];
+
+const activeFaqIndex = ref(0);
+
+const toggleFaq = (index: number) => {
+  activeFaqIndex.value = activeFaqIndex.value === index ? -1 : index;
+};
 </script>
 
 <style scoped>
@@ -1056,10 +1105,67 @@ const faqList = [
 }
 
 .faq-item {
-  padding: 20px 0;
   border-bottom: 1px solid #eee;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border: none;
+  background: transparent;
   font-size: 16px;
+  font-weight: 500;
   color: #333;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.faq-question:hover {
+  color: var(--links-color-primary);
+}
+
+.faq-question--active {
+  color: var(--links-color-primary);
+}
+
+.faq-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.faq-question--active .faq-icon {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: 0 0 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.faq-answer p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #666;
+}
+
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Certificates */

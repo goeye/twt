@@ -140,6 +140,24 @@ const article = (
 
 const helpCenterGroups: HelpGroup[] = [
   {
+    id: 'faq',
+    title: '常见问题',
+    items: [
+      { id: 'faq-what-is-twt-chat', label: 'TWT Chat 是什么？' },
+      { id: 'faq-pricing', label: '你们是怎么收费的？' },
+      { id: 'faq-version-diff', label: '专业版和免费的区别是什么？' },
+      { id: 'faq-trial-expire', label: '14 天体验期到期后会怎样？' },
+      { id: 'faq-project-management', label: '如何创建和管理项目？' },
+      { id: 'faq-clients', label: '支持哪些客户端？' },
+      { id: 'faq-ai-model', label: 'AI 是用的什么大模型？' },
+      { id: 'faq-chat-group', label: '如何创建单聊和群聊？' },
+      { id: 'faq-knowledge-base', label: '知识库如何使用？' },
+      { id: 'faq-session-management', label: '会话如何自动分配和转移？' },
+      { id: 'faq-team-management', label: '如何管理客服团队？' },
+      { id: 'faq-visitor-setup', label: '怎么和访客进行互通？' }
+    ]
+  },
+  {
     id: 'quick-start',
     title: '快速开始',
     items: [
@@ -193,6 +211,171 @@ const helpCenterGroups: HelpGroup[] = [
 ];
 
 const helpArticles: Record<string, HelpArticle> = {
+  'faq-what-is-twt-chat': article(
+    'faq-what-is-twt-chat',
+    'TWT Chat 是什么？',
+    ['TWT Chat 是一个集 AI客服、在线工单、聊天、音视频通话与远程协助于一体的全渠道客户服务解决方案，简单易用，让小团队也能轻松服务客户。'],
+    []
+  ),
+  'faq-pricing': article(
+    'faq-pricing',
+    '你们是怎么收费的？',
+    [
+      '我们的专业版是按照席位收费的，推荐您直接按年订阅，目前订阅费用$11.88/席位/年，价格非常划算。',
+      '您订阅专业版后我们会建专属服务群，由客服、运营、产品、技术给您提供专属服务。',
+      '（席位概念：需要在客服工作台接待访客的工作人员，订阅后可通过邮箱邀请加入）'
+    ],
+    []
+  ),
+  'faq-version-diff': article(
+    'faq-version-diff',
+    '专业版和免费的区别是什么？',
+    [
+      '1、核心差异在于自定义功能和 AI 拓展能力：比如隐藏平台标识、推荐回复、AI 机器人、双向实时翻译等等',
+      '2、您新建项目后会自动赠送 14 天的专业版体验权益，到期前您可以选择续费，到期后也可手动降级为免费版',
+      '3、目前平台在拓展期，价格非常优惠，年付仅$11.88/席位',
+      '详细功能对比可见定价页面：https://www.twt.com/chat/pricing'
+    ],
+    []
+  ),
+  'faq-trial-expire': article(
+    'faq-trial-expire',
+    '14 天体验期到期后会怎样？',
+    [
+      '您好，项目到期后您依旧可以正常使用，但需要您在控制台手动降级项目的订阅版本为免费版，免费版可永久享受 1 个席位的基础功能，您可根据实际业务进行选择。',
+      '免费版和专业版差异：https://www.twt.com/chat/pricing'
+    ],
+    []
+  ),
+  'faq-project-management': article(
+    'faq-project-management',
+    '如何创建和管理项目？',
+    [
+      '创建项目：',
+      '1、进入平台官网 https://www.twt.com',
+      '2、点击页面中间的【14天免费试用】或【登录/注册】按钮',
+      '3、进入控制台新建项目',
+      '4、点击跳转至客服工作台进行设置管理即可',
+      '',
+      '修改项目名称和头像：',
+      '方式一：在控制台-项目管理，鼠标点击头像/名称即可修改（https://chat-console.twt.com）',
+      '方式二：在客服工作台，设置-自定义-外观，修改 Logo及品牌名称即可（https://chat.twt.com/workspace/settings/install/custom）'
+    ],
+    []
+  ),
+  'faq-clients': article(
+    'faq-clients',
+    '支持哪些客户端？',
+    [
+      '我们支持网页端、PWA应用、手机App等多种客户端。',
+      '',
+      '电脑端：',
+      '• 网页版：直接通过浏览器访问',
+      '• PWA应用：使用 Google/Safari/火狐浏览器进入客服工作台，地址栏右侧点击【安装】即可',
+      '• 原生客户端将在 6 月份正式上线',
+      '',
+      '手机端：',
+      '• 苹果手机：AppStore 直接搜索 TWT Chat 下载',
+      '• 支持Google服务手机：GooglePlay 直接搜索 TWT Chat 下载',
+      '• 其他安卓手机：访问官网下载地址 https://www.twt.com/zh-CN/chat/download'
+    ],
+    []
+  ),
+  'faq-ai-model': article(
+    'faq-ai-model',
+    'AI 是用的什么大模型？',
+    ['目前采用的是OpenAI+QWen大模型组合，我们会根据市面上最新的大模型进行动态调整。'],
+    []
+  ),
+  'faq-chat-group': article(
+    'faq-chat-group',
+    '如何创建单聊和群聊？',
+    [
+      '我们平台支持创建1v1 的单聊和建群沟通，但仅支持客服发起。',
+      '',
+      '操作入口：',
+      '• 电脑端：会话-在线聊天旁边【+】-选择要发起单聊的访客或建群的访客及客服',
+      '• 手机端：会话-右上角【+】-选择要发起单聊的访客或建群的访客及客服',
+      '',
+      '群聊人数限制：目前最大限制 100 人，可以满足绝大多数业务场景。'
+    ],
+    []
+  ),
+  'faq-knowledge-base': article(
+    'faq-knowledge-base',
+    '知识库如何使用？',
+    [
+      '1、客服工作台-侧边栏-AI Agent-知识库，通过文档或者 QA 录入相关知识及问题',
+      '2、AI 会自动调用大模型进行训练学习，创建项目专属的知识框架',
+      '3、在 Copilot/Autopilot 中开启对应能力',
+      '4、访客发送消息后 AI 会自动从知识库中寻找对应回答，并生成对应回复',
+      '5、无论是推荐回复还是自动回复，都能大大提升接待效率和精准度'
+    ],
+    []
+  ),
+  'faq-session-management': article(
+    'faq-session-management',
+    '会话如何自动分配和转移？',
+    [
+      '会话自动分配：',
+      '• 会话采用动态轮询分配，会自动分配给当前在线的客服',
+      '• 如果会话长时间无法分配，请检查：',
+      '  1. 客服是否设置为在线状态（在左下角头像处检查）',
+      '  2. 当前接待的未结束会话数是否达到上限（可手动结束会话，或调大客服接待上限）',
+      '',
+      '客服下线转移：',
+      '• 支持配置客服超时不回消息，自动把会话分配给其他在线客服',
+      '• 开启方式：设置-团队-客服设置-会话超时',
+      '',
+      '翻译功能：',
+      '• 支持双向实时翻译，访客发的消息自动翻译成客服语言，客服打字自动翻译成目标语言',
+      '• 开启方式：访客对话框底部，AI 翻译功能，开启即可'
+    ],
+    []
+  ),
+  'faq-team-management': article(
+    'faq-team-management',
+    '如何管理客服团队？',
+    [
+      '坐席管理：',
+      '• 坐席是指需要在客服工作台接待访客的工作人员',
+      '• 免费版支持 1 个免费坐席永久使用',
+      '• 如需新增坐席需要升级专业版（$11.88/坐席/年）',
+      '',
+      '修改客服信息：',
+      '• 管理员可以修改团队客服的头像、姓名、昵称等信息',
+      '• 操作位置：工作台-设置-团队-成员，列表右侧操作按钮，点击【账号详情】',
+      '',
+      '通知设置：',
+      '• 在客服工作台，左侧边栏-头像-通知设置，可开启或关闭访客进入提醒等各类通知',
+      '• 如果依旧没有通知，需检查浏览器的权限，点击地址栏旁边的设置按钮，确认通知权限开启'
+    ],
+    []
+  ),
+  'faq-visitor-setup': article(
+    'faq-visitor-setup',
+    '怎么和访客进行互通？',
+    [
+      '第一步：完成项目创建，并进入客服工作台',
+      '',
+      '第二步：选择接入方式',
+      '1. 直接分享聊天地址：在客服工作台首页顶部【聊天页面】按钮点击即可跳转到访客端，分享该地址即可',
+      '2. 安装网站小部件：在设置-安装-网站代码，复制代码并集成到网站即可',
+      '3. 使用自己的域名：可下载 Html 并部署，具体教程可见帮助中心',
+      '',
+      '第三步：访客拿到地址或打开小部件即可向您发起会话或聊天',
+      '',
+      '访客端设置：',
+      '• 会话标题展示：可在设置-安装-自定义-常规模块，调整会话标题展示方式',
+      '• 限制访客发起会话数：设置-自定义-常规-会话功能，限制访客发起会话数上限',
+      '',
+      '链接被墙解决方案：',
+      '• 如果您有自己的网站，采用小组件接入方式，访问您的站点，小组件打开无影响',
+      '• 如果没有网站，建议自行购买域名，并下载平台提供的 Html，通过技术手段用您自己的域名访问聊天链接',
+      '• 具体操作流程：https://www.twt.com/zh-CN/chat/help/html-xia-zai'
+    ],
+    []
+  ),
   'chat-intro': article(
     'chat-intro',
     'Chat 介绍',
@@ -423,7 +606,7 @@ const helpArticles: Record<string, HelpArticle> = {
 
 const defaultArticleId = 'chat-intro';
 const activeArticleId = ref(defaultArticleId);
-const openGroupIds = ref<string[]>(['quick-start']);
+const openGroupIds = ref<string[]>(['faq', 'quick-start']);
 
 const currentArticle = computed(() => helpArticles[activeArticleId.value] ?? helpArticles[defaultArticleId]);
 
@@ -565,7 +748,7 @@ const setActiveArticle = (groupId: string, articleId: string) => {
 
 .help-center-article h2 {
   margin: 0 0 38px;
-  font-size: clamp(34px, 4vw, 52px);
+  font-size: 36px;
   line-height: 1.18;
   font-weight: 600;
   color: var(--links-color-text-primary);
