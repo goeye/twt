@@ -305,19 +305,32 @@
             <h2 class="home-section__title">常见问题</h2>
           </div>
 
-          <section class="home-guide-card agent-panel">
-            <div class="home-guide-card__list">
-              <button
-                v-for="item in faqItems"
+          <section class="home-faq-card agent-panel">
+            <div class="home-faq-card__list">
+              <div
+                v-for="(item, index) in faqItems"
                 :key="item.key"
-                type="button"
-                class="home-guide-card__item"
+                class="home-faq-card__item"
               >
-                <div class="home-guide-card__item-body">
-                  <span class="home-guide-card__item-title">{{ item.title }}</span>
-                  <span class="home-guide-card__item-desc">{{ item.description }}</span>
+                <button
+                  type="button"
+                  class="home-faq-card__question"
+                  :class="{ 'home-faq-card__question--active': activeFaqIndex === index }"
+                  @click="toggleFaq(index)"
+                >
+                  <span class="home-faq-card__question-text">{{ item.title }}</span>
+                  <AgentIcon
+                    name="chevron-down"
+                    :size="14"
+                    class="home-faq-card__arrow"
+                  />
+                </button>
+                <div v-show="activeFaqIndex === index" class="home-faq-card__answer">
+                  <p v-for="(line, i) in item.answer" :key="i" class="home-faq-card__answer-text">
+                    {{ line }}
+                  </p>
                 </div>
-              </button>
+              </div>
             </div>
           </section>
         </section>
@@ -468,14 +481,72 @@ const guideItems: GuideItem[] = [
   }
 ];
 
-const faqItems: GuideItem[] = [
-  { key: 'create-chat', title: '如何创建单聊/群聊？', description: '支持创建1v1单聊和建群沟通' },
-  { key: 'session-assign', title: '会话为什么无法自动分配？', description: '检查客服在线状态和接待上限' },
-  { key: 'seat', title: '坐席是什么意思？', description: '需要在工作台接待访客的工作人员' },
-  { key: 'visitor-connect', title: '怎么和访客进行互通？', description: '分享聊天地址或安装网站小部件' },
-  { key: 'notification', title: '如何开启访客进入提醒？', description: '在通知设置中管理各类提醒' },
-  { key: 'knowledge-base', title: '知识库如何使用？', description: '录入知识让AI自动学习和回复' }
+const faqItems = [
+  {
+    key: 'session-assign',
+    title: '会话为什么无法自动分配？',
+    answer: [
+      '会话采用动态轮询分配，会自动分配给当前在线的客服。',
+      '如果会话长时间无法分配，请检查：',
+      '1. 客服是否设置为在线状态（在左下角头像处检查是否设为了离开）',
+      '2. 当前接待的未结束会话数是否达到上限（可手动结束会话，或调大客服接待上限）',
+      '补充：客服最大接待会话数默认为99，可在成员管理模块调整，也可设置会话访客长时间未回复自动结束。'
+    ]
+  },
+  {
+    key: 'translation',
+    title: '翻译功能怎么用？',
+    answer: [
+      '我们支持双向实时翻译：访客发的消息自动翻译成客服语言，客服打字自动翻译成目标语言。',
+      '开启方式：访客对话框底部，AI 翻译功能，开启即可。',
+      '补充：聊天翻译开启后，访客发送的消息才会翻译为指定语言，未翻译的可手动悬浮对应消息位置并操作翻译功能。'
+    ]
+  },
+  {
+    key: 'knowledge-base',
+    title: '知识库如何使用？',
+    answer: [
+      '1. 客服工作台-侧边栏-AI Agent-知识库，通过文档或者 QA 录入相关知识及问题',
+      '2. AI 会自动调用大模型进行训练学习，创建项目专属的知识框架',
+      '3. 在 Copilot/Autopilot 中开启对应能力',
+      '4. 访客发送消息后 AI 会自动从知识库中寻找对应回答，并生成对应回复',
+      '5. 无论是推荐回复还是自动回复，都能大大提升接待效率和精准度'
+    ]
+  },
+  {
+    key: 'create-chat',
+    title: '如何创建单聊/群聊？',
+    answer: [
+      '我们平台支持创建1v1 的单聊和建群沟通，但仅支持客服发起。',
+      '操作入口：',
+      '• 电脑端：会话-在线聊天旁边【+】-选择要发起单聊的访客或建群的访客及客服',
+      '• 手机端：会话-右上角【+】-选择要发起单聊的访客或建群的访客及客服',
+      '群聊人数限制：目前最大限制 100 人，可以满足绝大多数业务场景。'
+    ]
+  },
+  {
+    key: 'offline-transfer',
+    title: '如果客服下线了会话会转给别的客服吗？',
+    answer: [
+      '我们支持配置客服超时不回消息，自动把会话分配给其他在线客服的功能。',
+      '开启方式：设置-团队-客服设置-会话超时，开启即可。'
+    ]
+  },
+  {
+    key: 'notification',
+    title: '如何开启访客进入提醒？',
+    answer: [
+      '在客服工作台，左侧边栏-头像-通知设置-访客进入，开启或关闭即可。',
+      '提示：如果依旧没有通知，需检查浏览器的权限，点击地址栏旁边的设置按钮，确认通知权限开启。'
+    ]
+  }
 ];
+
+const activeFaqIndex = ref(-1);
+
+const toggleFaq = (index: number) => {
+  activeFaqIndex.value = activeFaqIndex.value === index ? -1 : index;
+};
 
 const quickLinks: QuickLinkItem[] = [
   { key: "files", label: "档案", icon: "files", route: "/files", bgColor: "rgba(255, 128, 26, 0.12)", color: "#ff801a" },
@@ -1153,6 +1224,15 @@ const aiChartYTicks = computed(() => generateYTicks(aiChartDataSets[activeAiTab.
   text-align: left;
 }
 
+.home-guide-card__item:hover .agent-icon {
+  opacity: 1;
+}
+
+.home-guide-card__item .agent-icon {
+  opacity: 0;
+  transition: opacity var(--agent-motion-fast);
+}
+
 .home-guide-card__item:not(:last-child) {
   border-bottom: 1px solid var(--agent-color-border-default);
 }
@@ -1175,6 +1255,86 @@ const aiChartYTicks = computed(() => generateYTicks(aiChartDataSets[activeAiTab.
   color: #8b97a8;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.home-faq-card {
+  overflow: hidden;
+}
+
+.home-faq-card__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-faq-card__item:not(:last-child) {
+  border-bottom: 1px solid var(--agent-color-border-default);
+}
+
+.home-faq-card__question {
+  align-items: center;
+  background: #ffffff;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 50px;
+  padding: 12px 14px;
+  text-align: left;
+  width: 100%;
+  transition: background-color var(--agent-motion-fast);
+}
+
+.home-faq-card__question:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.home-faq-card__question-text {
+  color: #2b2f36;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.home-faq-card__question--active .home-faq-card__question-text {
+  color: var(--agent-color-primary);
+}
+
+.home-faq-card__arrow {
+  flex-shrink: 0;
+  color: #8b97a8;
+  transition: transform var(--agent-motion-fast);
+}
+
+.home-faq-card__question--active .home-faq-card__arrow {
+  transform: rotate(180deg);
+  color: var(--agent-color-primary);
+}
+
+.home-faq-card__answer {
+  padding: 0 14px 12px;
+  animation: fadeIn 0.2s ease;
+}
+
+.home-faq-card__answer-text {
+  color: #586475;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.home-faq-card__answer-text:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .home-quick-grid {
