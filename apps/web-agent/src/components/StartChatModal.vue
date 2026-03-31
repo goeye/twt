@@ -295,8 +295,9 @@
 
           <!-- 标签选择弹窗 -->
           <Teleport to="body">
+            <div v-if="tagSelectorOpen" class="start-chat-tag-mask" @click="tagSelectorOpen = false" />
             <Transition name="start-chat-filter-fade">
-              <div v-if="tagSelectorOpen" class="start-chat-tag-popup">
+              <div v-if="tagSelectorOpen" class="start-chat-tag-popup" @click.stop>
                 <div class="start-chat-tag-popup__header">
                   <input
                     v-model="tagSearchKeyword"
@@ -1809,6 +1810,13 @@ function getInitial(value: string): string {
 }
 
 /* 标签选择弹窗 */
+.start-chat-tag-mask {
+  background: transparent;
+  inset: 0;
+  position: fixed;
+  z-index: 1270;
+}
+
 .start-chat-tag-popup {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
