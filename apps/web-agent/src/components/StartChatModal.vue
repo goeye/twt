@@ -496,7 +496,10 @@ const handleFilterReset = () => {
 };
 
 const handleFilterConfirm = () => {
-  Object.assign(activeFilter, draftFilter);
+  Object.assign(activeFilter, {
+    ...draftFilter,
+    tags: [...draftFilter.tags]
+  });
   filterPanelOpen.value = false;
   activeDatePicker.value = null;
   tagSelectorOpen.value = false;
