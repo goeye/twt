@@ -261,14 +261,14 @@
                 <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
                   <template v-if="row.channelType === 'email'">
                     <template v-if="row.status === 'queueing'">
-                      <button v-if="isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
-                      <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                      <button type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
+                      <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     </template>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else-if="row.status === 'queueing'">
-                    <button v-if="isAdmin" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
-                    <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
+                    <button type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
+                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else-if="row.owner === aiAgentArchiveName">
@@ -311,6 +311,7 @@
     :variant="getDrawerVariant(previewConversation)"
     :editable="false"
     :show-autopilot-actions="previewConversation?.owner === aiAgentArchiveName"
+    :show-queueing-actions="previewConversation?.status === 'queueing'"
     @assign="previewConversation && handleDrawerAssign(previewConversation)"
     @takeover="previewConversation && handleDrawerTakeover(previewConversation)"
     @close="closeConversationDrawer"
@@ -1385,6 +1386,15 @@ const handleConfirmDialog = () => {
   closeConfirmDialog();
 };
 
+// 领取会话: 显示确认弹窗，确认后领取并跳转消息页
+const confirmClaimSession = (row: ConversationRecord) => {
+  closeActionMenu();
+  openConfirmDialog("确认领取", "确认领取该会话吗？", () => {
+    assignToSelf(row);
+    emit("navigate-to-session", { id: row.id, queueKey: row.status });
+  });
+};
+
 // Non-admin: "分配给我" with confirmation
 const confirmAssignToSelf = (row: ConversationRecord) => {
   closeActionMenu();
@@ -1430,6 +1440,11 @@ const closeConversationDrawer = () => {
 
 const handleDrawerTakeover = (row: ConversationRecord) => {
   closeConversationDrawer();
+  if (row.status === "queueing") {
+    // 排队中会话：打开分配弹窗
+    assignConversation(row);
+    return;
+  }
   openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
     assignToSelf(row);
     emit("navigate-to-session", { id: row.id, queueKey: row.status });
@@ -1438,8 +1453,8 @@ const handleDrawerTakeover = (row: ConversationRecord) => {
 
 const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
   if (!row) return "分配会话";
+  if (row.status === "queueing") return "领取会话";
   if (row.channelType === "email") {
-    if (row.status === "queueing") return "分配会话";
     const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
     return isServiceAgent ? "进入会话" : "加入会话";
   }
@@ -1473,6 +1488,15 @@ const formatEmailMessage = (message: { content?: string; images?: any[]; attachm
 };
 
 const handleDrawerAssign = (row: ConversationRecord) => {
+  if (row.status === "queueing") {
+    // 排队中会话：显示领取确认弹窗
+    closeConversationDrawer();
+    openConfirmDialog("确认领取", "确认领取该会话吗？", () => {
+      assignToSelf(row);
+      emit("navigate-to-session", { id: row.id, queueKey: row.status });
+    });
+    return;
+  }
   if (row.channelType === "email" && row.status !== "queueing") {
     const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
     closeConversationDrawer();

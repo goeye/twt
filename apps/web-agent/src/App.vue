@@ -569,6 +569,26 @@
       </template>
     </BaseModal>
 
+    <BaseModal
+      :open="confirmClaimModalOpen"
+      title="确认领取"
+      max-width="500px"
+      :show-close="false"
+      @close="handleCloseClaimModal"
+    >
+      <div class="confirm-takeover-modal">
+        <p class="confirm-takeover-modal__description">确认领取该会话吗？</p>
+      </div>
+
+      <template #footer>
+        <span />
+        <div class="confirm-takeover-modal__footer-actions">
+          <button class="agent-btn agent-btn--ghost" type="button" @click="handleCloseClaimModal">取消</button>
+          <button class="agent-btn agent-btn--primary" type="button" @click="handleConfirmClaimSession">确认</button>
+        </div>
+      </template>
+    </BaseModal>
+
     <ArchiveAssignModal
       :open="aiAssignModalOpen"
       :keyword="aiAssignKeyword"
@@ -1981,6 +2001,7 @@ const transferModalOpen = ref(false);
 const transferKeyword = ref("");
 const confirmTransferModalOpen = ref(false);
 const confirmTakeoverModalOpen = ref(false);
+const confirmClaimModalOpen = ref(false);
 const pendingTransferAgentId = ref<string | null>(null);
 
 const inviteModalOpen = ref(false);
@@ -2981,6 +3002,14 @@ const handleAiAssignConfirm = (agentId: string) => {
 };
 
 const handleClaimQueueSession = () => {
+  confirmClaimModalOpen.value = true;
+};
+
+const handleCloseClaimModal = () => {
+  confirmClaimModalOpen.value = false;
+};
+
+const handleConfirmClaimSession = () => {
   const session = activeSession.value;
   if (!session) return;
 
@@ -2989,6 +3018,7 @@ const handleClaimQueueSession = () => {
     return { ...s, claimed: true, assignee: currentAgentName };
   });
 
+  confirmClaimModalOpen.value = false;
   showTopToast("领取会话成功");
 };
 

@@ -76,6 +76,12 @@
               <button type="button" class="archive-drawer__action-btn archive-drawer__action-btn--assign" @click="$emit('assign')">分配会话</button>
             </div>
           </template>
+          <template v-else-if="showQueueingActions">
+            <div class="archive-drawer__dual-actions">
+              <button type="button" class="archive-drawer__action-btn archive-drawer__action-btn--assign" @click="$emit('takeover')">分配会话</button>
+              <button type="button" class="archive-drawer__action-btn archive-drawer__action-btn--takeover" @click="$emit('assign')">领取会话</button>
+            </div>
+          </template>
           <template v-else>
             <button type="button" class="archive-drawer__assign-btn" :class="{ 'archive-drawer__assign-btn--join': variant === 'join' }" @click="$emit('assign')">{{ assignLabel }}</button>
           </template>
@@ -109,12 +115,14 @@ const props = withDefaults(
     editable?: boolean;
     variant?: "default" | "join";
     showAutopilotActions?: boolean;
+    showQueueingActions?: boolean;
   }>(),
   {
     assignLabel: "分配会话",
     editable: true,
     variant: "default",
-    showAutopilotActions: false
+    showAutopilotActions: false,
+    showQueueingActions: false
   }
 );
 
