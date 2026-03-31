@@ -491,7 +491,8 @@ const handleTabChange = (key: StartChatTabKey) => {
 };
 
 const handleFilterReset = () => {
-  Object.assign(draftFilter, createEmptyFilter());
+  const emptyFilter = createEmptyFilter();
+  Object.assign(draftFilter, emptyFilter);
   activeDatePicker.value = null;
 };
 
@@ -815,7 +816,10 @@ watch(
 
 watch(filterPanelOpen, (open) => {
   if (open) {
-    Object.assign(draftFilter, activeFilter);
+    Object.assign(draftFilter, {
+      ...activeFilter,
+      tags: [...activeFilter.tags]
+    });
   }
 });
 
