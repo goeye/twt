@@ -163,11 +163,19 @@
                       class="start-chat-filter-panel__date-trigger"
                       :class="{ 'start-chat-filter-panel__date-trigger--has-value': draftFilter.firstVisitStart || draftFilter.firstVisitEnd }"
                       @click="toggleDatePicker('firstVisit')"
+                      @mouseenter="hoveredDateField = 'firstVisit'"
+                      @mouseleave="hoveredDateField = null"
                     >
                       <span class="start-chat-filter-panel__date-trigger-text">
-                        {{ formatDateRange(draftFilter.firstVisitStart, draftFilter.firstVisitEnd) || '首次访问时间' }}
+                        {{ formatDateRange(draftFilter.firstVisitStart, draftFilter.firstVisitEnd) || '请选择' }}
                       </span>
-                      <AgentIcon name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
+                      <button
+                        v-if="(draftFilter.firstVisitStart || draftFilter.firstVisitEnd) && hoveredDateField === 'firstVisit'"
+                        type="button"
+                        class="start-chat-filter-panel__date-clear"
+                        @click.stop="clearDateRange('firstVisit')"
+                      >×</button>
+                      <AgentIcon v-else name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
                     </button>
                   </div>
 
@@ -178,11 +186,19 @@
                       class="start-chat-filter-panel__date-trigger"
                       :class="{ 'start-chat-filter-panel__date-trigger--has-value': draftFilter.lastVisitStart || draftFilter.lastVisitEnd }"
                       @click="toggleDatePicker('lastVisit')"
+                      @mouseenter="hoveredDateField = 'lastVisit'"
+                      @mouseleave="hoveredDateField = null"
                     >
                       <span class="start-chat-filter-panel__date-trigger-text">
-                        {{ formatDateRange(draftFilter.lastVisitStart, draftFilter.lastVisitEnd) || '最后访问时间' }}
+                        {{ formatDateRange(draftFilter.lastVisitStart, draftFilter.lastVisitEnd) || '请选择' }}
                       </span>
-                      <AgentIcon name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
+                      <button
+                        v-if="(draftFilter.lastVisitStart || draftFilter.lastVisitEnd) && hoveredDateField === 'lastVisit'"
+                        type="button"
+                        class="start-chat-filter-panel__date-clear"
+                        @click.stop="clearDateRange('lastVisit')"
+                      >×</button>
+                      <AgentIcon v-else name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
                     </button>
                   </div>
                 </div>
@@ -377,6 +393,7 @@ const selectedContacts = ref<StartChatCandidate[]>([]);
 const filterPanelOpen = ref(false);
 const activeFilter = reactive<CandidateFilter>(createEmptyFilter());
 const draftFilter = reactive<CandidateFilter>(createEmptyFilter());
+const hoveredDateField = ref<DatePickerTarget | null>(null);
 
 const showFilterButton = computed(() => activeTab.value === "visitor" || activeTab.value === "customer");
 
@@ -405,6 +422,13 @@ const handleFilterConfirm = () => {
   Object.assign(activeFilter, draftFilter);
   filterPanelOpen.value = false;
   activeDatePicker.value = null;
+};
+
+const clearDateRange = (target: DatePickerTarget) => {
+  const startKey = target === "firstVisit" ? "firstVisitStart" : "lastVisitStart";
+  const endKey = target === "firstVisit" ? "firstVisitEnd" : "lastVisitEnd";
+  draftFilter[startKey] = "";
+  draftFilter[endKey] = "";
 };
 
 // ---- 日期范围选择器 ----
@@ -514,6 +538,15 @@ const handleDayClick = (day: CalendarDay, target: DatePickerTarget) => {
     hoveredDate.value = "";
   } else {
     const start = draftFilter[startKey];
+    if (day.date === start) {
+      // 禁止选择单个日期，丢弃选择
+      draftFilter[startKey] = "";
+      draftFilter[endKey] = "";
+      datePickerPhase.value = "start";
+      hoveredDate.value = "";
+      activeDatePicker.value = null;
+      return;
+    }
     if (day.date < start) {
       draftFilter[startKey] = day.date;
       draftFilter[endKey] = start;
@@ -1290,6 +1323,29 @@ function getInitial(value: string): string {
 .start-chat-filter-panel__date-trigger-icon {
   color: #98a2b3;
   flex-shrink: 0;
+}
+
+.start-chat-filter-panel__date-clear {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: #98a2b3;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 18px;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 0.18s ease, color 0.18s ease;
+  width: 20px;
+}
+
+.start-chat-filter-panel__date-clear:hover {
+  background: #e8edf5;
+  color: #475467;
 }
 
 /* ---- Calendar Popup (独立弹窗，位于筛选面板上方) ---- */
