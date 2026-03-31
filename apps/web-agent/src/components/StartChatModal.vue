@@ -164,9 +164,17 @@
                         class="start-chat-filter-panel__tag-trigger"
                         :class="{ 'start-chat-filter-panel__tag-trigger--has-value': draftFilter.tags.length > 0 }"
                         @click="tagSelectorOpen = !tagSelectorOpen"
+                        @mouseenter="hoveredTagField = true"
+                        @mouseleave="hoveredTagField = false"
                       >
                         <span>{{ selectedTagsDisplay }}</span>
-                        <AgentIcon name="chevron-down" :size="14" />
+                        <button
+                          v-if="draftFilter.tags.length > 0 && hoveredTagField"
+                          type="button"
+                          class="start-chat-filter-panel__tag-clear"
+                          @click.stop="draftFilter.tags = []"
+                        >×</button>
+                        <AgentIcon v-else name="chevron-down" :size="14" />
                       </button>
                     </div>
                   </div>
@@ -287,7 +295,6 @@
 
           <!-- 标签选择弹窗 -->
           <Teleport to="body">
-            <div v-if="tagSelectorOpen" class="start-chat-tag-mask" @click="tagSelectorOpen = false" />
             <Transition name="start-chat-filter-fade">
               <div v-if="tagSelectorOpen" class="start-chat-tag-popup">
                 <div class="start-chat-tag-popup__header">
@@ -304,12 +311,12 @@
                     :key="tag"
                     class="start-chat-tag-popup__item"
                   >
+                    <span>{{ tag }}</span>
                     <input
                       type="checkbox"
                       :checked="draftFilter.tags.includes(tag)"
                       @change="toggleTag(tag)"
                     />
-                    <span>{{ tag }}</span>
                   </label>
                   <div v-if="filteredTagPool.length === 0" class="start-chat-tag-popup__empty">
                     暂无匹配标签
@@ -445,6 +452,7 @@ const filterPanelOpen = ref(false);
 const activeFilter = reactive<CandidateFilter>(createEmptyFilter());
 const draftFilter = reactive<CandidateFilter>(createEmptyFilter());
 const hoveredDateField = ref<DatePickerTarget | null>(null);
+const hoveredTagField = ref(false);
 const tagSelectorOpen = ref(false);
 const tagSearchKeyword = ref("");
 
@@ -453,7 +461,8 @@ const tagPool = ["VIP", "普通", "潜在客户", "重要客户", "新客户"];
 const selectedTagsDisplay = computed(() => {
   if (draftFilter.tags.length === 0) return "请选择";
   if (draftFilter.tags.length === 1) return draftFilter.tags[0];
-  return `已选 ${draftFilter.tags.length} 个`;
+  if (draftFilter.tags.length === 2) return draftFilter.tags.join("、");
+  return `${draftFilter.tags[0]}、${draftFilter.tags[1]} +${draftFilter.tags.length - 2}`;
 });
 
 const filteredTagPool = computed(() => {
@@ -1800,13 +1809,6 @@ function getInitial(value: string): string {
 }
 
 /* 标签选择弹窗 */
-.start-chat-tag-mask {
-  background: rgba(0, 0, 0, 0.3);
-  inset: 0;
-  position: fixed;
-  z-index: 1270;
-}
-
 .start-chat-tag-popup {
   background: #fff;
   border: 1px solid var(--agent-color-border-default);
@@ -1882,5 +1884,26 @@ function getInitial(value: string): string {
 .start-chat-filter-panel__tag-trigger--has-value {
   border-color: var(--agent-color-brand-primary);
   color: var(--agent-color-brand-primary);
+}
+
+.start-chat-filter-panel__tag-clear {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  font-size: 18px;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+}
+
+.start-chat-filter-panel__tag-clear:hover {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 </style>
