@@ -295,6 +295,20 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Email配置引导弹窗 -->
+    <Teleport to="body">
+      <div v-if="showEmailConfigGuideModal" class="send-email-overlay" @click.self="showEmailConfigGuideModal = false">
+        <div class="email-config-guide-modal">
+          <h3 class="email-config-guide-modal__title">未配置 Email 渠道</h3>
+          <p class="email-config-guide-modal__desc">发送邮件前需要先配置 Email 渠道，是否前往配置?</p>
+          <div class="email-config-guide-modal__actions">
+            <button type="button" class="agent-btn agent-btn--ghost" @click="showEmailConfigGuideModal = false">取消</button>
+            <button type="button" class="agent-btn agent-btn--primary" @click="goToEmailSettings">去配置</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -429,7 +443,7 @@ const handleSendEmail = (item: OnlineCustomerItem | CustomerItem) => {
   }
 
   if (!hasChannels) {
-    emit("toast", "未配置邮箱渠道，无法发送");
+    showEmailConfigGuideModal.value = true;
     return;
   }
 
@@ -444,6 +458,7 @@ const handleSendEmail = (item: OnlineCustomerItem | CustomerItem) => {
 // ---- 发送邮件弹窗 ----
 const sendEmailOpen = ref(false);
 const sendEmailTarget = ref("");
+const showEmailConfigGuideModal = ref(false);
 const sendEmailTargetEmail = ref("");
 const sendEmailFrom = ref("");
 const sendEmailSubject = ref("");
@@ -558,6 +573,11 @@ const handleSendEmailAction = () => {
   sendEmailOpen.value = false;
   emit("toast", "发送成功");
   emit("navigate-to-inbox", "replied");
+};
+
+const goToEmailSettings = () => {
+  showEmailConfigGuideModal.value = false;
+  window.location.hash = "#/settings/email";
 };
 </script>
 
@@ -1154,5 +1174,35 @@ const handleSendEmailAction = () => {
 .send-email-modal__link-confirm:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* Email配置引导弹窗 */
+.email-config-guide-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  max-width: 420px;
+  padding: 24px;
+  width: 90%;
+}
+
+.email-config-guide-modal__title {
+  color: #252525;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.email-config-guide-modal__desc {
+  color: #75869c;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.email-config-guide-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
 }
 </style>

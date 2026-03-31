@@ -121,7 +121,7 @@ export const PERMISSION_TREE: PermGroup[] = [
   },
   {
     key: 'install',
-    label: '在线会话',
+    label: '网页',
     children: [
       { key: 'website-code', label: '网站代码', features: [{ key: 'website-code-view', label: '查看' }] },
       { key: 'chat-page', label: '聊天页面', features: [{ key: 'chat-page-view', label: '查看' }] },

@@ -75,7 +75,7 @@
       <div v-if="showConnectModal" class="email-modal-overlay" @click.self="showConnectModal = false">
         <div class="email-modal email-modal--connect">
           <header class="email-modal__header">
-            <h3 class="email-modal__title">添加邮箱</h3>
+            <h3 class="email-modal__title">添加 Email</h3>
             <button type="button" class="email-modal__close" @click="showConnectModal = false">&times;</button>
           </header>
           <div class="email-provider-list">
@@ -89,7 +89,7 @@
                 </svg>
               </span>
               <span class="email-provider-card__name">Gmail</span>
-              <span class="email-provider-card__desc">连接Gamil</span>
+              <span class="email-provider-card__desc">通过 Google OAuth 快速连接您的 Gmail 邮箱</span>
             </button>
             <div class="email-provider-card email-provider-card--disabled">
               <span class="email-provider-card__icon">
@@ -98,7 +98,7 @@
                   <path d="M3 7l9 6 9-6" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <span class="email-provider-card__name">其他邮箱</span>
+              <span class="email-provider-card__name">其他</span>
               <span class="email-provider-card__desc">敬请期待</span>
             </div>
           </div>

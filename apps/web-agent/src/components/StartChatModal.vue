@@ -157,6 +157,21 @@
                   </div>
 
                   <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">标签</p>
+                    <div class="start-chat-filter-panel__tag-selector">
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__tag-trigger"
+                        :class="{ 'start-chat-filter-panel__tag-trigger--has-value': draftFilter.tags.length > 0 }"
+                        @click="tagSelectorOpen = !tagSelectorOpen"
+                      >
+                        <span>{{ selectedTagsDisplay }}</span>
+                        <AgentIcon name="chevron-down" :size="14" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
                     <p class="start-chat-filter-panel__label">首次访问时间</p>
                     <button
                       type="button"
@@ -269,6 +284,40 @@
               </div>
             </Transition>
           </Teleport>
+
+          <!-- 标签选择弹窗 -->
+          <Teleport to="body">
+            <div v-if="tagSelectorOpen" class="start-chat-tag-mask" @click="tagSelectorOpen = false" />
+            <Transition name="start-chat-filter-fade">
+              <div v-if="tagSelectorOpen" class="start-chat-tag-popup">
+                <div class="start-chat-tag-popup__header">
+                  <input
+                    v-model="tagSearchKeyword"
+                    type="text"
+                    class="start-chat-tag-popup__search"
+                    placeholder="搜索标签"
+                  />
+                </div>
+                <div class="start-chat-tag-popup__list">
+                  <label
+                    v-for="tag in filteredTagPool"
+                    :key="tag"
+                    class="start-chat-tag-popup__item"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="draftFilter.tags.includes(tag)"
+                      @change="toggleTag(tag)"
+                    />
+                    <span>{{ tag }}</span>
+                  </label>
+                  <div v-if="filteredTagPool.length === 0" class="start-chat-tag-popup__empty">
+                    暂无匹配标签
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </Teleport>
         </div>
       </section>
 
@@ -354,6 +403,7 @@ interface CandidateFilter {
   firstVisitEnd: string;
   lastVisitStart: string;
   lastVisitEnd: string;
+  tags: string[];
 }
 
 const createEmptyFilter = (): CandidateFilter => ({
@@ -364,7 +414,8 @@ const createEmptyFilter = (): CandidateFilter => ({
   firstVisitStart: "",
   firstVisitEnd: "",
   lastVisitStart: "",
-  lastVisitEnd: ""
+  lastVisitEnd: "",
+  tags: []
 });
 
 const props = defineProps<{
@@ -394,6 +445,21 @@ const filterPanelOpen = ref(false);
 const activeFilter = reactive<CandidateFilter>(createEmptyFilter());
 const draftFilter = reactive<CandidateFilter>(createEmptyFilter());
 const hoveredDateField = ref<DatePickerTarget | null>(null);
+const tagSelectorOpen = ref(false);
+const tagSearchKeyword = ref("");
+
+const tagPool = ["VIP", "普通", "潜在客户", "重要客户", "新客户"];
+
+const selectedTagsDisplay = computed(() => {
+  if (draftFilter.tags.length === 0) return "请选择";
+  if (draftFilter.tags.length === 1) return draftFilter.tags[0];
+  return `已选 ${draftFilter.tags.length} 个`;
+});
+
+const filteredTagPool = computed(() => {
+  if (!tagSearchKeyword.value) return tagPool;
+  return tagPool.filter(tag => tag.includes(tagSearchKeyword.value));
+});
 
 const showFilterButton = computed(() => activeTab.value === "visitor" || activeTab.value === "customer");
 
@@ -405,7 +471,8 @@ const hasActiveFilter = computed(() =>
   activeFilter.firstVisitStart !== "" ||
   activeFilter.firstVisitEnd !== "" ||
   activeFilter.lastVisitStart !== "" ||
-  activeFilter.lastVisitEnd !== ""
+  activeFilter.lastVisitEnd !== "" ||
+  activeFilter.tags.length > 0
 );
 
 const handleTabChange = (key: StartChatTabKey) => {
@@ -422,6 +489,16 @@ const handleFilterConfirm = () => {
   Object.assign(activeFilter, draftFilter);
   filterPanelOpen.value = false;
   activeDatePicker.value = null;
+  tagSelectorOpen.value = false;
+};
+
+const toggleTag = (tag: string) => {
+  const index = draftFilter.tags.indexOf(tag);
+  if (index > -1) {
+    draftFilter.tags.splice(index, 1);
+  } else {
+    draftFilter.tags.push(tag);
+  }
 };
 
 const clearDateRange = (target: DatePickerTarget) => {
@@ -616,6 +693,11 @@ const matchesFilter = (candidate: StartChatCandidate): boolean => {
   if (activeFilter.hasPhone !== null) {
     const has = !!candidate.phone;
     if (activeFilter.hasPhone !== has) return false;
+  }
+  if (activeFilter.tags.length > 0) {
+    const candidateTags = candidate.tags || [];
+    const hasMatchingTag = activeFilter.tags.some(tag => candidateTags.includes(tag));
+    if (!hasMatchingTag) return false;
   }
   return true;
 };
@@ -1715,5 +1797,90 @@ function getInitial(value: string): string {
   .start-chat-filter-panel {
     width: calc(100vw - 48px);
   }
+}
+
+/* 标签选择弹窗 */
+.start-chat-tag-mask {
+  background: rgba(0, 0, 0, 0.3);
+  inset: 0;
+  position: fixed;
+  z-index: 1001;
+}
+
+.start-chat-tag-popup {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  left: 50%;
+  max-height: 400px;
+  max-width: 320px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  z-index: 1002;
+}
+
+.start-chat-tag-popup__header {
+  border-bottom: 1px solid var(--agent-color-border-default);
+  padding: 12px;
+}
+
+.start-chat-tag-popup__search {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.start-chat-tag-popup__list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.start-chat-tag-popup__item {
+  align-items: center;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.start-chat-tag-popup__item:hover {
+  background: var(--agent-color-bg-secondary);
+}
+
+.start-chat-tag-popup__item input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.start-chat-tag-popup__empty {
+  color: var(--agent-color-text-tertiary);
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.start-chat-filter-panel__tag-trigger {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.start-chat-filter-panel__tag-trigger--has-value {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
 }
 </style>

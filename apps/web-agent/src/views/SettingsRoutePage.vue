@@ -139,7 +139,7 @@
             成员不活跃
             <span class="wh-field__help" style="margin-left: 6px; vertical-align: middle;">
               <button type="button" class="wh-field__help-icon">?</button>
-              <span class="wh-field__tooltip">此设置对 Email 渠道会话不生效</span>
+              <span class="wh-field__tooltip">仅网页渠道会话生效</span>
             </span>
           </h2>
           <button
@@ -166,7 +166,7 @@
             会话超时
             <span class="wh-field__help" style="margin-left: 6px; vertical-align: middle;">
               <button type="button" class="wh-field__help-icon">?</button>
-              <span class="wh-field__tooltip">此设置对 Email 渠道会话不生效</span>
+              <span class="wh-field__tooltip">仅网页渠道会话生效</span>
             </span>
           </h2>
           <button
