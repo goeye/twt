@@ -10,6 +10,16 @@
             class="agent-input start-chat-modal__search-input"
             placeholder="搜索"
           />
+          <button
+            v-if="showFilterButton"
+            type="button"
+            class="start-chat-modal__filter-btn"
+            :class="{ 'start-chat-modal__filter-btn--active': hasActiveFilter }"
+            aria-label="筛选"
+            @click="filterPanelOpen = !filterPanelOpen"
+          >
+            <AgentIcon name="filter" :size="18" />
+          </button>
         </div>
 
         <div class="start-chat-modal__tabs">
@@ -19,7 +29,7 @@
             type="button"
             class="start-chat-modal__tab"
             :class="{ 'start-chat-modal__tab--active': activeTab === tab.key }"
-            @click="activeTab = tab.key"
+            @click="handleTabChange(tab.key)"
           >
             <span>{{ tab.label }}</span>
             <AgentIcon v-if="tab.key === 'manual'" name="help" :size="16" class="start-chat-modal__tab-help" />
@@ -27,7 +37,7 @@
         </div>
 
         <div class="start-chat-modal__pane-body">
-          <div v-if="activeTab !== 'manual'" class="start-chat-modal__candidate-list agent-scroll">
+          <div v-show="activeTab !== 'manual'" class="start-chat-modal__candidate-list agent-scroll">
             <button
               v-for="candidate in visibleCandidates"
               :key="candidate.id"
@@ -50,7 +60,7 @@
             </div>
           </div>
 
-          <div v-else class="start-chat-modal__manual-pane">
+          <div v-show="activeTab === 'manual'" class="start-chat-modal__manual-pane">
             <textarea
               id="start-chat-manual-input"
               v-model="manualText"
@@ -67,6 +77,182 @@
               开始识别
             </button>
           </div>
+
+          <!-- 筛选面板 -->
+          <Teleport to="body">
+            <div v-if="filterPanelOpen" class="start-chat-filter-mask" @click="filterPanelOpen = false" />
+            <Transition name="start-chat-filter-fade">
+              <div v-if="filterPanelOpen" class="start-chat-filter-panel">
+                <div class="start-chat-filter-panel__body agent-scroll">
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">在线状态</p>
+                    <div class="start-chat-filter-panel__options">
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.online === true }"
+                        @click="draftFilter.online = draftFilter.online === true ? null : true"
+                      >在线</button>
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.online === false }"
+                        @click="draftFilter.online = draftFilter.online === false ? null : false"
+                      >不在线</button>
+                    </div>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">邮箱</p>
+                    <div class="start-chat-filter-panel__options">
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasEmail === true }"
+                        @click="draftFilter.hasEmail = draftFilter.hasEmail === true ? null : true"
+                      >有邮箱</button>
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasEmail === false }"
+                        @click="draftFilter.hasEmail = draftFilter.hasEmail === false ? null : false"
+                      >无邮箱</button>
+                    </div>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">电话</p>
+                    <div class="start-chat-filter-panel__options">
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasPhone === true }"
+                        @click="draftFilter.hasPhone = draftFilter.hasPhone === true ? null : true"
+                      >有电话</button>
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasPhone === false }"
+                        @click="draftFilter.hasPhone = draftFilter.hasPhone === false ? null : false"
+                      >无电话</button>
+                    </div>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">发起过会话</p>
+                    <div class="start-chat-filter-panel__options">
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasSession === true }"
+                        @click="draftFilter.hasSession = draftFilter.hasSession === true ? null : true"
+                      >是</button>
+                      <button
+                        type="button"
+                        class="start-chat-filter-panel__option"
+                        :class="{ 'start-chat-filter-panel__option--selected': draftFilter.hasSession === false }"
+                        @click="draftFilter.hasSession = draftFilter.hasSession === false ? null : false"
+                      >否</button>
+                    </div>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">首次访问时间</p>
+                    <button
+                      type="button"
+                      class="start-chat-filter-panel__date-trigger"
+                      :class="{ 'start-chat-filter-panel__date-trigger--has-value': draftFilter.firstVisitStart || draftFilter.firstVisitEnd }"
+                      @click="toggleDatePicker('firstVisit')"
+                    >
+                      <span class="start-chat-filter-panel__date-trigger-text">
+                        {{ formatDateRange(draftFilter.firstVisitStart, draftFilter.firstVisitEnd) || '首次访问时间' }}
+                      </span>
+                      <AgentIcon name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
+                    </button>
+                  </div>
+
+                  <div class="start-chat-filter-panel__section">
+                    <p class="start-chat-filter-panel__label">最后访问时间</p>
+                    <button
+                      type="button"
+                      class="start-chat-filter-panel__date-trigger"
+                      :class="{ 'start-chat-filter-panel__date-trigger--has-value': draftFilter.lastVisitStart || draftFilter.lastVisitEnd }"
+                      @click="toggleDatePicker('lastVisit')"
+                    >
+                      <span class="start-chat-filter-panel__date-trigger-text">
+                        {{ formatDateRange(draftFilter.lastVisitStart, draftFilter.lastVisitEnd) || '最后访问时间' }}
+                      </span>
+                      <AgentIcon name="calendar" :size="16" class="start-chat-filter-panel__date-trigger-icon" />
+                    </button>
+                  </div>
+                </div>
+
+                <div class="start-chat-filter-panel__footer">
+                  <button type="button" class="agent-btn agent-btn--ghost start-chat-filter-panel__btn" @click="handleFilterReset">重置</button>
+                  <button type="button" class="agent-btn agent-btn--primary start-chat-filter-panel__btn" @click="handleFilterConfirm">确认</button>
+                </div>
+              </div>
+            </Transition>
+          </Teleport>
+
+          <!-- 日期选择器独立弹窗 -->
+          <Teleport to="body">
+            <div v-if="activeDatePicker" class="start-chat-calendar-mask" @click="activeDatePicker = null" />
+            <Transition name="start-chat-filter-fade">
+              <div v-if="activeDatePicker" class="start-chat-calendar-popup">
+                <div class="start-chat-calendar-popup__header">
+                  <span class="start-chat-calendar-popup__title">{{ activeDatePicker === 'firstVisit' ? '首次访问时间' : '最后访问时间' }}</span>
+                  <button type="button" class="start-chat-calendar-popup__close" @click="activeDatePicker = null">x</button>
+                </div>
+                <div class="start-chat-calendar-popup__grid">
+                  <div class="start-chat-calendar-popup__month">
+                    <div class="start-chat-calendar-popup__nav">
+                      <button type="button" class="start-chat-calendar-popup__nav-btn" @click="shiftMonth(-12)">&laquo;</button>
+                      <button type="button" class="start-chat-calendar-popup__nav-btn" @click="shiftMonth(-1)">&lsaquo;</button>
+                      <span class="start-chat-calendar-popup__month-title">{{ calLeftYear }}年 {{ calLeftMonth }}月</span>
+                    </div>
+                    <div class="start-chat-calendar-popup__weekdays">
+                      <span v-for="d in weekDays" :key="d">{{ d }}</span>
+                    </div>
+                    <div class="start-chat-calendar-popup__days">
+                      <button
+                        v-for="day in calLeftDays"
+                        :key="day.key"
+                        type="button"
+                        class="start-chat-calendar-popup__day"
+                        :class="dayClasses(day, activeDatePicker)"
+                        :disabled="day.disabled || day.outside"
+                        @click="handleDayClick(day, activeDatePicker!)"
+                        @mouseenter="handleDayHover(day)"
+                      >{{ day.outside ? '' : day.day }}</button>
+                    </div>
+                  </div>
+                  <div class="start-chat-calendar-popup__month">
+                    <div class="start-chat-calendar-popup__nav">
+                      <span class="start-chat-calendar-popup__month-title">{{ calRightYear }}年 {{ calRightMonth }}月</span>
+                      <button type="button" class="start-chat-calendar-popup__nav-btn" :disabled="isNextMonthDisabled" @click="shiftMonth(1)">&rsaquo;</button>
+                      <button type="button" class="start-chat-calendar-popup__nav-btn" :disabled="isNextYearDisabled" @click="shiftMonth(12)">&raquo;</button>
+                    </div>
+                    <div class="start-chat-calendar-popup__weekdays">
+                      <span v-for="d in weekDays" :key="d">{{ d }}</span>
+                    </div>
+                    <div class="start-chat-calendar-popup__days">
+                      <button
+                        v-for="day in calRightDays"
+                        :key="day.key"
+                        type="button"
+                        class="start-chat-calendar-popup__day"
+                        :class="dayClasses(day, activeDatePicker)"
+                        :disabled="day.disabled || day.outside"
+                        @click="handleDayClick(day, activeDatePicker!)"
+                        @mouseenter="handleDayHover(day)"
+                      >{{ day.outside ? '' : day.day }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </Teleport>
         </div>
       </section>
 
@@ -125,7 +311,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { AgentIcon, BaseModal } from "@twt/ui-agent";
 
 type StartChatTabKey = "visitor" | "customer" | "agent" | "manual";
@@ -142,6 +328,28 @@ interface StartChatCandidate {
   phone?: string;
   sourceSessionId?: string;
 }
+
+interface CandidateFilter {
+  online: boolean | null;
+  hasEmail: boolean | null;
+  hasPhone: boolean | null;
+  hasSession: boolean | null;
+  firstVisitStart: string;
+  firstVisitEnd: string;
+  lastVisitStart: string;
+  lastVisitEnd: string;
+}
+
+const createEmptyFilter = (): CandidateFilter => ({
+  online: null,
+  hasEmail: null,
+  hasPhone: null,
+  hasSession: null,
+  firstVisitStart: "",
+  firstVisitEnd: "",
+  lastVisitStart: "",
+  lastVisitEnd: ""
+});
 
 const props = defineProps<{
   open: boolean;
@@ -166,18 +374,236 @@ const keyword = ref("");
 const manualText = ref("");
 const selectedContacts = ref<StartChatCandidate[]>([]);
 
+const filterPanelOpen = ref(false);
+const activeFilter = reactive<CandidateFilter>(createEmptyFilter());
+const draftFilter = reactive<CandidateFilter>(createEmptyFilter());
+
+const showFilterButton = computed(() => activeTab.value === "visitor" || activeTab.value === "customer");
+
+const hasActiveFilter = computed(() =>
+  activeFilter.online !== null ||
+  activeFilter.hasEmail !== null ||
+  activeFilter.hasPhone !== null ||
+  activeFilter.hasSession !== null ||
+  activeFilter.firstVisitStart !== "" ||
+  activeFilter.firstVisitEnd !== "" ||
+  activeFilter.lastVisitStart !== "" ||
+  activeFilter.lastVisitEnd !== ""
+);
+
+const handleTabChange = (key: StartChatTabKey) => {
+  activeTab.value = key;
+  filterPanelOpen.value = false;
+};
+
+const handleFilterReset = () => {
+  Object.assign(draftFilter, createEmptyFilter());
+  activeDatePicker.value = null;
+};
+
+const handleFilterConfirm = () => {
+  Object.assign(activeFilter, draftFilter);
+  filterPanelOpen.value = false;
+  activeDatePicker.value = null;
+};
+
+// ---- 日期范围选择器 ----
+
+type DatePickerTarget = "firstVisit" | "lastVisit";
+
+interface CalendarDay {
+  key: string;
+  date: string; // YYYY-MM-DD
+  day: number;
+  outside: boolean;
+  disabled: boolean;
+}
+
+const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
+const activeDatePicker = ref<DatePickerTarget | null>(null);
+const calBaseDate = ref(new Date());
+const datePickerPhase = ref<"start" | "end">("start");
+const hoveredDate = ref("");
+
+const todayStr = computed(() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+});
+
+const calLeftYear = computed(() => calBaseDate.value.getFullYear());
+const calLeftMonth = computed(() => calBaseDate.value.getMonth() + 1);
+const calRightYear = computed(() => {
+  const d = new Date(calBaseDate.value);
+  d.setMonth(d.getMonth() + 1);
+  return d.getFullYear();
+});
+const calRightMonth = computed(() => {
+  const d = new Date(calBaseDate.value);
+  d.setMonth(d.getMonth() + 1);
+  return d.getMonth() + 1;
+});
+
+const isNextMonthDisabled = computed(() => {
+  const now = new Date();
+  return calRightYear.value > now.getFullYear() || (calRightYear.value === now.getFullYear() && calRightMonth.value >= now.getMonth() + 1);
+});
+
+const isNextYearDisabled = computed(() => {
+  const now = new Date();
+  const target = new Date(calBaseDate.value);
+  target.setMonth(target.getMonth() + 13);
+  return target > now;
+});
+
+const buildMonthDays = (year: number, month: number): CalendarDay[] => {
+  const firstDay = new Date(year, month - 1, 1);
+  let startWeekday = firstDay.getDay();
+  if (startWeekday === 0) startWeekday = 7;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days: CalendarDay[] = [];
+
+  for (let i = 1; i < startWeekday; i++) {
+    days.push({ key: `pad-before-${i}`, date: "", day: 0, outside: true, disabled: true });
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    days.push({ key: dateStr, date: dateStr, day: d, outside: false, disabled: dateStr > todayStr.value });
+  }
+
+  const remaining = 7 - (days.length % 7);
+  if (remaining < 7) {
+    for (let i = 0; i < remaining; i++) {
+      days.push({ key: `pad-after-${i}`, date: "", day: 0, outside: true, disabled: true });
+    }
+  }
+
+  return days;
+};
+
+const calLeftDays = computed(() => buildMonthDays(calLeftYear.value, calLeftMonth.value));
+const calRightDays = computed(() => buildMonthDays(calRightYear.value, calRightMonth.value));
+
+const shiftMonth = (offset: number) => {
+  const d = new Date(calBaseDate.value);
+  d.setMonth(d.getMonth() + offset);
+  calBaseDate.value = d;
+};
+
+const toggleDatePicker = (target: DatePickerTarget) => {
+  if (activeDatePicker.value === target) {
+    activeDatePicker.value = null;
+    return;
+  }
+  activeDatePicker.value = target;
+  datePickerPhase.value = "start";
+  hoveredDate.value = "";
+  const now = new Date();
+  calBaseDate.value = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+};
+
+const handleDayClick = (day: CalendarDay, target: DatePickerTarget) => {
+  if (day.outside || day.disabled) return;
+  const startKey = target === "firstVisit" ? "firstVisitStart" : "lastVisitStart";
+  const endKey = target === "firstVisit" ? "firstVisitEnd" : "lastVisitEnd";
+
+  if (datePickerPhase.value === "start") {
+    draftFilter[startKey] = day.date;
+    draftFilter[endKey] = "";
+    datePickerPhase.value = "end";
+    hoveredDate.value = "";
+  } else {
+    const start = draftFilter[startKey];
+    if (day.date < start) {
+      draftFilter[startKey] = day.date;
+      draftFilter[endKey] = start;
+    } else {
+      draftFilter[endKey] = day.date;
+    }
+    datePickerPhase.value = "start";
+    hoveredDate.value = "";
+    activeDatePicker.value = null;
+  }
+};
+
+const handleDayHover = (day: CalendarDay) => {
+  if (datePickerPhase.value === "end" && !day.outside && !day.disabled) {
+    hoveredDate.value = day.date;
+  }
+};
+
+const dayClasses = (day: CalendarDay, target: DatePickerTarget) => {
+  if (day.outside) return {};
+  const startKey = target === "firstVisit" ? "firstVisitStart" : "lastVisitStart";
+  const endKey = target === "firstVisit" ? "firstVisitEnd" : "lastVisitEnd";
+  const start = draftFilter[startKey];
+  const end = draftFilter[endKey];
+  const isStart = day.date === start;
+  const isEnd = day.date === end;
+  const isToday = day.date === todayStr.value;
+
+  let inRange = false;
+  if (start && end) {
+    inRange = day.date > start && day.date < end;
+  } else if (start && !end && hoveredDate.value && datePickerPhase.value === "end") {
+    const effectiveEnd = hoveredDate.value >= start ? hoveredDate.value : start;
+    const effectiveStart = hoveredDate.value >= start ? start : hoveredDate.value;
+    inRange = day.date > effectiveStart && day.date < effectiveEnd;
+  }
+
+  return {
+    "start-chat-calendar-popup__day--today": isToday,
+    "start-chat-calendar-popup__day--selected": isStart || isEnd,
+    "start-chat-calendar-popup__day--in-range": inRange,
+    "start-chat-calendar-popup__day--range-start": isStart && (end || hoveredDate.value),
+    "start-chat-calendar-popup__day--range-end": isEnd || (datePickerPhase.value === "end" && day.date === hoveredDate.value && hoveredDate.value >= start)
+  };
+};
+
+const formatDateRange = (start: string, end: string): string => {
+  if (!start && !end) return "";
+  const fmt = (s: string) => {
+    const [y, m, d] = s.split("-");
+    return `${y}/${m}/${d}`;
+  };
+  if (start && end) return `${fmt(start)} - ${fmt(end)}`;
+  if (start) return fmt(start);
+  return fmt(end);
+};
+
+const matchesFilter = (candidate: StartChatCandidate): boolean => {
+  if (activeFilter.online !== null) {
+    if (activeFilter.online && !candidate.online) return false;
+    if (!activeFilter.online && candidate.online) return false;
+  }
+  if (activeFilter.hasEmail !== null) {
+    const has = !!candidate.email;
+    if (activeFilter.hasEmail !== has) return false;
+  }
+  if (activeFilter.hasPhone !== null) {
+    const has = !!candidate.phone;
+    if (activeFilter.hasPhone !== has) return false;
+  }
+  return true;
+};
+
 const visibleCandidates = computed(() => {
   const search = keyword.value.trim().toLowerCase();
+  const applyFilter = showFilterButton.value && hasActiveFilter.value;
   return props.candidates.filter((candidate) => {
     if (candidate.type !== activeTab.value) {
       return false;
     }
 
-    if (search.length === 0) {
-      return true;
+    if (search.length > 0 && !candidate.name.toLowerCase().includes(search)) {
+      return false;
     }
 
-    return candidate.name.toLowerCase().includes(search);
+    if (applyFilter && !matchesFilter(candidate)) {
+      return false;
+    }
+
+    return true;
   });
 });
 
@@ -231,6 +657,10 @@ const resetState = () => {
   activeTab.value = "visitor";
   keyword.value = "";
   manualText.value = "";
+  filterPanelOpen.value = false;
+  activeDatePicker.value = null;
+  Object.assign(activeFilter, createEmptyFilter());
+  Object.assign(draftFilter, createEmptyFilter());
   selectedContacts.value = props.pinnedContact ? [props.pinnedContact] : [];
 };
 
@@ -255,6 +685,12 @@ watch(
   }
 );
 
+watch(filterPanelOpen, (open) => {
+  if (open) {
+    Object.assign(draftFilter, activeFilter);
+  }
+});
+
 function getInitial(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -266,49 +702,50 @@ function getInitial(value: string): string {
 </script>
 
 <style>
-.modal-mask:has(.start-chat-modal-dialog) {
+.modal-mask:has(.start-chat-modal) {
   background: rgba(15, 23, 42, 0.28);
   padding: 32px;
 }
 
-.start-chat-modal-dialog {
-  box-sizing: border-box;
+.modal-card:has(.start-chat-modal) {
   border: 1px solid #e7edf5;
   border-radius: 30px;
   box-shadow: 0 20px 56px rgba(15, 23, 42, 0.14);
+  box-sizing: border-box;
   display: grid;
   grid-template-rows: 66px minmax(0, 1fr) 74px;
-  height: min(540px, calc(100vh - 48px));
+  height: 540px;
+  max-height: calc(100vh - 48px);
   max-width: 684px !important;
   overflow: hidden;
   width: min(684px, calc(100vw - 32px));
 }
 
-.start-chat-modal-dialog .modal-card__header {
+.modal-card:has(.start-chat-modal) > .modal-card__header {
   box-sizing: border-box;
   padding: 18px 24px 14px;
 }
 
-.start-chat-modal-dialog .modal-card__body {
+.modal-card:has(.start-chat-modal) > .modal-card__body {
   box-sizing: border-box;
   min-height: 0;
   overflow: hidden;
   padding: 0 24px;
 }
 
-.start-chat-modal-dialog .modal-card__footer {
+.modal-card:has(.start-chat-modal) > .modal-card__footer {
   box-sizing: border-box;
   padding: 0 24px 22px;
 }
 
-.start-chat-modal-dialog .agent-title {
+.modal-card:has(.start-chat-modal) .agent-title {
   color: #111827;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
 
-.start-chat-modal-dialog .close-btn {
+.modal-card:has(.start-chat-modal) .close-btn {
   align-items: center;
   border-radius: 999px;
   color: #111827;
@@ -322,7 +759,7 @@ function getInitial(value: string): string {
   width: 30px;
 }
 
-.start-chat-modal-dialog .close-btn:hover {
+.modal-card:has(.start-chat-modal) .close-btn:hover {
   background: rgba(15, 23, 42, 0.04);
 }
 
@@ -396,6 +833,36 @@ function getInitial(value: string): string {
   box-shadow: none;
 }
 
+.start-chat-modal__filter-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #a1afc3;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.18s ease, background-color 0.18s ease;
+  width: 30px;
+}
+
+.start-chat-modal__filter-btn:hover {
+  background: #f5f8fc;
+  color: #4e5969;
+}
+
+.start-chat-modal__filter-btn--active {
+  color: #2f6bff;
+}
+
+.start-chat-modal__filter-btn--active:hover {
+  background: #e8f0ff;
+  color: #2f6bff;
+}
+
 .start-chat-modal__tabs {
   display: flex;
   flex-wrap: nowrap;
@@ -407,9 +874,11 @@ function getInitial(value: string): string {
 .start-chat-modal__pane-body {
   display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .start-chat-modal__tab {
@@ -696,25 +1165,357 @@ function getInitial(value: string): string {
   padding: 0 14px;
 }
 
+/* ---- Filter Panel ---- */
+
+.start-chat-filter-mask {
+  inset: 0;
+  position: fixed;
+  z-index: 1250;
+}
+
+.start-chat-filter-panel {
+  background: #ffffff;
+  border: 1px solid #e7edf5;
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14);
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  max-height: 460px;
+  overflow: hidden;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  z-index: 1260;
+}
+
+.start-chat-filter-panel__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 20px 8px;
+}
+
+.start-chat-filter-panel__body::-webkit-scrollbar {
+  display: none;
+}
+
+.start-chat-filter-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.start-chat-filter-panel__label {
+  color: #2f6bff;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.start-chat-filter-panel__options {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.start-chat-filter-panel__option {
+  align-items: center;
+  background: #f4f6fb;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  color: #1f2329;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 600;
+  height: 42px;
+  justify-content: center;
+  padding: 0 12px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.start-chat-filter-panel__option:hover {
+  background: #edf2fa;
+}
+
+.start-chat-filter-panel__option--selected {
+  background: #e8f0ff;
+  border-color: #2f6bff;
+  color: #2f6bff;
+}
+
+.start-chat-filter-panel__option--selected:hover {
+  background: #dde8ff;
+}
+
+.start-chat-filter-panel__date-trigger {
+  align-items: center;
+  background: #f4f6fb;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  color: #b1bccb;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+  height: 42px;
+  justify-content: space-between;
+  padding: 0 12px;
+  transition: border-color 0.18s ease;
+  width: 100%;
+}
+
+.start-chat-filter-panel__date-trigger--has-value {
+  color: #1f2329;
+}
+
+.start-chat-filter-panel__date-trigger:hover {
+  border-color: #dbe4f0;
+}
+
+.start-chat-filter-panel__date-trigger-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.start-chat-filter-panel__date-trigger-icon {
+  color: #98a2b3;
+  flex-shrink: 0;
+}
+
+/* ---- Calendar Popup (独立弹窗，位于筛选面板上方) ---- */
+
+.start-chat-calendar-mask {
+  inset: 0;
+  position: fixed;
+  z-index: 1270;
+}
+
+.start-chat-calendar-popup {
+  background: #ffffff;
+  border: 1px solid #e7edf5;
+  border-radius: 20px;
+  box-shadow: 0 20px 56px rgba(15, 23, 42, 0.16);
+  left: 50%;
+  padding: 20px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, calc(-50% - 40px));
+  width: 520px;
+  z-index: 1280;
+}
+
+.start-chat-calendar-popup__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.start-chat-calendar-popup__title {
+  color: #2f6bff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.start-chat-calendar-popup__close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #98a2b3;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 18px;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  width: 28px;
+}
+
+.start-chat-calendar-popup__close:hover {
+  background: #f5f8fc;
+  color: #475467;
+}
+
+.start-chat-calendar-popup__grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.start-chat-calendar-popup__nav {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.start-chat-calendar-popup__month-title {
+  color: #1f2329;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.start-chat-calendar-popup__nav-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #667085;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 16px;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  width: 28px;
+}
+
+.start-chat-calendar-popup__nav-btn:hover:not(:disabled) {
+  background: #f5f8fc;
+  color: #1f2329;
+}
+
+.start-chat-calendar-popup__nav-btn:disabled {
+  color: #d0d5dd;
+  cursor: not-allowed;
+}
+
+.start-chat-calendar-popup__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.start-chat-calendar-popup__weekdays span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.start-chat-calendar-popup__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.start-chat-calendar-popup__day {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #1f2329;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  height: 32px;
+  justify-content: center;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  width: 100%;
+}
+
+.start-chat-calendar-popup__day:hover:not(:disabled) {
+  background: #f5f8fc;
+}
+
+.start-chat-calendar-popup__day:disabled {
+  color: #d0d5dd;
+  cursor: not-allowed;
+}
+
+.start-chat-calendar-popup__day--today {
+  border: 1px solid #2f6bff;
+  color: #2f6bff;
+}
+
+.start-chat-calendar-popup__day--selected {
+  background: #2f6bff !important;
+  color: #ffffff !important;
+}
+
+.start-chat-calendar-popup__day--in-range {
+  background: #e8f0ff;
+  border-radius: 0;
+}
+
+.start-chat-calendar-popup__day--range-start {
+  border-radius: 8px 0 0 8px;
+}
+
+.start-chat-calendar-popup__day--range-end {
+  border-radius: 0 8px 8px 0;
+}
+
+.start-chat-filter-panel__footer {
+  border-top: 1px solid #edf2f7;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  padding: 16px 20px;
+}
+
+.start-chat-filter-panel__btn {
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  height: 42px;
+  justify-content: center;
+  width: 100%;
+}
+
+.start-chat-filter-panel__footer .agent-btn--ghost {
+  border-color: #d5deea;
+  color: #344054;
+}
+
+.start-chat-filter-panel__footer .agent-btn--primary {
+  box-shadow: 0 10px 30px rgba(47, 107, 255, 0.18);
+}
+
+.start-chat-filter-fade-enter-active,
+.start-chat-filter-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.start-chat-filter-fade-enter-from,
+.start-chat-filter-fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 1180px) {
-  .start-chat-modal-dialog {
-    height: min(540px, calc(100vh - 24px));
+  .modal-card:has(.start-chat-modal) {
+    height: 540px;
+    max-height: calc(100vh - 24px);
     width: min(684px, calc(100vw - 24px));
   }
 
-  .start-chat-modal-dialog .modal-card__header {
+  .modal-card:has(.start-chat-modal) > .modal-card__header {
     padding: 22px 24px 14px;
   }
 
-  .start-chat-modal-dialog .modal-card__body {
+  .modal-card:has(.start-chat-modal) > .modal-card__body {
     padding: 0 24px;
   }
 
-  .start-chat-modal-dialog .modal-card__footer {
+  .modal-card:has(.start-chat-modal) > .modal-card__footer {
     padding: 0 24px 22px;
   }
 
-  .start-chat-modal-dialog .agent-title {
+  .modal-card:has(.start-chat-modal) .agent-title {
     font-size: 22px;
   }
 
@@ -729,29 +1530,30 @@ function getInitial(value: string): string {
 }
 
 @media (max-width: 768px) {
-  .modal-mask:has(.start-chat-modal-dialog) {
+  .modal-mask:has(.start-chat-modal) {
     padding: 12px;
   }
 
-  .start-chat-modal-dialog {
+  .modal-card:has(.start-chat-modal) {
     border-radius: 24px;
-    height: min(540px, calc(100vh - 24px));
+    height: 540px;
+    max-height: calc(100vh - 24px);
     width: calc(100vw - 24px);
   }
 
-  .start-chat-modal-dialog .modal-card__header {
+  .modal-card:has(.start-chat-modal) > .modal-card__header {
     padding: 24px 20px 16px;
   }
 
-  .start-chat-modal-dialog .modal-card__body {
+  .modal-card:has(.start-chat-modal) > .modal-card__body {
     padding: 0 20px;
   }
 
-  .start-chat-modal-dialog .modal-card__footer {
+  .modal-card:has(.start-chat-modal) > .modal-card__footer {
     padding: 0 20px 20px;
   }
 
-  .start-chat-modal-dialog .agent-title {
+  .modal-card:has(.start-chat-modal) .agent-title {
     font-size: 20px;
   }
 
@@ -852,6 +1654,10 @@ function getInitial(value: string): string {
   .start-chat-modal__footer-actions .agent-btn {
     min-width: 72px;
     padding: 0 14px;
+  }
+
+  .start-chat-filter-panel {
+    width: calc(100vw - 48px);
   }
 }
 </style>
