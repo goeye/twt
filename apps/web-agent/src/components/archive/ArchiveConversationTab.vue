@@ -271,8 +271,13 @@
                     <button v-else type="button" class="archive-action-menu__item" @click="confirmAssignToSelf(row)">分配给我</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
+                  <template v-else-if="row.owner === aiAgentArchiveName">
+                    <button type="button" class="archive-action-menu__item" @click="handleTakeoverAutopilot(row)">接管会话</button>
+                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                    <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
+                  </template>
                   <template v-else>
-                    <button type="button" class="archive-action-menu__item" @click="handleTakeoverOrAssign(row)">{{ row.owner === aiAgentArchiveName ? '接管会话' : '分配会话' }}</button>
+                    <button type="button" class="archive-action-menu__item" @click="handleTakeoverOrAssign(row)">分配会话</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                 </div>
@@ -305,7 +310,9 @@
     :assign-label="getDrawerAssignLabel(previewConversation)"
     :variant="getDrawerVariant(previewConversation)"
     :editable="false"
+    :show-autopilot-actions="previewConversation?.owner === aiAgentArchiveName"
     @assign="previewConversation && handleDrawerAssign(previewConversation)"
+    @takeover="previewConversation && handleDrawerTakeover(previewConversation)"
     @close="closeConversationDrawer"
   />
 
@@ -314,8 +321,7 @@
     :keyword="assignKeyword"
     :conversation-title="pendingAssignConversation?.title ?? ''"
     :agents="assignableAgents"
-    :modal-title="pendingAssignConversation?.owner === aiAgentArchiveName ? '接管会话' : '分配会话'"
-    :action-label="pendingAssignConversation?.owner === aiAgentArchiveName ? '接管' : ''"
+    modal-title="分配会话"
     @close="closeAssignModal"
     @confirm="handleAssignConfirm"
     @update:keyword="assignKeyword = $event"
@@ -1387,6 +1393,15 @@ const confirmAssignToSelf = (row: ConversationRecord) => {
   });
 };
 
+// Autopilot 接管会话: 显示确认弹窗，确认后接管并跳转消息页
+const handleTakeoverAutopilot = (row: ConversationRecord) => {
+  closeActionMenu();
+  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+    assignToSelf(row);
+    emit("navigate-to-session", { id: row.id, queueKey: row.status });
+  });
+};
+
 // "接管会话" / "分配会话" with role-based logic
 const handleTakeoverOrAssign = (row: ConversationRecord) => {
   closeActionMenu();
@@ -1411,6 +1426,14 @@ const handleTakeoverOrAssign = (row: ConversationRecord) => {
 
 const closeConversationDrawer = () => {
   previewConversationId.value = null;
+};
+
+const handleDrawerTakeover = (row: ConversationRecord) => {
+  closeConversationDrawer();
+  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+    assignToSelf(row);
+    emit("navigate-to-session", { id: row.id, queueKey: row.status });
+  });
 };
 
 const getDrawerAssignLabel = (row: ConversationRecord | null): string => {

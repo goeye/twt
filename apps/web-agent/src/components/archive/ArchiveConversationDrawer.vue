@@ -70,7 +70,15 @@
         </div>
 
         <footer class="archive-drawer__footer">
-          <button type="button" class="archive-drawer__assign-btn" :class="{ 'archive-drawer__assign-btn--join': variant === 'join' }" @click="$emit('assign')">{{ assignLabel }}</button>
+          <template v-if="showAutopilotActions">
+            <div class="archive-drawer__dual-actions">
+              <button type="button" class="archive-drawer__action-btn archive-drawer__action-btn--takeover" @click="$emit('takeover')">接管会话</button>
+              <button type="button" class="archive-drawer__action-btn archive-drawer__action-btn--assign" @click="$emit('assign')">分配会话</button>
+            </div>
+          </template>
+          <template v-else>
+            <button type="button" class="archive-drawer__assign-btn" :class="{ 'archive-drawer__assign-btn--join': variant === 'join' }" @click="$emit('assign')">{{ assignLabel }}</button>
+          </template>
         </footer>
       </aside>
     </div>
@@ -100,17 +108,20 @@ const props = withDefaults(
     assignLabel?: string;
     editable?: boolean;
     variant?: "default" | "join";
+    showAutopilotActions?: boolean;
   }>(),
   {
     assignLabel: "分配会话",
     editable: true,
-    variant: "default"
+    variant: "default",
+    showAutopilotActions: false
   }
 );
 
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "assign"): void;
+  (e: "takeover"): void;
   (e: "edit-title"): void;
   (e: "update:title", value: string): void;
 }>();
@@ -423,6 +434,40 @@ watch(
 
 .archive-drawer__assign-btn--join:hover {
   background: var(--agent-color-brand-primary-hover);
+}
+
+.archive-drawer__dual-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.archive-drawer__action-btn {
+  border-radius: 22px;
+  cursor: pointer;
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  height: 52px;
+}
+
+.archive-drawer__action-btn--takeover {
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-brand-primary);
+  color: var(--agent-color-bg-panel);
+}
+
+.archive-drawer__action-btn--takeover:hover {
+  background: var(--agent-color-brand-primary-hover);
+}
+
+.archive-drawer__action-btn--assign {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  color: var(--agent-color-brand-primary);
+}
+
+.archive-drawer__action-btn--assign:hover {
+  background: var(--agent-color-bg-panel);
 }
 
 .archive-drawer-enter-active,
