@@ -1804,7 +1804,7 @@ function getInitial(value: string): string {
   background: rgba(0, 0, 0, 0.3);
   inset: 0;
   position: fixed;
-  z-index: 1001;
+  z-index: 1270;
 }
 
 .start-chat-tag-popup {
@@ -1819,7 +1819,7 @@ function getInitial(value: string): string {
   top: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  z-index: 1002;
+  z-index: 1271;
 }
 
 .start-chat-tag-popup__header {
