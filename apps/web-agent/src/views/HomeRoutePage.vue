@@ -269,7 +269,7 @@
       <aside class="home-sidebar">
         <section class="home-section">
           <div class="home-section__title-row">
-            <h2 class="home-section__title">常见问题</h2>
+            <h2 class="home-section__title">设置指南</h2>
           </div>
 
           <section class="home-guide-card agent-panel">
@@ -295,6 +295,28 @@
                   <span class="home-guide-card__item-desc">{{ item.description }}</span>
                 </div>
                 <AgentIcon v-if="item.showArrow" name="chevron-right" :size="14" />
+              </button>
+            </div>
+          </section>
+        </section>
+
+        <section class="home-section">
+          <div class="home-section__title-row">
+            <h2 class="home-section__title">常见问题</h2>
+          </div>
+
+          <section class="home-guide-card agent-panel">
+            <div class="home-guide-card__list">
+              <button
+                v-for="item in faqItems"
+                :key="item.key"
+                type="button"
+                class="home-guide-card__item"
+              >
+                <div class="home-guide-card__item-body">
+                  <span class="home-guide-card__item-title">{{ item.title }}</span>
+                  <span class="home-guide-card__item-desc">{{ item.description }}</span>
+                </div>
               </button>
             </div>
           </section>
@@ -429,6 +451,24 @@ const conversationOverview: ChartStatItem[] = [
 ];
 
 const guideItems: GuideItem[] = [
+  { key: "invite-team", title: "添加团队成员", description: "邀请成员加入，一起接待访客" },
+  {
+    key: "install-widget",
+    title: "安装小组件",
+    description: "获取代码，嵌入到你的网站或应用",
+    route: "/settings",
+    showArrow: true
+  },
+  {
+    key: "learn-ai-agent",
+    title: "了解 AI Agent",
+    description: "使用 AI Agent 如何提高服务效率",
+    route: "/ai-agent",
+    showArrow: true
+  }
+];
+
+const faqItems: GuideItem[] = [
   { key: 'create-chat', title: '如何创建单聊/群聊？', description: '支持创建1v1单聊和建群沟通' },
   { key: 'session-assign', title: '会话为什么无法自动分配？', description: '检查客服在线状态和接待上限' },
   { key: 'seat', title: '坐席是什么意思？', description: '需要在工作台接待访客的工作人员' },

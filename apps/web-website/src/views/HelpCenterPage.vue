@@ -214,7 +214,7 @@ const helpArticles: Record<string, HelpArticle> = {
   'faq-what-is-twt-chat': article(
     'faq-what-is-twt-chat',
     'TWT Chat 是什么？',
-    ['TWT Chat 是一个集 AI客服、在线工单、聊天、音视频通话与远程协助于一体的全渠道客户服务解决方案，简单易用，让小团队也能轻松服务客户。'],
+    ['TWT Chat 是一个集 AI客服、在线工单、聊天、音视频与远程协助于一体的全渠道客户服务解决方案，简单易用，让小团队也能轻松服务客户。'],
     []
   ),
   'faq-pricing': article(
@@ -242,8 +242,7 @@ const helpArticles: Record<string, HelpArticle> = {
     'faq-trial-expire',
     '14 天体验期到期后会怎样？',
     [
-      '您好，项目到期后您依旧可以正常使用，但需要您在控制台手动降级项目的订阅版本为免费版，免费版可永久享受 1 个席位的基础功能，您可根据实际业务进行选择。',
-      '免费版和专业版差异：https://www.twt.com/chat/pricing'
+      '新项目创建即赠 14 天专业版全功能免费体验。体验结束可自主选择：1. 续费专业版：解锁 AI 及全部高级能力，提升管理与服务效率；2. 降级免费版：长期可用，限 1 坐席，部分功能受限。当前订阅享特价优惠，性价比更高；如需套餐详情，随时咨询专属支持。'
     ],
     []
   ),
