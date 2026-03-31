@@ -1388,7 +1388,7 @@ const handleConfirmDialog = () => {
 // Non-admin: "分配给我" with confirmation
 const confirmAssignToSelf = (row: ConversationRecord) => {
   closeActionMenu();
-  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+  openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
     assignToSelf(row);
   });
 };
@@ -1396,7 +1396,7 @@ const confirmAssignToSelf = (row: ConversationRecord) => {
 // Autopilot 接管会话: 显示确认弹窗，确认后接管并跳转消息页
 const handleTakeoverAutopilot = (row: ConversationRecord) => {
   closeActionMenu();
-  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+  openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
     assignToSelf(row);
     emit("navigate-to-session", { id: row.id, queueKey: row.status });
   });
@@ -1430,7 +1430,7 @@ const closeConversationDrawer = () => {
 
 const handleDrawerTakeover = (row: ConversationRecord) => {
   closeConversationDrawer();
-  openConfirmDialog("确认分配", "确定把该会话分配给我吗？", () => {
+  openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
     assignToSelf(row);
     emit("navigate-to-session", { id: row.id, queueKey: row.status });
   });

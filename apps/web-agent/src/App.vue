@@ -551,13 +551,13 @@
 
     <BaseModal
       :open="confirmTakeoverModalOpen"
-      title="确认分配"
+      title="确认接管"
       max-width="500px"
       :show-close="false"
       @close="handleCloseTakeoverAiSession"
     >
       <div class="confirm-takeover-modal">
-        <p class="confirm-takeover-modal__description">确定把该会话分配给我吗？</p>
+        <p class="confirm-takeover-modal__description">确认接管该会话吗？</p>
       </div>
 
       <template #footer>
