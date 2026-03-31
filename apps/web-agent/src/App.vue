@@ -1086,7 +1086,7 @@ const settingsNavGroupsBase = [
     items: [
       {
         key: "live-chat",
-        label: "在线会话",
+        label: "网页",
         children: [
           { key: "website-code", label: "网站代码" },
           { key: "install", label: "聊天页面" },
@@ -1216,7 +1216,7 @@ const reportNavGroups = [
 const queueGroupSeed: SessionQueueGroup[] = [
   {
     key: "online-session",
-    title: "在线会话",
+    title: "网页",
     items: [
       { key: "pending-reply", label: "待回复", leadingEmoji: "👋" },
       { key: "queueing", label: "排队中", leadingEmoji: "⌛" },
