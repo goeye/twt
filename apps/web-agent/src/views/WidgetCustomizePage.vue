@@ -102,7 +102,7 @@
           </button>
           <div v-if="openSection === 'quickAccess'" class="wc-accordion__body">
               <div class="wc-quick-tags">
-                <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="addQuickAccess">
+                <button type="button" class="wc-quick-tag wc-quick-tag--add" @click="openQuickAccessModal">
                   <span class="wc-quick-tag__add-icon" aria-hidden="true">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
                   </span>
@@ -674,6 +674,91 @@
     <!-- Hidden file input for reply image upload -->
     <input ref="replyImageInput" type="file" accept="image/png,image/jpeg,image/jpg" style="display:none" @change="handleReplyImageChange" />
 
+    <!-- Quick Access Modal -->
+    <teleport to="body">
+      <div v-if="quickAccessModalOpen" class="wc-modal-overlay" @click.self="closeQuickAccessModal">
+        <div class="wc-modal">
+          <div class="wc-modal__header">
+            <h3 class="wc-modal__title">新建快捷入口</h3>
+            <button type="button" class="wc-modal__close" @click="closeQuickAccessModal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            </button>
+          </div>
+          <div class="wc-modal__body">
+            <div class="wc-modal__field">
+              <label class="wc-modal__label">标题</label>
+              <div class="wc-modal__dropdown-wrap">
+                <input
+                  v-model="quickAccessForm.title"
+                  class="wc-modal__input"
+                  placeholder="请输入标题"
+                  @focus="titleDropdownOpen = true"
+                  @blur="handleTitleBlur"
+                />
+                <div v-if="titleDropdownOpen" class="wc-modal__dropdown">
+                  <div
+                    v-for="option in titleOptions"
+                    :key="option"
+                    class="wc-modal__dropdown-item"
+                    @mousedown.prevent="selectTitle(option)"
+                  >
+                    {{ option }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="wc-modal__field">
+              <label class="wc-modal__label">图标</label>
+              <div class="wc-modal__upload-row">
+                <div class="wc-modal__upload" @click="triggerIconUpload">
+                  <img v-if="quickAccessForm.icon" :src="quickAccessForm.icon" class="wc-modal__upload-preview" alt="图标" />
+                  <div v-else class="wc-modal__upload-placeholder">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                  </div>
+                  <input ref="iconFileInput" type="file" accept="image/png,image/jpeg,image/jpg" class="wc-modal__upload-input" @change="handleIconUpload" />
+                </div>
+                <p class="wc-modal__hint">支持 jpg、png格式，大小1MB以内，160x160</p>
+              </div>
+            </div>
+            <div class="wc-modal__field">
+              <label class="wc-modal__label">
+                访问内容
+                <span class="wc-modal__tooltip-trigger" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; color: #98a2b3;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                  <div v-if="showTooltip" class="wc-modal__tooltip">
+                    选择URL，填写以 https:// 或 http:// 开头的完整网络地址，访客点击后直接访问对应页面；选择文本内容，访客点击后直接复制设置的文本内容；选择发送消息，访客点击后自动发送一条消息
+                  </div>
+                </span>
+              </label>
+              <div class="wc-modal__radio-group">
+                <label class="wc-modal__radio">
+                  <input v-model="quickAccessForm.contentType" type="radio" value="url" />
+                  <span>URL</span>
+                </label>
+                <label class="wc-modal__radio">
+                  <input v-model="quickAccessForm.contentType" type="radio" value="text" />
+                  <span>文本内容</span>
+                </label>
+              </div>
+            </div>
+            <div class="wc-modal__field">
+              <input
+                v-model="quickAccessForm.url"
+                class="wc-modal__input"
+                :placeholder="quickAccessForm.contentType === 'url' ? '请输入URL' : '请输入文本内容'"
+              />
+            </div>
+          </div>
+          <div class="wc-modal__footer">
+            <button type="button" class="wc-modal__btn wc-modal__btn--primary" @click="confirmQuickAccess">确定</button>
+          </div>
+        </div>
+      </div>
+    </teleport>
+
     <!-- Image Crop Modal -->
     <teleport to="body">
       <div v-if="cropModalOpen" class="wc-crop-overlay" @click.self="cropModalOpen = false">
@@ -1086,6 +1171,83 @@ const logoFileInput = ref<HTMLInputElement>();
 const cropModalOpen = ref(false);
 const cropImageSrc = ref("");
 const cropImgEl = ref<HTMLImageElement>();
+
+// Quick Access Modal
+const quickAccessModalOpen = ref(false);
+const iconFileInput = ref<HTMLInputElement>();
+const titleDropdownOpen = ref(false);
+const showTooltip = ref(false);
+const titleOptions = ["Email", "Telephone", "Adress", "Telegram", "X", "Whatsapp", "Instagram"];
+
+const quickAccessForm = reactive({
+  title: "",
+  icon: "",
+  contentType: "url" as "url" | "text",
+  url: ""
+});
+
+const openQuickAccessModal = () => {
+  quickAccessForm.title = "";
+  quickAccessForm.icon = "";
+  quickAccessForm.contentType = "url";
+  quickAccessForm.url = "";
+  quickAccessModalOpen.value = true;
+};
+
+const closeQuickAccessModal = () => {
+  quickAccessModalOpen.value = false;
+  titleDropdownOpen.value = false;
+};
+
+const selectTitle = (title: string) => {
+  quickAccessForm.title = title;
+  titleDropdownOpen.value = false;
+};
+
+const handleTitleBlur = () => {
+  setTimeout(() => {
+    titleDropdownOpen.value = false;
+  }, 200);
+};
+
+const triggerIconUpload = () => {
+  iconFileInput.value?.click();
+};
+
+const handleIconUpload = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  if (file.size > 1024 * 1024) {
+    emitToast("图片大小不能超过1MB");
+    (e.target as HTMLInputElement).value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    quickAccessForm.icon = reader.result as string;
+  };
+  reader.readAsDataURL(file);
+  (e.target as HTMLInputElement).value = "";
+};
+
+const confirmQuickAccess = () => {
+  if (!quickAccessForm.title.trim()) {
+    emitToast("请输入标题");
+    return;
+  }
+  if (!quickAccessForm.url.trim()) {
+    emitToast(quickAccessForm.contentType === "url" ? "请输入URL" : "请输入文本内容");
+    return;
+  }
+  const id = `qa-${qaCounter++}`;
+  settings.quickAccessItems.push({
+    id,
+    label: quickAccessForm.title,
+    url: quickAccessForm.url
+  });
+  closeQuickAccessModal();
+  emitToast("保存成功");
+};
 
 const triggerLogoUpload = () => {
   logoFileInput.value?.click();
@@ -2958,6 +3120,257 @@ watch(previewMode, (mode) => {
 
 .wc-widget-fab:hover {
   transform: scale(1.08);
+}
+
+/* ── Quick Access Modal ── */
+.wc-modal-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: var(--agent-z-modal, 1000);
+}
+
+.wc-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  width: 90vw;
+}
+
+.wc-modal__header {
+  align-items: center;
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.wc-modal__title {
+  color: var(--agent-color-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.wc-modal__close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+  width: 28px;
+}
+
+.wc-modal__close:hover {
+  background: var(--agent-color-bg-hover);
+  color: var(--agent-color-text-primary);
+}
+
+.wc-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+.wc-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wc-modal__dropdown-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.wc-modal__dropdown {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 10;
+}
+
+.wc-modal__dropdown-item {
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 10px 12px;
+  transition: background 0.15s;
+}
+
+.wc-modal__dropdown-item:hover {
+  background: var(--agent-color-bg-hover);
+}
+
+.wc-modal__tooltip-trigger {
+  display: inline-block;
+  margin-left: 4px;
+  position: relative;
+  vertical-align: middle;
+}
+
+.wc-modal__tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+  bottom: calc(100% + 8px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  left: 50%;
+  line-height: 1.5;
+  max-width: 280px;
+  padding: 8px 12px;
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: normal;
+  z-index: 1000;
+}
+
+.wc-modal__tooltip::after {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid rgba(0, 0, 0, 0.85);
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+.wc-modal__label {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wc-modal__input {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  outline: none;
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+}
+
+.wc-modal__input:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-modal__upload-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.wc-modal__upload {
+  align-items: center;
+  background: #fafafa;
+  border: 1px dashed var(--agent-color-border-default);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  position: relative;
+  transition: border-color 0.15s;
+  width: 40px;
+}
+
+.wc-modal__upload:hover {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-modal__upload-preview {
+  border-radius: 50%;
+  height: 32px;
+  object-fit: cover;
+  width: 32px;
+}
+
+.wc-modal__upload-placeholder {
+  color: var(--agent-color-text-tertiary);
+}
+
+.wc-modal__upload-input {
+  display: none;
+}
+
+.wc-modal__hint {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  margin: 0;
+}
+
+.wc-modal__radio-group {
+  display: flex;
+  gap: 24px;
+}
+
+.wc-modal__radio {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+}
+
+.wc-modal__radio input {
+  accent-color: var(--agent-color-brand-primary);
+  height: 16px;
+  width: 16px;
+}
+
+.wc-modal__radio span {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+}
+
+.wc-modal__footer {
+  border-top: 1px solid var(--agent-color-border-default);
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+}
+
+.wc-modal__btn {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 24px;
+  transition: opacity 0.15s;
+}
+
+.wc-modal__btn--primary {
+  background: var(--agent-color-brand-primary);
+  color: #fff;
+}
+
+.wc-modal__btn--primary:hover {
+  opacity: 0.9;
 }
 
 /* ── Crop Modal ── */

@@ -8,7 +8,7 @@
       <section class="updates-hero">
         <div class="container">
           <h1>👋 欢迎来到 Chat 产品动态</h1>
-          <p class="subtitle">记录每一次功能上线、快速看懂版本变化</p>
+          <p class="subtitle">快速查看 TWT Chat 的新更新和改进</p>
         </div>
       </section>
 

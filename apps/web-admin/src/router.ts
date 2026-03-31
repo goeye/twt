@@ -52,6 +52,10 @@ const router = createRouter({
       component: () => import("./views/ResourceEditPage.vue"),
     },
     {
+      path: "/content/faq",
+      component: () => import("./views/FaqListPage.vue"),
+    },
+    {
       path: "/content/api-docs",
       component: () => import("./views/ApiDocsListPage.vue"),
     },

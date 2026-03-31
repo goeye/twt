@@ -55,6 +55,7 @@
         <a-sub-menu key="resource">
           <template #icon><CloudServerOutlined /></template>
           <template #title>资源管理</template>
+          <a-menu-item key="faq" @click="$router.push('/content/faq')">常见问题</a-menu-item>
           <a-menu-item key="banners" @click="$router.push('/links/banners')">Banner 管理</a-menu-item>
           <a-menu-item key="link-categories" @click="$router.push('/links/categories')">分类管理</a-menu-item>
           <a-menu-item key="link-resources" @click="$router.push('/links/resources')">资源管理</a-menu-item>
@@ -188,6 +189,10 @@ const routeMeta: Record<string, { breadcrumbs: BreadcrumbItem[]; tabTitle: strin
   "/prompt/list": {
     breadcrumbs: [{ title: "提示词管理" }, { title: "提示词列表" }],
     tabTitle: "提示词列表",
+  },
+  "/content/faq": {
+    breadcrumbs: [{ title: "资源管理" }, { title: "常见问题" }],
+    tabTitle: "常见问题",
   },
   "/content/api-docs": {
     breadcrumbs: [{ title: "内容管理" }, { title: "API 文档" }],
@@ -323,6 +328,7 @@ function closeTab(tab: TabItem) {
 function routeToKey(path: string): string {
   if (path === "/feature-stats") return "feature-stats";
   if (path === "/prompt/list") return "prompt-list";
+  if (path === "/content/faq") return "faq";
   if (path.startsWith("/content/api-docs")) return "api-docs";
   if (path === "/project/list") return "project-list";
   if (path === "/project/visitors") return "project-list";
@@ -341,6 +347,7 @@ function routeToKey(path: string): string {
 
 function routeToOpenKeys(path: string): string[] {
   if (path.startsWith("/prompt")) return ["prompt"];
+  if (path === "/content/faq") return ["resource"];
   if (path.startsWith("/content")) return ["content"];
   if (path.startsWith("/project")) return ["project"];
   if (path.startsWith("/compliance")) return ["compliance"];
