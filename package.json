@@ -27,6 +27,7 @@
     "dev:docs": "pnpm --filter docs dev",
     "build:docs": "pnpm --filter docs build",
     "upload:docs": "cd apps && bash upcode.sh docs",
-    "deploy:docs": "pnpm build:docs && pnpm upload:docs"
+    "deploy:docs": "pnpm build:docs && pnpm upload:docs",
+    "deploy:all": "pnpm deploy:web-agent & pnpm deploy:web-customer & pnpm deploy:web-admin & pnpm deploy:mobile-app & pnpm deploy:web-website & pnpm deploy:docs & wait"
   }
 }

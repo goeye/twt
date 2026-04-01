@@ -4,6 +4,7 @@ import { defineUserConfig } from 'vuepress'
 
 export default defineUserConfig({
   base: '/docs/',
+  dest: 'dist',
   bundler: viteBundler(),
   lang: 'zh-CN',
   title: 'TWT Chat 开发者文档',

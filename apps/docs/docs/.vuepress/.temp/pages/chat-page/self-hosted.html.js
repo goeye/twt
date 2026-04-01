@@ -1,16 +1,3 @@
 import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/self-hosted.html.vue"
-const data = JSON.parse("{\"path\":\"/chat-page/self-hosted.html\",\"title\":\"自托管部署\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"部署步骤\",\"slug\":\"部署步骤\",\"link\":\"#部署步骤\",\"children\":[{\"level\":3,\"title\":\"1. 下载 HTML 文件\",\"slug\":\"_1-下载-html-文件\",\"link\":\"#_1-下载-html-文件\",\"children\":[]},{\"level\":3,\"title\":\"2. 上传至服务器\",\"slug\":\"_2-上传至服务器\",\"link\":\"#_2-上传至服务器\",\"children\":[]},{\"level\":3,\"title\":\"3. 配置域名（可选）\",\"slug\":\"_3-配置域名-可选\",\"link\":\"#_3-配置域名-可选\",\"children\":[]}]},{\"level\":2,\"title\":\"自定义配置\",\"slug\":\"自定义配置\",\"link\":\"#自定义配置\",\"children\":[]}],\"git\":{},\"filePathRelative\":\"chat-page/self-hosted.md\"}")
+const data = JSON.parse("{\"path\":\"/chat-page/self-hosted.html\",\"title\":\"自托管部署\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"部署步骤\",\"slug\":\"部署步骤\",\"link\":\"#部署步骤\",\"children\":[{\"level\":3,\"title\":\"1. 下载 HTML 文件\",\"slug\":\"_1-下载-html-文件\",\"link\":\"#_1-下载-html-文件\",\"children\":[]},{\"level\":3,\"title\":\"2. 上传至服务器\",\"slug\":\"_2-上传至服务器\",\"link\":\"#_2-上传至服务器\",\"children\":[]},{\"level\":3,\"title\":\"3. 配置域名（可选）\",\"slug\":\"_3-配置域名-可选\",\"link\":\"#_3-配置域名-可选\",\"children\":[]}]},{\"level\":2,\"title\":\"自定义配置\",\"slug\":\"自定义配置\",\"link\":\"#自定义配置\",\"children\":[]}],\"git\":{\"updatedTime\":1775012611000},\"filePathRelative\":\"chat-page/self-hosted.md\"}")
 export { comp, data }
-
-if (import.meta.webpackHot) {
-  import.meta.webpackHot.accept()
-  if (__VUE_HMR_RUNTIME__.updatePageData) {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  }
-}
-
-if (import.meta.hot) {
-  import.meta.hot.accept(({ data }) => {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  })
-}
