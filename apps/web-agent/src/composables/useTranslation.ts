@@ -39,7 +39,7 @@ export function useTranslation() {
     onUpdate: (messageId: string, translation: MessageItem['translation']) => void
   ): Promise<void> {
     const untranslatedIds = messages
-      .filter(msg => !msg.translation || msg.translation.status === 'idle')
+      .filter(msg => msg.role === 'customer' && (!msg.translation || msg.translation.status === 'idle'))
       .map(msg => msg.id);
 
     if (untranslatedIds.length === 0) return;
