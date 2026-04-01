@@ -7,6 +7,13 @@ export interface NavItem {
 
 export type ChannelType = 'web' | 'widget' | 'email';
 
+export interface MessageTranslation {
+  status: 'idle' | 'translating' | 'completed' | 'failed';
+  result?: string;
+  targetLang?: string;
+  error?: string;
+}
+
 export interface SessionItem {
   id: string;
   customerName: string;
@@ -51,6 +58,7 @@ export interface MessageItem {
   fromEmail?: string;
   toEmail?: string;
   sendStatus?: 'sending' | 'failed' | 'sent';
+  translation?: MessageTranslation;
 }
 
 export interface TableColumn<T = Record<string, unknown>> {

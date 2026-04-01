@@ -131,6 +131,20 @@
               </div>
             </button>
           </div>
+
+          <!-- 翻译状态显示 -->
+          <div v-if="translation && translation.status !== 'idle'" class="message__translation">
+            <div v-if="translation.status === 'translating'" class="message__translation-loading">
+              翻译中...
+            </div>
+            <div v-else-if="translation.status === 'completed'" class="message__translation-result">
+              {{ translation.result }}
+            </div>
+            <div v-else-if="translation.status === 'failed'" class="message__translation-error">
+              <span>翻译失败</span>
+              <button type="button" class="message__translation-retry" @click="$emit('retry-translation')">点击重试</button>
+            </div>
+          </div>
         </div>
         <div v-if="sendStatus === 'sending'" class="message__send-status message__send-status--sending">
           <span class="message__sending-spinner" />
@@ -146,6 +160,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import type { MessageTranslation } from "../../types";
 
 const props = withDefaults(
   defineProps<{
@@ -162,6 +177,7 @@ const props = withDefaults(
     channelType?: 'web' | 'email';
     sendStatus?: 'sending' | 'failed' | 'sent';
     translationLanguages?: { label: string; value: string }[];
+    translation?: MessageTranslation;
   }>(),
   {
     avatarText: "?",
@@ -180,6 +196,7 @@ const emit = defineEmits<{
   (e: 'translate'): void;
   (e: 'revoke'): void;
   (e: 'retry'): void;
+  (e: 'retry-translation'): void;
 }>();
 
 const hovered = ref(false);
@@ -855,5 +872,43 @@ const parsedEmail = computed(() => {
 
 .message__quoted-collapse:hover {
   color: var(--agent-color-brand-primary);
+}
+
+/* 翻译状态 */
+.message__translation {
+  margin-top: var(--agent-space-8);
+  padding-top: var(--agent-space-8);
+  border-top: 1px solid var(--agent-color-border-light);
+  font-size: var(--agent-font-size-sm);
+}
+
+.message__translation-loading {
+  color: var(--agent-color-text-tertiary);
+}
+
+.message__translation-result {
+  color: var(--agent-color-text-secondary);
+  line-height: 1.5;
+}
+
+.message__translation-error {
+  display: flex;
+  align-items: center;
+  gap: var(--agent-space-8);
+  color: var(--agent-color-status-error);
+}
+
+.message__translation-retry {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 0;
+  text-decoration: underline;
+}
+
+.message__translation-retry:hover {
+  color: var(--agent-color-brand-hover);
 }
 </style>

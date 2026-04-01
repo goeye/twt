@@ -351,11 +351,13 @@
             :channel-type="activeSession?.channelType ?? 'web'"
             :translation-languages="translationLanguages"
             :send-status="message.sendStatus"
+            :translation="message.translation"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
             @revoke="showTopToast('撤回功能开发中')"
             @retry="showTopToast('重新发送开发中')"
+            @retry-translation="handleRetryTranslation(message.id, message.content)"
           />
         </div>
 
@@ -711,6 +713,7 @@ import { usePlan } from "./composables/usePlan";
 import { FEATURES } from "./lib/plan";
 import { usePermission } from "./composables/usePermission";
 import { useVersionCheck } from "./composables/useVersionCheck";
+import { useTranslation } from "./composables/useTranslation";
 import {
   AgentAppShell,
   AiSettingsNav,
@@ -752,6 +755,8 @@ const {
 } = usePermission();
 
 const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
+
+const { getSessionSwitch, setSessionSwitch, autoTranslateMessages, retryTranslation } = useTranslation();
 
 const permSwitcherOpen = ref(false);
 
@@ -1948,6 +1953,53 @@ const route = useRoute();
 const activeMainNav = ref("conversation");
 const activeQueueKey = ref("pending-reply");
 const activeSessionId = ref("s-6001");
+
+// 监听会话切换,自动翻译未翻译的消息
+watch(activeSessionId, async (newSessionId) => {
+  if (!newSessionId) return;
+
+  const switchEnabled = getSessionSwitch(newSessionId);
+  if (!switchEnabled) return;
+
+  const messages = messageMap.value[newSessionId] || [];
+  if (messages.length === 0) return;
+
+  await autoTranslateMessages(
+    newSessionId,
+    messages,
+    'zh-CN',
+    (messageId, translation) => {
+      const sessionMessages = messageMap.value[newSessionId];
+      if (!sessionMessages) return;
+
+      const message = sessionMessages.find(m => m.id === messageId);
+      if (message) {
+        message.translation = translation;
+      }
+    }
+  );
+});
+
+// 重试翻译
+async function handleRetryTranslation(messageId: string, content: string) {
+  if (!activeSessionId.value) return;
+
+  await retryTranslation(
+    messageId,
+    content,
+    'zh-CN',
+    (translation) => {
+      const sessionMessages = messageMap.value[activeSessionId.value];
+      if (!sessionMessages) return;
+
+      const message = sessionMessages.find(m => m.id === messageId);
+      if (message) {
+        message.translation = translation;
+      }
+    }
+  );
+}
+
 const searchKeyword = ref("");
 const composerText = ref("");
 const emailComposerBody = ref("");
