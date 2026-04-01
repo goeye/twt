@@ -1,0 +1,16 @@
+import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/index.html.vue"
+const data = JSON.parse("{\"path\":\"/api/\",\"title\":\"开放 API\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"基本信息\",\"slug\":\"基本信息\",\"link\":\"#基本信息\",\"children\":[]},{\"level\":2,\"title\":\"鉴权方式\",\"slug\":\"鉴权方式\",\"link\":\"#鉴权方式\",\"children\":[]},{\"level\":2,\"title\":\"API 模块\",\"slug\":\"api-模块\",\"link\":\"#api-模块\",\"children\":[{\"level\":3,\"title\":\"在线聊天\",\"slug\":\"在线聊天\",\"link\":\"#在线聊天\",\"children\":[]}]},{\"level\":2,\"title\":\"错误处理\",\"slug\":\"错误处理\",\"link\":\"#错误处理\",\"children\":[]}],\"git\":{},\"filePathRelative\":\"api/README.md\"}")
+export { comp, data }
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept()
+  if (__VUE_HMR_RUNTIME__.updatePageData) {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  }
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(({ data }) => {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  })
+}

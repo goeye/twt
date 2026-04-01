@@ -23,6 +23,10 @@
     "dev:web-website": "pnpm --filter web-website dev",
     "build:web-website": "pnpm --filter web-website build",
     "upload:web-website": "cd apps && bash upcode.sh web-website",
-    "deploy:web-website": "pnpm build:web-website && pnpm upload:web-website"
+    "deploy:web-website": "pnpm build:web-website && pnpm upload:web-website",
+    "dev:docs": "pnpm --filter docs dev",
+    "build:docs": "pnpm --filter docs build",
+    "upload:docs": "cd apps && bash upcode.sh docs",
+    "deploy:docs": "pnpm build:docs && pnpm upload:docs"
   }
 }
