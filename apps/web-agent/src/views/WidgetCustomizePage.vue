@@ -692,17 +692,23 @@
                   v-model="quickAccessForm.title"
                   class="wc-modal__input"
                   placeholder="请输入标题"
-                  @focus="titleDropdownOpen = true"
+                  autocomplete="off"
+                  @click="openTitleDropdown"
+                  @focus="openTitleDropdown"
+                  @input="handleTitleInput"
                   @blur="handleTitleBlur"
                 />
                 <div v-if="titleDropdownOpen" class="wc-modal__dropdown">
                   <div
-                    v-for="option in titleOptions"
+                    v-for="option in filteredTitleOptions"
                     :key="option"
                     class="wc-modal__dropdown-item"
                     @mousedown.prevent="selectTitle(option)"
                   >
                     {{ option }}
+                  </div>
+                  <div v-if="filteredTitleOptions.length === 0" class="wc-modal__dropdown-empty">
+                    未找到匹配项
                   </div>
                 </div>
               </div>
@@ -729,7 +735,7 @@
                     <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                   </svg>
                   <div v-if="showTooltip" class="wc-modal__tooltip">
-                    选择URL，填写以 https:// 或 http:// 开头的完整网络地址，访客点击后直接访问对应页面；选择文本内容，访客点击后直接复制设置的文本内容；选择发送消息，访客点击后自动发送一条消息
+                    选择 URL 时，请填写完整网页地址，访客点击后会直接跳转；选择文本内容时，访客点击后会直接复制该内容。
                   </div>
                 </span>
               </label>
@@ -1185,6 +1191,22 @@ const quickAccessForm = reactive({
   contentType: "url" as "url" | "text",
   url: ""
 });
+
+const filteredTitleOptions = computed(() => {
+  const keyword = quickAccessForm.title.trim().toLowerCase();
+  if (!keyword) {
+    return titleOptions;
+  }
+  return titleOptions.filter(option => option.toLowerCase().includes(keyword));
+});
+
+const openTitleDropdown = () => {
+  titleDropdownOpen.value = true;
+};
+
+const handleTitleInput = () => {
+  titleDropdownOpen.value = true;
+};
 
 const openQuickAccessModal = () => {
   quickAccessForm.title = "";
@@ -3222,34 +3244,45 @@ watch(previewMode, (mode) => {
   background: var(--agent-color-bg-hover);
 }
 
+.wc-modal__dropdown-empty {
+  color: var(--agent-color-text-tertiary);
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
 .wc-modal__tooltip-trigger {
-  display: inline-block;
-  margin-left: 4px;
+  align-items: center;
+  display: inline-flex;
+  margin-left: 6px;
   position: relative;
   vertical-align: middle;
 }
 
 .wc-modal__tooltip {
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 6px;
-  bottom: calc(100% + 8px);
+  background: rgba(15, 23, 42, 0.94);
+  border-radius: 8px;
+  bottom: calc(100% + 10px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
   color: #fff;
   font-size: 12px;
   font-weight: 400;
   left: 50%;
-  line-height: 1.5;
-  max-width: 280px;
-  padding: 8px 12px;
+  line-height: 1.6;
+  max-width: calc(100vw - 48px);
+  min-width: 280px;
+  padding: 10px 12px;
   position: absolute;
   transform: translateX(-50%);
+  width: 320px;
   white-space: normal;
+  word-break: break-word;
   z-index: 1000;
 }
 
 .wc-modal__tooltip::after {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 5px solid rgba(0, 0, 0, 0.85);
+  border-top: 5px solid rgba(15, 23, 42, 0.94);
   content: "";
   left: 50%;
   position: absolute;
@@ -3268,10 +3301,12 @@ watch(previewMode, (mode) => {
   border: 1px solid var(--agent-color-border-default);
   border-radius: 8px;
   color: var(--agent-color-text-primary);
+  display: block;
   font-size: 14px;
   outline: none;
   padding: 10px 12px;
   transition: border-color 0.15s;
+  width: 100%;
 }
 
 .wc-modal__input:focus {
