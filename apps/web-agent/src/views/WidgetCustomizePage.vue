@@ -142,6 +142,35 @@
           </div>
         </article>
 
+        <!-- Accordion: Chat Page Hero -->
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'chatPageHero' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('chatPageHero')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">聊天页面文案</h3>
+              <p class="wc-card__desc">设置聊天页面左侧的品牌介绍文案，关闭后聊天窗口将居中显示</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'chatPageHero'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">显示左侧文案</span>
+              </div>
+              <AgentSwitch v-model="settings.showChatPageHero" @update:model-value="autoSave" />
+            </div>
+            <template v-if="settings.showChatPageHero">
+              <div class="wc-field-row">
+                <label class="wc-label">文案标题</label>
+                <input v-model="settings.chatPageHeroTitle[globalLang]" class="agent-input wc-input" placeholder="输入文案标题..." @blur="autoSave" />
+              </div>
+              <div class="wc-field-row">
+                <label class="wc-label">文案描述</label>
+                <textarea v-model="settings.chatPageHeroDesc[globalLang]" class="wc-rich-editor__textarea" rows="4" placeholder="输入文案描述..." @blur="autoSave" />
+              </div>
+            </template>
+          </div>
+        </article>
+
       </div>
 
       <!-- Content Tab -->
@@ -474,13 +503,20 @@
         </select>
       </header>
 
-      <div class="wc-preview__canvas">
-        <div class="wc-preview__page-mock">
+      <div class="wc-preview__canvas" :class="{ 'wc-preview__canvas--hero': settings.showChatPageHero && previewMode !== 'minimized' }">
+        <div v-if="!settings.showChatPageHero || previewMode === 'minimized'" class="wc-preview__page-mock">
           <div class="wc-mock-bar wc-mock-bar--long" />
           <div class="wc-mock-bar wc-mock-bar--medium" />
           <div class="wc-mock-bar wc-mock-bar--short" />
           <div class="wc-mock-block" />
           <div class="wc-mock-bar wc-mock-bar--medium" />
+        </div>
+
+        <!-- Chat Page Hero Preview (left panel) -->
+        <div v-if="settings.showChatPageHero && previewMode !== 'minimized'" class="wc-preview-hero">
+          <img :src="settings.brandLogoUrl" class="wc-preview-hero__logo" alt="" />
+          <p class="wc-preview-hero__title">{{ settings.chatPageHeroTitle[globalLang] || '你好!' }}</p>
+          <p class="wc-preview-hero__desc">{{ settings.chatPageHeroDesc[globalLang] || '' }}</p>
         </div>
 
         <!-- Session List Preview (like image#3) -->
@@ -962,7 +998,7 @@ interface PreviewSessionItem {
 
 type TabKey = "appearance" | "content" | "form" | "general";
 type PreviewMode = "sessionList" | "chat" | "form" | "minimized";
-type SectionKey = "brand" | "position" | "display" | "quickAccess"
+type SectionKey = "brand" | "position" | "display" | "quickAccess" | "chatPageHero"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
   | "visitorFeedback"
   | "sessionForm" | "msgStatus" | "sessionFeatures"
@@ -1333,7 +1369,18 @@ const settings = reactive({
   visitorInactiveSeconds: 7200,
   visitorInactiveIncludePending: true,
   sessionTitleMode: "ai" as "ai" | "agent",
-  showQueuePosition: false
+  showQueuePosition: false,
+  showChatPageHero: true,
+  chatPageHeroTitle: {
+    en: "Hello!",
+    "zh-cn": "你好!",
+    "zh-tw": "你好!"
+  } as Record<LangKey, string>,
+  chatPageHeroDesc: {
+    en: "Welcome to our chat page.\nNeed help? We'll assist you in real-time.",
+    "zh-cn": "欢迎来到我们的聊天页面。\n需要帮助？我们会为你实时解答与跟进。",
+    "zh-tw": "歡迎來到我們的聊天頁面。\n需要幫助？我們會為你即時解答與跟進。"
+  } as Record<LangKey, string>
 });
 
 const showChatPreviewOnlineStatus = computed(() => {
@@ -2704,6 +2751,48 @@ watch(previewMode, (mode) => {
   position: relative;
 }
 
+.wc-preview__canvas--hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+}
+
+.wc-preview-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  min-width: 0;
+}
+
+.wc-preview-hero__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 14px;
+}
+
+.wc-preview-hero__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--agent-color-text-primary);
+  margin: 0 0 8px;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.wc-preview-hero__desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--agent-color-text-secondary);
+  margin: 0;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
 .wc-preview__page-mock {
   display: flex;
   flex-direction: column;
@@ -2747,6 +2836,12 @@ watch(previewMode, (mode) => {
 .wc-widget--tall {
   max-height: calc(100% - 40px);
   min-height: 600px;
+}
+
+.wc-preview__canvas--hero .wc-widget {
+  position: relative;
+  max-height: 100%;
+  min-height: 480px;
 }
 
 .wc-widget__header {
