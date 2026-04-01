@@ -113,7 +113,7 @@
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M4 8l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
                   </span>
                   <span class="wc-quick-tag__label">{{ item.label }}</span>
-                  <span class="wc-quick-tag__edit" aria-hidden="true">
+                  <span class="wc-quick-tag__edit" aria-hidden="true" @click="editQuickAccess(item)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
                   </span>
                   <button type="button" class="wc-quick-tag__remove" @click="removeQuickAccess(item.id)">
@@ -679,7 +679,7 @@
       <div v-if="quickAccessModalOpen" class="wc-modal-overlay" @click.self="closeQuickAccessModal">
         <div class="wc-modal">
           <div class="wc-modal__header">
-            <h3 class="wc-modal__title">新建快捷入口</h3>
+            <h3 class="wc-modal__title">{{ quickAccessEditId ? '编辑快捷入口' : '新建快捷入口' }}</h3>
             <button type="button" class="wc-modal__close" @click="closeQuickAccessModal">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
             </button>
@@ -714,10 +714,20 @@
               </div>
             </div>
             <div class="wc-modal__field">
-              <label class="wc-modal__label">图标</label>
+              <label class="wc-modal__label">图标（非必填）</label>
               <div class="wc-modal__upload-row">
-                <div class="wc-modal__upload" @click="triggerIconUpload">
-                  <img v-if="quickAccessForm.icon" :src="quickAccessForm.icon" class="wc-modal__upload-preview" alt="图标" />
+                <div class="wc-modal__upload" :class="{ 'has-icon': quickAccessForm.icon }" @click="quickAccessForm.icon ? null : triggerIconUpload()">
+                  <template v-if="quickAccessForm.icon">
+                    <div class="wc-modal__upload-preview-wrap">
+                      <div v-if="quickAccessForm.icon.startsWith('data:')" class="wc-modal__upload-preview-img">
+                        <img :src="quickAccessForm.icon" alt="图标" />
+                      </div>
+                      <div v-else class="wc-modal__upload-preview-emoji">{{ quickAccessForm.icon }}</div>
+                      <button type="button" class="wc-modal__upload-remove" @click.stop="removeIcon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                      </button>
+                    </div>
+                  </template>
                   <div v-else class="wc-modal__upload-placeholder">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
                   </div>
@@ -728,34 +738,75 @@
             </div>
             <div class="wc-modal__field">
               <label class="wc-modal__label">
-                访问内容
+                交互方式
                 <span class="wc-modal__tooltip-trigger" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; color: #98a2b3;">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" />
                     <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                   </svg>
                   <div v-if="showTooltip" class="wc-modal__tooltip">
-                    选择 URL 时，请填写完整网页地址，访客点击后会直接跳转；选择文本内容时，访客点击后会直接复制该内容。
+                    打开链接：访客点击后跳转到指定网页；复制文本：访客点击后复制指定内容；发送消息：访客点击后自动发送预设消息
                   </div>
                 </span>
               </label>
               <div class="wc-modal__radio-group">
                 <label class="wc-modal__radio">
-                  <input v-model="quickAccessForm.contentType" type="radio" value="url" />
-                  <span>URL</span>
+                  <input v-model="quickAccessForm.actionType" type="radio" value="link" />
+                  <span>打开链接</span>
                 </label>
                 <label class="wc-modal__radio">
-                  <input v-model="quickAccessForm.contentType" type="radio" value="text" />
-                  <span>文本内容</span>
+                  <input v-model="quickAccessForm.actionType" type="radio" value="copy" />
+                  <span>复制文本</span>
+                </label>
+                <label class="wc-modal__radio">
+                  <input v-model="quickAccessForm.actionType" type="radio" value="message" />
+                  <span>发送消息</span>
                 </label>
               </div>
             </div>
-            <div class="wc-modal__field">
+            <div v-if="quickAccessForm.actionType === 'link'" class="wc-modal__field">
               <input
-                v-model="quickAccessForm.url"
+                v-model="quickAccessForm.content"
                 class="wc-modal__input"
-                :placeholder="quickAccessForm.contentType === 'url' ? '请输入URL' : '请输入文本内容'"
+                placeholder="请输入链接地址"
               />
+            </div>
+            <div v-if="quickAccessForm.actionType === 'copy'" class="wc-modal__field">
+              <input
+                v-model="quickAccessForm.content"
+                class="wc-modal__input"
+                placeholder="请输入需要复制的文本"
+              />
+            </div>
+            <div v-if="quickAccessForm.actionType === 'message'" class="wc-modal__field">
+              <div class="wc-modal__input-group">
+                <select v-model="quickAccessForm.messageType" class="wc-modal__input-prefix">
+                  <option value="custom">自定义内容</option>
+                  <option value="faq">关联常见问题</option>
+                </select>
+                <div class="wc-modal__input-divider"></div>
+                <textarea
+                  v-if="quickAccessForm.messageType === 'custom'"
+                  v-model="quickAccessForm.content"
+                  class="wc-modal__textarea wc-modal__input--merged"
+                  placeholder="请输入消息内容"
+                  maxlength="2000"
+                  rows="3"
+                ></textarea>
+                <select
+                  v-if="quickAccessForm.messageType === 'faq'"
+                  v-model="quickAccessForm.faqId"
+                  class="wc-modal__input wc-modal__input--merged"
+                >
+                  <option value="" disabled>请选择常见问题</option>
+                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">
+                    {{ faq.title }}
+                  </option>
+                </select>
+              </div>
+              <p v-if="quickAccessForm.messageType === 'faq' && quickAccessForm.faqId && !isFaqValid" class="wc-modal__error-hint">
+                所选常见问题已被删除，请重新选择
+              </p>
             </div>
           </div>
           <div class="wc-modal__footer">
@@ -793,6 +844,10 @@ interface QuickAccessItem {
   id: string;
   label: string;
   url: string;
+  icon?: string;
+  actionType?: "link" | "copy" | "message";
+  messageType?: "custom" | "faq";
+  faqId?: string;
 }
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
@@ -1180,16 +1235,43 @@ const cropImgEl = ref<HTMLImageElement>();
 
 // Quick Access Modal
 const quickAccessModalOpen = ref(false);
+const quickAccessEditId = ref<string | null>(null);
 const iconFileInput = ref<HTMLInputElement>();
 const titleDropdownOpen = ref(false);
 const showTooltip = ref(false);
 const titleOptions = ["Email", "Telephone", "Adress", "Telegram", "X", "Whatsapp", "Instagram"];
 
+const titleIconMap: Record<string, string> = {
+  "Email": "📧",
+  "Telephone": "📞",
+  "Adress": "📍",
+  "Telegram": "✈️",
+  "X": "✖️",
+  "Whatsapp": "💬",
+  "Instagram": "📷"
+};
+
+const defaultIcon = "🔗";
+
 const quickAccessForm = reactive({
   title: "",
   icon: "",
-  contentType: "url" as "url" | "text",
-  url: ""
+  actionType: "link" as "link" | "copy" | "message",
+  content: "",
+  messageType: "custom" as "custom" | "faq",
+  faqId: ""
+});
+
+const faqOptions = ref([
+  { id: "faq-1", title: "如何注册账号？" },
+  { id: "faq-2", title: "忘记密码怎么办？" },
+  { id: "faq-3", title: "如何联系客服？" },
+  { id: "faq-4", title: "支持哪些支付方式？" }
+]);
+
+const isFaqValid = computed(() => {
+  if (!quickAccessForm.faqId) return true;
+  return faqOptions.value.some(faq => faq.id === quickAccessForm.faqId);
 });
 
 const filteredTitleOptions = computed(() => {
@@ -1209,20 +1291,36 @@ const handleTitleInput = () => {
 };
 
 const openQuickAccessModal = () => {
+  quickAccessEditId.value = null;
   quickAccessForm.title = "";
   quickAccessForm.icon = "";
-  quickAccessForm.contentType = "url";
-  quickAccessForm.url = "";
+  quickAccessForm.actionType = "link";
+  quickAccessForm.content = "";
+  quickAccessForm.messageType = "custom";
+  quickAccessForm.faqId = "";
   quickAccessModalOpen.value = true;
 };
 
 const closeQuickAccessModal = () => {
   quickAccessModalOpen.value = false;
+  quickAccessEditId.value = null;
   titleDropdownOpen.value = false;
+};
+
+const editQuickAccess = (item: QuickAccessItem) => {
+  quickAccessEditId.value = item.id;
+  quickAccessForm.title = item.label;
+  quickAccessForm.icon = item.icon || "";
+  quickAccessForm.actionType = item.actionType || "link";
+  quickAccessForm.content = item.url;
+  quickAccessForm.messageType = item.messageType || "custom";
+  quickAccessForm.faqId = item.faqId || "";
+  quickAccessModalOpen.value = true;
 };
 
 const selectTitle = (title: string) => {
   quickAccessForm.title = title;
+  quickAccessForm.icon = titleIconMap[title] || defaultIcon;
   titleDropdownOpen.value = false;
 };
 
@@ -1252,21 +1350,65 @@ const handleIconUpload = (e: Event) => {
   (e.target as HTMLInputElement).value = "";
 };
 
+const removeIcon = () => {
+  quickAccessForm.icon = "";
+};
+
 const confirmQuickAccess = () => {
   if (!quickAccessForm.title.trim()) {
     emitToast("请输入标题");
     return;
   }
-  if (!quickAccessForm.url.trim()) {
-    emitToast(quickAccessForm.contentType === "url" ? "请输入URL" : "请输入文本内容");
-    return;
+
+  if (quickAccessForm.actionType === "link" || quickAccessForm.actionType === "copy") {
+    if (!quickAccessForm.content.trim()) {
+      const msg = quickAccessForm.actionType === "link" ? "请输入链接地址" : "请输入需要复制的文本";
+      emitToast(msg);
+      return;
+    }
+  } else if (quickAccessForm.actionType === "message") {
+    if (quickAccessForm.messageType === "custom" && !quickAccessForm.content.trim()) {
+      emitToast("请输入消息内容");
+      return;
+    }
+    if (quickAccessForm.messageType === "faq") {
+      if (!quickAccessForm.faqId) {
+        emitToast("请选择常见问题");
+        return;
+      }
+      if (!isFaqValid.value) {
+        emitToast("所选常见问题已被删除，请重新选择");
+        quickAccessForm.faqId = "";
+        return;
+      }
+    }
   }
-  const id = `qa-${qaCounter++}`;
-  settings.quickAccessItems.push({
-    id,
-    label: quickAccessForm.title,
-    url: quickAccessForm.url
-  });
+
+  if (quickAccessEditId.value) {
+    const idx = settings.quickAccessItems.findIndex(i => i.id === quickAccessEditId.value);
+    if (idx !== -1) {
+      settings.quickAccessItems[idx] = {
+        id: quickAccessEditId.value,
+        label: quickAccessForm.title,
+        url: quickAccessForm.content,
+        icon: quickAccessForm.icon,
+        actionType: quickAccessForm.actionType,
+        messageType: quickAccessForm.messageType,
+        faqId: quickAccessForm.faqId
+      };
+    }
+  } else {
+    const id = `qa-${qaCounter++}`;
+    settings.quickAccessItems.push({
+      id,
+      label: quickAccessForm.title,
+      url: quickAccessForm.content,
+      icon: quickAccessForm.icon,
+      actionType: quickAccessForm.actionType,
+      messageType: quickAccessForm.messageType,
+      faqId: quickAccessForm.faqId
+    });
+  }
   closeQuickAccessModal();
   emitToast("保存成功");
 };
@@ -3313,6 +3455,26 @@ watch(previewMode, (mode) => {
   border-color: var(--agent-color-brand-primary);
 }
 
+.wc-modal__textarea {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  color: var(--agent-color-text-primary);
+  display: block;
+  font-size: 14px;
+  outline: none;
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+  width: 100%;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.wc-modal__textarea:focus {
+  border-color: var(--agent-color-brand-primary);
+}
+
 .wc-modal__upload-row {
   align-items: center;
   display: flex;
@@ -3353,10 +3515,73 @@ watch(previewMode, (mode) => {
   display: none;
 }
 
+.wc-modal__upload.has-icon {
+  cursor: default;
+}
+
+.wc-modal__upload.has-icon:hover {
+  border-color: var(--agent-color-border-default);
+}
+
+.wc-modal__upload-preview-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wc-modal__upload-preview-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.wc-modal__upload-preview-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wc-modal__upload-preview-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wc-modal__upload-remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 1px solid #fff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  padding: 0;
+}
+
+.wc-modal__upload-remove:hover {
+  opacity: 0.8;
+}
+
 .wc-modal__hint {
   color: var(--agent-color-text-tertiary);
   font-size: 12px;
   margin: 0;
+}
+
+.wc-modal__error-hint {
+  color: #ef4444;
+  font-size: 12px;
+  margin: 8px 0 0 0;
 }
 
 .wc-modal__radio-group {
@@ -3382,6 +3607,81 @@ watch(previewMode, (mode) => {
   font-size: 14px;
 }
 
+.wc-modal__tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.wc-modal__tab {
+  flex: 1;
+  padding: 8px 16px;
+  background: #fff;
+  border: none;
+  color: var(--agent-color-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-right: 1px solid var(--agent-color-border-default);
+}
+
+.wc-modal__tab:last-child {
+  border-right: none;
+}
+
+.wc-modal__tab:hover {
+  background: #fafafa;
+}
+
+.wc-modal__tab.is-active {
+  background: var(--agent-color-brand-primary);
+  color: #fff;
+}
+
+.wc-modal__input-group {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.wc-modal__input-group:focus-within {
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-modal__input-prefix {
+  padding: 0 12px;
+  background: #fafafa;
+  border: none;
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.wc-modal__input-divider {
+  width: 1px;
+  background: var(--agent-color-border-default);
+  flex-shrink: 0;
+}
+
+.wc-modal__input--merged {
+  border: none;
+  border-radius: 0;
+  flex: 1;
+}
+
+.wc-modal__input--merged:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 .wc-modal__footer {
   border-top: 1px solid var(--agent-color-border-default);
   display: flex;
@@ -3397,6 +3697,7 @@ watch(previewMode, (mode) => {
   font-weight: 500;
   padding: 10px 24px;
   transition: opacity 0.15s;
+  width: 100%;
 }
 
 .wc-modal__btn--primary {
