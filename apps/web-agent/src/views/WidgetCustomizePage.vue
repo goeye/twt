@@ -163,6 +163,22 @@
                   rows="4"
                   @blur="autoSave"
                 />
+                <div v-if="block.key === 'welcome'" class="wc-welcome-btns">
+                  <label class="wc-modal__label">快捷按钮</label>
+                  <div class="wc-welcome-btns__list">
+                    <div v-for="btn in welcomeButtons[globalLang]" :key="btn.id" class="wc-welcome-btns__tag" @click="editWelcomeBtn(btn)">
+                      <span class="wc-welcome-btns__tag-label">{{ btn.label }}</span>
+                      <button type="button" class="wc-welcome-btns__remove" @click.stop="removeWelcomeBtn(btn.id)">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" /></svg>
+                      </button>
+                    </div>
+                    <button v-if="welcomeButtons[globalLang].length < 5" type="button" class="wc-welcome-btns__add" @click="openWelcomeBtnModal">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                      <span>添加按钮</span>
+                    </button>
+                  </div>
+                  <p class="wc-upload-hint">最多添加 5 个快捷按钮，访客点击后触发对应动作</p>
+                </div>
                 <div class="wc-rich-editor__images-area">
                   <div v-for="(img, idx) in autoReplyImages[block.key][globalLang]" :key="idx" class="wc-reply-images__item">
                     <img :src="img" class="wc-reply-images__thumb" alt="" />
@@ -596,6 +612,9 @@
                     </svg>
                   </span>
                 </div>
+                <div v-if="!isMsgStatusPreview && welcomePreviewButtons.length > 0 && activeAutoReplyKey === 'welcome'" class="wc-widget__welcome-btns">
+                  <span v-for="btn in welcomePreviewButtons" :key="btn.id" class="wc-widget__welcome-btn">{{ btn.label }}</span>
+                </div>
                 <div v-if="!isMsgStatusPreview" v-for="(src, idx) in chatPreviewImages" :key="idx" class="wc-widget__msg wc-widget__msg--agent">
                   <img :src="src" class="wc-widget__msg-img" alt="" />
                 </div>
@@ -816,6 +835,77 @@
       </div>
     </teleport>
 
+    <!-- Welcome Button Modal -->
+    <teleport to="body">
+      <div v-if="welcomeBtnModalOpen" class="wc-modal-overlay" @click.self="closeWelcomeBtnModal">
+        <div class="wc-modal">
+          <div class="wc-modal__header">
+            <h3 class="wc-modal__title">{{ welcomeBtnEditId ? '编辑快捷按钮' : '新建快捷按钮' }}</h3>
+            <button type="button" class="wc-modal__close" @click="closeWelcomeBtnModal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            </button>
+          </div>
+          <div class="wc-modal__body">
+            <div class="wc-modal__field">
+              <label class="wc-modal__label">按钮名称</label>
+              <input v-model="welcomeBtnForm.label" class="wc-modal__input" placeholder="请输入按钮名称" />
+            </div>
+            <div class="wc-modal__field">
+              <label class="wc-modal__label">按钮动作</label>
+              <div class="wc-modal__radio-group">
+                <label class="wc-modal__radio">
+                  <input v-model="welcomeBtnForm.actionType" type="radio" value="link" />
+                  <span>打开链接</span>
+                </label>
+                <label class="wc-modal__radio">
+                  <input v-model="welcomeBtnForm.actionType" type="radio" value="copy" />
+                  <span>复制文本</span>
+                </label>
+                <label class="wc-modal__radio">
+                  <input v-model="welcomeBtnForm.actionType" type="radio" value="message" />
+                  <span>发送消息</span>
+                </label>
+              </div>
+            </div>
+            <div v-if="welcomeBtnForm.actionType === 'link'" class="wc-modal__field">
+              <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入链接地址" />
+            </div>
+            <div v-if="welcomeBtnForm.actionType === 'copy'" class="wc-modal__field">
+              <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入需要复制的文本" />
+            </div>
+            <div v-if="welcomeBtnForm.actionType === 'message'" class="wc-modal__field">
+              <div class="wc-modal__input-group">
+                <select v-model="welcomeBtnForm.messageType" class="wc-modal__input-prefix">
+                  <option value="custom">自定义内容</option>
+                  <option value="faq">关联常见问题</option>
+                </select>
+                <div class="wc-modal__input-divider"></div>
+                <textarea
+                  v-if="welcomeBtnForm.messageType === 'custom'"
+                  v-model="welcomeBtnForm.content"
+                  class="wc-modal__textarea wc-modal__input--merged"
+                  placeholder="请输入消息内容"
+                  maxlength="2000"
+                  rows="3"
+                ></textarea>
+                <select
+                  v-if="welcomeBtnForm.messageType === 'faq'"
+                  v-model="welcomeBtnForm.faqId"
+                  class="wc-modal__input wc-modal__input--merged"
+                >
+                  <option value="" disabled>请选择常见问题</option>
+                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="wc-modal__footer">
+            <button type="button" class="wc-modal__btn wc-modal__btn--primary" @click="confirmWelcomeBtn">确定</button>
+          </div>
+        </div>
+      </div>
+    </teleport>
+
     <!-- Image Crop Modal -->
     <teleport to="body">
       <div v-if="cropModalOpen" class="wc-crop-overlay" @click.self="cropModalOpen = false">
@@ -957,6 +1047,115 @@ const autoReplyImages = reactive<Record<AutoReplyKey, Record<LangKey, string[]>>
   sessionOffline: { en: [], "zh-cn": [], "zh-tw": [] },
   chatOffline: { en: [], "zh-cn": [], "zh-tw": [] }
 });
+
+// Welcome Buttons
+interface WelcomeButton {
+  id: string;
+  label: string;
+  actionType: "link" | "copy" | "message";
+  content: string;
+  messageType?: "custom" | "faq";
+  faqId?: string;
+}
+
+const welcomeButtons = reactive<Record<LangKey, WelcomeButton[]>>({
+  en: [],
+  "zh-cn": [],
+  "zh-tw": []
+});
+
+let welcomeBtnCounter = 1;
+const welcomeBtnModalOpen = ref(false);
+const welcomeBtnEditId = ref<string | null>(null);
+
+const welcomeBtnForm = reactive({
+  label: "",
+  actionType: "link" as "link" | "copy" | "message",
+  content: "",
+  messageType: "custom" as "custom" | "faq",
+  faqId: ""
+});
+
+const welcomePreviewButtons = computed(() => welcomeButtons[globalLang.value]);
+
+const openWelcomeBtnModal = () => {
+  welcomeBtnEditId.value = null;
+  welcomeBtnForm.label = "";
+  welcomeBtnForm.actionType = "link";
+  welcomeBtnForm.content = "";
+  welcomeBtnForm.messageType = "custom";
+  welcomeBtnForm.faqId = "";
+  welcomeBtnModalOpen.value = true;
+};
+
+const closeWelcomeBtnModal = () => {
+  welcomeBtnModalOpen.value = false;
+  welcomeBtnEditId.value = null;
+};
+
+const editWelcomeBtn = (btn: WelcomeButton) => {
+  welcomeBtnEditId.value = btn.id;
+  welcomeBtnForm.label = btn.label;
+  welcomeBtnForm.actionType = btn.actionType;
+  welcomeBtnForm.content = btn.content;
+  welcomeBtnForm.messageType = btn.messageType || "custom";
+  welcomeBtnForm.faqId = btn.faqId || "";
+  welcomeBtnModalOpen.value = true;
+};
+
+const confirmWelcomeBtn = () => {
+  if (!welcomeBtnForm.label.trim()) {
+    emitToast("请输入按钮名称");
+    return;
+  }
+  if (welcomeBtnForm.actionType === "link" || welcomeBtnForm.actionType === "copy") {
+    if (!welcomeBtnForm.content.trim()) {
+      emitToast(welcomeBtnForm.actionType === "link" ? "请输入链接地址" : "请输入需要复制的文本");
+      return;
+    }
+  } else if (welcomeBtnForm.actionType === "message") {
+    if (welcomeBtnForm.messageType === "custom" && !welcomeBtnForm.content.trim()) {
+      emitToast("请输入消息内容");
+      return;
+    }
+    if (welcomeBtnForm.messageType === "faq") {
+      if (!welcomeBtnForm.faqId) {
+        emitToast("请选择常见问题");
+        return;
+      }
+      if (!faqOptions.value.some(f => f.id === welcomeBtnForm.faqId)) {
+        emitToast("所选常见问题已被删除，请重新选择");
+        welcomeBtnForm.faqId = "";
+        return;
+      }
+    }
+  }
+
+  const lang = globalLang.value;
+  const btnData: WelcomeButton = {
+    id: welcomeBtnEditId.value || `wb-${welcomeBtnCounter++}`,
+    label: welcomeBtnForm.label,
+    actionType: welcomeBtnForm.actionType,
+    content: welcomeBtnForm.content,
+    messageType: welcomeBtnForm.messageType,
+    faqId: welcomeBtnForm.faqId
+  };
+
+  if (welcomeBtnEditId.value) {
+    const idx = welcomeButtons[lang].findIndex(b => b.id === welcomeBtnEditId.value);
+    if (idx !== -1) welcomeButtons[lang][idx] = btnData;
+  } else {
+    welcomeButtons[lang].push(btnData);
+  }
+  closeWelcomeBtnModal();
+  emitToast("保存成功");
+};
+
+const removeWelcomeBtn = (id: string) => {
+  const lang = globalLang.value;
+  const idx = welcomeButtons[lang].findIndex(b => b.id === id);
+  if (idx !== -1) welcomeButtons[lang].splice(idx, 1);
+};
 
 const replyImageInput = ref<HTMLInputElement>();
 const uploadingReplyKey = ref<AutoReplyKey>("welcome");
@@ -2179,6 +2378,76 @@ watch(previewMode, (mode) => {
   margin: 0;
 }
 
+/* Welcome Buttons - Edit Area */
+.wc-welcome-btns {
+  margin: 12px 0;
+}
+
+.wc-welcome-btns__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.wc-welcome-btns__tag {
+  align-items: center;
+  border: 1px solid var(--agent-color-brand-primary);
+  border-radius: 6px;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 6px;
+  padding: 6px 10px;
+  transition: background 0.15s;
+}
+
+.wc-welcome-btns__tag:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.wc-welcome-btns__tag-label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wc-welcome-btns__remove {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  display: flex;
+  opacity: 0.6;
+  padding: 0;
+}
+
+.wc-welcome-btns__remove:hover {
+  opacity: 1;
+}
+
+.wc-welcome-btns__add {
+  align-items: center;
+  background: none;
+  border: 1px dashed var(--agent-color-border-default);
+  border-radius: 6px;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 4px;
+  padding: 6px 12px;
+  transition: all 0.15s;
+}
+
+.wc-welcome-btns__add:hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
 .wc-rich-editor__images-area {
   display: flex;
   flex-wrap: wrap;
@@ -2967,6 +3236,28 @@ watch(previewMode, (mode) => {
   color: var(--agent-color-text-secondary);
   font-size: 10px;
   padding: 3px 10px;
+}
+
+/* Welcome Buttons - Preview */
+.wc-widget__welcome-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 14px 8px;
+}
+
+.wc-widget__welcome-btn {
+  border: 1px solid var(--agent-color-brand-primary);
+  border-radius: 999px;
+  color: var(--agent-color-brand-primary);
+  font-size: 10px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.wc-widget__welcome-btn:hover {
+  background: rgba(59, 130, 246, 0.08);
 }
 
 /* Input area */
