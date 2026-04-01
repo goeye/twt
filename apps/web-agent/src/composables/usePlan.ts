@@ -20,7 +20,7 @@ interface PlanState {
 
 // ---- Mock 数据（后续替换为后端接口） ----
 const currentPlan = reactive<PlanState>({
-  level: 'free',
+  level: 'pro',
   expireAt: null,
   isExpired: false,
 })

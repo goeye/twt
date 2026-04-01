@@ -1,7 +1,12 @@
 <template>
   <section class="agent-content-page customer-page">
     <header class="agent-content-header">
-      <h1 class="agent-content-title">{{ activeKey === 'online-customer' ? '在线客户' : '全部客户' }}</h1>
+      <h1 class="agent-content-title">
+        {{ activeKey === 'online-customer' ? '在线客户' : '全部客户' }}
+        <span v-if="activeKey === 'online-customer' && currentPage > 1 && newCustomersCount > 0" class="customer-new-badge" @click="goToFirstPage">
+          {{ newCustomersCount }} 个新客户 · 点击查看
+        </span>
+      </h1>
     </header>
 
     <!-- 筛选栏 -->
@@ -84,7 +89,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in onlineCustomerList" :key="item.id" class="doc-table__row">
+          <tr v-for="item in paginatedOnlineCustomers" :key="item.id" class="doc-table__row">
             <td class="doc-table__td">{{ item.customerId }}</td>
             <td class="doc-table__td">{{ item.remark }}</td>
             <td class="doc-table__td"><a class="customer-name-link" href="javascript:void(0)" @click.prevent="openVisitorDrawer(item)">{{ item.name }}</a></td>
@@ -187,18 +192,18 @@
 
     <!-- 分页 -->
     <div class="doc-pagination">
-      <span class="doc-pagination__total">总条数：{{ activeKey === 'online-customer' ? onlineCustomerList.length : allCustomerList.length }}</span>
+      <span class="doc-pagination__total">总条数：{{ activeKey === 'online-customer' ? totalOnlineCustomers : allCustomerList.length }}</span>
       <div class="doc-pagination__pages">
-        <button type="button" class="doc-pagination__btn" disabled>
+        <button type="button" class="doc-pagination__btn" :disabled="currentPage === 1" @click="prevPage">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <span class="doc-pagination__current">1</span>
-        <button type="button" class="doc-pagination__btn" disabled>
+        <span class="doc-pagination__current">{{ currentPage }}</span>
+        <button type="button" class="doc-pagination__btn" :disabled="currentPage === totalPages" @click="nextPage">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
       <div class="doc-pagination__size">
-        20 条/页
+        {{ pageSize }} 条/页
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
@@ -313,7 +318,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
 import VisitorInfoDrawer, { type VisitorDrawerData } from "../components/VisitorInfoDrawer.vue";
 
 type CustomerNavKey = "online-customer" | "all-customer";
@@ -326,6 +331,13 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "navigate-to-inbox", queueKey: string): void;
 }>();
+
+// 分页相关
+const currentPage = ref(1);
+const pageSize = ref(10);
+const newCustomersCount = ref(0);
+let refreshTimer: number | null = null;
+let nextCustomerId = 106;
 
 const visitorDrawerOpen = ref(false);
 const selectedVisitor = ref<VisitorDrawerData | null>(null);
@@ -393,6 +405,26 @@ const onlineCustomerList = ref<OnlineCustomerItem[]>([
   { id: 103, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", channelType: "web", firstVisit: "2026-01-10 09:15", lastPage: "/dashboard", ip: "203.198.45.67" },
   { id: 104, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", channelType: "email", firstVisit: "2026-03-17 11:08", lastPage: "/support/tickets", ip: "222.73.110.88" },
   { id: 105, customerId: "CU-2005", remark: "试用客户", name: "David", email: "david@startup.co", phone: "–", tag: "普通", channelType: "widget", firstVisit: "2026-03-16 16:45", lastPage: "/demo", ip: "185.220.101.33" },
+  { id: 106, customerId: "CU-2006", remark: "–", name: "王芳", email: "wangfang@qq.com", phone: "+86 136-1111-2222", tag: "普通", channelType: "web", firstVisit: "2026-03-17 09:00", lastPage: "/features", ip: "192.168.10.10" },
+  { id: 107, customerId: "CU-2007", remark: "重点客户", name: "John Smith", email: "john@business.com", phone: "+1 555-0301", tag: "VIP", channelType: "email", firstVisit: "2026-03-17 09:30", lastPage: "/enterprise", ip: "74.125.201.20" },
+  { id: 108, customerId: "CU-2008", remark: "–", name: "刘强", email: "liuqiang@163.com", phone: "+86 138-2222-3333", tag: "–", channelType: "web", firstVisit: "2026-03-17 10:00", lastPage: "/products", ip: "116.228.90.30" },
+  { id: 109, customerId: "CU-2009", remark: "老客户", name: "Emma Wilson", email: "emma@corp.io", phone: "+44 7700-901234", tag: "VIP", channelType: "widget", firstVisit: "2026-03-17 10:30", lastPage: "/dashboard", ip: "203.198.46.40" },
+  { id: 110, customerId: "CU-2010", remark: "–", name: "赵敏", email: "zhaomin@gmail.com", phone: "–", tag: "普通", channelType: "web", firstVisit: "2026-03-17 11:00", lastPage: "/pricing", ip: "222.73.111.50" },
+  { id: 111, customerId: "CU-2011", remark: "新客户", name: "Robert Lee", email: "robert@startup.net", phone: "+1 555-0402", tag: "普通", channelType: "email", firstVisit: "2026-03-17 11:30", lastPage: "/trial", ip: "185.220.102.60" },
+  { id: 112, customerId: "CU-2012", remark: "–", name: "陈静", email: "chenjing@qq.com", phone: "+86 139-3333-4444", tag: "–", channelType: "widget", firstVisit: "2026-03-17 12:00", lastPage: "/support", ip: "192.168.11.70" },
+  { id: 113, customerId: "CU-2013", remark: "战略客户", name: "Lisa Brown", email: "lisa@partner.com", phone: "+852 9876-6789", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 12:30", lastPage: "/partners", ip: "74.125.202.80" },
+  { id: 114, customerId: "CU-2014", remark: "–", name: "杨洋", email: "yangyang@163.com", phone: "+86 138-4444-5555", tag: "普通", channelType: "email", firstVisit: "2026-03-17 13:00", lastPage: "/products", ip: "116.228.91.90" },
+  { id: 115, customerId: "CU-2015", remark: "–", name: "Michael Davis", email: "michael@tech.io", phone: "–", tag: "–", channelType: "web", firstVisit: "2026-03-17 13:30", lastPage: "/docs", ip: "203.198.47.100" },
+  { id: 116, customerId: "CU-2016", remark: "潜在VIP", name: "周杰", email: "zhoujie@gmail.com", phone: "+86 136-5555-6666", tag: "普通", channelType: "widget", firstVisit: "2026-03-17 14:00", lastPage: "/pricing", ip: "222.73.112.110" },
+  { id: 117, customerId: "CU-2017", remark: "–", name: "Jennifer Taylor", email: "jennifer@business.net", phone: "+1 555-0503", tag: "VIP", channelType: "email", firstVisit: "2026-03-17 14:30", lastPage: "/enterprise", ip: "185.220.103.120" },
+  { id: 118, customerId: "CU-2018", remark: "重要客户", name: "吴磊", email: "wulei@qq.com", phone: "+86 139-6666-7777", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 15:00", lastPage: "/dashboard", ip: "192.168.12.130" },
+  { id: 119, customerId: "CU-2019", remark: "–", name: "Daniel Martinez", email: "daniel@startup.com", phone: "+44 7700-902345", tag: "普通", channelType: "widget", firstVisit: "2026-03-17 15:30", lastPage: "/features", ip: "74.125.203.140" },
+  { id: 120, customerId: "CU-2020", remark: "–", name: "孙丽", email: "sunli@163.com", phone: "–", tag: "–", channelType: "email", firstVisit: "2026-03-17 16:00", lastPage: "/support", ip: "116.228.92.150" },
+  { id: 121, customerId: "CU-2021", remark: "合作伙伴", name: "Christopher White", email: "chris@partner.io", phone: "+852 9876-7890", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 16:30", lastPage: "/partners", ip: "203.198.48.160" },
+  { id: 122, customerId: "CU-2022", remark: "–", name: "郑浩", email: "zhenghao@gmail.com", phone: "+86 138-7777-8888", tag: "普通", channelType: "widget", firstVisit: "2026-03-17 17:00", lastPage: "/products", ip: "222.73.113.170" },
+  { id: 123, customerId: "CU-2023", remark: "新注册", name: "Amanda Johnson", email: "amanda@tech.com", phone: "+1 555-0604", tag: "普通", channelType: "email", firstVisit: "2026-03-17 17:30", lastPage: "/signup", ip: "185.220.104.180" },
+  { id: 124, customerId: "CU-2024", remark: "–", name: "马超", email: "machao@qq.com", phone: "+86 139-8888-9999", tag: "–", channelType: "web", firstVisit: "2026-03-17 18:00", lastPage: "/demo", ip: "192.168.13.190" },
+  { id: 125, customerId: "CU-2025", remark: "–", name: "Matthew Anderson", email: "matthew@business.io", phone: "–", tag: "普通", channelType: "widget", firstVisit: "2026-03-17 18:30", lastPage: "/home", ip: "74.125.204.200" },
 ]);
 
 const allCustomerList = ref<CustomerItem[]>([
@@ -402,6 +434,15 @@ const allCustomerList = ref<CustomerItem[]>([
   { id: 4, customerId: "CU-2003", remark: "合作伙伴", name: "Mike Chen", email: "mike@partner.io", phone: "+852 9876-5432", tag: "VIP", channelType: "email", firstVisit: "2026-01-10 09:15", lastVisit: "2026-03-17 09:15:30", traceCount: 22, ip: "203.198.45.67" },
   { id: 5, customerId: "CU-2004", remark: "–", name: "李娜", email: "lina@163.com", phone: "+86 159-8765-4321", tag: "–", channelType: "web", firstVisit: "2026-03-17 11:08", lastVisit: "2026-03-17 11:08:44", traceCount: 1, ip: "222.73.110.88" },
 ]);
+
+// 计算属性
+const totalOnlineCustomers = computed(() => onlineCustomerList.value.length);
+const totalPages = computed(() => Math.ceil(totalOnlineCustomers.value / pageSize.value));
+const paginatedOnlineCustomers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return onlineCustomerList.value.slice(start, end);
+});
 
 const handleReset = () => {
   searchField.value = "id";
@@ -579,6 +620,76 @@ const goToEmailSettings = () => {
   showEmailConfigGuideModal.value = false;
   window.location.hash = "#/settings/email";
 };
+
+// 分页方法
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const goToFirstPage = () => {
+  currentPage.value = 1;
+  newCustomersCount.value = 0;
+};
+
+// Mock 新客户数据
+const mockNewCustomer = (): OnlineCustomerItem => {
+  const names = ["王芳", "李强", "赵敏", "刘洋", "陈静", "Kevin", "Linda", "Frank"];
+  const channels: Array<"web" | "widget" | "email"> = ["web", "widget", "email"];
+  const tags = ["VIP", "普通", "–"];
+  const name = names[Math.floor(Math.random() * names.length)];
+  const now = new Date();
+  const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  return {
+    id: nextCustomerId++,
+    customerId: `CU-${2000 + nextCustomerId}`,
+    remark: Math.random() > 0.5 ? `${name}-备注` : "–",
+    name,
+    email: `${name.toLowerCase().replace(/\s/g, '')}@example.com`,
+    phone: Math.random() > 0.5 ? `+86 ${Math.floor(Math.random() * 200) + 130}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}` : "–",
+    tag: tags[Math.floor(Math.random() * tags.length)],
+    channelType: channels[Math.floor(Math.random() * channels.length)],
+    firstVisit: timeStr,
+    lastPage: ["/home", "/pricing", "/products", "/dashboard"][Math.floor(Math.random() * 4)],
+    ip: `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`
+  };
+};
+
+// 自动刷新逻辑
+const startAutoRefresh = () => {
+  refreshTimer = window.setInterval(() => {
+    if (Math.random() > 0.6) {
+      const newCustomer = mockNewCustomer();
+      onlineCustomerList.value.unshift(newCustomer);
+
+      if (currentPage.value === 1) {
+        // 第一页自动刷新，无需提示
+      } else {
+        // 非第一页，增加提示计数
+        newCustomersCount.value++;
+      }
+    }
+  }, 8000);
+};
+
+const stopAutoRefresh = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+};
+
+onMounted(() => {
+  startAutoRefresh();
+});
+
+onUnmounted(() => {
+  stopAutoRefresh();
+});
 </script>
 
 <style scoped>
@@ -593,6 +704,24 @@ const goToEmailSettings = () => {
 }
 
 /* 筛选栏 */
+/* 新客户徽章 */
+.customer-new-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 12px;
+  padding: 4px 10px;
+  transition: all 0.2s;
+}
+
+.customer-new-badge:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 .customer-filter-bar {
   align-items: center;
   display: flex;

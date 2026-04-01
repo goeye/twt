@@ -25,7 +25,7 @@ function shouldFail(): boolean {
 }
 
 function mockTranslateText(text: string, targetLang: string): string {
-  return `${text} (已翻译)`;
+  return `${text}`;
 }
 
 export async function mockBatchTranslate(
