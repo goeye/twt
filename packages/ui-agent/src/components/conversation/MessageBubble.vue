@@ -1,7 +1,7 @@
 <template>
   <article
     class="message"
-    :class="`message--${role}`"
+    :class="[`message--${role}`, { 'message--highlighted': highlighted }]"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false; moreMenuOpen = false; translatePanelOpen = false"
   >
@@ -178,6 +178,7 @@ const props = withDefaults(
     sendStatus?: 'sending' | 'failed' | 'sent';
     translationLanguages?: { label: string; value: string }[];
     translation?: MessageTranslation;
+    highlighted?: boolean;
   }>(),
   {
     avatarText: "?",
@@ -480,6 +481,11 @@ const parsedEmail = computed(() => {
 
 .message--customer .message__bubble {
   background: #ffffff;
+}
+
+.message--highlighted .message__bubble {
+  background: rgba(47, 107, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.2);
 }
 
 .message--agent .message__bubble {

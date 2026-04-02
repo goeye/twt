@@ -322,7 +322,8 @@
             :avatar-text="item.avatarText"
             :channel-type="item.channelType"
             :customer-name="item.customerName"
-            :preview="item.preview"
+            :preview="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length === 1 ? sessionMatchResults.get(item.id)!.firstMatchContent : item.preview"
+            :match-count="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length > 1 ? sessionMatchResults.get(item.id)!.matchedIds.length : undefined"
             :unread-count="item.unreadCount"
             :updated-at="item.updatedAt"
             :show-online-status="item.channelType === 'web'"
@@ -358,12 +359,23 @@
           @delete-chat="showTopToast('删除聊天功能开发中')"
         />
 
-        <div class="chat-pane__stream agent-scroll">
+        <div v-if="isSearchNavVisible" class="chat-search-nav">
+          <span class="chat-search-nav__info">{{ currentSearchIndex + 1 }}/{{ searchMatchIds.length }} 匹配</span>
+          <button type="button" class="chat-search-nav__btn" aria-label="上一条" @click="goToPrevMatch">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 8.5L7 4.5L11 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="chat-search-nav__btn" aria-label="下一条" @click="goToNextMatch">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div ref="chatStreamRef" class="chat-pane__stream agent-scroll">
           <p class="chat-pane__start-time">开始时间 {{ activeSession?.startedAt ?? '--' }}</p>
 
           <MessageBubble
             v-for="message in activeMessages"
             :key="message.id"
+            :data-message-id="message.id"
             :avatar-color="message.avatarColor"
             :avatar-text="message.avatarText"
             :avatar-url="message.avatarUrl"
@@ -378,6 +390,7 @@
             :translation-languages="translationLanguages"
             :send-status="message.sendStatus"
             :translation="message.translation"
+            :highlighted="searchMatchIds.includes(message.id) && searchMatchIds[currentSearchIndex] === message.id"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
@@ -717,7 +730,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ArchiveSubNav from "./components/ArchiveSubNav.vue";
 import ArchiveAssignModal from "./components/archive/ArchiveAssignModal.vue";
@@ -1247,7 +1260,7 @@ const reportNavGroups = [
 const queueGroupSeed: SessionQueueGroup[] = [
   {
     key: "online-session",
-    title: "网页",
+    title: "在线会话",
     items: [
       { key: "pending-reply", label: "待回复", leadingEmoji: "👋" },
       { key: "queueing", label: "排队中", leadingEmoji: "⌛" },
@@ -1696,6 +1709,48 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "客服主管",
       content: "已帮你核对物流状态，包裹正在派送中，预计今晚 20:00 前送达。",
       time: "10:33"
+    },
+    {
+      id: "m-103",
+      role: "customer",
+      sender: "微微",
+      content: "好的，那我的铂金会员权益什么时候能生效？我刚买的套餐。",
+      time: "10:35"
+    },
+    {
+      id: "m-104",
+      role: "agent",
+      sender: "客服主管",
+      content: "铂金会员权益在支付成功后 24 小时内自动激活，您的套餐已于昨天 15:00 购买，今天应该已经生效了。",
+      time: "10:36"
+    },
+    {
+      id: "m-105",
+      role: "customer",
+      sender: "微微",
+      content: "我看了一下，套餐里说包含专属客服通道，怎么使用？",
+      time: "10:38"
+    },
+    {
+      id: "m-106",
+      role: "agent",
+      sender: "客服主管",
+      content: "专属客服通道会在您下次登录时自动开启，届时页面右下角会出现金色的铂金专属入口，响应时间在 30 秒以内。",
+      time: "10:39"
+    },
+    {
+      id: "m-107",
+      role: "customer",
+      sender: "微微",
+      content: "套餐到期后会自动续费吗？",
+      time: "10:41"
+    },
+    {
+      id: "m-108",
+      role: "agent",
+      sender: "客服主管",
+      content: "不会自动续费，到期前 7 天会通过短信和站内信提醒您，您可以手动选择续费或更换其他套餐。",
+      time: "10:42"
     }
   ],
   "s-6002": [
@@ -1730,6 +1785,34 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "刘昊",
       content: "我们正在排查，请提供最近 10 分钟的请求 ID 样本。",
       time: "09:09"
+    },
+    {
+      id: "m-403",
+      role: "customer",
+      sender: "Rita",
+      content: "这是请求 ID 列表：req_8a3f、req_9b2c、req_7d4e，都是 429 响应。",
+      time: "09:12"
+    },
+    {
+      id: "m-404",
+      role: "agent",
+      sender: "刘昊",
+      content: "已定位到问题，你们的请求触发了新上线的速率限制规则，每秒请求上限从 100 调整为 50。建议在客户端加入请求队列和指数退避重试。",
+      time: "09:18"
+    },
+    {
+      id: "m-405",
+      role: "customer",
+      sender: "Rita",
+      content: "这个限流调整有通知吗？我们完全不知道请求上限变了。",
+      time: "09:20"
+    },
+    {
+      id: "m-406",
+      role: "agent",
+      sender: "刘昊",
+      content: "非常抱歉，这次限流调整确实通知不到位，我已反馈给产品团队。短期内可以为您的账户临时提升到每秒 80 次请求，您看是否可以？",
+      time: "09:22"
     }
   ],
   "s-6005": [
@@ -1739,6 +1822,20 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "陈悦",
       content: "退款申请已提交财务，预计 1-2 个工作日原路退回。",
       time: "昨天 18:30"
+    },
+    {
+      id: "m-502",
+      role: "customer",
+      sender: "张明",
+      content: "好的，退款到账后会有通知吗？",
+      time: "昨天 18:32"
+    },
+    {
+      id: "m-503",
+      role: "agent",
+      sender: "陈悦",
+      content: "会的，退款成功后系统会自动发送短信和邮件通知，请留意查收。",
+      time: "昨天 18:33"
     }
   ],
   "s-6006": [
@@ -1748,6 +1845,13 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "Leo",
       content: "今天直播回放几点能看？",
       time: "06:54"
+    },
+    {
+      id: "m-602",
+      role: "agent",
+      sender: "客服主管",
+      content: "直播回放一般在结束后 2 小时内上架，今天的直播预计下午 3 点结束，回放大约 5 点可以观看。",
+      time: "07:01"
     }
   ],
   "s-7001": [
@@ -2106,7 +2210,7 @@ const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
   { key: "customerIdentifier", label: "客户标识" },
   { key: "visitorName", label: "访客姓名" },
   { key: "visitorAlias", label: "访客备注名" },
-  { key: "conversationRecord", label: "会话记录" },
+  { key: "conversationRecord", label: "聊天记录" },
 ];
 
 function showSearchFieldDropdown() {
@@ -2304,6 +2408,31 @@ const showSessionCategoryFilter = computed(() => {
   return keys.includes(activeQueueKey.value);
 });
 
+const sessionMatchResults = computed(() => {
+  const results = new Map<string, { matchedIds: string[]; firstMatchContent: string }>();
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  if (!keyword) return results;
+  const field = searchFieldType.value;
+  if (field !== "all" && field !== "conversationRecord") return results;
+  for (const session of queueSessionList.value) {
+    const messages = messageMap.value[session.id] ?? [];
+    const matchedIds: string[] = [];
+    let firstContent = "";
+    for (const msg of messages) {
+      if (msg.role === "system") continue;
+      if (msg.contentType === "html") continue;
+      if (msg.content.toLowerCase().includes(keyword)) {
+        matchedIds.push(msg.id);
+        if (!firstContent) firstContent = msg.content;
+      }
+    }
+    if (matchedIds.length > 0) {
+      results.set(session.id, { matchedIds, firstMatchContent: firstContent });
+    }
+  }
+  return results;
+});
+
 const visibleSessions = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase();
   return queueSessionList.value.filter((session) => {
@@ -2314,7 +2443,7 @@ const visibleSessions = computed(() => {
     if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
     if (field === "visitorName") return session.visitorName.toLowerCase().includes(keyword);
     if (field === "visitorAlias") return (session.remarkName ?? "").toLowerCase().includes(keyword);
-    if (field === "conversationRecord") return session.preview.toLowerCase().includes(keyword);
+    if (field === "conversationRecord") return sessionMatchResults.value.has(session.id);
     return (
       session.customerName.toLowerCase().includes(keyword) ||
       session.preview.toLowerCase().includes(keyword)
@@ -2341,6 +2470,48 @@ const activeSessionFromOptions = computed(() => {
   if (from && connectedGmailAccounts.value.includes(from)) return connectedGmailAccounts.value;
   return [];
 });
+
+// 搜索导航
+const chatStreamRef = ref<HTMLElement | null>(null);
+const currentSearchIndex = ref(0);
+
+const searchMatchIds = computed(() => {
+  const session = activeSession.value;
+  if (!session) return [] as string[];
+  const result = sessionMatchResults.value.get(session.id);
+  return result?.matchedIds ?? [];
+});
+
+const isSearchNavVisible = computed(() => searchMatchIds.value.length > 1);
+
+function scrollToMessage(messageId: string) {
+  nextTick(() => {
+    const el = chatStreamRef.value?.querySelector(`[data-message-id="${messageId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+}
+
+function goToPrevMatch() {
+  if (searchMatchIds.value.length === 0) return;
+  currentSearchIndex.value = (currentSearchIndex.value - 1 + searchMatchIds.value.length) % searchMatchIds.value.length;
+  scrollToMessage(searchMatchIds.value[currentSearchIndex.value]);
+}
+
+function goToNextMatch() {
+  if (searchMatchIds.value.length === 0) return;
+  currentSearchIndex.value = (currentSearchIndex.value + 1) % searchMatchIds.value.length;
+  scrollToMessage(searchMatchIds.value[currentSearchIndex.value]);
+}
+
+watch([activeSessionId, searchMatchIds], () => {
+  currentSearchIndex.value = 0;
+  if (searchMatchIds.value.length > 0) {
+    scrollToMessage(searchMatchIds.value[0]);
+  }
+});
+
 
 const activeMessages = computed<DisplayMessage[]>(() => {
   const session = activeSession.value;
@@ -4396,6 +4567,41 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--agent-color-border-default);
   border-radius: 0;
   box-shadow: none;
+}
+
+.chat-search-nav {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: var(--agent-space-8);
+  justify-content: center;
+  padding: var(--agent-space-8) var(--agent-space-16);
+}
+
+.chat-search-nav__info {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.chat-search-nav__btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  transition: background-color var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
+  width: 26px;
+}
+
+.chat-search-nav__btn:hover {
+  background: var(--agent-color-bg-panel);
+  color: var(--agent-color-text-primary);
 }
 
 .chat-pane__stream {

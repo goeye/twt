@@ -21,8 +21,11 @@
         <span class="session-item__time">{{ updatedAt }}</span>
       </div>
       <div class="session-item__row">
-        <span class="session-item__preview">{{ preview }}</span>
-        <span v-if="unreadCount && unreadCount > 0" class="session-item__unread-dot"></span>
+        <span v-if="matchCount && matchCount > 0" class="session-item__match-count">{{ matchCount }}条相关记录</span>
+        <template v-else>
+          <span class="session-item__preview">{{ preview }}</span>
+          <span v-if="unreadCount && unreadCount > 0" class="session-item__unread-dot"></span>
+        </template>
       </div>
     </div>
   </button>
@@ -45,6 +48,7 @@ withDefaults(
     channelType?: ChannelType;
     showOnlineStatus?: boolean;
     online?: boolean;
+    matchCount?: number;
   }>(),
   {
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
@@ -161,6 +165,13 @@ withDefaults(
   flex-shrink: 0;
   height: 8px;
   width: 8px;
+}
+
+.session-item__match-count {
+  color: var(--agent-color-brand-primary);
+  flex-shrink: 0;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .session-item__channel-icon {
