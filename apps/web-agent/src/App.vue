@@ -266,10 +266,36 @@
 
           <div class="inbox-pane__search-row">
             <div class="inbox-pane__search-box">
-              <input v-model="searchKeyword" class="agent-input inbox-pane__search-input" placeholder="搜索会话" />
-              <button type="button" class="inbox-pane__search-icon-btn" aria-label="筛选">
-                <AgentIcon name="filter" :size="14" />
-              </button>
+              <input v-model="searchKeyword" class="agent-input inbox-pane__search-input" placeholder="搜索" />
+              <div
+                class="inbox-pane__search-filter-wrapper"
+                @mouseenter="showSearchFieldDropdown"
+                @mouseleave="hideSearchFieldDropdown"
+              >
+                <button
+                  type="button"
+                  class="inbox-pane__search-icon-btn"
+                  :class="{ 'inbox-pane__search-icon-btn--active': searchFieldType !== 'all' }"
+                  aria-label="筛选"
+                >
+                  <AgentIcon name="filter" :size="14" />
+                </button>
+                <div v-show="searchFieldDropdownVisible" class="inbox-pane__search-field-dropdown">
+                  <button
+                    v-for="opt in searchFieldOptions"
+                    :key="opt.key"
+                    type="button"
+                    class="inbox-pane__search-field-option"
+                    :class="{ 'inbox-pane__search-field-option--selected': searchFieldType === opt.key }"
+                    @click="selectSearchField(opt.key)"
+                  >
+                    <span>{{ opt.label }}</span>
+                    <span v-if="searchFieldType === opt.key" class="inbox-pane__search-field-check">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="#2f6bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2070,6 +2096,35 @@ const hasCustomerIdentity = ref(true);
 type SessionFilterType = "all" | "visitor" | "customer";
 const sessionFilterType = ref<SessionFilterType>("all");
 
+type SearchFieldType = "all" | "customerIdentifier" | "visitorName" | "visitorAlias" | "conversationRecord";
+const searchFieldType = ref<SearchFieldType>("all");
+const searchFieldDropdownVisible = ref(false);
+let searchFieldDropdownTimer: ReturnType<typeof setTimeout> | null = null;
+
+const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
+  { key: "all", label: "全部" },
+  { key: "customerIdentifier", label: "客户标识" },
+  { key: "visitorName", label: "访客姓名" },
+  { key: "visitorAlias", label: "访客备注名" },
+  { key: "conversationRecord", label: "会话记录" },
+];
+
+function showSearchFieldDropdown() {
+  if (searchFieldDropdownTimer) clearTimeout(searchFieldDropdownTimer);
+  searchFieldDropdownVisible.value = true;
+}
+
+function hideSearchFieldDropdown() {
+  searchFieldDropdownTimer = setTimeout(() => {
+    searchFieldDropdownVisible.value = false;
+  }, 150);
+}
+
+function selectSearchField(key: SearchFieldType) {
+  searchFieldType.value = key;
+  searchFieldDropdownVisible.value = false;
+}
+
 const queueGroups = computed(() =>
   queueGroupSeed.map((group) => ({
     ...group,
@@ -2232,7 +2287,7 @@ const currentModuleLabel = computed(() => {
 
 const queueSessionList = computed(() => displaySessions.value.filter((session) => session.queueKey === activeQueueKey.value));
 
-watch(activeQueueKey, () => { sessionFilterType.value = "all"; });
+watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; });
 
 const filterCounts = computed(() => {
   const list = queueSessionList.value;
@@ -2254,8 +2309,13 @@ const visibleSessions = computed(() => {
   return queueSessionList.value.filter((session) => {
     if (sessionFilterType.value === "visitor" && session.tag !== "访客") return false;
     if (sessionFilterType.value === "customer" && session.tag !== "客户" && session.tag !== "VIP") return false;
+    if (keyword.length === 0) return true;
+    const field = searchFieldType.value;
+    if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
+    if (field === "visitorName") return session.visitorName.toLowerCase().includes(keyword);
+    if (field === "visitorAlias") return (session.remarkName ?? "").toLowerCase().includes(keyword);
+    if (field === "conversationRecord") return session.preview.toLowerCase().includes(keyword);
     return (
-      keyword.length === 0 ||
       session.customerName.toLowerCase().includes(keyword) ||
       session.preview.toLowerCase().includes(keyword)
     );
@@ -4210,11 +4270,58 @@ onBeforeUnmount(() => {
   display: inline-flex;
   height: 24px;
   justify-content: center;
+  width: 24px;
+}
+
+.inbox-pane__search-icon-btn--active {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.inbox-pane__search-filter-wrapper {
   position: absolute;
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
+}
+
+.inbox-pane__search-field-dropdown {
+  background: #fff;
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  min-width: 160px;
+  padding: var(--agent-space-8) 0;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.inbox-pane__search-field-option {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: var(--agent-font-size-md);
+  gap: var(--agent-space-8);
+  justify-content: space-between;
+  line-height: 1.4;
+  padding: 10px var(--agent-space-16);
+  text-align: left;
+  transition: background-color var(--agent-motion-fast) ease;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.inbox-pane__search-field-option:hover {
+  background: var(--agent-color-bg-panel);
+}
+
+.inbox-pane__search-field-check {
+  display: inline-flex;
+  flex-shrink: 0;
 }
 
 .inbox-pane__filter-row {

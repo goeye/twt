@@ -2,7 +2,7 @@
   <section class="session-list">
     <header class="session-list__header">
       <h3 class="agent-title">会话列表</h3>
-      <input class="agent-input" :value="keyword" placeholder="搜索会话" @input="onKeywordInput" />
+      <input class="agent-input" :value="keyword" placeholder="搜索" @input="onKeywordInput" />
     </header>
     <div class="session-list__body agent-scroll">
       <SessionListItem
