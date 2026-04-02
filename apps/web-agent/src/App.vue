@@ -3519,6 +3519,11 @@ watch(
       return;
     }
 
+    // 会话仍在队列中（只是被搜索过滤掉了），不切换右侧面板
+    const stillInQueue = queueSessionList.value.some((item) => item.id === activeSessionId.value);
+    if (stillInQueue) return;
+
+    // 会话真正消失（转接/关闭等），自动切换到第一个可见会话
     const stillExists = list.some((item) => item.id === activeSessionId.value);
     if (!stillExists) {
       activeSessionId.value = list[0].id;
