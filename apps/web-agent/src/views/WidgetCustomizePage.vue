@@ -1298,7 +1298,7 @@ const showChatPreviewAgentAvatar = computed(() => {
 
 const chatPreviewHeaderTitle = computed(() => {
   if (settings.sessionTitleMode === "agent") return agentSessionTitles[globalLang.value];
-  return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New Session" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
+  return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New conversation" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
 });
 
 const settings = reactive({
