@@ -359,17 +359,18 @@
           @delete-chat="showTopToast('删除聊天功能开发中')"
         />
 
-        <div v-if="isSearchNavVisible" class="chat-search-nav">
-          <span class="chat-search-nav__info">{{ currentSearchIndex + 1 }}/{{ searchMatchIds.length }} 匹配</span>
-          <button type="button" class="chat-search-nav__btn" aria-label="上一条" @click="goToPrevMatch">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 8.5L7 4.5L11 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="chat-search-nav__btn" aria-label="下一条" @click="goToNextMatch">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-
         <div ref="chatStreamRef" class="chat-pane__stream agent-scroll">
+          <div v-if="isSearchNavVisible" class="chat-search-nav">
+            <div class="chat-search-nav__pill">
+              <button type="button" class="chat-search-nav__arrow" aria-label="上一条" @click="goToPrevMatch">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="chat-search-nav__text">{{ searchMatchIds.length }} 条匹配</span>
+              <button type="button" class="chat-search-nav__arrow" aria-label="下一条" @click="goToNextMatch">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
           <p class="chat-pane__start-time">开始时间 {{ activeSession?.startedAt ?? '--' }}</p>
 
           <MessageBubble
@@ -2505,7 +2506,7 @@ function goToNextMatch() {
   scrollToMessage(searchMatchIds.value[currentSearchIndex.value]);
 }
 
-watch([activeSessionId, searchMatchIds], () => {
+watch(activeSessionId, () => {
   currentSearchIndex.value = 0;
   if (searchMatchIds.value.length > 0) {
     scrollToMessage(searchMatchIds.value[0]);
@@ -4570,37 +4571,49 @@ onBeforeUnmount(() => {
 }
 
 .chat-search-nav {
-  align-items: center;
-  background: var(--agent-color-bg-muted);
-  border-bottom: 1px solid var(--agent-color-border-default);
   display: flex;
-  gap: var(--agent-space-8);
-  justify-content: center;
-  padding: var(--agent-space-8) var(--agent-space-16);
+  justify-content: flex-end;
+  padding-bottom: var(--agent-space-4);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
-.chat-search-nav__info {
+.chat-search-nav__pill {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.chat-search-nav__text {
   color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-medium);
+  font-size: var(--agent-font-size-xs);
+  line-height: 1;
+  padding: 0 4px;
+  white-space: nowrap;
 }
 
-.chat-search-nav__btn {
+.chat-search-nav__arrow {
   align-items: center;
   background: transparent;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-sm);
-  color: var(--agent-color-text-secondary);
+  border: 0;
+  border-radius: 50%;
+  color: var(--agent-color-text-tertiary);
   cursor: pointer;
   display: inline-flex;
-  height: 26px;
+  height: 22px;
   justify-content: center;
   transition: background-color var(--agent-motion-fast) ease, color var(--agent-motion-fast) ease;
-  width: 26px;
+  width: 22px;
 }
 
-.chat-search-nav__btn:hover {
-  background: var(--agent-color-bg-panel);
+.chat-search-nav__arrow:hover {
+  background: var(--agent-color-bg-muted);
   color: var(--agent-color-text-primary);
 }
 
