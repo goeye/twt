@@ -966,7 +966,7 @@ type SectionKey = "brand" | "position" | "display" | "quickAccess"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
   | "visitorFeedback"
   | "sessionForm" | "msgStatus" | "sessionFeatures"
-  | "agentInfoDisplay" | "queueReminder" | null;
+  | "agentInfoDisplay" | "queueReminder" | "visitorInactive" | null;
 
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
@@ -1215,7 +1215,8 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   msgStatus: "chat",
   sessionFeatures: "sessionList",
   agentInfoDisplay: "sessionList",
-  queueReminder: "chat"
+  queueReminder: "chat",
+  visitorInactive: "chat"
 };
 
 const toggleSection = (key: SectionKey) => {
@@ -1755,9 +1756,9 @@ watch(previewMode, (mode) => {
 }
 
 .wc-settings__channel-hint {
-  background: #fef3cd;
+  background: var(--agent-color-brand-soft);
   border-radius: var(--agent-radius-sm);
-  color: #b45309;
+  color: var(--agent-color-status-warning);
   font-size: var(--agent-font-size-xs);
   margin: 8px 0 0;
   padding: 6px 10px;
@@ -1770,7 +1771,7 @@ watch(previewMode, (mode) => {
 
 .wc-global-lang__select {
   appearance: none;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-md);
   color: var(--agent-color-text-primary);
@@ -2066,7 +2067,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-session-feature-card__desc {
-  color: #98a2b3;
+  color: var(--agent-color-text-tertiary);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -2095,7 +2096,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-session-feature-limit__checkbox {
-  accent-color: #2563eb;
+  accent-color: var(--agent-color-brand-primary);
   height: 16px;
   margin-top: 2px;
   width: 16px;
@@ -2115,7 +2116,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-session-feature-limit__desc {
-  color: #98a2b3;
+  color: var(--agent-color-text-tertiary);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -2144,7 +2145,7 @@ watch(previewMode, (mode) => {
 
 .wc-session-feature-limit__input-wrap {
   align-items: center;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: 10px;
   display: inline-flex;
@@ -2186,7 +2187,7 @@ watch(previewMode, (mode) => {
   align-items: flex-start;
   background: #fff3f2;
   border-radius: 14px;
-  color: #f04438;
+  color: var(--agent-color-status-error);
   display: flex;
   font-size: 14px;
   gap: 10px;
@@ -2244,7 +2245,7 @@ watch(previewMode, (mode) => {
 /* Quick access tags */
 .wc-quick-tags {
   align-items: center;
-  background: #f5f7fb;
+  background: var(--agent-color-bg-muted);
   border-radius: 14px;
   display: flex;
   flex-wrap: wrap;
@@ -2255,10 +2256,10 @@ watch(previewMode, (mode) => {
 
 .wc-quick-tag {
   align-items: center;
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border: 0;
   border-radius: 12px;
-  color: #111827;
+  color: var(--agent-color-text-primary);
   display: inline-flex;
   font-size: 14px;
   gap: 8px;
@@ -2270,15 +2271,15 @@ watch(previewMode, (mode) => {
 
 .wc-quick-tag--add {
   background: rgba(255, 255, 255, 0.72);
-  color: #4b5563;
+  color: var(--agent-color-text-secondary);
   cursor: pointer;
   padding-right: 16px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .wc-quick-tag--add:hover {
-  background: #ffffff;
-  color: #111827;
+  background: var(--agent-color-bg-panel);
+  color: var(--agent-color-text-primary);
 }
 
 .wc-quick-tag__add-icon,
@@ -2293,8 +2294,8 @@ watch(previewMode, (mode) => {
 }
 
 .wc-quick-tag__add-icon {
-  background: #eef1f6;
-  color: #98a2b3;
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-tertiary);
 }
 
 .wc-quick-tag__icon {
@@ -2308,7 +2309,7 @@ watch(previewMode, (mode) => {
 
 .wc-quick-tag__edit {
   align-items: center;
-  color: #111827;
+  color: var(--agent-color-text-primary);
   display: inline-flex;
 }
 
@@ -2595,7 +2596,7 @@ watch(previewMode, (mode) => {
   right: 0;
   top: calc(100% + 6px);
   z-index: var(--agent-z-dropdown, 100);
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -2625,16 +2626,16 @@ watch(previewMode, (mode) => {
 }
 
 .wc-popconfirm__btn--cancel {
-  background: var(--agent-color-bg-secondary, #f5f5f5);
+  background: var(--agent-color-bg-muted);
   color: var(--agent-color-text-secondary);
 }
 
 .wc-popconfirm__btn--cancel:hover {
-  background: var(--agent-color-bg-tertiary, #e8e8e8);
+  background: var(--agent-color-border-default);
 }
 
 .wc-popconfirm__btn--confirm {
-  background: var(--agent-color-status-error, #e53e3e);
+  background: var(--agent-color-status-error);
   color: #fff;
 }
 
@@ -2694,7 +2695,7 @@ watch(previewMode, (mode) => {
   background:
     linear-gradient(90deg, var(--agent-color-border-default) 1px, transparent 1px),
     linear-gradient(var(--agent-color-border-default) 1px, transparent 1px);
-  background-color: #f7f8fa;
+  background-color: var(--agent-color-bg-muted);
   background-size: 32px 32px;
   display: flex;
   align-items: center;
@@ -2734,7 +2735,7 @@ watch(previewMode, (mode) => {
 
 /* Widget */
 .wc-widget {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 20px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.14);
   display: flex;
@@ -2751,7 +2752,7 @@ watch(previewMode, (mode) => {
 
 .wc-widget__header {
   align-items: center;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   color: var(--agent-color-text-primary);
   display: flex;
   flex-shrink: 0;
@@ -2764,7 +2765,7 @@ watch(previewMode, (mode) => {
   background: none;
   border: none;
   border-radius: 50%;
-  color: var(--agent-color-text-secondary, #666);
+  color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
@@ -2776,7 +2777,7 @@ watch(previewMode, (mode) => {
 
 .wc-widget__close-btn:hover {
   background: var(--agent-color-bg-hover, rgba(0, 0, 0, 0.06));
-  color: var(--agent-color-text-primary, #333);
+  color: var(--agent-color-text-primary);
 }
 
 .wc-widget__header-left {
@@ -2850,7 +2851,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__online-indicator {
-  background: #f04438;
+  background: var(--agent-color-status-error);
   border-radius: 50%;
   flex-shrink: 0;
   height: 10px;
@@ -2895,7 +2896,7 @@ watch(previewMode, (mode) => {
 
 /* Session list */
 .wc-widget__session-list {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -2913,7 +2914,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-session-item:hover {
-  background: #f8f9fb;
+  background: var(--agent-color-bg-muted);
 }
 
 .wc-session-item__avatar {
@@ -2982,7 +2983,7 @@ watch(previewMode, (mode) => {
 
 .wc-session-item__badge {
   align-items: center;
-  background: #f04438;
+  background: var(--agent-color-status-error);
   border-radius: 999px;
   color: #fff;
   display: inline-flex;
@@ -2999,7 +3000,7 @@ watch(previewMode, (mode) => {
   align-items: center;
   background: transparent;
   border: none;
-  color: #98a2b3;
+  color: var(--agent-color-text-tertiary);
   cursor: pointer;
   display: inline-flex;
   height: 20px;
@@ -3022,7 +3023,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-session-item__delete:hover {
-  color: #f04438;
+  color: var(--agent-color-status-error);
 }
 
 .wc-widget__new-session-btn {
@@ -3082,7 +3083,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-title-mode-option__indicator {
-  border: 2px solid #d0d5dd;
+  border: 2px solid var(--agent-color-border-strong);
   border-radius: 50%;
   flex-shrink: 0;
   height: 18px;
@@ -3128,10 +3129,10 @@ watch(previewMode, (mode) => {
 
 .wc-widget__queue-pill {
   align-self: center;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: #666;
+  color: var(--agent-color-text-secondary);
   font-size: 11px;
   font-weight: 500;
   margin-bottom: 10px;
@@ -3140,12 +3141,12 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__queue-pill-num {
-  color: #ff6b2c;
+  color: var(--agent-color-status-warning);
   font-weight: 700;
 }
 
 .wc-widget__messages {
-  background: #f5f5f5;
+  background: var(--agent-color-bg-muted);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -3169,7 +3170,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__msg-bubble {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 12px;
   color: var(--agent-color-text-primary);
   font-size: 12px;
@@ -3210,7 +3211,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__read-receipt--status {
-  color: #2f6bff;
+  color: var(--agent-color-brand-primary);
   display: inline-flex;
   margin-top: 2px;
   text-align: left;
@@ -3222,7 +3223,7 @@ watch(previewMode, (mode) => {
 
 /* Quick access in widget */
 .wc-widget__quick-access {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-top: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-wrap: wrap;
@@ -3231,7 +3232,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__qa-tag {
-  background: #f0f2f5;
+  background: var(--agent-color-bg-muted);
   border-radius: 999px;
   color: var(--agent-color-text-secondary);
   font-size: 10px;
@@ -3296,7 +3297,7 @@ watch(previewMode, (mode) => {
 .wc-widget__toolbar-icon {
   align-items: center;
   border-radius: 10px;
-  color: #4a5568;
+  color: var(--agent-color-text-secondary);
   display: inline-flex;
   height: 34px;
   justify-content: center;
@@ -3304,15 +3305,15 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__toolbar-icon--bg {
-  background: #f5f7f9;
+  background: var(--agent-color-bg-muted);
   border-radius: 9px;
 }
 
 .wc-widget__send-btn {
   align-items: center;
-  background: #f2f4f8;
+  background: var(--agent-color-bg-muted);
   border-radius: 50%;
-  color: #8c96a6;
+  color: var(--agent-color-text-tertiary);
   display: inline-flex;
   flex-shrink: 0;
   height: 32px;
@@ -3322,7 +3323,7 @@ watch(previewMode, (mode) => {
 
 /* Footer */
 .wc-widget__footer {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   color: var(--agent-color-text-tertiary);
   flex-shrink: 0;
   font-size: 10px;
@@ -3342,7 +3343,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__dialog {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 18px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
   display: flex;
@@ -3374,7 +3375,7 @@ watch(previewMode, (mode) => {
   background: transparent;
   border: 0;
   border-radius: 999px;
-  color: #98a2b3;
+  color: var(--agent-color-text-tertiary);
   cursor: pointer;
   display: inline-flex;
   height: 24px;
@@ -3416,12 +3417,12 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__dialog-btn--ghost {
-  background: #f2f4f7;
+  background: var(--agent-color-bg-muted);
   color: var(--agent-color-text-secondary);
 }
 
 .wc-widget__dialog-btn--primary {
-  background: #f04438;
+  background: var(--agent-color-status-error);
   color: #fff;
 }
 
@@ -3435,7 +3436,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__feedback-card {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 12px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -3484,7 +3485,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__session-ended-btn {
-  background: #e8f0fe;
+  background: var(--agent-color-brand-soft);
   border-radius: 8px;
   color: var(--agent-color-brand-primary);
   font-size: 12px;
@@ -3496,7 +3497,7 @@ watch(previewMode, (mode) => {
 
 /* Form card (inside chat message) */
 .wc-widget__form-card {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -3506,7 +3507,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__form-card-title {
-  color: #222;
+  color: var(--agent-color-text-primary);
   font-size: 12px;
   line-height: 1.6;
   margin: 0;
@@ -3525,22 +3526,22 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__form-card-label {
-  color: #222;
+  color: var(--agent-color-text-primary);
   font-size: 11px;
   line-height: 1.4;
 }
 
 .wc-widget__form-card-required {
-  color: #ff382e;
+  color: var(--agent-color-status-error);
   font-weight: 500;
   margin-right: 2px;
 }
 
 .wc-widget__form-card-input {
-  background: #fff;
-  border: 1px solid #e2e8ef;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
   border-radius: 12px;
-  color: #222;
+  color: var(--agent-color-text-primary);
   font-size: 11px;
   height: 34px;
   line-height: 34px;
@@ -3589,7 +3590,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 16px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   display: flex;
@@ -3652,7 +3653,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal__dropdown {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -3730,7 +3731,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal__input {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: 8px;
   color: var(--agent-color-text-primary);
@@ -3747,7 +3748,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal__textarea {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
   border-radius: 8px;
   color: var(--agent-color-text-primary);
@@ -3774,7 +3775,7 @@ watch(previewMode, (mode) => {
 
 .wc-modal__upload {
   align-items: center;
-  background: #fafafa;
+  background: var(--agent-color-bg-muted);
   border: 1px dashed var(--agent-color-border-default);
   border-radius: 50%;
   cursor: pointer;
@@ -3848,7 +3849,7 @@ watch(previewMode, (mode) => {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--agent-color-status-error);
   border: 1px solid #fff;
   color: #fff;
   display: flex;
@@ -3870,7 +3871,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal__error-hint {
-  color: #ef4444;
+  color: var(--agent-color-status-error);
   font-size: 12px;
   margin: 8px 0 0 0;
 }
@@ -3910,7 +3911,7 @@ watch(previewMode, (mode) => {
 .wc-modal__tab {
   flex: 1;
   padding: 8px 16px;
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border: none;
   color: var(--agent-color-text-secondary);
   font-size: 14px;
@@ -3924,7 +3925,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-modal__tab:hover {
-  background: #fafafa;
+  background: var(--agent-color-bg-muted);
 }
 
 .wc-modal__tab.is-active {
@@ -3947,7 +3948,7 @@ watch(previewMode, (mode) => {
 
 .wc-modal__input-prefix {
   padding: 0 12px;
-  background: #fafafa;
+  background: var(--agent-color-bg-muted);
   border: none;
   color: var(--agent-color-text-primary);
   font-size: 14px;
@@ -4012,7 +4013,7 @@ watch(previewMode, (mode) => {
 }
 
 .wc-crop-modal {
-  background: #fff;
+  background: var(--agent-color-bg-panel);
   border-radius: 16px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   display: flex;

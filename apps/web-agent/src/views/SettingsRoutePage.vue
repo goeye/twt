@@ -1325,7 +1325,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .html-download-step:not(:last-child)::after {
-  border-top: 2px dashed #c9d2e2;
+  border-top: 2px dashed var(--agent-color-border-strong);
   content: "";
   position: absolute;
   right: -34px;
@@ -1342,7 +1342,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .html-download-step__icon {
   align-items: center;
-  color: #1f2430;
+  color: var(--agent-color-text-primary);
   display: inline-flex;
   flex-shrink: 0;
   height: 22px;
@@ -1394,7 +1394,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .settings-step code {
-  background: rgba(47, 107, 255, 0.08);
+  background: var(--agent-color-brand-soft);
   border-radius: var(--agent-radius-sm);
   color: var(--agent-color-text-primary);
   font-size: 0.92em;
@@ -1456,9 +1456,9 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .settings-channel-hint {
-  background: #e8f4fd;
+  background: var(--agent-color-brand-soft);
   border-radius: var(--agent-radius-sm);
-  color: #1a73e8;
+  color: var(--agent-color-brand-primary);
   font-size: var(--agent-font-size-xs);
   margin: 0;
   padding: 8px 12px;
@@ -1495,7 +1495,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .settings-toggle__thumb {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   display: block;
@@ -1535,7 +1535,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .dev-card__desc {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   margin: 0;
@@ -1547,14 +1547,14 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .dev-table {
   border-collapse: collapse;
-  color: #252525;
+  color: var(--agent-color-text-primary);
   table-layout: fixed;
   width: 100%;
 }
 
 .dev-table th,
 .dev-table td {
-  border-bottom: 1px solid #edf1f5;
+  border-bottom: 1px solid var(--agent-color-border-default);
   font-size: 13px;
   line-height: 19px;
   padding: 14px 8px;
@@ -1563,8 +1563,8 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .dev-table th {
-  background: #eef2f5;
-  color: #222222;
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-primary);
   font-weight: 600;
   padding-bottom: 8px;
   padding-top: 8px;
@@ -1578,14 +1578,14 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .dev-table__label {
-  color: #252525;
+  color: var(--agent-color-text-primary);
   display: inline-block;
   font-weight: 500;
   min-width: 100px;
 }
 
 .dev-table__value {
-  color: #4b5563;
+  color: var(--agent-color-text-secondary);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 13px;
 }
@@ -1600,7 +1600,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 .dev-table__reset-btn {
   background: transparent;
   border: 0;
-  color: #105eff;
+  color: var(--agent-color-brand-primary);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -1613,7 +1613,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .dev-table__help-icon {
   align-items: center;
-  color: #b0b8c8;
+  color: var(--agent-color-text-disabled);
   cursor: help;
   display: inline-flex;
 }
@@ -1654,7 +1654,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .webhooks-link-text {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   margin: 0;
 }
@@ -1705,13 +1705,13 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .webhooks-hint {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   margin: 0 0 var(--agent-space-8);
 }
 
 .webhooks-hint-warn {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   margin: 0 0 var(--agent-space-8);
@@ -1782,9 +1782,9 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .wh-creator__avatar {
   align-items: center;
-  background: var(--agent-color-brand-light, #e8f0fe);
+  background: var(--agent-color-brand-soft);
   border-radius: 50%;
-  color: var(--agent-color-brand, #4a7bf7);
+  color: var(--agent-color-brand-primary);
   display: inline-flex;
   font-size: 12px;
   font-weight: 500;
@@ -1835,7 +1835,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-modal {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-radius: var(--agent-radius-xl);
   max-width: 680px;
   width: 100%;
@@ -1850,7 +1850,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-modal__title {
-  color: #252525;
+  color: var(--agent-color-text-primary);
   flex: 1;
   font-size: 18px;
   font-weight: 600;
@@ -1953,7 +1953,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-channel-card__hint {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
   line-height: 1.4;
 }
@@ -1966,7 +1966,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-form__hint {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   margin: calc(-1 * var(--agent-space-8)) 0 0;
@@ -1991,7 +1991,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-field__label-required {
-  color: #ef4444;
+  color: var(--agent-color-status-error);
   font-size: var(--agent-font-size-sm);
   font-weight: var(--agent-font-weight-medium);
 }
@@ -2005,9 +2005,9 @@ const unrepliedContentRows: WebhookTableRow[] = [
 .wh-field__help-icon {
   align-items: center;
   background: transparent;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--agent-color-border-default);
   border-radius: 50%;
-  color: #6b7280;
+  color: var(--agent-color-text-secondary);
   cursor: help;
   display: inline-flex;
   font-size: 12px;
@@ -2020,8 +2020,8 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-field__help-icon:hover {
-  border-color: #9ca3af;
-  color: #374151;
+  border-color: var(--agent-color-border-strong);
+  color: var(--agent-color-text-primary);
 }
 
 .wh-field__tooltip {
@@ -2065,18 +2065,18 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-field__error {
-  color: #ef4444;
+  color: var(--agent-color-status-error);
   font-size: 12px;
   line-height: 1.4;
   margin-top: 4px;
 }
 
 .wh-field__required {
-  color: #ef4444;
+  color: var(--agent-color-status-error);
 }
 
 .wh-field__desc {
-  color: #9ca3af;
+  color: var(--agent-color-text-tertiary);
   font-size: 12px;
   line-height: 1.4;
   margin: 4px 0 0;
@@ -2122,7 +2122,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-delete-modal {
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   border-radius: var(--agent-radius-xl);
   max-width: 400px;
   padding: var(--agent-space-24);
@@ -2130,14 +2130,14 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .wh-delete-modal__title {
-  color: #252525;
+  color: var(--agent-color-text-primary);
   font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
 
 .wh-delete-modal__desc {
-  color: #75869c;
+  color: var(--agent-color-text-tertiary);
   font-size: 14px;
   line-height: 1.5;
   margin: 12px 0 20px;
@@ -2156,10 +2156,10 @@ const unrepliedContentRows: WebhookTableRow[] = [
 }
 
 .agent-btn--danger {
-  background: #ef4444;
-  border: 1px solid #ef4444;
+  background: var(--agent-color-status-error);
+  border: 1px solid var(--agent-color-status-error);
   border-radius: 10px;
-  color: #ffffff;
+  color: var(--agent-color-bg-panel);
 }
 
 .agent-btn--danger:hover {
@@ -2321,7 +2321,7 @@ const unrepliedContentRows: WebhookTableRow[] = [
   height: 40px;
   border-radius: 50%;
   border: 2px solid var(--agent-color-border-default);
-  background: #ffffff;
+  background: var(--agent-color-bg-panel);
   display: flex;
   align-items: center;
   justify-content: center;
