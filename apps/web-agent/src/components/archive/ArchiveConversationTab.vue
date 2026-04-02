@@ -1129,6 +1129,18 @@ const getVisitorQuestion = (row: ConversationRecord) => {
   if (row.title.includes("Inquiry")) {
     return "Hi, I have a few questions about your service plan.";
   }
+  if (row.title.includes("续费")) {
+    return "企业版续费如果一次付一年有优惠吗？";
+  }
+  if (row.title.includes("限流") || row.title.includes("接口")) {
+    return "API 在高峰期频繁返回 429，是不是限流策略调整了？";
+  }
+  if (row.title.includes("会员") || row.title.includes("权益")) {
+    return "我刚开通的会员，权益什么时候生效？";
+  }
+  if (row.title.includes("合作")) {
+    return "我们公司想了解一下合作方案，能提供详细报价吗？";
+  }
   return `我想咨询一下「${row.title}」这个问题。`;
 };
 
@@ -1142,6 +1154,18 @@ const getAgentReply = (row: ConversationRecord) => {
   if (row.title.includes("发票")) {
     return "已收到，我先帮您核对发票配置和缓存状态，请稍等。";
   }
+  if (row.title.includes("续费")) {
+    return "年付方案享受 85 折优惠，我把续费链接发给您，您可以直接在线操作。";
+  }
+  if (row.title.includes("限流") || row.title.includes("接口")) {
+    return "确认是近期调整了速率限制，每秒请求上限从 100 降到了 50，建议在客户端增加指数退避重试。";
+  }
+  if (row.title.includes("会员") || row.title.includes("权益")) {
+    return "会员权益在支付成功后 24 小时内自动激活，如果还没生效可以提供订单号我帮您查。";
+  }
+  if (row.title.includes("合作")) {
+    return "感谢关注！我把合作方案和报价文档发到您邮箱，有任何问题随时沟通。";
+  }
   return `您好，已收到您关于「${row.title}」的咨询，我先帮您核查一下。`;
 };
 
@@ -1151,11 +1175,28 @@ const getRowMessageTexts = (row: ConversationRecord): string[] => {
     texts.push("下单后多久能收到？有加急选项吗？", "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示「加急配送」选项。", "加急配送支持哪些地区？", "目前覆盖大部分主要城市。您在下单页输入地址后，系统会自动判断是否支持加急配送。");
   } else if (row.owner !== "–") {
     texts.push(getVisitorQuestion(row), getAgentReply(row));
+    if (row.title.includes("退款")) {
+      texts.push("退款到账后会有通知吗？", "会的，退款成功后系统会自动发送短信和邮件通知。");
+    } else if (row.title.includes("续费")) {
+      texts.push("续费后原来的数据会保留吗？", "所有数据完整保留，续费后无缝衔接。");
+    } else if (row.title.includes("限流") || row.title.includes("接口")) {
+      texts.push("这个限流调整有事先通知吗？我们完全不知道请求上限变了。", "非常抱歉通知不到位，已反馈产品团队。可以临时为您的账户提升到每秒 80 次请求。");
+    } else if (row.title.includes("会员") || row.title.includes("权益")) {
+      texts.push("会员里说包含专属客服通道，怎么使用？", "专属客服通道会在您下次登录时自动开启，页面右下角会出现金色入口。");
+    }
     if (row.status === "replied") texts.push("好的，明白了，谢谢。");
   } else {
     texts.push(getVisitorQuestion(row));
   }
   return texts;
+};
+
+const getExtraRounds = (row: ConversationRecord): [string, string] | null => {
+  if (row.title.includes("退款")) return ["退款到账后会有通知吗？", "会的，退款成功后系统会自动发送短信和邮件通知。"];
+  if (row.title.includes("续费")) return ["续费后原来的数据会保留吗？", "所有数据完整保留，续费后无缝衔接。"];
+  if (row.title.includes("限流") || row.title.includes("接口")) return ["这个限流调整有事先通知吗？我们完全不知道请求上限变了。", "非常抱歉通知不到位，已反馈产品团队。可以临时为您的账户提升到每秒 80 次请求。"];
+  if (row.title.includes("会员") || row.title.includes("权益")) return ["会员里说包含专属客服通道，怎么使用？", "专属客服通道会在您下次登录时自动开启，页面右下角会出现金色入口。"];
+  return null;
 };
 
 const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {
@@ -1254,6 +1295,14 @@ const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {
       avatarUrl: owner?.avatarUrl
     }
   ];
+
+  const extraRounds = getExtraRounds(row);
+  if (extraRounds) {
+    messages.push(
+      { id: `${row.id}-c2`, role: "customer", sender: row.visitorName, content: extraRounds[0], time: acceptTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor },
+      { id: `${row.id}-a2`, role: "agent", sender: row.owner, content: extraRounds[1], time: acceptTime, avatarText: owner?.avatarText, avatarColor: owner?.avatarColor, avatarUrl: owner?.avatarUrl }
+    );
+  }
 
   if (row.status === "replied") {
     messages.push({
