@@ -29,6 +29,7 @@
           <select v-model="chatDraftFilters.searchField" class="archive-field__control archive-field__control--select">
             <option value="title">聊天标题</option>
             <option value="owner">群主</option>
+            <option value="conversationRecord">聊天记录</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
@@ -327,6 +328,7 @@
     :open="Boolean(chatDrawerRow)"
     :title="chatDrawerRow?.title ?? ''"
     :messages="chatDrawerMessages"
+    :search-keyword="appliedChatFilters.searchField === 'conversationRecord' ? appliedChatFilters.keyword : ''"
     assign-label="查看详情"
     :editable="false"
     @assign="handleChatDrawerAssign"
@@ -653,8 +655,15 @@ const visibleChatRows = computed(() => {
 
   const rows = allChatRows.value.filter((row) => {
     if (keyword) {
-      const fieldValue = String(row[filters.searchField]).toLowerCase();
-      if (!fieldValue.includes(keyword)) return false;
+      if (filters.searchField === "conversationRecord") {
+        const texts: string[] = [];
+        if (row.visitorMembers.length > 0) texts.push("你好，请问有人在吗？");
+        texts.push("你好，请问有什么可以帮您？");
+        if (!texts.some((t) => t.toLowerCase().includes(keyword))) return false;
+      } else {
+        const fieldValue = String(row[filters.searchField]).toLowerCase();
+        if (!fieldValue.includes(keyword)) return false;
+      }
     }
     if (filters.chatType !== "all" && row.chatType !== filters.chatType) return false;
     if (filters.status !== "all" && row.status !== filters.status) return false;

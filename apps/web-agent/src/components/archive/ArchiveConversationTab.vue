@@ -35,6 +35,7 @@
             <option value="title">会话标题</option>
             <option value="customerIdentifier">客户标识</option>
             <option value="visitorAlias">访客备注名</option>
+            <option value="conversationRecord">聊天记录</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
@@ -307,6 +308,7 @@
     :open="Boolean(previewConversation)"
     :title="previewConversation?.title ?? ''"
     :messages="previewConversationMessages"
+    :search-keyword="appliedFilters.searchField === 'conversationRecord' ? appliedFilters.keyword : ''"
     :assign-label="getDrawerAssignLabel(previewConversation)"
     :variant="getDrawerVariant(previewConversation)"
     :editable="false"
@@ -1040,9 +1042,14 @@ const visibleRows = computed(() => {
   const keyword = filters.keyword.trim().toLowerCase();
 
   const rows = allRows.value.filter((row) => {
-    const fieldValue = String(row[filters.searchField]).toLowerCase();
-    if (keyword && !fieldValue.includes(keyword)) {
-      return false;
+    if (keyword) {
+      if (filters.searchField === "conversationRecord") {
+        const texts = getRowMessageTexts(row);
+        if (!texts.some((t) => t.toLowerCase().includes(keyword))) return false;
+      } else {
+        const fieldValue = String(row[filters.searchField]).toLowerCase();
+        if (!fieldValue.includes(keyword)) return false;
+      }
     }
     if (filters.tag !== "all" && row.tag !== filters.tag) {
       return false;
@@ -1136,6 +1143,19 @@ const getAgentReply = (row: ConversationRecord) => {
     return "已收到，我先帮您核对发票配置和缓存状态，请稍等。";
   }
   return `您好，已收到您关于「${row.title}」的咨询，我先帮您核查一下。`;
+};
+
+const getRowMessageTexts = (row: ConversationRecord): string[] => {
+  const texts: string[] = [];
+  if (row.owner === aiAgentArchiveName) {
+    texts.push("下单后多久能收到？有加急选项吗？", "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示「加急配送」选项。", "加急配送支持哪些地区？", "目前覆盖大部分主要城市。您在下单页输入地址后，系统会自动判断是否支持加急配送。");
+  } else if (row.owner !== "–") {
+    texts.push(getVisitorQuestion(row), getAgentReply(row));
+    if (row.status === "replied") texts.push("好的，明白了，谢谢。");
+  } else {
+    texts.push(getVisitorQuestion(row));
+  }
+  return texts;
 };
 
 const previewConversationMessages = computed<ArchivePreviewMessage[]>(() => {

@@ -42,11 +42,23 @@
         </header>
 
         <div ref="messagesRef" class="archive-drawer__messages agent-scroll">
+          <div v-if="matchedMessageIds.length > 1" class="archive-drawer__search-nav">
+            <div class="archive-drawer__search-pill">
+              <button type="button" class="archive-drawer__search-arrow" aria-label="上一条" @click="goToPrevMatch">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="archive-drawer__search-text">{{ matchedMessageIds.length }} 条匹配</span>
+              <button type="button" class="archive-drawer__search-arrow" aria-label="下一条" @click="goToNextMatch">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
           <div
             v-for="message in messages"
             :key="message.id"
+            :data-message-id="message.id"
             class="archive-message"
-            :class="`archive-message--${message.role}`"
+            :class="[`archive-message--${message.role}`, { 'archive-message--highlighted': matchedMessageIds.length > 0 && matchedMessageIds[currentMatchIndex] === message.id }]"
           >
             <template v-if="message.role === 'system'">
               <div class="archive-message__system">{{ message.content }}</div>
@@ -92,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 
 interface DrawerMessage {
@@ -111,6 +123,7 @@ const props = withDefaults(
     open: boolean;
     title: string;
     messages: DrawerMessage[];
+    searchKeyword?: string;
     assignLabel?: string;
     editable?: boolean;
     variant?: "default" | "join";
@@ -171,15 +184,47 @@ const scrollToBottom = () => {
   messagesRef.value.scrollTo({ top: messagesRef.value.scrollHeight, behavior: "smooth" });
 };
 
+// 搜索匹配导航
+const currentMatchIndex = ref(0);
+
+const matchedMessageIds = computed(() => {
+  const kw = (props.searchKeyword ?? "").trim().toLowerCase();
+  if (!kw) return [] as string[];
+  return props.messages
+    .filter((m) => m.role !== "system" && m.content.toLowerCase().includes(kw))
+    .map((m) => m.id);
+});
+
+function scrollToMatchedMessage(messageId: string) {
+  nextTick(() => {
+    const el = messagesRef.value?.querySelector(`[data-message-id="${messageId}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
+function goToPrevMatch() {
+  if (matchedMessageIds.value.length === 0) return;
+  currentMatchIndex.value = (currentMatchIndex.value - 1 + matchedMessageIds.value.length) % matchedMessageIds.value.length;
+  scrollToMatchedMessage(matchedMessageIds.value[currentMatchIndex.value]);
+}
+
+function goToNextMatch() {
+  if (matchedMessageIds.value.length === 0) return;
+  currentMatchIndex.value = (currentMatchIndex.value + 1) % matchedMessageIds.value.length;
+  scrollToMatchedMessage(matchedMessageIds.value[currentMatchIndex.value]);
+}
+
 watch(
   () => props.open,
   async (value) => {
-    if (!value) {
-      return;
-    }
-
+    if (!value) return;
     await nextTick();
-    scrollToBottom();
+    currentMatchIndex.value = 0;
+    if (matchedMessageIds.value.length > 0) {
+      scrollToMatchedMessage(matchedMessageIds.value[0]);
+    } else {
+      scrollToBottom();
+    }
   }
 );
 </script>
@@ -412,6 +457,57 @@ watch(
   color: var(--agent-color-text-tertiary);
   font-size: 13px;
   text-align: center;
+}
+
+.archive-message--highlighted .archive-message__bubble {
+  background: rgba(47, 107, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.2);
+}
+
+.archive-drawer__search-nav {
+  display: flex;
+  justify-content: flex-end;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.archive-drawer__search-pill {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.archive-drawer__search-text {
+  color: var(--agent-color-text-secondary);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+.archive-drawer__search-arrow {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  width: 22px;
+}
+
+.archive-drawer__search-arrow:hover {
+  background: var(--agent-color-bg-muted);
+  color: var(--agent-color-text-primary);
 }
 
 .archive-drawer__footer {
