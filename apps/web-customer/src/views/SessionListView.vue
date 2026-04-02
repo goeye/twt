@@ -48,7 +48,7 @@
     </div>
 
     <!-- New Session Button -->
-    <div class="cw-new-session" @click="$router.push('/form')">新的会话</div>
+    <div class="cw-new-session" @click="$router.push('/chat/new')">新的会话</div>
 
     <!-- Footer -->
     <div class="cw-footer">Powered by <strong>Chat</strong></div>

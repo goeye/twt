@@ -200,7 +200,7 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorFeedback')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">访客评价</h3>
-              <p class="wc-card__desc">主动或自动关闭会话后，系统自动邀请访客评价</p>
+              <p class="wc-card__desc">会话创建后常驻显示评价入口，会话中和结束后都可评价</p>
             </div>
             <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
@@ -566,32 +566,37 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
             </button>
           </div>
-          <template v-if="openSection === 'visitorFeedback' && feedbackEnabled">
-            <div class="wc-widget__feedback-area">
-              <div class="wc-widget__feedback-card">
-                <p class="wc-widget__feedback-title">{{ feedbackPreviewTitle }}</p>
-                <div class="wc-widget__feedback-options">
-                  <div class="wc-widget__feedback-option">
-                    <span class="wc-widget__feedback-emoji">😊</span>
-                    <span class="wc-widget__feedback-label">满意</span>
-                  </div>
-                  <div class="wc-widget__feedback-option">
-                    <span class="wc-widget__feedback-emoji">😐</span>
-                    <span class="wc-widget__feedback-label">一般</span>
-                  </div>
-                  <div class="wc-widget__feedback-option">
-                    <span class="wc-widget__feedback-emoji">😞</span>
-                    <span class="wc-widget__feedback-label">不满意</span>
+
+          <!-- Chat content -->
+            <div class="wc-widget__messages">
+              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__feedback-entry">
+                <div v-if="!feedbackPreviewOpen" class="wc-widget__feedback-capsule" @click="feedbackPreviewOpen = true">
+                  <svg class="wc-widget__feedback-capsule-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  <span class="wc-widget__feedback-capsule-text">服务评价</span>
+                  <svg class="wc-widget__feedback-capsule-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </div>
+                <div v-else class="wc-widget__feedback-card-inline" @click="feedbackPreviewOpen = false">
+                  <p class="wc-widget__feedback-card-inline-title">{{ feedbackTitles[globalLang] || feedbackTitles.en }}</p>
+                  <div class="wc-widget__feedback-card-inline-options">
+                    <div class="wc-widget__feedback-card-inline-option">
+                      <span class="wc-widget__feedback-card-inline-emoji">😊</span>
+                      <span class="wc-widget__feedback-card-inline-label">满意</span>
+                    </div>
+                    <div class="wc-widget__feedback-card-inline-option">
+                      <span class="wc-widget__feedback-card-inline-emoji">😐</span>
+                      <span class="wc-widget__feedback-card-inline-label">一般</span>
+                    </div>
+                    <div class="wc-widget__feedback-card-inline-option">
+                      <span class="wc-widget__feedback-card-inline-emoji">😞</span>
+                      <span class="wc-widget__feedback-card-inline-label">不满意</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="wc-widget__session-ended-btn">会话已结束，请重新咨询</div>
-          </template>
-
-          <!-- Normal chat preview -->
-          <template v-else>
-            <div class="wc-widget__messages">
+              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__msg wc-widget__msg--visitor">
+                <span class="wc-widget__msg-time">10:32</span>
+                <div class="wc-widget__msg-bubble">Hi, I'd like to check my order status.</div>
+              </div>
               <div v-if="settings.showQueuePosition" class="wc-widget__queue-pill">
                 <span>{{ queueTexts[globalLang].prefix }}<strong class="wc-widget__queue-pill-num">3</strong>{{ queueTexts[globalLang].suffix }}</span>
               </div>
@@ -642,7 +647,6 @@
                 </span>
               </div>
             </div>
-          </template>
 
           <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
         </div>
@@ -1035,6 +1039,7 @@ const autoReplyTexts = reactive<Record<AutoReplyKey, Record<LangKey, string>>>({
 });
 
 const feedbackEnabled = ref(true);
+const feedbackPreviewOpen = ref(false);
 const feedbackTitles = reactive<Record<LangKey, string>>({
   en: "Please evaluate our service",
   "zh-cn": "请对我们的服务进行评价",
@@ -1265,7 +1270,7 @@ const activeAutoReplyKey = computed<AutoReplyKey>(() => {
 
 const showQuickAccessPreview = computed(() => openSection.value === "quickAccess");
 const isMsgStatusPreview = computed(() => openSection.value === "msgStatus");
-const showChatPreviewMessage = computed(() => !showQuickAccessPreview.value);
+const showChatPreviewMessage = computed(() => !showQuickAccessPreview.value && openSection.value !== "visitorFeedback");
 
 const chatPreviewAgentMsg = computed(() => {
   const key = activeAutoReplyKey.value;
@@ -1294,10 +1299,6 @@ const showChatPreviewAgentAvatar = computed(() => {
 const chatPreviewHeaderTitle = computed(() => {
   if (settings.sessionTitleMode === "agent") return agentSessionTitles[globalLang.value];
   return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New Session" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
-});
-
-const feedbackPreviewTitle = computed(() => {
-  return feedbackTitles[globalLang.value] || feedbackTitles.en;
 });
 
 const settings = reactive({
@@ -3427,72 +3428,83 @@ watch(previewMode, (mode) => {
 }
 
 /* Feedback preview */
-.wc-widget__feedback-area {
-  background: linear-gradient(180deg, #e8f0fe 0%, #f5f8ff 100%);
+.wc-widget__feedback-entry {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: 16px;
+  justify-content: center;
+  padding: 6px 0 2px;
 }
 
-.wc-widget__feedback-card {
-  background: var(--agent-color-bg-panel);
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
+.wc-widget__feedback-capsule {
   align-items: center;
-  gap: 14px;
-  padding: 18px 16px;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 4px;
+  padding: 5px 12px;
 }
 
-.wc-widget__feedback-title {
+.wc-widget__feedback-capsule-icon {
+  color: var(--agent-color-brand-primary);
+  flex-shrink: 0;
+}
+
+.wc-widget__feedback-capsule-text {
+  color: var(--agent-color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.wc-widget__feedback-capsule-chevron {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.wc-widget__feedback-card-inline {
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 10px;
+  padding: 18px 20px;
+  width: calc(100% - 20px);
+}
+
+.wc-widget__feedback-card-inline-title {
   color: var(--agent-color-text-primary);
   font-size: 12px;
-  font-weight: var(--agent-font-weight-semibold);
+  font-weight: 600;
   margin: 0;
   text-align: center;
 }
 
-.wc-widget__feedback-options {
+.wc-widget__feedback-card-inline-options {
   display: flex;
   gap: 24px;
   justify-content: center;
 }
 
-.wc-widget__feedback-option {
+.wc-widget__feedback-card-inline-option {
   align-items: center;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.wc-widget__feedback-emoji {
+.wc-widget__feedback-card-inline-emoji {
+  filter: grayscale(0.8);
   font-size: 26px;
   line-height: 1;
-  filter: grayscale(0.8);
-  transition: filter 0.15s;
 }
 
-.wc-widget__feedback-option:hover .wc-widget__feedback-emoji {
-  filter: grayscale(0);
-}
-
-.wc-widget__feedback-label {
+.wc-widget__feedback-card-inline-label {
   color: var(--agent-color-text-secondary);
   font-size: 10px;
-}
-
-.wc-widget__session-ended-btn {
-  background: var(--agent-color-brand-soft);
-  border-radius: 8px;
-  color: var(--agent-color-brand-primary);
-  font-size: 12px;
-  font-weight: var(--agent-font-weight-medium);
-  margin: 0 12px 10px;
-  padding: 10px;
-  text-align: center;
 }
 
 /* Form card (inside chat message) */

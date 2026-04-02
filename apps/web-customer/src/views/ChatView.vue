@@ -68,12 +68,13 @@
               :key="opt.value"
               class="cw-feedback-option"
               :class="{ 'cw-feedback-option--selected': selectedFeedback === opt.value }"
-              @click="selectedFeedback = opt.value"
+              @click="selectFeedback(opt.value)"
             >
               <span class="cw-feedback-option__emoji">{{ opt.emoji }}</span>
               <span class="cw-feedback-option__label">{{ opt.label }}</span>
             </div>
           </div>
+          <p v-if="selectedFeedback" class="cw-feedback-card__result">已评价：{{ feedbackLabel }}</p>
         </div>
       </div>
       <div class="cw-session-ended">{{ endedText }}</div>
@@ -81,11 +82,33 @@
 
     <template v-else>
       <div class="cw-messages">
+        <div v-if="hasVisitorSent" class="cw-feedback-entry">
+          <div v-if="!isFeedbackPanelOpen" class="cw-feedback-capsule" @click="toggleFeedbackPanel">
+            <svg class="cw-feedback-capsule__icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="cw-feedback-capsule__text">服务评价</span>
+            <svg class="cw-feedback-capsule__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </div>
+          <div v-else class="cw-feedback-card-inline" @click="toggleFeedbackPanel">
+            <p class="cw-feedback-card-inline__title">请对我们的服务进行评价</p>
+            <div class="cw-feedback-card-inline__options">
+              <div
+                v-for="opt in feedbackOptions"
+                :key="opt.value"
+                class="cw-feedback-card-inline__option"
+                :class="{ 'cw-feedback-card-inline__option--selected': selectedFeedback === opt.value }"
+                @click.stop="selectFeedback(opt.value)"
+              >
+                <span class="cw-feedback-card-inline__emoji">{{ opt.emoji }}</span>
+                <span class="cw-feedback-card-inline__label">{{ opt.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-pill">
           <span>排队中，前面还有<strong class="cw-queue-pill-num">{{ queuePosition }}</strong>人</span>
         </div>
-        <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
-          <template v-if="msg.role === 'risk-alert'">
+        <div v-for="msg in messages" :key="msg.id" class="cw-msg" :class="[msg.role === 'visitor' ? 'cw-msg--visitor' : msg.role === 'risk-alert' || msg.role === 'feedback' ? 'cw-msg--risk-alert' : 'cw-msg--agent']">
+          <template v-if="msg.role === 'risk-alert' || msg.role === 'feedback'">
             <div class="cw-msg__system-text">{{ msg.text }}</div>
           </template>
           <template v-else>
@@ -147,7 +170,7 @@ import {
 } from "../lib/aiAgentDemo";
 import { detectRisk, resetRiskAlerts } from "../lib/riskControl";
 
-type MessageRole = "visitor" | "ai" | "human" | "risk-alert";
+type MessageRole = "visitor" | "ai" | "human" | "risk-alert" | "feedback";
 
 interface Message {
   id: string;
@@ -161,6 +184,7 @@ interface Message {
 const agentSettings = ref<AiAgentDemoSettings>(loadAiAgentDemoSettings());
 const sessionEnded = ref(false);
 const selectedFeedback = ref<string | null>(null);
+const isFeedbackPanelOpen = ref(false);
 const inputText = ref("");
 const endedText = ref("会话已结束，请重新咨询");
 const humanOnline = ref(agentSettings.value.agentResponseMode === "offline-only" ? false : true);
@@ -170,6 +194,31 @@ const feedbackOptions = [
   { value: "neutral", emoji: "\u{1F610}", label: "一般" },
   { value: "bad", emoji: "\u{1F61E}", label: "不满意" }
 ];
+
+const feedbackLabel = computed(() => {
+  const opt = feedbackOptions.find(o => o.value === selectedFeedback.value);
+  return opt ? opt.label : "";
+});
+
+const hasVisitorSent = computed(() => messages.value.some(m => m.role === "visitor"));
+
+const toggleFeedbackPanel = () => {
+  isFeedbackPanelOpen.value = !isFeedbackPanelOpen.value;
+};
+
+const selectFeedback = (value: string) => {
+  if (selectedFeedback.value === value) {
+    selectedFeedback.value = null;
+    isFeedbackPanelOpen.value = false;
+    pushMessage("feedback", "你取消了评价");
+    return;
+  }
+  selectedFeedback.value = value;
+  isFeedbackPanelOpen.value = false;
+  const opt = feedbackOptions.find(o => o.value === value);
+  const label = opt ? opt.label : value;
+  pushMessage("feedback", `你提交了评价：${label}`);
+};
 
 const floatingToggles = reactive({
   transfer: false,
@@ -260,6 +309,7 @@ const resetConversation = () => {
   resetRiskAlerts();
   sessionEnded.value = false;
   selectedFeedback.value = null;
+  isFeedbackPanelOpen.value = false;
   endedText.value = "会话已结束，请重新咨询";
   msgCounter = 1;
   messages.value = [];
@@ -804,6 +854,111 @@ resetConversation();
   margin: 0 12px 10px;
   padding: 10px;
   text-align: center;
+}
+
+.cw-feedback-card__result {
+  color: var(--agent-color-brand-primary);
+  font-size: 11px;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.cw-feedback-entry {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+}
+
+.cw-feedback-capsule {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 4px;
+  padding: 5px 12px;
+  transition: background 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+
+.cw-feedback-capsule:hover {
+  background: #f8f9fb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.cw-feedback-capsule__icon {
+  color: var(--agent-color-brand-primary);
+  flex-shrink: 0;
+}
+
+.cw-feedback-capsule__text {
+  color: var(--agent-color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cw-feedback-capsule__chevron {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.cw-feedback-card-inline {
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 10px;
+  padding: 22px 20px;
+}
+
+.cw-feedback-card-inline__title {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.cw-feedback-card-inline__options {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+}
+
+.cw-feedback-card-inline__option {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cw-feedback-card-inline__emoji {
+  filter: grayscale(0.8);
+  font-size: 32px;
+  line-height: 1;
+  transition: filter 0.15s;
+}
+
+.cw-feedback-card-inline__option:hover .cw-feedback-card-inline__emoji,
+.cw-feedback-card-inline__option--selected .cw-feedback-card-inline__emoji {
+  filter: grayscale(0);
+}
+
+.cw-feedback-card-inline__label {
+  color: var(--agent-color-text-secondary);
+  font-size: 12px;
+}
+
+.cw-feedback-card-inline__option--selected .cw-feedback-card-inline__label {
+  color: var(--agent-color-brand-primary);
+  font-weight: 600;
 }
 
 .cw-footer {
