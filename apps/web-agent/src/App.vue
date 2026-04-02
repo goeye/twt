@@ -1017,6 +1017,13 @@ const translationLanguages = [
 const getAgentAvatarText = (name: string) => agentPool.find((a) => a.name === name)?.avatarText ?? name.slice(0, 1);
 const getAgentAvatarColor = (name: string) => agentPool.find((a) => a.name === name)?.avatarColor ?? "#a7b0c0";
 
+function getFeedbackLabel(feedback?: "satisfied" | "neutral" | "unsatisfied" | null): string {
+  if (feedback === "satisfied") return "满意";
+  if (feedback === "neutral") return "一般";
+  if (feedback === "unsatisfied") return "不满意";
+  return "暂无评价";
+}
+
 function getInitial(name: string): string {
   if (!name) return '?';
   const first = name.trim()[0];
@@ -1048,6 +1055,7 @@ interface ConversationSession extends SessionItem {
   assistants: string[];
   closed?: boolean;
   claimed?: boolean;
+  visitorFeedback?: "satisfied" | "neutral" | "unsatisfied" | null;
   isGroupChat?: boolean;
 }
 
@@ -1324,7 +1332,8 @@ const allSessions = ref<ConversationSession[]>([
     startedAt: "10:30",
     acceptedAt: "10:31",
     assignee: "客服主管",
-    assistants: []
+    assistants: [],
+    visitorFeedback: "satisfied"
   },
   {
     id: "s-6002",
@@ -1752,6 +1761,13 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "客服主管",
       content: "不会自动续费，到期前 7 天会通过短信和站内信提醒您，您可以手动选择续费或更换其他套餐。",
       time: "10:42"
+    },
+    {
+      id: "m-109",
+      role: "system",
+      sender: "系统",
+      content: "访客提交了评价：满意",
+      time: "10:43"
     }
   ],
   "s-6002": [
@@ -2621,7 +2637,8 @@ const activeInfoSections = computed<InfoSection[]>(() => {
           { key: "session-id", label: "会话ID", value: activeSession.value.id },
           { key: "session-title", label: "会话标题", value: activeSession.value.customerName },
           { key: "session-start", label: "发起时间", value: activeSession.value.startedAt },
-          { key: "session-accept", label: "接待时间", value: activeSession.value.acceptedAt }
+          { key: "session-accept", label: "接待时间", value: activeSession.value.acceptedAt },
+          { key: "session-feedback", label: "访客评价", value: getFeedbackLabel(activeSession.value.visitorFeedback) }
         ]
       },
       {
