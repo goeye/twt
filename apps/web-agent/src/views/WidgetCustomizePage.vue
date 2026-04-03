@@ -912,6 +912,7 @@ import { reactive, ref, computed, watch } from "vue";
 import { AgentSwitch, TimeDurationInput } from "@twt/ui-agent";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
+import { getFaqOptions, isFaqExists } from "../lib/faqData";
 
 interface QuickAccessItem {
   id: string;
@@ -1101,7 +1102,7 @@ const confirmWelcomeBtn = () => {
       emitToast("请选择常见问题");
       return;
     }
-    if (!faqOptions.value.some(f => f.id === welcomeBtnForm.faqId)) {
+    if (!isFaqExists(welcomeBtnForm.faqId)) {
       emitToast("所选常见问题已被删除，请重新选择");
       welcomeBtnForm.faqId = "";
       return;
@@ -1433,20 +1434,17 @@ const quickAccessForm = reactive({
   faqId: ""
 });
 
-// 常见问题列表（从 AI Agent 常见问题页面获取）
-// TODO: 实际应从共享的数据源或 API 获取
-const faqOptions = ref([
-  { id: "1", title: "退款吗?" }
-]);
+// 常见问题列表（从 AI Agent 常见问题页面共享数据源获取）
+const faqOptions = computed(() => getFaqOptions());
 
 const isFaqValid = computed(() => {
   if (!quickAccessForm.faqId) return true;
-  return faqOptions.value.some(faq => faq.id === quickAccessForm.faqId);
+  return isFaqExists(quickAccessForm.faqId);
 });
 
 const isWelcomeBtnFaqValid = computed(() => {
   if (!welcomeBtnForm.faqId) return true;
-  return faqOptions.value.some(f => f.id === welcomeBtnForm.faqId);
+  return isFaqExists(welcomeBtnForm.faqId);
 });
 
 const filteredTitleOptions = computed(() => {
