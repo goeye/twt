@@ -802,7 +802,11 @@
               />
             </div>
             <div v-if="quickAccessForm.actionType === 'message'" class="wc-modal__field">
+              <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
+                <p class="wc-modal__empty-text">当前未添加常见问题，为获得更精准的回答，请添加相关内容。<a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+              </div>
               <select
+                v-else
                 v-model="quickAccessForm.faqId"
                 class="wc-modal__input"
               >
@@ -862,13 +866,20 @@
               <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入需要复制的文本" />
             </div>
             <div v-if="welcomeBtnForm.actionType === 'message'" class="wc-modal__field">
+              <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
+                <p class="wc-modal__empty-text">当前未添加常见问题，为获得更精准的回答，请添加相关内容。<a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+              </div>
               <select
+                v-else
                 v-model="welcomeBtnForm.faqId"
                 class="wc-modal__input"
               >
                 <option value="" disabled>请选择常见问题</option>
                 <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
               </select>
+              <p v-if="welcomeBtnForm.faqId && !isWelcomeBtnFaqValid" class="wc-modal__error-hint">
+                所选常见问题已被删除，请重新选择
+              </p>
             </div>
           </div>
           <div class="wc-modal__footer">
@@ -1082,6 +1093,10 @@ const confirmWelcomeBtn = () => {
       return;
     }
   } else if (welcomeBtnForm.actionType === "message") {
+    if (faqOptions.value.length === 0) {
+      emitToast("请先添加常见问题");
+      return;
+    }
     if (!welcomeBtnForm.faqId) {
       emitToast("请选择常见问题");
       return;
@@ -1429,6 +1444,11 @@ const isFaqValid = computed(() => {
   return faqOptions.value.some(faq => faq.id === quickAccessForm.faqId);
 });
 
+const isWelcomeBtnFaqValid = computed(() => {
+  if (!welcomeBtnForm.faqId) return true;
+  return faqOptions.value.some(f => f.id === welcomeBtnForm.faqId);
+});
+
 const filteredTitleOptions = computed(() => {
   const keyword = quickAccessForm.title.trim().toLowerCase();
   if (!keyword) {
@@ -1459,6 +1479,10 @@ const closeQuickAccessModal = () => {
   quickAccessModalOpen.value = false;
   quickAccessEditId.value = null;
   titleDropdownOpen.value = false;
+};
+
+const navigateToFaq = () => {
+  window.location.href = "/ai-agent?tab=faq";
 };
 
 const editQuickAccess = (item: QuickAccessItem) => {
@@ -1520,6 +1544,10 @@ const confirmQuickAccess = () => {
       return;
     }
   } else if (quickAccessForm.actionType === "message") {
+    if (faqOptions.value.length === 0) {
+      emitToast("请先添加常见问题");
+      return;
+    }
     if (!quickAccessForm.faqId) {
       emitToast("请选择常见问题");
       return;
@@ -3830,6 +3858,31 @@ watch(previewMode, (mode) => {
   color: var(--agent-color-status-error);
   font-size: 12px;
   margin: 8px 0 0 0;
+}
+
+.wc-modal__empty-banner {
+  background-color: #FFF7E6;
+  border: 1px solid #FFD591;
+  border-radius: var(--agent-radius-md);
+  padding: 12px 16px;
+  margin-bottom: 0;
+}
+
+.wc-modal__empty-text {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.wc-modal__empty-link {
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.wc-modal__empty-link:hover {
+  text-decoration: underline;
 }
 
 .wc-modal__radio-group {
