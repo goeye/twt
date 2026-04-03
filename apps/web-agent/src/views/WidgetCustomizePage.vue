@@ -802,32 +802,16 @@
               />
             </div>
             <div v-if="quickAccessForm.actionType === 'message'" class="wc-modal__field">
-              <div class="wc-modal__input-group">
-                <select v-model="quickAccessForm.messageType" class="wc-modal__input-prefix">
-                  <option value="custom">自定义内容</option>
-                  <option value="faq">关联常见问题</option>
-                </select>
-                <div class="wc-modal__input-divider"></div>
-                <textarea
-                  v-if="quickAccessForm.messageType === 'custom'"
-                  v-model="quickAccessForm.content"
-                  class="wc-modal__textarea wc-modal__input--merged"
-                  placeholder="请输入消息内容"
-                  maxlength="2000"
-                  rows="3"
-                ></textarea>
-                <select
-                  v-if="quickAccessForm.messageType === 'faq'"
-                  v-model="quickAccessForm.faqId"
-                  class="wc-modal__input wc-modal__input--merged"
-                >
-                  <option value="" disabled>请选择常见问题</option>
-                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">
-                    {{ faq.title }}
-                  </option>
-                </select>
-              </div>
-              <p v-if="quickAccessForm.messageType === 'faq' && quickAccessForm.faqId && !isFaqValid" class="wc-modal__error-hint">
+              <select
+                v-model="quickAccessForm.faqId"
+                class="wc-modal__input"
+              >
+                <option value="" disabled>请选择常见问题</option>
+                <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">
+                  {{ faq.title }}
+                </option>
+              </select>
+              <p v-if="quickAccessForm.faqId && !isFaqValid" class="wc-modal__error-hint">
                 所选常见问题已被删除，请重新选择
               </p>
             </div>
@@ -878,29 +862,13 @@
               <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入需要复制的文本" />
             </div>
             <div v-if="welcomeBtnForm.actionType === 'message'" class="wc-modal__field">
-              <div class="wc-modal__input-group">
-                <select v-model="welcomeBtnForm.messageType" class="wc-modal__input-prefix">
-                  <option value="custom">自定义内容</option>
-                  <option value="faq">关联常见问题</option>
-                </select>
-                <div class="wc-modal__input-divider"></div>
-                <textarea
-                  v-if="welcomeBtnForm.messageType === 'custom'"
-                  v-model="welcomeBtnForm.content"
-                  class="wc-modal__textarea wc-modal__input--merged"
-                  placeholder="请输入消息内容"
-                  maxlength="2000"
-                  rows="3"
-                ></textarea>
-                <select
-                  v-if="welcomeBtnForm.messageType === 'faq'"
-                  v-model="welcomeBtnForm.faqId"
-                  class="wc-modal__input wc-modal__input--merged"
-                >
-                  <option value="" disabled>请选择常见问题</option>
-                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
-                </select>
-              </div>
+              <select
+                v-model="welcomeBtnForm.faqId"
+                class="wc-modal__input"
+              >
+                <option value="" disabled>请选择常见问题</option>
+                <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
+              </select>
             </div>
           </div>
           <div class="wc-modal__footer">
@@ -940,7 +908,6 @@ interface QuickAccessItem {
   url: string;
   icon?: string;
   actionType?: "link" | "copy" | "message";
-  messageType?: "custom" | "faq";
   faqId?: string;
 }
 
@@ -1059,7 +1026,6 @@ interface WelcomeButton {
   label: string;
   actionType: "link" | "copy" | "message";
   content: string;
-  messageType?: "custom" | "faq";
   faqId?: string;
 }
 
@@ -1077,7 +1043,6 @@ const welcomeBtnForm = reactive({
   label: "",
   actionType: "link" as "link" | "copy" | "message",
   content: "",
-  messageType: "custom" as "custom" | "faq",
   faqId: ""
 });
 
@@ -1088,7 +1053,6 @@ const openWelcomeBtnModal = () => {
   welcomeBtnForm.label = "";
   welcomeBtnForm.actionType = "link";
   welcomeBtnForm.content = "";
-  welcomeBtnForm.messageType = "custom";
   welcomeBtnForm.faqId = "";
   welcomeBtnModalOpen.value = true;
 };
@@ -1103,7 +1067,6 @@ const editWelcomeBtn = (btn: WelcomeButton) => {
   welcomeBtnForm.label = btn.label;
   welcomeBtnForm.actionType = btn.actionType;
   welcomeBtnForm.content = btn.content;
-  welcomeBtnForm.messageType = btn.messageType || "custom";
   welcomeBtnForm.faqId = btn.faqId || "";
   welcomeBtnModalOpen.value = true;
 };
@@ -1119,20 +1082,14 @@ const confirmWelcomeBtn = () => {
       return;
     }
   } else if (welcomeBtnForm.actionType === "message") {
-    if (welcomeBtnForm.messageType === "custom" && !welcomeBtnForm.content.trim()) {
-      emitToast("请输入消息内容");
+    if (!welcomeBtnForm.faqId) {
+      emitToast("请选择常见问题");
       return;
     }
-    if (welcomeBtnForm.messageType === "faq") {
-      if (!welcomeBtnForm.faqId) {
-        emitToast("请选择常见问题");
-        return;
-      }
-      if (!faqOptions.value.some(f => f.id === welcomeBtnForm.faqId)) {
-        emitToast("所选常见问题已被删除，请重新选择");
-        welcomeBtnForm.faqId = "";
-        return;
-      }
+    if (!faqOptions.value.some(f => f.id === welcomeBtnForm.faqId)) {
+      emitToast("所选常见问题已被删除，请重新选择");
+      welcomeBtnForm.faqId = "";
+      return;
     }
   }
 
@@ -1142,7 +1099,6 @@ const confirmWelcomeBtn = () => {
     label: welcomeBtnForm.label,
     actionType: welcomeBtnForm.actionType,
     content: welcomeBtnForm.content,
-    messageType: welcomeBtnForm.messageType,
     faqId: welcomeBtnForm.faqId
   };
 
@@ -1459,7 +1415,6 @@ const quickAccessForm = reactive({
   icon: "",
   actionType: "link" as "link" | "copy" | "message",
   content: "",
-  messageType: "custom" as "custom" | "faq",
   faqId: ""
 });
 
@@ -1497,7 +1452,6 @@ const openQuickAccessModal = () => {
   quickAccessForm.icon = "";
   quickAccessForm.actionType = "link";
   quickAccessForm.content = "";
-  quickAccessForm.messageType = "custom";
   quickAccessForm.faqId = "";
   quickAccessModalOpen.value = true;
 };
@@ -1514,7 +1468,6 @@ const editQuickAccess = (item: QuickAccessItem) => {
   quickAccessForm.icon = item.icon || "";
   quickAccessForm.actionType = item.actionType || "link";
   quickAccessForm.content = item.url;
-  quickAccessForm.messageType = item.messageType || "custom";
   quickAccessForm.faqId = item.faqId || "";
   quickAccessModalOpen.value = true;
 };
@@ -1568,20 +1521,14 @@ const confirmQuickAccess = () => {
       return;
     }
   } else if (quickAccessForm.actionType === "message") {
-    if (quickAccessForm.messageType === "custom" && !quickAccessForm.content.trim()) {
-      emitToast("请输入消息内容");
+    if (!quickAccessForm.faqId) {
+      emitToast("请选择常见问题");
       return;
     }
-    if (quickAccessForm.messageType === "faq") {
-      if (!quickAccessForm.faqId) {
-        emitToast("请选择常见问题");
-        return;
-      }
-      if (!isFaqValid.value) {
-        emitToast("所选常见问题已被删除，请重新选择");
-        quickAccessForm.faqId = "";
-        return;
-      }
+    if (!isFaqValid.value) {
+      emitToast("所选常见问题已被删除，请重新选择");
+      quickAccessForm.faqId = "";
+      return;
     }
   }
 
@@ -1594,7 +1541,6 @@ const confirmQuickAccess = () => {
         url: quickAccessForm.content,
         icon: quickAccessForm.icon,
         actionType: quickAccessForm.actionType,
-        messageType: quickAccessForm.messageType,
         faqId: quickAccessForm.faqId
       };
     }
@@ -1606,7 +1552,6 @@ const confirmQuickAccess = () => {
       url: quickAccessForm.content,
       icon: quickAccessForm.icon,
       actionType: quickAccessForm.actionType,
-      messageType: quickAccessForm.messageType,
       faqId: quickAccessForm.faqId
     });
   }
