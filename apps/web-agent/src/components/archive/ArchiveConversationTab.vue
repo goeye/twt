@@ -164,6 +164,14 @@
               <!-- 2a. 会话标题列 -->
               <td>
                 <button type="button" class="archive-link" @click="openConversation(row)">{{ row.title }}</button>
+                <button
+                  v-if="conversationMatchResults.has(row.id)"
+                  type="button"
+                  class="archive-match-count"
+                  @click.stop="openMatchList(row)"
+                >
+                  {{ conversationMatchResults.get(row.id)!.matchedIds.length }}条相关记录
+                </button>
               </td>
               <td>
                 <button type="button" class="archive-visitor-link" @click.stop="openVisitorDrawer(row)">{{ row.visitorName }}</button>
@@ -319,6 +327,13 @@
     @close="closeConversationDrawer"
   />
 
+  <ArchiveMessageListDrawer
+    :open="matchListDrawerVisible"
+    :messages="matchListDrawerMessages"
+    @select="handleSelectMatchedMessage"
+    @close="handleCloseMatchListDrawer"
+  />
+
   <ArchiveAssignModal
     :open="assignModalOpen"
     :keyword="assignKeyword"
@@ -342,6 +357,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveAssignModal from "./ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
+import ArchiveMessageListDrawer from "./ArchiveMessageListDrawer.vue";
 import VisitorInfoDrawer, { type VisitorDrawerData } from "../VisitorInfoDrawer.vue";
 import {
   type StaffAgent,
@@ -958,6 +974,9 @@ const sortKey = ref<SortKey>("startedAt");
 const sortOrder = ref<SortOrder>("desc");
 const openActionMenuId = ref<string | null>(null);
 const previewConversationId = ref<string | null>(null);
+const matchListDrawerVisible = ref(false);
+const matchListDrawerMessages = ref<any[]>([]);
+const pendingConversationId = ref<string>("");
 const assignModalOpen = ref(false);
 const assignKeyword = ref("");
 const pendingAssignConversationId = ref<string | null>(null);
@@ -1086,6 +1105,72 @@ const visibleRows = computed(() => {
 
 const previewConversation = computed(() => allRows.value.find((row) => row.id === previewConversationId.value) ?? null);
 const pendingAssignConversation = computed(() => allRows.value.find((row) => row.id === pendingAssignConversationId.value) ?? null);
+
+const conversationMatchResults = computed(() => {
+  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[] }>();
+  const filters = appliedFilters.value;
+  const keyword = filters.keyword.trim().toLowerCase();
+  if (!keyword || filters.searchField !== "conversationRecord") return results;
+
+  for (const row of visibleRows.value) {
+    const messages = getConversationMessages(row);
+    const matchedIds: string[] = [];
+    const matchedMessages: any[] = [];
+
+    for (const msg of messages) {
+      if (msg.role === "system") continue;
+      if (msg.content.toLowerCase().includes(keyword)) {
+        matchedIds.push(msg.id);
+        matchedMessages.push(msg);
+      }
+    }
+
+    if (matchedIds.length > 0) {
+      results.set(row.id, { matchedIds, matchedMessages });
+    }
+  }
+
+  return results;
+});
+
+function getConversationMessages(row: ConversationRecord): ArchivePreviewMessage[] {
+  const visitor = getVisitorAvatarProfile(row.visitorName);
+  const owner = row.owner !== "–" ? getArchiveAgentProfile(row.owner) : null;
+  const startTime = toTime(row.startedAtLabel);
+  const acceptTime = row.acceptedAtLabel !== "–" ? toTime(row.acceptedAtLabel) : startTime;
+
+  if (row.owner === aiAgentArchiveName) {
+    return [
+      { id: `${row.id}-c1`, role: "customer", sender: row.visitorName, content: "下单后多久能收到？有加急选项吗？", time: startTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor },
+      { id: `${row.id}-a1`, role: "agent", sender: aiAgentArchiveName, content: "您好！标准配送一般在 3-5 个工作日内送达。如果地址支持加急，结算页会显示「加急配送」选项。", time: acceptTime, avatarText: owner?.avatarText, avatarColor: owner?.avatarColor, avatarUrl: owner?.avatarUrl },
+      { id: `${row.id}-c2`, role: "customer", sender: row.visitorName, content: "加急配送支持哪些地区？", time: acceptTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor },
+      { id: `${row.id}-a2`, role: "agent", sender: aiAgentArchiveName, content: "目前覆盖大部分主要城市。您在下单页输入地址后，系统会自动判断是否支持加急配送。", time: acceptTime, avatarText: owner?.avatarText, avatarColor: owner?.avatarColor, avatarUrl: owner?.avatarUrl }
+    ];
+  }
+
+  if (row.owner === "–") {
+    return [
+      { id: `${row.id}-sys`, role: "system", sender: "系统", content: "当前会话尚未分配客服", time: startTime },
+      { id: `${row.id}-c1`, role: "customer", sender: row.visitorName, content: getVisitorQuestion(row), time: startTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor }
+    ];
+  }
+
+  const messages: ArchivePreviewMessage[] = [
+    { id: `${row.id}-c1`, role: "customer", sender: row.visitorName, content: getVisitorQuestion(row), time: startTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor },
+    { id: `${row.id}-a1`, role: "agent", sender: row.owner, content: getAgentReply(row), time: acceptTime, avatarText: owner?.avatarText, avatarColor: owner?.avatarColor, avatarUrl: owner?.avatarUrl }
+  ];
+
+  const extraRounds = getExtraRounds(row);
+  if (extraRounds) {
+    messages.push(
+      { id: `${row.id}-c2`, role: "customer", sender: row.visitorName, content: extraRounds[0], time: acceptTime, avatarText: visitor.avatarText, avatarColor: visitor.avatarColor },
+      { id: `${row.id}-a2`, role: "agent", sender: row.owner, content: extraRounds[1], time: acceptTime, avatarText: owner?.avatarText, avatarColor: owner?.avatarColor, avatarUrl: owner?.avatarUrl }
+    );
+  }
+
+  return messages;
+}
+
 const assignableAgents = computed(() => {
   const keyword = assignKeyword.value.trim().toLowerCase();
   return archiveAgentPool
@@ -1383,6 +1468,27 @@ const openConversation = (row: ConversationRecord) => {
   closeActionMenu();
   previewConversationId.value = row.id;
 };
+
+const openMatchList = (row: ConversationRecord) => {
+  const matchResult = conversationMatchResults.value.get(row.id);
+  if (!matchResult) return;
+
+  matchListDrawerMessages.value = matchResult.matchedMessages;
+  pendingConversationId.value = row.id;
+  matchListDrawerVisible.value = true;
+};
+
+const handleSelectMatchedMessage = (messageId: string) => {
+  matchListDrawerVisible.value = false;
+  previewConversationId.value = pendingConversationId.value;
+};
+
+const handleCloseMatchListDrawer = () => {
+  matchListDrawerVisible.value = false;
+  pendingConversationId.value = "";
+  matchListDrawerMessages.value = [];
+};
+
 
 // Tag popover methods
 const openTagPopover = (rowId: string) => {
@@ -1994,6 +2100,18 @@ onMounted(() => {
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.archive-match-count {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  padding: 0;
+  text-align: left;
 }
 
 .archive-visitor-link {

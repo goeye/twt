@@ -328,7 +328,7 @@
             :updated-at="item.updatedAt"
             :show-online-status="item.channelType === 'web'"
             :online="item.visitorOnline ?? false"
-            @click="activeSessionId = item.id"
+            @click="handleSessionItemClick(item.id)"
           />
           <p v-if="visibleSessions.length === 0" class="inbox-pane__empty">暂无符合条件的会话</p>
         </div>
@@ -360,17 +360,6 @@
         />
 
         <div ref="chatStreamRef" class="chat-pane__stream agent-scroll">
-          <div v-if="isSearchNavVisible" class="chat-search-nav">
-            <div class="chat-search-nav__pill">
-              <button type="button" class="chat-search-nav__arrow" aria-label="上一条" @click="goToPrevMatch">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <span class="chat-search-nav__text">{{ searchMatchIds.length }} 条匹配</span>
-              <button type="button" class="chat-search-nav__arrow" aria-label="下一条" @click="goToNextMatch">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </div>
-          </div>
           <p class="chat-pane__start-time">开始时间 {{ activeSession?.startedAt ?? '--' }}</p>
 
           <MessageBubble
@@ -727,6 +716,13 @@
       @dismiss="dismissUpdate"
       @refresh="doRefresh"
     />
+
+    <SearchMatchDialog
+      :open="searchMatchDialogVisible"
+      :messages="searchMatchDialogMessages"
+      @select="handleSelectMatchedMessage"
+      @close="handleCloseMatchDialog"
+    />
   </AgentAppShell>
 </template>
 
@@ -772,6 +768,7 @@ import {
   SessionListItem,
   SessionQueueNav,
   TransferModal,
+  SearchMatchDialog,
   type MessageItem,
   type NavItem,
   type SessionItem,
@@ -2148,6 +2145,17 @@ async function handleRetryTranslation(messageId: string, content: string) {
 }
 
 const searchKeyword = ref("");
+const searchMatchDialogVisible = ref(false);
+const searchMatchDialogMessages = ref<Array<{
+  id: string;
+  sender: string;
+  content: string;
+  time: string;
+  avatarText?: string;
+  avatarColor?: string;
+  avatarUrl?: string;
+}>>([]);
+const pendingSessionId = ref("");
 const composerText = ref("");
 const emailComposerBody = ref("");
 const emailComposerSubject = ref("");
@@ -2499,7 +2507,7 @@ const searchMatchIds = computed(() => {
   return result?.matchedIds ?? [];
 });
 
-const isSearchNavVisible = computed(() => searchMatchIds.value.length > 1);
+const isSearchNavVisible = computed(() => searchMatchIds.value.length > 1 && !searchMatchDialogVisible.value);
 
 function scrollToMessage(messageId: string) {
   nextTick(() => {
@@ -2520,6 +2528,80 @@ function goToNextMatch() {
   if (searchMatchIds.value.length === 0) return;
   currentSearchIndex.value = (currentSearchIndex.value + 1) % searchMatchIds.value.length;
   scrollToMessage(searchMatchIds.value[currentSearchIndex.value]);
+}
+
+function handleSessionItemClick(sessionId: string) {
+  const matchResult = sessionMatchResults.value.get(sessionId);
+
+  if (!matchResult || matchResult.matchedIds.length <= 1) {
+    activeSessionId.value = sessionId;
+    if (matchResult && matchResult.matchedIds.length === 1) {
+      currentSearchIndex.value = 0;
+      scrollToMessage(matchResult.matchedIds[0]);
+    }
+    return;
+  }
+
+  const session = allSessions.value.find(s => s.id === sessionId);
+  if (!session) return;
+
+  const messages = messageMap.value[sessionId] ?? [];
+  searchMatchDialogMessages.value = matchResult.matchedIds
+    .map(id => messages.find(m => m.id === id))
+    .filter(Boolean)
+    .map(msg => {
+      if (msg.role === "customer") {
+        return {
+          id: msg.id,
+          sender: msg.sender,
+          content: msg.content,
+          time: msg.time,
+          avatarText: getInitial(session.remarkName || session.visitorName),
+          avatarColor: session.avatarColor
+        };
+      }
+      if (msg.role === "bot") {
+        return {
+          id: msg.id,
+          sender: aiAgentProfile.value.name,
+          content: msg.content,
+          time: msg.time,
+          avatarText: aiAgentProfile.value.avatarText,
+          avatarColor: aiAgentProfile.value.avatarColor,
+          avatarUrl: aiAgentProfile.value.avatarUrl
+        };
+      }
+      return {
+        id: msg.id,
+        sender: msg.sender,
+        content: msg.content,
+        time: msg.time,
+        avatarText: getAgentAvatarText(msg.sender),
+        avatarColor: getAgentAvatarColor(msg.sender)
+      };
+    });
+
+  pendingSessionId.value = sessionId;
+  searchMatchDialogVisible.value = true;
+}
+
+function handleSelectMatchedMessage(messageId: string) {
+  searchMatchDialogVisible.value = false;
+  activeSessionId.value = pendingSessionId.value;
+
+  nextTick(() => {
+    const matchResult = sessionMatchResults.value.get(pendingSessionId.value);
+    if (matchResult) {
+      currentSearchIndex.value = matchResult.matchedIds.indexOf(messageId);
+      scrollToMessage(messageId);
+    }
+  });
+}
+
+function handleCloseMatchDialog() {
+  searchMatchDialogVisible.value = false;
+  pendingSessionId.value = "";
+  searchMatchDialogMessages.value = [];
 }
 
 watch(activeSessionId, () => {

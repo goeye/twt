@@ -178,7 +178,17 @@
               <td colspan="11" class="archive-table__empty">暂无符合条件的聊天</td>
             </tr>
             <tr v-for="row in paginatedChatRows" v-else :key="row.id">
-              <td><button type="button" class="archive-link" @click="openChatDrawer(row)">{{ row.title }}</button></td>
+              <td>
+                <button type="button" class="archive-link" @click="openChatDrawer(row)">{{ row.title }}</button>
+                <button
+                  v-if="chatMatchResults.has(row.id)"
+                  type="button"
+                  class="archive-match-count"
+                  @click.stop="openChatMatchList(row)"
+                >
+                  {{ chatMatchResults.get(row.id)!.matchedIds.length }}条相关记录
+                </button>
+              </td>
               <td>{{ row.chatType === 'single' ? '单聊' : '群聊' }}</td>
               <td>
                 <span class="chat-status" :class="'chat-status--' + row.status">{{ row.status === 'active' ? '活跃' : '解散' }}</span>
@@ -334,12 +344,20 @@
     @assign="handleChatDrawerAssign"
     @close="closeChatDrawer"
   />
+
+  <ArchiveMessageListDrawer
+    :open="chatMatchListDrawerVisible"
+    :messages="chatMatchListDrawerMessages"
+    @select="handleSelectChatMatchedMessage"
+    @close="handleCloseChatMatchListDrawer"
+  />
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
+import ArchiveMessageListDrawer from "./ArchiveMessageListDrawer.vue";
 import {
   type ArchivePreviewMessage,
   archiveAgentPool,
@@ -563,6 +581,10 @@ const chatPageSize = ref(20);
 
 // Chat drawer (聊天记录面板)
 const chatDrawerRowId = ref<string | null>(null);
+const chatMatchListDrawerVisible = ref(false);
+const chatMatchListDrawerMessages = ref<any[]>([]);
+const pendingChatId = ref<string>("");
+
 
 // Chat member panel (inline, shared for visitor and staff columns)
 const chatMemberPanelRowId = ref<string | null>(null);
@@ -705,10 +727,7 @@ const paginatedChatRows = computed(() => {
 
 const chatDrawerRow = computed(() => allChatRows.value.find(r => r.id === chatDrawerRowId.value) ?? null);
 
-const chatDrawerMessages = computed<ArchivePreviewMessage[]>(() => {
-  const row = chatDrawerRow.value;
-  if (!row) return [];
-
+function getChatMessages(row: ChatRecord): ArchivePreviewMessage[] {
   const ownerProfile = row.ownerMember
     ? { avatarText: row.ownerMember.avatarText, avatarColor: row.ownerMember.avatarColor, avatarUrl: row.ownerMember.avatarUrl }
     : { avatarText: "客", avatarColor: "linear-gradient(135deg, #2f6bff 0%, #69a1ff 100%)", avatarUrl: undefined };
@@ -738,6 +757,38 @@ const chatDrawerMessages = computed<ArchivePreviewMessage[]>(() => {
       avatarUrl: ownerProfile.avatarUrl
     }
   ];
+}
+
+const chatMatchResults = computed(() => {
+  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[] }>();
+  const filters = appliedChatFilters.value;
+  const keyword = filters.keyword.trim().toLowerCase();
+  if (!keyword || filters.searchField !== "conversationRecord") return results;
+
+  for (const row of visibleChatRows.value) {
+    const messages = getChatMessages(row);
+    const matchedIds: string[] = [];
+    const matchedMessages: any[] = [];
+
+    for (const msg of messages) {
+      if (msg.content.toLowerCase().includes(keyword)) {
+        matchedIds.push(msg.id);
+        matchedMessages.push(msg);
+      }
+    }
+
+    if (matchedIds.length > 0) {
+      results.set(row.id, { matchedIds, matchedMessages });
+    }
+  }
+
+  return results;
+});
+
+const chatDrawerMessages = computed<ArchivePreviewMessage[]>(() => {
+  const row = chatDrawerRow.value;
+  if (!row) return [];
+  return getChatMessages(row);
 });
 
 /* ------------------------------------------------------------------ */
@@ -780,6 +831,26 @@ const closeChatActionMenu = () => {
 const openChatDrawer = (row: ChatRecord) => {
   closeChatActionMenu();
   chatDrawerRowId.value = row.id;
+};
+
+const openChatMatchList = (row: ChatRecord) => {
+  const matchResult = chatMatchResults.value.get(row.id);
+  if (!matchResult) return;
+
+  chatMatchListDrawerMessages.value = matchResult.matchedMessages;
+  pendingChatId.value = row.id;
+  chatMatchListDrawerVisible.value = true;
+};
+
+const handleSelectChatMatchedMessage = (messageId: string) => {
+  chatMatchListDrawerVisible.value = false;
+  chatDrawerRowId.value = pendingChatId.value;
+};
+
+const handleCloseChatMatchListDrawer = () => {
+  chatMatchListDrawerVisible.value = false;
+  pendingChatId.value = "";
+  chatMatchListDrawerMessages.value = [];
 };
 
 const closeChatDrawer = () => {

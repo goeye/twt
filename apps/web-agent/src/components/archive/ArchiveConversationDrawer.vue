@@ -42,17 +42,6 @@
         </header>
 
         <div ref="messagesRef" class="archive-drawer__messages agent-scroll">
-          <div v-if="matchedMessageIds.length > 1" class="archive-drawer__search-nav">
-            <div class="archive-drawer__search-pill">
-              <button type="button" class="archive-drawer__search-arrow" aria-label="上一条" @click="goToPrevMatch">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 7.5L6 4L9.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <span class="archive-drawer__search-text">{{ matchedMessageIds.length }} 条匹配</span>
-              <button type="button" class="archive-drawer__search-arrow" aria-label="下一条" @click="goToNextMatch">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </div>
-          </div>
           <div
             v-for="message in messages"
             :key="message.id"

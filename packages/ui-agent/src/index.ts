@@ -30,6 +30,7 @@ export { default as InviteModal } from "./components/overlay/InviteModal.vue";
 export { default as FeatureLockedModal } from "./components/overlay/FeatureLockedModal.vue";
 export { default as PermissionChangedModal } from "./components/overlay/PermissionChangedModal.vue";
 export { default as VersionUpdateModal } from "./components/overlay/VersionUpdateModal.vue";
+export { default as SearchMatchDialog } from "./components/overlay/SearchMatchDialog.vue";
 
 export { default as EmptyState } from "./components/feedback/EmptyState.vue";
 export { default as LoadingSpinner } from "./components/feedback/LoadingSpinner.vue";
