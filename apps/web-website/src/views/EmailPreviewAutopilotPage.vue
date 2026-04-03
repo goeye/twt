@@ -36,8 +36,10 @@ const langs = [
 
 const currentLang = ref<LangKey>('zh-cn');
 
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
 const emailUrl = computed(() => {
-  return `/emails/autopilot-launch-v1-6-2.${currentLang.value}.html`;
+  return `${base}/emails/autopilot-launch-v1-6-2.${currentLang.value}.html`;
 });
 
 onMounted(() => {

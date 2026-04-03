@@ -8,7 +8,7 @@ if (!existsSync(distIndex)) {
   throw new Error(`Missing build output: ${distIndex}`);
 }
 
-const staticRoutes = ["/links"];
+const staticRoutes = ["/links", "/email-previews/autopilot-launch"];
 
 // Detail page slugs (keep in sync with mock/resources.ts)
 const detailSlugs = [
