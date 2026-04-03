@@ -123,3 +123,42 @@ export const buildDurationPayload = (index: number) => {
   }
   return { minutes: 11 * 24 * 60 + 3 * 60 + 58 };
 };
+
+export interface KWICResult {
+  snippet: string;
+  hasPrefix: boolean;
+  hasSuffix: boolean;
+  keywordStart: number;
+  keywordEnd: number;
+}
+
+export const extractKWIC = (
+  text: string,
+  keyword: string,
+  contextLength: number = 30
+): KWICResult => {
+  const lowerText = text.toLowerCase();
+  const lowerKeyword = keyword.toLowerCase();
+  const index = lowerText.indexOf(lowerKeyword);
+
+  if (index === -1) {
+    return {
+      snippet: text.slice(0, contextLength * 2),
+      hasPrefix: false,
+      hasSuffix: text.length > contextLength * 2,
+      keywordStart: -1,
+      keywordEnd: -1,
+    };
+  }
+
+  const start = Math.max(0, index - contextLength);
+  const end = Math.min(text.length, index + keyword.length + contextLength);
+
+  return {
+    snippet: text.slice(start, end),
+    hasPrefix: start > 0,
+    hasSuffix: end < text.length,
+    keywordStart: index - start,
+    keywordEnd: index - start + keyword.length,
+  };
+};

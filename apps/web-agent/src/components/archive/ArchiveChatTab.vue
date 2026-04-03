@@ -27,9 +27,13 @@
       <div class="archive-filters__row archive-filters__row--chat-primary">
         <label class="archive-field archive-field--compact">
           <select v-model="chatDraftFilters.searchField" class="archive-field__control archive-field__control--select">
+            <option value="all">全部</option>
+            <option value="visitorName">访客姓名</option>
+            <option value="visitorAlias">访客备注名</option>
+            <option value="staffName">客服姓名</option>
             <option value="title">聊天标题</option>
-            <option value="owner">群主</option>
             <option value="conversationRecord">聊天记录</option>
+            <option value="customerIdentifier">客户标识</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
@@ -363,14 +367,15 @@ import {
   archiveAgentPool,
   ownerPool,
   aiAgentArchiveName,
-  getArchiveAgentProfile
+  getArchiveAgentProfile,
+  extractKWIC
 } from "../../lib/archiveUtils";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-type ChatSearchField = "title" | "owner";
+type ChatSearchField = "all" | "visitorName" | "visitorAlias" | "staffName" | "title" | "customerIdentifier";
 type ChatType = "single" | "group";
 type ChatStatus = "active" | "dissolved";
 type ChatCategory = "external" | "internal";
@@ -556,7 +561,7 @@ const buildChatStaffMembers = (count: number, ownerName: string, chatIndex: numb
 /* ------------------------------------------------------------------ */
 
 const createDefaultChatFilters = (): ChatFilterState => ({
-  searchField: "title",
+  searchField: "all",
   keyword: "",
   messageCount: "all",
   owner: "all",
@@ -682,6 +687,27 @@ const visibleChatRows = computed(() => {
         if (row.visitorMembers.length > 0) texts.push("你好，请问有人在吗？");
         texts.push("你好，请问有什么可以帮您？");
         if (!texts.some((t) => t.toLowerCase().includes(keyword))) return false;
+      } else if (filters.searchField === "all") {
+        const titleMatch = String(row.title).toLowerCase().includes(keyword);
+        const visitorNameMatch = row.visitorMembers.some(m => m.name.toLowerCase().includes(keyword));
+        const visitorAliasMatch = row.visitorMembers.some(m => (m.alias || "").toLowerCase().includes(keyword));
+        const staffNameMatch = row.staffMembers.some(m => m.name.toLowerCase().includes(keyword));
+        const customerIdentifierMatch = row.visitorMembers.some(m => (m.relatedCustomer || "").toLowerCase().includes(keyword));
+        const texts: string[] = [];
+        if (row.visitorMembers.length > 0) texts.push("你好，请问有人在吗？");
+        texts.push("你好，请问有什么可以帮您？");
+        const conversationRecordMatch = texts.some((t) => t.toLowerCase().includes(keyword));
+        if (!titleMatch && !visitorNameMatch && !visitorAliasMatch && !staffNameMatch && !customerIdentifierMatch && !conversationRecordMatch) {
+          return false;
+        }
+      } else if (filters.searchField === "visitorName") {
+        if (!row.visitorMembers.some(m => m.name.toLowerCase().includes(keyword))) return false;
+      } else if (filters.searchField === "visitorAlias") {
+        if (!row.visitorMembers.some(m => (m.alias || "").toLowerCase().includes(keyword))) return false;
+      } else if (filters.searchField === "staffName") {
+        if (!row.staffMembers.some(m => m.name.toLowerCase().includes(keyword))) return false;
+      } else if (filters.searchField === "customerIdentifier") {
+        if (!row.visitorMembers.some(m => (m.relatedCustomer || "").toLowerCase().includes(keyword))) return false;
       } else {
         const fieldValue = String(row[filters.searchField]).toLowerCase();
         if (!fieldValue.includes(keyword)) return false;
@@ -760,25 +786,30 @@ function getChatMessages(row: ChatRecord): ArchivePreviewMessage[] {
 }
 
 const chatMatchResults = computed(() => {
-  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[] }>();
+  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[]; firstSnippet: string }>();
   const filters = appliedChatFilters.value;
-  const keyword = filters.keyword.trim().toLowerCase();
+  const keyword = filters.keyword.trim();
   if (!keyword || filters.searchField !== "conversationRecord") return results;
 
   for (const row of visibleChatRows.value) {
     const messages = getChatMessages(row);
     const matchedIds: string[] = [];
     const matchedMessages: any[] = [];
+    let firstSnippet = "";
 
     for (const msg of messages) {
-      if (msg.content.toLowerCase().includes(keyword)) {
+      if (msg.content.toLowerCase().includes(keyword.toLowerCase())) {
         matchedIds.push(msg.id);
         matchedMessages.push(msg);
+        if (!firstSnippet) {
+          const kwic = extractKWIC(msg.content, keyword);
+          firstSnippet = (kwic.hasPrefix ? "..." : "") + kwic.snippet + (kwic.hasSuffix ? "..." : "");
+        }
       }
     }
 
     if (matchedIds.length > 0) {
-      results.set(row.id, { matchedIds, matchedMessages });
+      results.set(row.id, { matchedIds, matchedMessages, firstSnippet });
     }
   }
 

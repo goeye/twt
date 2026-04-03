@@ -128,7 +128,7 @@
               </span>
               <span v-if="expanded" class="rail-footer__label">支持</span>
             </button>
-            <button type="button" class="rail-footer__icon" aria-label="设置" @click="openSettingsPage">
+            <button type="button" class="rail-footer__icon" :class="{ 'rail-footer__icon--active': isSettingsRoute }" aria-label="设置" @click="openSettingsPage">
               <span class="rail-footer__glyph">
                 <AgentIcon name="settings" :size="16" />
               </span>
@@ -750,6 +750,7 @@ import { FEATURES } from "./lib/plan";
 import { usePermission } from "./composables/usePermission";
 import { useVersionCheck } from "./composables/useVersionCheck";
 import { useTranslation } from "./composables/useTranslation";
+import { extractKWIC } from "./lib/archiveUtils";
 import {
   AgentAppShell,
   AiSettingsNav,
@@ -2094,7 +2095,15 @@ const messageMap = ref<Record<string, MessageItem[]>>({
 const router = useRouter();
 const route = useRoute();
 
-const activeMainNav = ref("conversation");
+const activeMainNav = computed(() => {
+  const routeName = currentRouteName.value;
+  // 设置页面也应该高亮设置图标
+  if (routeName === "settings") {
+    return "settings";
+  }
+  // 其他路由返回对应的 key
+  return routeName || "conversation";
+});
 const activeQueueKey = ref("pending-reply");
 const activeSessionId = ref("s-6001");
 
@@ -2225,17 +2234,18 @@ const hasCustomerIdentity = ref(true);
 type SessionFilterType = "all" | "visitor" | "customer";
 const sessionFilterType = ref<SessionFilterType>("all");
 
-type SearchFieldType = "all" | "customerIdentifier" | "visitorName" | "visitorAlias" | "conversationRecord";
+type SearchFieldType = "all" | "visitorName" | "visitorAlias" | "title" | "conversationRecord" | "customerIdentifier";
 const searchFieldType = ref<SearchFieldType>("all");
 const searchFieldDropdownVisible = ref(false);
 let searchFieldDropdownTimer: ReturnType<typeof setTimeout> | null = null;
 
 const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
   { key: "all", label: "全部" },
-  { key: "customerIdentifier", label: "客户标识" },
   { key: "visitorName", label: "访客姓名" },
   { key: "visitorAlias", label: "访客备注名" },
+  { key: "title", label: "会话标题" },
   { key: "conversationRecord", label: "聊天记录" },
+  { key: "customerIdentifier", label: "客户标识" },
 ];
 
 function showSearchFieldDropdown() {
@@ -2435,7 +2445,7 @@ const showSessionCategoryFilter = computed(() => {
 
 const sessionMatchResults = computed(() => {
   const results = new Map<string, { matchedIds: string[]; firstMatchContent: string }>();
-  const keyword = searchKeyword.value.trim().toLowerCase();
+  const keyword = searchKeyword.value.trim();
   if (!keyword) return results;
   const field = searchFieldType.value;
   if (field !== "all" && field !== "conversationRecord") return results;
@@ -2446,9 +2456,12 @@ const sessionMatchResults = computed(() => {
     for (const msg of messages) {
       if (msg.role === "system") continue;
       if (msg.contentType === "html") continue;
-      if (msg.content.toLowerCase().includes(keyword)) {
+      if (msg.content.toLowerCase().includes(keyword.toLowerCase())) {
         matchedIds.push(msg.id);
-        if (!firstContent) firstContent = msg.content;
+        if (!firstContent) {
+          const kwic = extractKWIC(msg.content, keyword);
+          firstContent = (kwic.hasPrefix ? "..." : "") + kwic.snippet + (kwic.hasSuffix ? "..." : "");
+        }
       }
     }
     if (matchedIds.length > 0) {
@@ -2468,7 +2481,17 @@ const visibleSessions = computed(() => {
     if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
     if (field === "visitorName") return session.visitorName.toLowerCase().includes(keyword);
     if (field === "visitorAlias") return (session.remarkName ?? "").toLowerCase().includes(keyword);
+    if (field === "title") return session.title.toLowerCase().includes(keyword);
     if (field === "conversationRecord") return sessionMatchResults.value.has(session.id);
+    if (field === "all") {
+      return (
+        session.visitorId.toLowerCase().includes(keyword) ||
+        session.visitorName.toLowerCase().includes(keyword) ||
+        (session.remarkName ?? "").toLowerCase().includes(keyword) ||
+        session.title.toLowerCase().includes(keyword) ||
+        sessionMatchResults.value.has(session.id)
+      );
+    }
     return (
       session.customerName.toLowerCase().includes(keyword) ||
       session.preview.toLowerCase().includes(keyword)
@@ -3980,6 +4003,15 @@ onBeforeUnmount(() => {
 
 .rail-footer__icon:hover {
   background: var(--agent-color-bg-muted);
+}
+
+.rail-footer__icon--active {
+  background: var(--agent-color-brand-soft);
+  color: var(--agent-color-brand-primary);
+}
+
+.rail-footer__icon--active .rail-footer__label {
+  color: var(--agent-color-brand-primary);
 }
 
 .rail-footer__label {

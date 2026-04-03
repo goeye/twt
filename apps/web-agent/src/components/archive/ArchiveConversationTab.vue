@@ -31,11 +31,12 @@
       <div class="archive-filters__row archive-filters__row--primary">
         <label class="archive-field archive-field--compact">
           <select v-model="draftFilters.searchField" class="archive-field__control archive-field__control--select">
+            <option value="all">全部</option>
             <option value="visitorName">访客姓名</option>
-            <option value="title">会话标题</option>
-            <option value="customerIdentifier">客户标识</option>
             <option value="visitorAlias">访客备注名</option>
+            <option value="title">会话标题</option>
             <option value="conversationRecord">聊天记录</option>
+            <option value="customerIdentifier">客户标识</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
@@ -369,14 +370,15 @@ import {
   getArchiveAgentProfile,
   formatDateTime,
   formatDuration,
-  buildDurationPayload
+  buildDurationPayload,
+  extractKWIC
 } from "../../lib/archiveUtils";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-type SearchField = "visitorName" | "title" | "customerIdentifier" | "visitorAlias";
+type SearchField = "all" | "visitorName" | "title" | "customerIdentifier" | "visitorAlias";
 type ConversationStatus = "pending-reply" | "queueing" | "processing" | "replied" | "closed";
 type ConversationRating = "none" | "satisfied";
 type SortKey = "startedAt" | "acceptedAt";
@@ -531,7 +533,7 @@ const visitorPool = [
 /* ------------------------------------------------------------------ */
 
 const createDefaultFilters = (): FilterState => ({
-  searchField: "visitorName",
+  searchField: "all",
   keyword: "",
   tag: "all",
   owner: "all",
@@ -1065,6 +1067,16 @@ const visibleRows = computed(() => {
       if (filters.searchField === "conversationRecord") {
         const texts = getRowMessageTexts(row);
         if (!texts.some((t) => t.toLowerCase().includes(keyword))) return false;
+      } else if (filters.searchField === "all") {
+        const visitorNameMatch = String(row.visitorName).toLowerCase().includes(keyword);
+        const visitorAliasMatch = String(row.visitorAlias).toLowerCase().includes(keyword);
+        const titleMatch = String(row.title).toLowerCase().includes(keyword);
+        const customerIdentifierMatch = String(row.customerIdentifier).toLowerCase().includes(keyword);
+        const texts = getRowMessageTexts(row);
+        const conversationRecordMatch = texts.some((t) => t.toLowerCase().includes(keyword));
+        if (!visitorNameMatch && !visitorAliasMatch && !titleMatch && !customerIdentifierMatch && !conversationRecordMatch) {
+          return false;
+        }
       } else {
         const fieldValue = String(row[filters.searchField]).toLowerCase();
         if (!fieldValue.includes(keyword)) return false;
@@ -1107,26 +1119,31 @@ const previewConversation = computed(() => allRows.value.find((row) => row.id ==
 const pendingAssignConversation = computed(() => allRows.value.find((row) => row.id === pendingAssignConversationId.value) ?? null);
 
 const conversationMatchResults = computed(() => {
-  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[] }>();
+  const results = new Map<string, { matchedIds: string[]; matchedMessages: any[]; firstSnippet: string }>();
   const filters = appliedFilters.value;
-  const keyword = filters.keyword.trim().toLowerCase();
+  const keyword = filters.keyword.trim();
   if (!keyword || filters.searchField !== "conversationRecord") return results;
 
   for (const row of visibleRows.value) {
     const messages = getConversationMessages(row);
     const matchedIds: string[] = [];
     const matchedMessages: any[] = [];
+    let firstSnippet = "";
 
     for (const msg of messages) {
       if (msg.role === "system") continue;
-      if (msg.content.toLowerCase().includes(keyword)) {
+      if (msg.content.toLowerCase().includes(keyword.toLowerCase())) {
         matchedIds.push(msg.id);
         matchedMessages.push(msg);
+        if (!firstSnippet) {
+          const kwic = extractKWIC(msg.content, keyword);
+          firstSnippet = (kwic.hasPrefix ? "..." : "") + kwic.snippet + (kwic.hasSuffix ? "..." : "");
+        }
       }
     }
 
     if (matchedIds.length > 0) {
-      results.set(row.id, { matchedIds, matchedMessages });
+      results.set(row.id, { matchedIds, matchedMessages, firstSnippet });
     }
   }
 

@@ -178,6 +178,6 @@ defineEmits<{
   padding: var(--agent-space-8) var(--agent-space-12);
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
 }
 </style>
