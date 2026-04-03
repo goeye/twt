@@ -1418,11 +1418,14 @@ const quickAccessForm = reactive({
   faqId: ""
 });
 
+// 常见问题列表（从知识库获取，筛选 position="客服端常见问题" 的记录）
+// TODO: 实际应从 API 获取知识库中的常见问题数据
 const faqOptions = ref([
-  { id: "faq-1", title: "如何注册账号？" },
-  { id: "faq-2", title: "忘记密码怎么办？" },
-  { id: "faq-3", title: "如何联系客服？" },
-  { id: "faq-4", title: "支持哪些支付方式？" }
+  { id: "1", title: "管理员是什么" },
+  { id: "2", title: "控制台和客服工作台区别" },
+  { id: "3", title: "席位说明" },
+  { id: "4", title: "如何邀请团队成员" },
+  { id: "5", title: "如何安装聊天小部件" }
 ]);
 
 const isFaqValid = computed(() => {
