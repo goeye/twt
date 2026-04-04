@@ -1271,6 +1271,7 @@ const queueGroupSeed: SessionQueueGroup[] = [
     key: "online-session",
     title: "在线会话",
     items: [
+      { key: "all-online", label: "全部", leadingEmoji: "🗂️" },
       { key: "pending-reply", label: "待回复", leadingEmoji: "👋" },
       { key: "queueing", label: "排队中", leadingEmoji: "⌛" },
       { key: "processing", label: "待处理", leadingEmoji: "📝" },
@@ -2426,7 +2427,11 @@ const currentModuleLabel = computed(() => {
   return item?.label ?? "模块";
 });
 
-const queueSessionList = computed(() => displaySessions.value.filter((session) => session.queueKey === activeQueueKey.value));
+// 从 seed 派生，避免与 queueGroupSeed 漂移；新增队列类型时自动包含
+const onlineQueueKeys = queueGroupSeed.find(g => g.key === "online-session")!.items.filter(i => i.key !== "all-online").map(i => i.key);
+const queueSessionList = computed(() => activeQueueKey.value === "all-online"
+  ? displaySessions.value.filter((s) => onlineQueueKeys.includes(s.queueKey))
+  : displaySessions.value.filter((s) => s.queueKey === activeQueueKey.value));
 
 watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; searchKeyword.value = ""; });
 
@@ -2441,7 +2446,8 @@ const filterCounts = computed(() => {
 
 const showSessionCategoryFilter = computed(() => {
   if (!hasCustomerIdentity.value) return false;
-  const keys = ["pending-reply", "queueing", "processing", "resolved", "ai-agent-queue"];
+  // 需与 queueGroupSeed online-session items 保持同步（含 all-online）
+  const keys = ["all-online", "pending-reply", "queueing", "processing", "resolved", "ai-agent-queue"];
   return keys.includes(activeQueueKey.value);
 });
 
@@ -3391,7 +3397,7 @@ const handleConfirmTakeoverAiSession = () => {
   });
 
   confirmTakeoverModalOpen.value = false;
-  activeQueueKey.value = "pending-reply";
+  if (activeQueueKey.value !== "all-online") activeQueueKey.value = "pending-reply";
   showTopToast("接管成功");
 };
 
@@ -3412,7 +3418,7 @@ const handleAiAssignConfirm = (agentId: string) => {
   const aiSessions = allSessions.value.filter((s) => s.queueKey === "ai-agent-queue");
   if (aiSessions.length > 0) {
     activeSessionId.value = aiSessions[0].id;
-  } else {
+  } else if (activeQueueKey.value !== "all-online") {
     activeQueueKey.value = "pending-reply";
   }
 
@@ -3457,7 +3463,7 @@ const handleQueueAssignConfirm = (agentId: string) => {
   const queueSessions = allSessions.value.filter((s) => s.queueKey === "queueing");
   if (queueSessions.length > 0) {
     activeSessionId.value = queueSessions[0].id;
-  } else {
+  } else if (activeQueueKey.value !== "all-online") {
     activeQueueKey.value = "pending-reply";
   }
 
@@ -3573,7 +3579,7 @@ const markSessionAsPending = () => {
     if (s.id !== activeSession.value!.id) return s;
     return { ...s, queueKey: "processing" };
   });
-  activeQueueKey.value = "processing";
+  if (activeQueueKey.value !== "all-online") activeQueueKey.value = "processing";
 };
 
 const removeSessionFromPending = () => {
@@ -3582,7 +3588,7 @@ const removeSessionFromPending = () => {
     if (s.id !== activeSession.value!.id) return s;
     return { ...s, queueKey: "pending-reply" };
   });
-  activeQueueKey.value = "pending-reply";
+  if (activeQueueKey.value !== "all-online") activeQueueKey.value = "pending-reply";
 };
 
 const handleMarkPending = () => {
