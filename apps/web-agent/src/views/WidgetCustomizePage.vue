@@ -398,6 +398,24 @@
           </div>
         </article>
 
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'proactiveInvite' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('proactiveInvite')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">主动会话提醒</h3>
+              <p class="wc-card__desc">客服主动创建会话时，在聊天图标上方展示消息气泡</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'proactiveInvite'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">开启主动会话提醒</span>
+              </div>
+              <AgentSwitch v-model="settings.enableProactiveInvite" @update:model-value="autoSave" />
+            </div>
+          </div>
+        </article>
+
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorInactive' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorInactive')">
             <div class="wc-accordion__trigger-text">
@@ -687,6 +705,12 @@
 
         <!-- Minimized Preview -->
         <div v-else class="wc-widget-fab" :style="widgetPositionStyle" @click="restoreWidget">
+          <div v-if="settings.enableProactiveInvite" class="wc-invite-bubble-wrap" @click.stop>
+            <button type="button" class="wc-invite-bubble__close">&times;</button>
+            <div class="wc-invite-bubble">
+              <p class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
+            </div>
+          </div>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -949,7 +973,7 @@ type SectionKey = "brand" | "position" | "display" | "quickAccess"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
   | "visitorFeedback"
   | "sessionForm" | "msgStatus" | "sessionFeatures"
-  | "agentInfoDisplay" | "queueReminder" | "visitorInactive" | null;
+  | "agentInfoDisplay" | "queueReminder" | "visitorInactive" | "proactiveInvite" | null;
 
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
@@ -1193,7 +1217,8 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   sessionFeatures: "sessionList",
   agentInfoDisplay: "sessionList",
   queueReminder: "chat",
-  visitorInactive: "chat"
+  visitorInactive: "chat",
+  proactiveInvite: "minimized"
 };
 
 const toggleSection = (key: SectionKey) => {
@@ -1307,7 +1332,8 @@ const settings = reactive({
   visitorInactiveSeconds: 7200,
   visitorInactiveIncludePending: true,
   sessionTitleMode: "ai" as "ai" | "agent",
-  showQueuePosition: false
+  showQueuePosition: false,
+  enableProactiveInvite: false
 });
 
 const showChatPreviewOnlineStatus = computed(() => {
@@ -4063,6 +4089,47 @@ watch(previewMode, (mode) => {
 }
 
 /* Responsive */
+.wc-invite-bubble-wrap {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.wc-invite-bubble {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 300px;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+}
+.wc-invite-bubble__close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(100, 110, 130, 0.75);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.wc-invite-bubble__text {
+  font-size: 14px;
+  color: var(--agent-color-text-primary);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 900px) {
   .widget-customize {
     grid-template-columns: 1fr;
