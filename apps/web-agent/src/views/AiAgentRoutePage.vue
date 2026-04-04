@@ -376,7 +376,7 @@
         <button type="button" class="doc-banner__close" @click="showFaqBanner = false">&times;</button>
         <div class="doc-banner__content">
           <h3 class="doc-banner__title">搭建专属业务知识库</h3>
-          <p class="doc-banner__desc">将分散的常见问题集中沉淀。Copilot 将学习这些知识并自动生成回复建议，确保团队对外口径一致，提升服务效率。</p>
+          <p class="doc-banner__desc">将分散的常见问题集中沉淀。AI Agent 将学习这些知识并自动生成回复建议，确保团队对外口径一致，提升服务效率。</p>
           <a class="doc-banner__link" href="javascript:void(0)" @click.prevent="emitToast('文档功能开发中')">
             <span class="doc-banner__link-icon">&#x1F4D6;</span>
             学习使用知识库
@@ -502,6 +502,7 @@ import {
   loadStoredAiAgentSettings,
   persistStoredAiAgentSettings
 } from "../lib/aiAgentSettings";
+import { type FaqItem, loadFaqList, saveFaqList } from "../lib/faqData";
 import AiAgentDeployFlow from "../components/ai-agent/AiAgentDeployFlow.vue";
 import AiAgentImageCropModal from "../components/ai-agent/AiAgentImageCropModal.vue";
 
@@ -585,18 +586,7 @@ const filteredDocList = computed(() => {
 const showFaqBanner = ref(true);
 const faqSearchQuery = ref("");
 
-interface FaqItem {
-  id: number;
-  question: string;
-  answer: string;
-  updatedAt: string;
-  statusType: "success" | "pending" | "error";
-  statusLabel: string;
-}
-
-const faqList = ref<FaqItem[]>([
-  { id: 1, question: "退款吗?", answer: "不退款", updatedAt: "2026-03-17 15:12", statusType: "success", statusLabel: "已完成" }
-]);
+const faqList = ref<FaqItem[]>(loadFaqList());
 
 const filteredFaqList = computed(() => {
   const query = faqSearchQuery.value.trim().toLowerCase();
@@ -656,6 +646,7 @@ const handleFaqAction = (action: "edit" | "delete", item: FaqItem) => {
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
   if (action === "delete") {
     faqList.value = faqList.value.filter((faq) => faq.id !== item.id);
+    saveFaqList(faqList.value);
     emitToast("删除成功");
     return;
   }
@@ -1560,9 +1551,7 @@ onMounted(() => {
 
 .doc-table-wrap {
   background: #fff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .doc-table {

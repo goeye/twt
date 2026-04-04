@@ -803,7 +803,7 @@
             </div>
             <div v-if="quickAccessForm.actionType === 'message'" class="wc-modal__field">
               <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
-                <p class="wc-modal__empty-text">当前未添加常见问题，为获得更精准的回答，请添加相关内容。<a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+                <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
               </div>
               <select
                 v-else
@@ -867,7 +867,7 @@
             </div>
             <div v-if="welcomeBtnForm.actionType === 'message'" class="wc-modal__field">
               <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
-                <p class="wc-modal__empty-text">当前未添加常见问题，为获得更精准的回答，请添加相关内容。<a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+                <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
               </div>
               <select
                 v-else
