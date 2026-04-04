@@ -24,7 +24,7 @@
         </div>
 
         <footer class="version-footer">
-          <button type="button" class="version-btn version-btn-primary" @click="$emit('refresh')">
+          <button type="button" class="version-btn" @click="$emit('refresh')">
             立即刷新
           </button>
         </footer>
@@ -36,22 +36,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{
-  open: boolean;
-  notes: string;
-}>();
-
-defineEmits<{
-  (e: "dismiss"): void;
-  (e: "refresh"): void;
-}>();
+const props = defineProps<{ open: boolean; notes: string }>();
+defineEmits<{ (e: "refresh"): void }>();
 
 const notesList = computed(() => {
   if (!props.notes) return [];
-  return props.notes
-    .split("\n")
-    .map((line) => line.replace(/^[a-f0-9]+ /, "").trim())
-    .filter(Boolean);
+  return props.notes.split("\n").map((l) => l.replace(/^[a-f0-9]+ /, "").trim()).filter(Boolean);
 });
 </script>
 
@@ -82,13 +72,9 @@ const notesList = computed(() => {
   padding: 24px 24px 0;
 }
 
-.version-icon {
-  flex-shrink: 0;
-}
+.version-icon { flex-shrink: 0; }
 
-.version-header-text {
-  flex: 1;
-}
+.version-header-text { flex: 1; }
 
 .version-title {
   color: #1a1a1a;
@@ -147,21 +133,13 @@ const notesList = computed(() => {
 }
 
 .version-btn {
+  width: 100%;
   border: none;
   border-radius: 8px;
   font-size: 14px;
   height: 38px;
-  width: 100%;
-  cursor: pointer;
-}
-
-.version-btn-ghost {
-  background: #f5f5f5;
-  color: #666;
-}
-
-.version-btn-primary {
   background: #4080ff;
   color: #fff;
+  cursor: pointer;
 }
 </style>

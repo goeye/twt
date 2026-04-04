@@ -125,9 +125,8 @@
           <li v-for="(note, i) in notesList" :key="i" style="margin-bottom: 4px">{{ note }}</li>
         </ul>
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 12px">
-        <a-button @click="dismissUpdate">稍后提醒</a-button>
-        <a-button type="primary" @click="doRefresh">立即刷新</a-button>
+      <div>
+        <a-button type="primary" block @click="doRefresh">立即刷新</a-button>
       </div>
     </a-modal>
   </a-layout>

@@ -24,9 +24,6 @@
         </div>
 
         <footer class="version-update-footer">
-          <button type="button" class="agent-btn agent-btn--ghost version-update-btn" @click="$emit('dismiss')">
-            稍后提醒
-          </button>
           <button type="button" class="agent-btn agent-btn--primary version-update-btn" @click="$emit('refresh')">
             立即刷新
           </button>
@@ -150,9 +147,6 @@ const notesList = computed(() => {
 }
 
 .version-update-footer {
-  display: flex;
-  gap: var(--agent-space-12);
-  justify-content: flex-end;
   padding: 20px 24px 24px;
 }
 
@@ -160,6 +154,6 @@ const notesList = computed(() => {
   border-radius: var(--agent-radius-lg);
   font-size: 14px;
   height: 38px;
-  min-width: 100px;
+  width: 100%;
 }
 </style>

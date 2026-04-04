@@ -14,9 +14,6 @@
           </div>
 
           <div class="version-actions">
-            <button type="button" class="version-btn version-btn-cancel" @click="$emit('dismiss')">
-              稍后提醒
-            </button>
             <button type="button" class="version-btn version-btn-confirm" @click="$emit('refresh')">
               立即刷新
             </button>
@@ -125,11 +122,10 @@ const notesList = computed(() => {
 
 .version-actions {
   display: flex;
-  gap: 14px;
 }
 
 .version-btn {
-  flex: 1;
+  width: 100%;
   height: 44px;
   border: none;
   border-radius: 64px;
