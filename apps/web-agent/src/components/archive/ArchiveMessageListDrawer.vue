@@ -24,7 +24,7 @@
                 <span class="message-item__sender">{{ msg.sender }}</span>
                 <span class="message-item__time">{{ msg.time }}</span>
               </div>
-              <div class="message-item__bubble">{{ msg.content }}</div>
+              <div class="message-item__bubble" v-html="highlight(msg.content)"></div>
             </div>
           </button>
         </div>
@@ -34,8 +34,9 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   open: boolean;
+  keyword?: string;
   messages: Array<{
     id: string;
     sender: string;
@@ -51,6 +52,18 @@ defineEmits<{
   (e: "select", messageId: string): void;
   (e: "close"): void;
 }>();
+
+function highlight(text: string) {
+  const kw = props.keyword?.trim();
+  if (!kw) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(kw.toLowerCase());
+  if (idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0, idx)) + `<span class="msg-highlight">${escapeHtml(text.slice(idx, idx + kw.length))}</span>` + escapeHtml(text.slice(idx + kw.length));
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 </script>
 
 <style scoped>
@@ -179,5 +192,10 @@ defineEmits<{
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+}
+
+.msg-highlight {
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 </style>

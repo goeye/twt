@@ -324,6 +324,7 @@
             :customer-name="item.customerName"
             :preview="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length === 1 ? sessionMatchResults.get(item.id)!.firstMatchContent : item.preview"
             :match-count="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length > 1 ? sessionMatchResults.get(item.id)!.matchedIds.length : undefined"
+            :keyword="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length === 1 ? searchKeyword : undefined"
             :unread-count="item.unreadCount"
             :updated-at="item.updatedAt"
             :show-online-status="item.channelType === 'web'"
@@ -720,6 +721,7 @@
     <SearchMatchDialog
       :open="searchMatchDialogVisible"
       :messages="searchMatchDialogMessages"
+      :keyword="searchKeyword"
       @select="handleSelectMatchedMessage"
       @close="handleCloseMatchDialog"
     />
@@ -2426,7 +2428,7 @@ const currentModuleLabel = computed(() => {
 
 const queueSessionList = computed(() => displaySessions.value.filter((session) => session.queueKey === activeQueueKey.value));
 
-watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; });
+watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; searchKeyword.value = ""; });
 
 const filterCounts = computed(() => {
   const list = queueSessionList.value;

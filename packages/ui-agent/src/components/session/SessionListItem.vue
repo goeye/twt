@@ -23,7 +23,7 @@
       <div class="session-item__row">
         <span v-if="matchCount && matchCount > 0" class="session-item__match-count">{{ matchCount }}条相关记录</span>
         <template v-else>
-          <span class="session-item__preview">{{ preview }}</span>
+          <span class="session-item__preview" v-html="highlightedPreview"></span>
           <span v-if="unreadCount && unreadCount > 0" class="session-item__unread-dot"></span>
         </template>
       </div>
@@ -32,10 +32,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { ChannelType } from "../../types";
 import AgentIcon from "../icon/AgentIcon.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     customerName: string;
     preview: string;
@@ -49,11 +50,25 @@ withDefaults(
     showOnlineStatus?: boolean;
     online?: boolean;
     matchCount?: number;
+    keyword?: string;
   }>(),
   {
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
   }
 );
+
+const highlightedPreview = computed(() => {
+  const kw = props.keyword?.trim();
+  const text = props.preview;
+  if (!kw) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(kw.toLowerCase());
+  if (idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0, idx)) + `<span class="session-item__highlight">${escapeHtml(text.slice(idx, idx + kw.length))}</span>` + escapeHtml(text.slice(idx + kw.length));
+});
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 </script>
 
 <style scoped>
@@ -165,6 +180,11 @@ withDefaults(
   flex-shrink: 0;
   height: 8px;
   width: 8px;
+}
+
+.session-item__highlight {
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 
 .session-item__match-count {

@@ -331,6 +331,7 @@
   <ArchiveMessageListDrawer
     :open="matchListDrawerVisible"
     :messages="matchListDrawerMessages"
+    :keyword="appliedFilters.keyword"
     @select="handleSelectMatchedMessage"
     @close="handleCloseMatchListDrawer"
   />

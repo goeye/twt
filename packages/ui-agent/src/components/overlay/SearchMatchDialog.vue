@@ -17,7 +17,7 @@
             <span class="match-item__sender">{{ msg.sender }}</span>
             <span class="match-item__time">{{ msg.time }}</span>
           </div>
-          <div class="match-item__bubble">{{ msg.content }}</div>
+          <div class="match-item__bubble" v-html="highlight(msg.content)"></div>
         </div>
       </button>
     </div>
@@ -27,8 +27,9 @@
 <script setup lang="ts">
 import BaseModal from "./BaseModal.vue";
 
-defineProps<{
+const props = defineProps<{
   open: boolean;
+  keyword?: string;
   messages: Array<{
     id: string;
     sender: string;
@@ -44,6 +45,18 @@ defineEmits<{
   (e: "select", messageId: string): void;
   (e: "close"): void;
 }>();
+
+function highlight(text: string) {
+  const kw = props.keyword?.trim();
+  if (!kw) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(kw.toLowerCase());
+  if (idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0, idx)) + `<span class="match-highlight">${escapeHtml(text.slice(idx, idx + kw.length))}</span>` + escapeHtml(text.slice(idx + kw.length));
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 </script>
 
 <style scoped>
@@ -128,6 +141,11 @@ defineEmits<{
   padding: var(--agent-space-8) var(--agent-space-12);
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
+}
+
+.match-highlight {
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 </style>
