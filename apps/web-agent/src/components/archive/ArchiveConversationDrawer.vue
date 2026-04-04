@@ -64,7 +64,7 @@
                   <span class="archive-message__sender">{{ message.sender }}</span>
                   <span class="archive-message__time">{{ message.time }}</span>
                 </div>
-                <div class="archive-message__bubble">{{ message.content }}</div>
+                <div class="archive-message__bubble" v-html="highlightMessage(message.content)"></div>
               </div>
             </template>
           </div>
@@ -201,6 +201,34 @@ function goToNextMatch() {
   if (matchedMessageIds.value.length === 0) return;
   currentMatchIndex.value = (currentMatchIndex.value + 1) % matchedMessageIds.value.length;
   scrollToMatchedMessage(matchedMessageIds.value[currentMatchIndex.value]);
+}
+
+function highlightMessage(text: string) {
+  const kw = (props.searchKeyword ?? "").trim();
+  if (!kw) return escapeHtml(text);
+
+  const lowerText = text.toLowerCase();
+  const lowerKeyword = kw.toLowerCase();
+  let cursor = 0;
+  let html = "";
+
+  while (cursor < text.length) {
+    const index = lowerText.indexOf(lowerKeyword, cursor);
+    if (index === -1) {
+      html += escapeHtml(text.slice(cursor));
+      break;
+    }
+
+    html += escapeHtml(text.slice(cursor, index));
+    html += `<span class="archive-message__keyword-highlight">${escapeHtml(text.slice(index, index + kw.length))}</span>`;
+    cursor = index + kw.length;
+  }
+
+  return html;
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 watch(
@@ -451,6 +479,11 @@ watch(
 .archive-message--highlighted .archive-message__bubble {
   background: rgba(47, 107, 255, 0.08);
   box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.2);
+}
+
+:deep(.archive-message__keyword-highlight) {
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 
 .archive-drawer__search-nav {

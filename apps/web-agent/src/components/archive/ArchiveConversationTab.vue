@@ -317,7 +317,7 @@
     :open="Boolean(previewConversation)"
     :title="previewConversation?.title ?? ''"
     :messages="previewConversationMessages"
-    :search-keyword="appliedFilters.searchField === 'conversationRecord' ? appliedFilters.keyword : ''"
+    :search-keyword="appliedFilters.keyword"
     :assign-label="getDrawerAssignLabel(previewConversation)"
     :variant="getDrawerVariant(previewConversation)"
     :editable="false"
@@ -1123,7 +1123,7 @@ const conversationMatchResults = computed(() => {
   const results = new Map<string, { matchedIds: string[]; matchedMessages: any[]; firstSnippet: string }>();
   const filters = appliedFilters.value;
   const keyword = filters.keyword.trim();
-  if (!keyword || filters.searchField !== "conversationRecord") return results;
+  if (!keyword || (filters.searchField !== "conversationRecord" && filters.searchField !== "all")) return results;
 
   for (const row of visibleRows.value) {
     const messages = getConversationMessages(row);

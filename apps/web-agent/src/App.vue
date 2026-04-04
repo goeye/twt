@@ -322,9 +322,9 @@
             :avatar-text="item.avatarText"
             :channel-type="item.channelType"
             :customer-name="item.customerName"
-            :preview="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length === 1 ? sessionMatchResults.get(item.id)!.firstMatchContent : item.preview"
-            :match-count="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length > 1 ? sessionMatchResults.get(item.id)!.matchedIds.length : undefined"
-            :keyword="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchedIds.length === 1 ? searchKeyword : undefined"
+            :preview="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchCount === 1 ? sessionMatchResults.get(item.id)!.firstMatchContent : item.preview"
+            :match-count="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchCount > 1 ? sessionMatchResults.get(item.id)!.matchCount : undefined"
+            :keyword="searchKeyword.trim() ? searchKeyword : undefined"
             :unread-count="item.unreadCount"
             :updated-at="item.updatedAt"
             :show-online-status="item.channelType === 'web'"
@@ -2446,11 +2446,12 @@ const showSessionCategoryFilter = computed(() => {
 });
 
 const sessionMatchResults = computed(() => {
-  const results = new Map<string, { matchedIds: string[]; firstMatchContent: string }>();
+  const results = new Map<string, { matchedIds: string[]; firstMatchContent: string; matchCount: number }>();
   const keyword = searchKeyword.value.trim();
   if (!keyword) return results;
   const field = searchFieldType.value;
   if (field !== "all" && field !== "conversationRecord") return results;
+  const lowerKeyword = keyword.toLowerCase();
   for (const session of queueSessionList.value) {
     const messages = messageMap.value[session.id] ?? [];
     const matchedIds: string[] = [];
@@ -2458,7 +2459,7 @@ const sessionMatchResults = computed(() => {
     for (const msg of messages) {
       if (msg.role === "system") continue;
       if (msg.contentType === "html") continue;
-      if (msg.content.toLowerCase().includes(keyword.toLowerCase())) {
+      if (msg.content.toLowerCase().includes(lowerKeyword)) {
         matchedIds.push(msg.id);
         if (!firstContent) {
           const kwic = extractKWIC(msg.content, keyword);
@@ -2467,7 +2468,16 @@ const sessionMatchResults = computed(() => {
       }
     }
     if (matchedIds.length > 0) {
-      results.set(session.id, { matchedIds, firstMatchContent: firstContent });
+      results.set(session.id, { matchedIds, firstMatchContent: firstContent, matchCount: matchedIds.length });
+      continue;
+    }
+    if (messages.length === 0 && session.preview.toLowerCase().includes(lowerKeyword)) {
+      const kwic = extractKWIC(session.preview, keyword);
+      results.set(session.id, {
+        matchedIds: [],
+        firstMatchContent: (kwic.hasPrefix ? "..." : "") + kwic.snippet + (kwic.hasSuffix ? "..." : ""),
+        matchCount: 1
+      });
     }
   }
   return results;
@@ -2483,14 +2493,14 @@ const visibleSessions = computed(() => {
     if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
     if (field === "visitorName") return session.visitorName.toLowerCase().includes(keyword);
     if (field === "visitorAlias") return (session.remarkName ?? "").toLowerCase().includes(keyword);
-    if (field === "title") return session.title.toLowerCase().includes(keyword);
+    if (field === "title") return session.customerName.toLowerCase().includes(keyword);
     if (field === "conversationRecord") return sessionMatchResults.value.has(session.id);
     if (field === "all") {
       return (
         session.visitorId.toLowerCase().includes(keyword) ||
         session.visitorName.toLowerCase().includes(keyword) ||
         (session.remarkName ?? "").toLowerCase().includes(keyword) ||
-        session.title.toLowerCase().includes(keyword) ||
+        session.customerName.toLowerCase().includes(keyword) ||
         sessionMatchResults.value.has(session.id)
       );
     }
@@ -2558,7 +2568,7 @@ function goToNextMatch() {
 function handleSessionItemClick(sessionId: string) {
   const matchResult = sessionMatchResults.value.get(sessionId);
 
-  if (!matchResult || matchResult.matchedIds.length <= 1) {
+  if (!matchResult || matchResult.matchCount <= 1) {
     activeSessionId.value = sessionId;
     if (matchResult && matchResult.matchedIds.length === 1) {
       currentSearchIndex.value = 0;

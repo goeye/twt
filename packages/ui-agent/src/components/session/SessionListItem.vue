@@ -61,13 +61,32 @@ const highlightedPreview = computed(() => {
   const kw = props.keyword?.trim();
   const text = props.preview;
   if (!kw) return escapeHtml(text);
-  const idx = text.toLowerCase().indexOf(kw.toLowerCase());
-  if (idx === -1) return escapeHtml(text);
-  return escapeHtml(text.slice(0, idx)) + `<span class="session-item__highlight">${escapeHtml(text.slice(idx, idx + kw.length))}</span>` + escapeHtml(text.slice(idx + kw.length));
+  return highlightKeyword(text, kw, "session-item__highlight");
 });
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function highlightKeyword(text: string, keyword: string, className: string) {
+  const lowerText = text.toLowerCase();
+  const lowerKeyword = keyword.toLowerCase();
+  let cursor = 0;
+  let html = "";
+
+  while (cursor < text.length) {
+    const index = lowerText.indexOf(lowerKeyword, cursor);
+    if (index === -1) {
+      html += escapeHtml(text.slice(cursor));
+      break;
+    }
+
+    html += escapeHtml(text.slice(cursor, index));
+    html += `<span class="${className}">${escapeHtml(text.slice(index, index + keyword.length))}</span>`;
+    cursor = index + keyword.length;
+  }
+
+  return html;
 }
 </script>
 
@@ -182,7 +201,7 @@ function escapeHtml(s: string) {
   width: 8px;
 }
 
-.session-item__highlight {
+:deep(.session-item__highlight) {
   color: var(--agent-color-brand-primary);
   font-weight: var(--agent-font-weight-medium);
 }

@@ -49,13 +49,32 @@ defineEmits<{
 function highlight(text: string) {
   const kw = props.keyword?.trim();
   if (!kw) return escapeHtml(text);
-  const idx = text.toLowerCase().indexOf(kw.toLowerCase());
-  if (idx === -1) return escapeHtml(text);
-  return escapeHtml(text.slice(0, idx)) + `<span class="match-highlight">${escapeHtml(text.slice(idx, idx + kw.length))}</span>` + escapeHtml(text.slice(idx + kw.length));
+  return highlightKeyword(text, kw, "match-highlight");
 }
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function highlightKeyword(text: string, keyword: string, className: string) {
+  const lowerText = text.toLowerCase();
+  const lowerKeyword = keyword.toLowerCase();
+  let cursor = 0;
+  let html = "";
+
+  while (cursor < text.length) {
+    const index = lowerText.indexOf(lowerKeyword, cursor);
+    if (index === -1) {
+      html += escapeHtml(text.slice(cursor));
+      break;
+    }
+
+    html += escapeHtml(text.slice(cursor, index));
+    html += `<span class="${className}">${escapeHtml(text.slice(index, index + keyword.length))}</span>`;
+    cursor = index + keyword.length;
+  }
+
+  return html;
 }
 </script>
 
@@ -134,17 +153,16 @@ function escapeHtml(s: string) {
   background: var(--agent-color-bg-secondary);
   border-radius: var(--agent-radius-md);
   color: var(--agent-color-text-primary);
-  display: -webkit-box;
+  display: block;
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   overflow: hidden;
   padding: var(--agent-space-8) var(--agent-space-12);
   text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  white-space: nowrap;
 }
 
-.match-highlight {
+:deep(.match-highlight) {
   color: var(--agent-color-brand-primary);
   font-weight: var(--agent-font-weight-medium);
 }

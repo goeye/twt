@@ -342,7 +342,7 @@
     :open="Boolean(chatDrawerRow)"
     :title="chatDrawerRow?.title ?? ''"
     :messages="chatDrawerMessages"
-    :search-keyword="appliedChatFilters.searchField === 'conversationRecord' ? appliedChatFilters.keyword : ''"
+    :search-keyword="appliedChatFilters.keyword"
     assign-label="查看详情"
     :editable="false"
     @assign="handleChatDrawerAssign"
@@ -352,6 +352,7 @@
   <ArchiveMessageListDrawer
     :open="chatMatchListDrawerVisible"
     :messages="chatMatchListDrawerMessages"
+    :keyword="appliedChatFilters.keyword"
     @select="handleSelectChatMatchedMessage"
     @close="handleCloseChatMatchListDrawer"
   />
@@ -789,7 +790,7 @@ const chatMatchResults = computed(() => {
   const results = new Map<string, { matchedIds: string[]; matchedMessages: any[]; firstSnippet: string }>();
   const filters = appliedChatFilters.value;
   const keyword = filters.keyword.trim();
-  if (!keyword || filters.searchField !== "conversationRecord") return results;
+  if (!keyword || (filters.searchField !== "conversationRecord" && filters.searchField !== "all")) return results;
 
   for (const row of visibleChatRows.value) {
     const messages = getChatMessages(row);
