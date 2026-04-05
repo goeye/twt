@@ -3,8 +3,9 @@
     class="agent-content-page agent-content-page--hide-scrollbar settings-page"
     :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' || activeKey === 'email' || activeKey === 'quick-reply' || activeKey === 'personal-reply' || activeKey === 'visitor-tags' || activeKey === 'conversation-tags' || activeKey === 'blacklist' || activeKey === 'trusted-domains' }"
   >
-    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains' && activeKey !== 'email'" class="agent-content-header">
+    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains' && activeKey !== 'email'" class="agent-content-header" :class="{ 'settings-header--with-action': activeKey === 'install' || activeKey === 'website-code' || activeKey === 'webhooks' }">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
+      <a v-if="activeKey === 'install' || activeKey === 'website-code' || activeKey === 'webhooks'" href="#" target="_blank" class="settings-api-link">查看 API 文档</a>
     </header>
 
     <section v-if="activeKey === 'install'" class="settings-install">
@@ -71,32 +72,6 @@
         </div>
       </article>
 
-      <article class="settings-card agent-panel">
-        <h2 class="settings-card__title agent-settings-feature-title">自定义配置（可选）</h2>
-        <p class="settings-card__description agent-settings-feature-description">
-          如需自定义，可参考下方代码根据需要调整聊天页面语言，或将你内部系统的客户信息传入聊天页面
-        </p>
-
-        <section class="settings-step">
-          <p class="settings-step__title">
-            1、切换聊天页面语言：在链接末尾加上 <code>?lang=语言代码</code> 即可。支持：
-            <code>zh-cn</code>(简体中文)、<code>zh-tw</code>(繁体中文)、<code>en</code>(英文)
-          </p>
-          <div class="settings-example">样例：{{ languageExampleUrl }}</div>
-        </section>
-
-        <section class="settings-step">
-          <p class="settings-step__title">2、接入内部系统的客户信息</p>
-          <DataTable :columns="chatParamColumns" :rows="chatParamRows" />
-          <p class="settings-tip">
-            <code>sbs_mm</code> 生成规则：<code>md5(md5(sbs + '_' + AppSecret) + '_' + ranstr)</code>；注：
-            <code>md5</code> 值为小写 32 位
-            <br />
-            注意：<code>AppSecret</code> 是生成 <code>sbs_mm</code> 的必要参数，请在开发设置中生成，并妥善保存，避免泄露。
-          </p>
-          <div class="settings-example">样例：{{ customerSignExampleUrl }}</div>
-        </section>
-      </article>
 
       <article class="settings-card agent-panel">
         <div class="settings-card__title-row">
@@ -344,68 +319,6 @@
         </table>
       </article>
 
-      <!-- Card 3: 配置说明 -->
-      <article v-if="notificationEventEnabled" class="settings-card agent-panel">
-        <div class="wh-config-header" @click="whConfigExpanded = !whConfigExpanded">
-          <div>
-            <h2 class="settings-card__title agent-settings-feature-title">配置说明</h2>
-            <p class="webhooks-link-text">如何正确配置和使用 Webhooks</p>
-          </div>
-          <button type="button" class="wh-expand-btn" :class="{ 'wh-expand-btn--expanded': whConfigExpanded }">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <div v-show="whConfigExpanded" class="wh-config-content">
-
-        <div class="webhooks-steps">
-          <p class="webhooks-step">1. 签名校验：在开发设置中生成「AppSecret」，并通过 x-chat-signature 头部发送。X-Chat-Signature:HMAC-SHA256(secret, raw_body)</p>
-          <p class="webhooks-step">2. 填写 URL：在 Webhooks 页面输入你的接收地址，点击「保存」。（注意：需先进行签名校验，否则无法保存。）</p>
-          <p class="webhooks-step">3. 结构</p>
-        </div>
-
-        <h3 class="webhooks-section-title">请求头</h3>
-        <p class="webhooks-hint">每个 webhook 至少包含这二个请求头</p>
-        <div class="webhooks-code-block">
-          <pre><code>content-type: application/json
-x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70</code></pre>
-        </div>
-
-        <h3 class="webhooks-section-title">请求体</h3>
-        <p class="webhooks-hint">每个 webhook 正文都包含以下结构</p>
-        <DataTable :columns="webhookBodyColumns" :rows="webhookBodyRows" :bare="true" />
-
-        <h3 class="webhooks-section-title" style="margin-top: var(--agent-space-16)">事件数据：UNREPLIED（访客消息无回复）</h3>
-        <p class="webhooks-hint-warn">访客发出首条消息后1分钟首次触发；后续每10分钟后再次触发，直到被客服回复或提醒4次以上为止。</p>
-
-        <DataTable :columns="unrepliedContentColumns" :rows="unrepliedContentRows" :bare="true" />
-
-        <div class="webhooks-code-block" style="margin-top: var(--agent-space-16)">
-          <pre><code>{
-  "created_at": 1765439941,
-  "event": "UNREPLIED",
-  "webhook_id": "58946f5f583edd94f5cf87e3534d04fb",
-  "content": [
-    {
-      "subject": "New Conversation",
-      "visitor_name": "Visitor15",
-      "created_at": 1765439652,
-      "message_content": "1",
-      "property_name": "test",
-      "visitor_nickname": "visitor nickname",
-      "sbs": "",
-      "status": "1",
-      "push_times": 4,
-      "time_sec": 289,
-      "assigned_agent_nickname": "ctccccd"
-    }
-  ]
-}</code></pre>
-        </div>
-        </div>
-      </article>
 
       <!-- 添加/编辑 Webhook Modal -->
       <Teleport to="body">
@@ -580,12 +493,6 @@ x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e
         </div>
       </article>
     </section>
-
-    <section v-else class="settings-card agent-panel settings-placeholder">
-      <div class="settings-placeholder__icon">🚧</div>
-      <h2 class="agent-settings-feature-title">{{ pageTitle }}</h2>
-      <p class="agent-settings-feature-description">该功能页面正在开发中，敬请期待。</p>
-    </section>
   </section>
 </template>
 
@@ -607,10 +514,6 @@ import SettingsEmailPage from "./SettingsEmailPage.vue";
 
 type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
-interface ChatParameterRow extends Record<string, unknown> {
-  param: string;
-  desc: string;
-}
 
 const props = defineProps<{
   activeKey: SettingsNavKey;
@@ -782,24 +685,12 @@ const handleRoleSave = (_payload: { name: string; permissions: string[] }) => {
   emitToast(msg);
 };
 
-const chatParamColumns: TableColumn<ChatParameterRow>[] = [
-  { key: "param", title: "参数名", width: "32%" },
-  { key: "desc", title: "说明" }
-];
-
-const chatParamRows: ChatParameterRow[] = [
-  { param: "sbs", desc: "用户唯一标识" },
-  { param: "sbs_mm", desc: "用户签名" },
-  { param: "ranstr", desc: "随机字符串（建议16位以上）" }
-];
 
 const agentIdleEnabled = ref(false);
 const agentIdleSeconds = ref(600);
 const sessionTimeoutEnabled = ref(true);
 const sessionTimeoutSeconds = ref(540);
 
-const languageExampleUrl = computed(() => `${chatPageBaseUrl}?lang=en`);
-const customerSignExampleUrl = computed(() => `${chatPageBaseUrl}?sbs={sbs}&sbs_mm={sbs_mm}&ranstr={ranstr}`);
 
 const emitToast = (message: string, type: "success" | "error" = "success") => emit("toast", message, type);
 
@@ -897,12 +788,6 @@ const downloadHtmlDeployment = () => {
   }
 };
 
-/* Webhooks */
-interface WebhookTableRow extends Record<string, unknown> {
-  param: string;
-  desc: string;
-  example: string;
-}
 
 type WebhookChannel = 'feishu' | 'dingtalk' | 'slack' | 'wecom' | 'custom';
 
@@ -1023,7 +908,6 @@ const whDeleteTargetId = ref('');
 const whNameError = ref('');
 const whUrlError = ref('');
 
-const whConfigExpanded = ref(false);
 
 const whModalTitle = computed(() => {
   if (whModalMode.value === 'edit') return '编辑 Webhook';
@@ -1184,39 +1068,8 @@ const toggleUnrepliedEvent = () => {
   unrepliedEventEnabled.value = next;
 };
 
-const webhookBodyColumns: TableColumn<WebhookTableRow>[] = [
-  { key: "param", title: "参数名", width: "25%" },
-  { key: "desc", title: "说明", width: "35%" },
-  { key: "example", title: "参数示例" }
-];
 
-const webhookBodyRows: WebhookTableRow[] = [
-  { param: "created_at", desc: "webhook 发送日期（时间戳）", example: "1765439941" },
-  { param: "event", desc: "事件名称", example: "UNREPLIED" },
-  { param: "webhook_id", desc: "唯一的 webhook ID", example: "58946f5f583edd94f5cf87e3534d04fb" },
-  { param: "content", desc: "包含特定事件数据的对象", example: "-" }
-];
 
-const unrepliedContentColumns: TableColumn<WebhookTableRow>[] = [
-  { key: "param", title: "参数名", width: "25%" },
-  { key: "desc", title: "说明", width: "35%" },
-  { key: "example", title: "参数示例" }
-];
-
-const unrepliedContentRows: WebhookTableRow[] = [
-  { param: "content", desc: "-", example: "-" },
-  { param: "subject", desc: "会话标题", example: "New Conversation" },
-  { param: "visitor_name", desc: "访客姓名", example: "Visitor15" },
-  { param: "created_at", desc: "消息创建时间", example: "1765439652" },
-  { param: "message_content", desc: "消息内容", example: "1" },
-  { param: "property_name", desc: "项目名称", example: "test" },
-  { param: "visitor_nickname", desc: "访客备注名", example: "VIP" },
-  { param: "sbs", desc: "客户标识", example: "234442313" },
-  { param: "status", desc: "状态", example: "1: 待回复 2: 排队中 3: 待处理 4: 已回复" },
-  { param: "push_times", desc: "推送次数", example: "4" },
-  { param: "time_sec", desc: "超时时间（秒）", example: "289" },
-  { param: "assigned_agent_nickname", desc: "服务客服名称", example: "ctccccd" }
-];
 
 </script>
 
@@ -1240,6 +1093,26 @@ const unrepliedContentRows: WebhookTableRow[] = [
 
 .settings-page--agents > * {
   max-width: none;
+}
+
+.settings-header--with-action {
+  align-items: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.settings-api-link {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  padding: 6px var(--agent-space-12);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.settings-api-link:hover {
+  border-color: var(--agent-color-text-secondary);
 }
 
 .settings-install {
