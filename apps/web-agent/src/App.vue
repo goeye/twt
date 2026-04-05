@@ -307,13 +307,70 @@
                 <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sessionFilterType === 'customer' }" @click="sessionFilterType = 'customer'">客户 {{ filterCounts.customer }}</button>
               </template>
             </div>
-            <div class="inbox-pane__sort-wrapper" @mouseenter="showSortDropdown" @mouseleave="hideSortDropdown">
-              <button type="button" class="inbox-pane__filter-icon-btn" aria-label="排序">
-                <AgentIcon name="sort" :size="14" />
-              </button>
-              <div v-show="sortDropdownVisible" class="inbox-pane__sort-dropdown">
-                <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'desc' }" @click="sortOrder = 'desc'">倒序</button>
-                <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'asc' }" @click="sortOrder = 'asc'">正序</button>
+            <div class="inbox-pane__row-actions">
+              <div class="inbox-pane__sort-wrapper" @mouseenter="showSortDropdown" @mouseleave="hideSortDropdown">
+                <button type="button" class="inbox-pane__filter-icon-btn" aria-label="排序">
+                  <AgentIcon name="sort" :size="14" />
+                </button>
+                <div v-show="sortDropdownVisible" class="inbox-pane__sort-dropdown">
+                  <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'desc' }" @click="sortOrder = 'desc'">倒序</button>
+                  <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'asc' }" @click="sortOrder = 'asc'">正序</button>
+                </div>
+              </div>
+              <div v-if="showFilterButton" class="inbox-pane__filter-btn-wrapper" @mouseenter="showFilterPanel" @mouseleave="hideFilterPanel">
+                <button type="button" class="inbox-pane__filter-icon-btn" :class="{ 'inbox-pane__filter-icon-btn--active': hasActiveFilter }" aria-label="筛选">
+                  <AgentIcon name="filter" :size="14" />
+                </button>
+                <div v-if="filterPanelVisible" class="inbox-filter-panel" @click.stop>
+                  <div class="inbox-filter-panel__section">
+                    <div class="inbox-filter-panel__label">访客在线状态</div>
+                    <div class="inbox-filter-panel__chips">
+                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === null }" @click="draftFilter.visitorOnline = null">全部</button>
+                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === true }" @click="draftFilter.visitorOnline = true">在线</button>
+                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === false }" @click="draftFilter.visitorOnline = false">离线</button>
+                    </div>
+                  </div>
+                  <div class="inbox-filter-panel__section">
+                    <div class="inbox-filter-panel__label">渠道</div>
+                    <div class="inbox-filter-panel__chips">
+                      <button v-for="ch in [{ key: 'web', label: '网页' }, { key: 'widget', label: '网页插件' }, { key: 'email', label: 'Email' }]" :key="ch.key" type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.channelTypes.includes(ch.key) }" @click="draftFilter.channelTypes.includes(ch.key) ? draftFilter.channelTypes = draftFilter.channelTypes.filter(c => c !== ch.key) : draftFilter.channelTypes.push(ch.key)">{{ ch.label }}</button>
+                    </div>
+                  </div>
+                  <div class="inbox-filter-panel__section">
+                    <div class="inbox-filter-panel__label">访客标签</div>
+                    <div class="inbox-filter-panel__select-wrapper">
+                      <div class="inbox-filter-panel__select-trigger" @click.stop="visitorTagDropdownOpen = !visitorTagDropdownOpen">
+                        <span>{{ draftFilter.visitorTagIds.length ? globalVisitorTags.filter(t => draftFilter.visitorTagIds.includes(t.id)).map(t => t.name).join('、') : '请选择' }}</span>
+                        <AgentIcon name="chevron-down" :size="12" />
+                      </div>
+                      <div v-if="visitorTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
+                        <label v-for="t in globalVisitorTags" :key="t.id" class="inbox-filter-panel__select-option">
+                          <input type="checkbox" :value="t.id" v-model="draftFilter.visitorTagIds" />
+                          <span>{{ t.name }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="inbox-filter-panel__section">
+                    <div class="inbox-filter-panel__label">会话标签</div>
+                    <div class="inbox-filter-panel__select-wrapper">
+                      <div class="inbox-filter-panel__select-trigger" @click.stop="conversationTagDropdownOpen = !conversationTagDropdownOpen">
+                        <span>{{ draftFilter.conversationTagIds.length ? globalConversationTags.filter(t => draftFilter.conversationTagIds.includes(t.id)).map(t => t.name).join('、') : '请选择' }}</span>
+                        <AgentIcon name="chevron-down" :size="12" />
+                      </div>
+                      <div v-if="conversationTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
+                        <label v-for="t in globalConversationTags" :key="t.id" class="inbox-filter-panel__select-option">
+                          <input type="checkbox" :value="t.id" v-model="draftFilter.conversationTagIds" />
+                          <span>{{ t.name }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="inbox-filter-panel__footer">
+                    <button type="button" class="agent-btn agent-btn--ghost inbox-filter-panel__reset" @click="draftFilter = { visitorOnline: null, visitorTagIds: [], conversationTagIds: [], channelTypes: [] }">重置</button>
+                    <button type="button" class="agent-btn agent-btn--primary inbox-filter-panel__confirm" @click="applyFilter">确认</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1066,6 +1123,8 @@ interface ConversationSession extends SessionItem {
   claimed?: boolean;
   visitorFeedback?: "satisfied" | "neutral" | "unsatisfied" | null;
   isGroupChat?: boolean;
+  visitorTagIds?: string[];
+  conversationTagIds?: string[];
 }
 
 interface DetailField {
@@ -2288,6 +2347,67 @@ function selectSearchField(key: SearchFieldType) {
 type SortOrderType = "desc" | "asc";
 const sortOrder = ref<SortOrderType>("desc");
 const sortDropdownVisible = ref(false);
+
+// 全局标签数据（原型用静态数据模拟）
+const globalVisitorTags = ref([
+  { id: "vt1", name: "高价值" },
+  { id: "vt2", name: "潜在客户" },
+  { id: "vt3", name: "已流失" },
+]);
+const globalConversationTags = ref([
+  { id: "ct1", name: "投诉" },
+  { id: "ct2", name: "咨询" },
+  { id: "ct3", name: "售后" },
+]);
+
+// filter 面板状态
+const filterPanelVisible = ref(false);
+let filterPanelTimer: ReturnType<typeof setTimeout> | null = null;
+interface SessionFilter {
+  visitorOnline: boolean | null;
+  visitorTagIds: string[];
+  conversationTagIds: string[];
+  channelTypes: string[];
+}
+const activeFilter = ref<SessionFilter>({
+  visitorOnline: null,
+  visitorTagIds: [],
+  conversationTagIds: [],
+  channelTypes: [],
+});
+const draftFilter = ref<SessionFilter>({
+  visitorOnline: null,
+  visitorTagIds: [],
+  conversationTagIds: [],
+  channelTypes: [],
+});
+const visitorTagDropdownOpen = ref(false);
+const conversationTagDropdownOpen = ref(false);
+const hasActiveFilter = computed(() =>
+  activeFilter.value.visitorOnline !== null ||
+  activeFilter.value.visitorTagIds.length > 0 ||
+  activeFilter.value.conversationTagIds.length > 0 ||
+  activeFilter.value.channelTypes.length > 0
+);
+
+function showFilterPanel() {
+  if (filterPanelTimer) clearTimeout(filterPanelTimer);
+  draftFilter.value = { ...activeFilter.value, visitorTagIds: [...activeFilter.value.visitorTagIds], conversationTagIds: [...activeFilter.value.conversationTagIds], channelTypes: [...activeFilter.value.channelTypes] };
+  filterPanelVisible.value = true;
+}
+
+function hideFilterPanel() {
+  filterPanelTimer = setTimeout(() => {
+    filterPanelVisible.value = false;
+    visitorTagDropdownOpen.value = false;
+    conversationTagDropdownOpen.value = false;
+  }, 150);
+}
+
+function applyFilter() {
+  activeFilter.value = { ...draftFilter.value, visitorTagIds: [...draftFilter.value.visitorTagIds], conversationTagIds: [...draftFilter.value.conversationTagIds], channelTypes: [...draftFilter.value.channelTypes] };
+  filterPanelVisible.value = false;
+}
 let sortDropdownTimer: ReturnType<typeof setTimeout> | null = null;
 
 function showSortDropdown() {
@@ -2482,8 +2602,13 @@ const showSessionCategoryFilter = computed(() => {
   if (!hasCustomerIdentity.value) return false;
   // 需与 queueGroupSeed online-session items 保持同步（含 all-online）
   const keys = ["all-online", "pending-reply", "queueing", "processing", "resolved", "ai-agent-queue"];
+
   return keys.includes(activeQueueKey.value);
 });
+
+const showFilterButton = computed(() =>
+  queueGroupSeed.find(g => g.key === "online-session")!.items.some(i => i.key === activeQueueKey.value)
+);
 
 const sessionMatchResults = computed(() => {
   const results = new Map<string, { matchedIds: string[]; firstMatchContent: string; matchCount: number }>();
@@ -2525,9 +2650,14 @@ const sessionMatchResults = computed(() => {
 
 const visibleSessions = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase();
+  const f = activeFilter.value;
   return queueSessionList.value.filter((session) => {
     if (sessionFilterType.value === "visitor" && session.tag !== "访客") return false;
     if (sessionFilterType.value === "customer" && session.tag !== "客户" && session.tag !== "VIP") return false;
+    if (f.visitorOnline !== null && session.visitorOnline !== f.visitorOnline) return false;
+    if (f.channelTypes.length > 0 && !f.channelTypes.includes(session.channelType ?? "")) return false;
+    if (f.visitorTagIds.length > 0 && !f.visitorTagIds.some(id => (session.visitorTagIds ?? []).includes(id))) return false;
+    if (f.conversationTagIds.length > 0 && !f.conversationTagIds.some(id => (session.conversationTagIds ?? []).includes(id))) return false;
     if (keyword.length === 0) return true;
     const field = searchFieldType.value;
     if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
@@ -4699,6 +4829,12 @@ onBeforeUnmount(() => {
   justify-content: space-between;
 }
 
+.inbox-pane__row-actions {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+}
+
 .inbox-pane__chips {
   display: flex;
   gap: var(--agent-space-8);
@@ -4768,6 +4904,114 @@ onBeforeUnmount(() => {
 }
 
 .inbox-pane__sort-option--selected {
+  color: var(--agent-color-brand-primary);
+}
+
+.inbox-filter-panel {
+  background: #ffffff;
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-12);
+  min-width: 220px;
+  padding: var(--agent-space-12) var(--agent-space-16);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.inbox-pane__filter-btn-wrapper {
+  position: relative;
+}
+
+.inbox-filter-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+}
+
+.inbox-filter-panel__label {
+  color: var(--agent-color-text-tertiary);
+  font-size: 11px;
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.inbox-filter-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--agent-space-8);
+}
+
+.inbox-filter-panel__footer {
+  display: flex;
+  gap: var(--agent-space-8);
+  justify-content: flex-end;
+  padding-top: var(--agent-space-4);
+}
+
+.inbox-filter-panel__reset {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+.inbox-filter-panel__confirm {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+.inbox-filter-panel__select-wrapper {
+  position: relative;
+}
+
+.inbox-filter-panel__select-trigger {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+  padding: 5px 8px;
+}
+
+.inbox-filter-panel__select-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-filter-panel__select-dropdown {
+  background: #ffffff;
+  border-radius: var(--agent-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  min-width: 100%;
+  padding: var(--agent-space-4) 0;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: calc(var(--agent-z-dropdown) + 1);
+}
+
+.inbox-filter-panel__select-option {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  gap: var(--agent-space-8);
+  padding: 6px 12px;
+}
+
+.inbox-filter-panel__select-option:hover {
+  background: var(--agent-color-bg-panel);
+}
+
+.inbox-pane__filter-icon-btn--active {
   color: var(--agent-color-brand-primary);
 }
 
