@@ -22,22 +22,21 @@
 
         <div class="message__bubble-row">
         <div class="message__bubble" :class="{ 'message__bubble--note': isNote }">
-          <span v-if="isNote" class="message__note-label">内部备注</span>
           <!-- 非邮件会话：完整工具栏 -->
           <div
             v-if="showActions && hovered && role !== 'system' && role !== 'bot' && channelType !== 'email'"
             class="message__actions"
           >
-            <button class="message__action-btn" title="回复" @click="$emit('reply')">
+            <button v-if="!isNote" class="message__action-btn" title="回复" @click="$emit('reply')">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.5 3.5L2.5 7L6.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 7H10C11.6569 7 13 8.3431 13 10V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <button class="message__action-btn" title="复制" @click="handleCopy">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5.5" y="5.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 5.5V4C10.5 3.17157 9.82843 2.5 9 2.5H4C3.17157 2.5 2.5 3.17157 2.5 4V9C2.5 9.82843 3.17157 10.5 4 10.5H5.5" stroke="currentColor" stroke-width="1.3"/></svg>
             </button>
-            <button class="message__action-btn" title="翻译" @click.stop="translatePanelOpen = !translatePanelOpen; moreMenuOpen = false">
+            <button v-if="!isNote" class="message__action-btn" title="翻译" @click.stop="translatePanelOpen = !translatePanelOpen; moreMenuOpen = false">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 1.5c-1.5 2-2.5 4-2.5 6.5s1 4.5 2.5 6.5c1.5-2 2.5-4 2.5-6.5s-1-4.5-2.5-6.5z" stroke="currentColor" stroke-width="1.3"/></svg>
             </button>
-            <div class="message__action-more-wrap">
+            <div v-if="!isNote" class="message__action-more-wrap">
               <button class="message__action-btn" title="更多" @click.stop="moreMenuOpen = !moreMenuOpen; translatePanelOpen = false">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
               </button>

@@ -60,8 +60,7 @@ const props = withDefaults(
 
 const highlightedPreview = computed(() => {
   const kw = props.keyword?.trim();
-  const prefix = props.isNotePreview ? '[备注] ' : '';
-  const text = prefix + props.preview;
+  const text = props.preview;
   if (!kw) return escapeHtml(text);
   return highlightKeyword(text, kw, "session-item__highlight");
 });

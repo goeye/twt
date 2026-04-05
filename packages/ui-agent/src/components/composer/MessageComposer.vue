@@ -36,22 +36,33 @@
         <button class="tool-icon" type="button" aria-label="快捷回复" @click="toggleQuickReply">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
         </button>
-        <button class="tool-icon" type="button" aria-label="附件" @click="$emit('attachment')">
+        <button class="tool-icon" type="button" aria-label="附件" @click="fileInputRef?.click()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
         <button v-if="showPolish" class="tool-icon" type="button" aria-label="润色" @click="$emit('polish')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </button>
-        <button class="tool-icon" type="button" aria-label="机器人">
+        <button class="tool-icon" type="button" aria-label="机器人" v-if="!noteMode">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="12" cy="6" r="1"/></svg>
         </button>
-        <button v-if="showTranslate" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">
+        <button v-if="showTranslate && !noteMode" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </button>
       </div>
     </div>
 
     <div class="composer__textarea-wrap">
+      <div v-if="attachments.length > 0" class="composer__attachments">
+        <div v-for="(file, idx) in attachments" :key="idx" class="composer__att-card" :class="{ 'composer__att-card--image': file.isImage }">
+          <img v-if="file.isImage" :src="file.objectUrl" class="composer__att-thumb" :alt="file.name" />
+          <template v-else>
+            <span class="composer__att-icon">{{ fileEmoji(file.name) }}</span>
+            <span class="composer__att-name">{{ file.name }}</span>
+            <span class="composer__att-size">{{ formatSize(file.size) }}</span>
+          </template>
+          <button type="button" class="composer__att-remove" @click="removeAttachment(idx)">&times;</button>
+        </div>
+      </div>
       <textarea
         class="composer__textarea"
         :placeholder="noteMode ? '添加内部备注，仅客服可见…' : placeholder"
@@ -61,13 +72,14 @@
     </div>
 
     <div class="composer__footer">
-      <button class="composer__send-btn" type="button" :disabled="disabled" @click="$emit('send', noteMode)">{{ noteMode ? '添加备注' : '发送' }}</button>
+      <button class="composer__send-btn" type="button" :disabled="!modelValue.trim() && attachments.length === 0" @click="$emit('send', noteMode, attachments)">{{ noteMode ? '添加备注' : '发送' }}</button>
     </div>
+    <input ref="fileInputRef" type="file" multiple style="display:none" @change="handleFileSelect" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, reactive, onMounted, onBeforeUnmount } from "vue";
 import QuickReplyPanel from "./QuickReplyPanel.vue";
 import type { QuickReplyItem, QuickReplyCategory } from "../../types";
 
@@ -90,7 +102,7 @@ const emit = defineEmits<{
   (e: "attachment"): void;
   (e: "polish"): void;
   (e: "translate"): void;
-  (e: "send", isNote: boolean): void;
+  (e: "send", isNote: boolean, attachments: FileAttachment[]): void;
   (e: "quick-reply-settings"): void;
   (e: "mode-change", mode: "reply" | "note"): void;
 }>();
@@ -98,6 +110,53 @@ const emit = defineEmits<{
 const showQuickReply = ref(false);
 const modeMenuOpen = ref(false);
 const modeWrapRef = ref<HTMLElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+interface FileAttachment { name: string; size: number; objectUrl: string; isImage?: boolean; }
+const attachments = reactive<FileAttachment[]>([]);
+const MAX_ATTACHMENTS = 10;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+function fileEmoji(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (ext === 'pdf') return '\u{1F4C4}';
+  if (['doc', 'docx'].includes(ext)) return '\u{1F4DD}';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return '\u{1F4CA}';
+  if (['zip', 'rar', '7z'].includes(ext)) return '\u{1F4E6}';
+  return '\u{1F4CE}';
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function handleFileSelect(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+  for (const file of Array.from(input.files)) {
+    if (file.size > MAX_UPLOAD_BYTES) continue;
+    if (attachments.length >= MAX_ATTACHMENTS) break;
+    attachments.push({
+      name: file.name,
+      size: file.size,
+      objectUrl: URL.createObjectURL(file),
+      isImage: file.type.startsWith('image/'),
+    });
+  }
+  input.value = '';
+}
+
+function removeAttachment(idx: number) {
+  const removed = attachments.splice(idx, 1);
+  if (removed.length) URL.revokeObjectURL(removed[0].objectUrl);
+}
+
+function clearAttachments() {
+  for (const a of attachments) URL.revokeObjectURL(a.objectUrl);
+  attachments.splice(0, attachments.length);
+}
 
 function storageKey(id: string) {
   return `composer-mode:${id}`;
@@ -316,5 +375,81 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 .composer__send-btn:enabled {
   background: var(--agent-color-brand-primary);
   color: #ffffff;
+}
+
+.composer__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: var(--agent-space-8);
+}
+
+.composer__att-card {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.composer__att-icon { font-size: 16px; line-height: 1; }
+
+.composer__att-name {
+  color: var(--agent-color-text-primary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer__att-size {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-xs);
+}
+
+.composer__att-remove {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.composer__att-remove:hover { color: var(--agent-color-status-error); }
+
+.composer__att-card--image {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  position: relative;
+}
+
+.composer__att-thumb {
+  border-radius: var(--agent-radius-md);
+  display: block;
+  height: 64px;
+  object-fit: cover;
+  width: 64px;
+}
+
+.composer__att-card--image .composer__att-remove {
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0;
+  position: absolute;
+  right: -6px;
+  text-align: center;
+  top: -6px;
+  width: 18px;
 }
 </style>

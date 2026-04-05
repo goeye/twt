@@ -1,5 +1,5 @@
 <template>
-  <section class="email-composer">
+  <section class="email-composer" :class="{ 'email-composer--note': noteMode }">
     <!-- 无可用邮箱时显示禁用提示 -->
     <div v-if="fromOptions.length === 0" class="email-composer__disabled-overlay">
       <svg class="email-composer__disabled-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -18,7 +18,28 @@
       @settings="$emit('quick-reply-settings')"
       @select="handleQuickReplySelect"
     />
-    <div class="email-composer__header">
+    <!-- 模式切换行 -->
+    <div class="email-composer__mode-bar">
+      <div class="email-composer__mode-wrap" ref="modeWrapRef">
+        <button class="email-composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
+          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span>{{ noteMode ? '备注' : '回复' }}</span>
+        </button>
+        <div v-if="modeMenuOpen" class="email-composer__mode-menu">
+          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            回复
+          </button>
+          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            备注
+          </button>
+        </div>
+      </div>
+    </div>
+    <div v-if="!noteMode" class="email-composer__header">
       <div class="email-composer__field">
         <label class="email-composer__label">To:</label>
         <span class="email-composer__value">{{ to }}</span>
@@ -162,6 +183,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   showTranslate?: boolean;
   quickReplyCategories?: QuickReplyCategory[];
+  sessionId?: string;
 }>(), {
   placeholder: "发消息或输入 / 选择快捷回复",
   showTranslate: true,
@@ -189,8 +211,29 @@ const editorRef = ref<HTMLDivElement>();
 const fileInputRef = ref<HTMLInputElement>();
 const imageInputRef = ref<HTMLInputElement>();
 const sendMenuOpen = ref(false);
+const modeMenuOpen = ref(false);
+const modeWrapRef = ref<HTMLElement | null>(null);
 const fileAttachments = reactive<FileAttachment[]>([]);
 const canSend = ref(false);
+
+function storageKey(id: string) { return `composer-mode:${id}`; }
+const noteMode = ref(
+  props.sessionId ? localStorage.getItem(storageKey(props.sessionId)) === "note" : false
+);
+watch(() => props.sessionId, (id) => {
+  noteMode.value = id ? localStorage.getItem(storageKey(id)) === "note" : false;
+});
+watch(noteMode, (val) => {
+  if (props.sessionId) {
+    val ? localStorage.setItem(storageKey(props.sessionId), "note") : localStorage.removeItem(storageKey(props.sessionId));
+  }
+});
+function setMode(isNote: boolean) { noteMode.value = isNote; modeMenuOpen.value = false; }
+function handleClickOutside(e: MouseEvent) {
+  if (modeWrapRef.value && !modeWrapRef.value.contains(e.target as Node)) modeMenuOpen.value = false;
+}
+onMounted(() => document.addEventListener("mousedown", handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener("mousedown", handleClickOutside));
 const textLimitReached = ref(false);
 const showQuickReply = ref(false);
 const isSendDisabled = computed(() => props.disabled || !canSend.value);
@@ -572,6 +615,74 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+.email-composer--note {
+  background: var(--agent-color-status-warning-bg);
+}
+
+.email-composer__mode-bar {
+  border-bottom: 1px solid var(--agent-color-border-default);
+  padding: 6px 12px;
+}
+
+.email-composer__mode-wrap {
+  display: inline-block;
+  position: relative;
+}
+
+.email-composer__mode-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 4px;
+  height: 28px;
+  outline: none;
+  padding: 0 4px;
+}
+
+.email-composer__mode-btn:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.email-composer__mode-menu {
+  background: #ffffff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: var(--agent-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  min-width: 110px;
+  padding: 4px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.email-composer__mode-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: var(--agent-font-size-sm);
+  gap: var(--agent-space-8);
+  padding: 7px 10px;
+}
+
+.email-composer__mode-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.email-composer__mode-item--active {
+  color: var(--agent-color-brand-primary);
 }
 
 .email-composer__disabled-overlay {

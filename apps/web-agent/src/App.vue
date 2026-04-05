@@ -421,6 +421,7 @@
           :selected-from="selectedFromEmail"
           :show-translate="false"
           :quick-reply-categories="quickReplyCategories"
+          :session-id="activeSessionId"
           @update:selected-from="selectedFromEmail = $event"
           @attachment="track(TrackEvent.ATTACHMENT)"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
@@ -436,7 +437,6 @@
           v-else
           v-model="composerText"
           class="chat-pane__composer"
-          :disabled="composerText.trim().length === 0"
           :show-polish="canUse(FEATURES.TEXT_POLISH)"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           :quick-reply-categories="quickReplyCategories"
@@ -1772,6 +1772,14 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       sender: "系统",
       content: "访客提交了评价：满意",
       time: "10:43"
+    },
+    {
+      id: "m-110",
+      role: "agent",
+      sender: "客服主管",
+      content: "客户情绪较敏感，后续跟进时注意措辞，避免提及物流延误细节。",
+      time: "10:44",
+      isNote: true
     }
   ],
   "s-6002": [
@@ -3476,35 +3484,41 @@ const handleQueueAssignConfirm = (agentId: string) => {
   showTopToast("会话分配成功");
 };
 
-const handleSend = (isNote: boolean = false) => {
+const handleSend = (isNote: boolean = false, attachments: { name: string; size: number; objectUrl: string }[] = []) => {
   const text = composerText.value.trim();
-  if (!text || !activeSession.value) {
-    return;
-  }
+  if (!text && attachments.length === 0) return;
+  if (!activeSession.value) return;
   track(TrackEvent.SEND_MESSAGE);
 
   const now = new Date();
-  const time = now.toLocaleTimeString("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
-  });
+  const time = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  // 构建附件 HTML
+  let content = text;
+  let contentType: 'text' | 'html' = 'text';
+  if (attachments.length > 0) {
+    const attHtml = attachments.map(a => {
+      const ext = (a.name.split('.').pop() || '').toUpperCase();
+      const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(a.name);
+      if (isImage) return `<img src="${a.objectUrl}" alt="${a.name}" style="max-width:100%;border-radius:8px;" />`;
+      return `<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:#f5f7fa;border:1px solid #e5e6eb;border-radius:8px;font-size:13px;">📎 ${a.name}</div>`;
+    }).join('');
+    content = text ? `<p>${text}</p>${attHtml}` : attHtml;
+    contentType = 'html';
+  }
 
   const nextMessage: MessageItem = {
     id: `m-${activeSession.value.id}-${now.getTime()}`,
     role: "agent",
     sender: "客服主管",
-    content: text,
+    content,
     time,
+    contentType,
     ...(isNote ? { isNote: true } : {})
   };
 
   const history = messageMap.value[activeSession.value.id] ?? [];
-  messageMap.value = {
-    ...messageMap.value,
-    [activeSession.value.id]: [...history, nextMessage]
-  };
-
+  messageMap.value = { ...messageMap.value, [activeSession.value.id]: [...history, nextMessage] };
   composerText.value = "";
 };
 
