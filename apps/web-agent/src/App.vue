@@ -496,6 +496,7 @@
           @copilot="showTopToast('Copilot推荐开发中')"
         />
 
+        <div id="chat-above-composer"></div>
         <MessageComposer
           v-else
           v-model="composerText"
