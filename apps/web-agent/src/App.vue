@@ -2240,7 +2240,7 @@ const hasCustomerIdentity = ref(true);
 type SessionFilterType = "all" | "visitor" | "customer";
 const sessionFilterType = ref<SessionFilterType>("all");
 
-type SearchFieldType = "all" | "visitorName" | "visitorAlias" | "title" | "conversationRecord" | "customerIdentifier";
+type SearchFieldType = "all" | "visitorName" | "visitorAlias" | "agentName" | "title" | "conversationRecord" | "customerIdentifier";
 const searchFieldType = ref<SearchFieldType>("all");
 const searchFieldDropdownVisible = ref(false);
 let searchFieldDropdownTimer: ReturnType<typeof setTimeout> | null = null;
@@ -2249,7 +2249,8 @@ const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
   { key: "all", label: "全部" },
   { key: "visitorName", label: "访客姓名" },
   { key: "visitorAlias", label: "访客备注名" },
-  { key: "title", label: "会话标题" },
+  { key: "agentName", label: "客服姓名" },
+  { key: "title", label: "聊天标题" },
   { key: "conversationRecord", label: "沟通记录" },
   { key: "customerIdentifier", label: "客户标识" },
 ];
@@ -2502,6 +2503,7 @@ const visibleSessions = computed(() => {
     if (field === "customerIdentifier") return session.visitorId.toLowerCase().includes(keyword);
     if (field === "visitorName") return session.visitorName.toLowerCase().includes(keyword);
     if (field === "visitorAlias") return (session.remarkName ?? "").toLowerCase().includes(keyword);
+    if (field === "agentName") return (session.assignee ?? "").toLowerCase().includes(keyword);
     if (field === "title") return session.customerName.toLowerCase().includes(keyword);
     if (field === "conversationRecord") return sessionMatchResults.value.has(session.id);
     if (field === "all") {
@@ -2509,6 +2511,7 @@ const visibleSessions = computed(() => {
         session.visitorId.toLowerCase().includes(keyword) ||
         session.visitorName.toLowerCase().includes(keyword) ||
         (session.remarkName ?? "").toLowerCase().includes(keyword) ||
+        (session.assignee ?? "").toLowerCase().includes(keyword) ||
         session.customerName.toLowerCase().includes(keyword) ||
         sessionMatchResults.value.has(session.id)
       );
