@@ -21,7 +21,8 @@
         </header>
 
         <div class="message__bubble-row">
-        <div class="message__bubble">
+        <div class="message__bubble" :class="{ 'message__bubble--note': isNote }">
+          <span v-if="isNote" class="message__note-label">内部备注</span>
           <!-- 非邮件会话：完整工具栏 -->
           <div
             v-if="showActions && hovered && role !== 'system' && role !== 'bot' && channelType !== 'email'"
@@ -179,6 +180,7 @@ const props = withDefaults(
     translationLanguages?: { label: string; value: string }[];
     translation?: MessageTranslation;
     highlighted?: boolean;
+    isNote?: boolean;
   }>(),
   {
     avatarText: "?",
@@ -912,6 +914,21 @@ const parsedEmail = computed(() => {
   font-size: var(--agent-font-size-sm);
   padding: 0;
   text-decoration: underline;
+}
+
+.message__bubble--note {
+  background: var(--agent-color-status-warning-bg) !important;
+}
+
+.message__note-label {
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  display: block;
+  font-size: var(--agent-font-size-xs);
+  margin-bottom: var(--agent-space-4);
+  padding: 1px var(--agent-space-8);
+  width: fit-content;
 }
 
 .message__translation-retry:hover {

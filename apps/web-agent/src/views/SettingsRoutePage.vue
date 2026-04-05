@@ -983,7 +983,7 @@ const CHANNEL_MAP = Object.fromEntries(CHANNEL_META.map(c => [c.id, c])) as Reco
 
 // 可选的展示字段
 const AVAILABLE_FIELDS = [
-  { key: 'subject', label: '会话主题' },
+  { key: 'subject', label: '会话标题' },
   { key: 'visitor_name', label: '访客姓名' },
   { key: 'created_at', label: '消息创建时间' },
   { key: 'message_content', label: '消息内容' },
@@ -1205,7 +1205,7 @@ const unrepliedContentColumns: TableColumn<WebhookTableRow>[] = [
 
 const unrepliedContentRows: WebhookTableRow[] = [
   { param: "content", desc: "-", example: "-" },
-  { param: "subject", desc: "会话主题", example: "New Conversation" },
+  { param: "subject", desc: "会话标题", example: "New Conversation" },
   { param: "visitor_name", desc: "访客姓名", example: "Visitor15" },
   { param: "created_at", desc: "消息创建时间", example: "1765439652" },
   { param: "message_content", desc: "消息内容", example: "1" },

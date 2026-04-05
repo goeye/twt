@@ -32,7 +32,7 @@
             <option value="visitorAlias">访客备注名</option>
             <option value="staffName">客服姓名</option>
             <option value="title">聊天标题</option>
-            <option value="conversationRecord">聊天记录</option>
+            <option value="conversationRecord">沟通记录</option>
             <option value="customerIdentifier">客户标识</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />

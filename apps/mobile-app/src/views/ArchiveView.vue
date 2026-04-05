@@ -14,7 +14,7 @@
           class="header-tab"
           :class="{ 'header-tab--active': activeTab === 'chat' }"
           @click="activeTab = 'chat'"
-        >聊天记录</span>
+        >沟通记录</span>
       </div>
     </div>
 

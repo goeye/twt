@@ -59,6 +59,7 @@ export interface MessageItem {
   toEmail?: string;
   sendStatus?: 'sending' | 'failed' | 'sent';
   translation?: MessageTranslation;
+  isNote?: boolean;
 }
 
 export interface TableColumn<T = Record<string, unknown>> {

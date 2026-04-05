@@ -51,6 +51,7 @@ const props = withDefaults(
     online?: boolean;
     matchCount?: number;
     keyword?: string;
+    isNotePreview?: boolean;
   }>(),
   {
     avatarColor: "linear-gradient(135deg, #2f6bff 0%, #4a84ff 100%)"
@@ -59,7 +60,8 @@ const props = withDefaults(
 
 const highlightedPreview = computed(() => {
   const kw = props.keyword?.trim();
-  const text = props.preview;
+  const prefix = props.isNotePreview ? '[备注] ' : '';
+  const text = prefix + props.preview;
   if (!kw) return escapeHtml(text);
   return highlightKeyword(text, kw, "session-item__highlight");
 });

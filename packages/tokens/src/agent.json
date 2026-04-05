@@ -61,6 +61,7 @@
     "status": {
       "success": "#00B578",
       "warning": "#FF7D00",
+      "warningBg": "#FFFBEB",
       "error": "#F53F3F",
       "info": "#2F6BFF"
     },

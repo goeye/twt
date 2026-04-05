@@ -323,6 +323,7 @@
             :channel-type="item.channelType"
             :customer-name="item.customerName"
             :preview="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchCount === 1 ? sessionMatchResults.get(item.id)!.firstMatchContent : item.preview"
+            :is-note-preview="(messageMap[item.id] ?? []).at(-1)?.isNote === true"
             :match-count="sessionMatchResults.has(item.id) && sessionMatchResults.get(item.id)!.matchCount > 1 ? sessionMatchResults.get(item.id)!.matchCount : undefined"
             :keyword="searchKeyword.trim() ? searchKeyword : undefined"
             :unread-count="item.unreadCount"
@@ -382,6 +383,7 @@
             :send-status="message.sendStatus"
             :translation="message.translation"
             :highlighted="searchMatchIds.includes(message.id) && searchMatchIds[currentSearchIndex] === message.id"
+            :is-note="message.isNote"
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
@@ -438,6 +440,7 @@
           :show-polish="canUse(FEATURES.TEXT_POLISH)"
           :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
           :quick-reply-categories="quickReplyCategories"
+          :session-id="activeSessionId"
           placeholder="发消息或输入 / 选择快捷回复"
           @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
           @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
@@ -2247,7 +2250,7 @@ const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
   { key: "visitorName", label: "访客姓名" },
   { key: "visitorAlias", label: "访客备注名" },
   { key: "title", label: "会话标题" },
-  { key: "conversationRecord", label: "聊天记录" },
+  { key: "conversationRecord", label: "沟通记录" },
   { key: "customerIdentifier", label: "客户标识" },
 ];
 
@@ -3470,7 +3473,7 @@ const handleQueueAssignConfirm = (agentId: string) => {
   showTopToast("会话分配成功");
 };
 
-const handleSend = () => {
+const handleSend = (isNote: boolean = false) => {
   const text = composerText.value.trim();
   if (!text || !activeSession.value) {
     return;
@@ -3489,7 +3492,8 @@ const handleSend = () => {
     role: "agent",
     sender: "客服主管",
     content: text,
-    time
+    time,
+    ...(isNote ? { isNote: true } : {})
   };
 
   const history = messageMap.value[activeSession.value.id] ?? [];

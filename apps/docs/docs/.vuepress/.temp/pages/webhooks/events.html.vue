@@ -46,7 +46,7 @@
 <tr>
 <td><code v-pre>subject</code></td>
 <td>string</td>
-<td>会话主题</td>
+<td>会话标题</td>
 <td><code v-pre>New Conversation</code></td>
 </tr>
 <tr>

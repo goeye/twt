@@ -18,7 +18,7 @@
 
 | 参数名 | 类型 | 说明 | 参数示例 |
 | --- | --- | --- | --- |
-| `subject` | string | 会话主题 | `New Conversation` |
+| `subject` | string | 会话标题 | `New Conversation` |
 | `visitor_name` | string | 访客姓名 | `Visitor15` |
 | `created_at` | number | 消息创建时间 | `1765439652` |
 | `message_content` | string | 消息内容 | `1` |
