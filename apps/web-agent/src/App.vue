@@ -5113,7 +5113,7 @@ onBeforeUnmount(() => {
 
 .chat-pane__composer {
   min-height: 196px;
-  padding: 0 var(--agent-space-16) var(--agent-space-16);
+  padding: 0 0 var(--agent-space-16);
 }
 
 .ai-takeover-bar {

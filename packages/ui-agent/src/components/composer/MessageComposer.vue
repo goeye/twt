@@ -1,5 +1,28 @@
 <template>
   <section class="composer" :class="{ 'composer--note': noteMode }">
+    <!-- 边写边译区域：整个 composer 最上方 -->
+    <div v-if="liveTranslate && !noteMode" class="composer__live-translate">
+      <div class="composer__live-lang-wrap" ref="liveLangWrapRef">
+        <button class="composer__live-lang" type="button" @click="toggleLangPanel">{{ currentLang.code }}</button>
+        <div v-if="langPanelOpen" class="composer__lang-panel" ref="langPanelRef">
+          <div class="composer__lang-hint">将输入内容翻译为</div>
+          <button
+            v-for="lang in LANGUAGES"
+            :key="lang.code"
+            class="composer__lang-item"
+            :class="{ 'composer__lang-item--active': translateLang === lang.code }"
+            type="button"
+            @click="selectLang(lang.code)"
+          >
+            <span class="composer__lang-code">{{ lang.code }}</span>
+            <span>{{ lang.name }}</span>
+            <svg v-if="translateLang === lang.code" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <textarea class="composer__live-input" v-model="liveTranslatedText" placeholder="翻译为…" rows="1" />
+      <button v-if="liveTranslatedText.trim()" class="composer__live-send" type="button" @click="sendLiveTranslation">发送</button>
+    </div>
     <!-- 顶部模式选择行 -->
     <div class="composer__mode-bar">
       <div class="composer__mode-wrap" ref="modeWrapRef">
@@ -21,6 +44,7 @@
         </div>
       </div>
     </div>
+
     <QuickReplyPanel
       v-if="showQuickReply && quickReplyCategories && quickReplyCategories.length > 0"
       :categories="quickReplyCategories"
@@ -33,20 +57,39 @@
         <button class="tool-icon" type="button" aria-label="表情" @click="$emit('emoji')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
         </button>
-        <button class="tool-icon" type="button" aria-label="快捷回复" @click="toggleQuickReply">
+        <button class="tool-icon" type="button" data-tooltip="快捷回复" @click="toggleQuickReply">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="13" y2="13"/></svg>
         </button>
-        <button class="tool-icon" type="button" aria-label="附件" @click="fileInputRef?.click()">
+        <button class="tool-icon" type="button" data-tooltip="上传文件" @click="fileInputRef?.click()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
-        <button v-if="showPolish" class="tool-icon" type="button" aria-label="润色" @click="$emit('polish')">
+        <button v-if="showPolish" class="tool-icon" type="button" data-tooltip="文本润色" @click="$emit('polish')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </button>
-        <button class="tool-icon" type="button" aria-label="机器人" v-if="!noteMode">
+        <button v-if="!noteMode" class="tool-icon" type="button" data-tooltip="Copilot 推荐回复">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="12" cy="6" r="1"/></svg>
         </button>
-        <button v-if="showTranslate && !noteMode" class="tool-icon" type="button" aria-label="翻译" @click="$emit('translate')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <div v-if="showTranslate && !noteMode" class="composer__translate-wrap" ref="translateBtnRef">
+          <button class="tool-icon" :class="{ 'tool-icon--active': translatePanelOpen }" type="button" data-tooltip="AI 翻译" @click="toggleTranslatePanel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </button>
+          <div v-if="translatePanelOpen" class="composer__translate-panel" ref="translatePanelRef">
+            <div class="composer__translate-row">
+              <span class="composer__translate-label">边写边译</span>
+              <button class="composer__toggle" :class="{ 'composer__toggle--on': liveTranslate }" type="button" @click="liveTranslate = !liveTranslate" />
+            </div>
+            <div class="composer__translate-row">
+              <span class="composer__translate-label">聊天翻译</span>
+              <button class="composer__toggle" :class="{ 'composer__toggle--on': chatTranslate }" type="button" @click="chatTranslate = !chatTranslate" />
+            </div>
+            <div v-if="chatTranslate" class="composer__translate-row composer__translate-row--lang" @click="openLangPanel">
+              <span class="composer__translate-label">翻译为</span>
+              <span class="composer__translate-lang-val">{{ currentLang.name }} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </div>
+          </div>
+        </div>
+        <button v-if="!noteMode" class="tool-icon" type="button" data-tooltip="远程协助" @click="$emit('cobrowse')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3-3 3"/><line x1="13" y1="11" x2="17" y2="11"/></svg>
         </button>
       </div>
     </div>
@@ -79,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import QuickReplyPanel from "./QuickReplyPanel.vue";
 import type { QuickReplyItem, QuickReplyCategory } from "../../types";
 
@@ -111,6 +154,72 @@ const showQuickReply = ref(false);
 const modeMenuOpen = ref(false);
 const modeWrapRef = ref<HTMLElement | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+
+// 翻译相关
+const LANGUAGES = [
+  { code: 'en', name: '英语' },
+  { code: 'es', name: '西班牙语' },
+  { code: 'fr', name: '法语' },
+  { code: 'de', name: '德语' },
+  { code: 'pt', name: '葡萄牙语' },
+  { code: 'ru', name: '俄语' },
+  { code: 'zh', name: '简体中文' },
+  { code: 'zh-Hant', name: '繁体中文' },
+];
+const translatePanelOpen = ref(false);
+const langPanelOpen = ref(false);
+const liveTranslate = ref(false);
+const chatTranslate = ref(false);
+const translateLang = ref('en');
+const liveTranslatedText = ref('');
+const translateBtnRef = ref<HTMLElement | null>(null);
+const translatePanelRef = ref<HTMLElement | null>(null);
+const langPanelRef = ref<HTMLElement | null>(null);
+const liveLangWrapRef = ref<HTMLElement | null>(null);
+
+const currentLang = computed(() => LANGUAGES.find(l => l.code === translateLang.value) || LANGUAGES[0]);
+
+function toggleTranslatePanel() {
+  translatePanelOpen.value = !translatePanelOpen.value;
+  if (!translatePanelOpen.value) langPanelOpen.value = false;
+}
+
+function openLangPanel() {
+  langPanelOpen.value = true;
+  translatePanelOpen.value = false;
+}
+
+function toggleLangPanel() {
+  langPanelOpen.value = !langPanelOpen.value;
+}
+
+function selectLang(code: string) {
+  translateLang.value = code;
+  langPanelOpen.value = false;
+}
+
+function sendLiveTranslation() {
+  if (!liveTranslatedText.value.trim()) return;
+  emit('send', false, []);
+  liveTranslatedText.value = '';
+  emit('update:modelValue', '');
+}
+
+// 模拟翻译：输入变化时更新边写边译内容
+watch(() => props.modelValue, (val) => {
+  if (!liveTranslate.value || !val.trim()) {
+    liveTranslatedText.value = '';
+    return;
+  }
+  // 模拟翻译结果（实际应调用翻译 API）
+  liveTranslatedText.value = val;
+});
+
+watch(translateLang, () => {
+  if (liveTranslate.value && props.modelValue.trim()) {
+    liveTranslatedText.value = props.modelValue;
+  }
+});
 
 interface FileAttachment { name: string; size: number; objectUrl: string; isImage?: boolean; }
 const attachments = reactive<FileAttachment[]>([]);
@@ -190,6 +299,19 @@ function handleClickOutside(e: MouseEvent) {
   if (modeWrapRef.value && !modeWrapRef.value.contains(e.target as Node)) {
     modeMenuOpen.value = false;
   }
+  if (
+    translatePanelOpen.value &&
+    translateBtnRef.value && !translateBtnRef.value.contains(e.target as Node) &&
+    translatePanelRef.value && !translatePanelRef.value.contains(e.target as Node)
+  ) {
+    translatePanelOpen.value = false;
+  }
+  if (
+    langPanelOpen.value &&
+    liveLangWrapRef.value && !liveLangWrapRef.value.contains(e.target as Node)
+  ) {
+    langPanelOpen.value = false;
+  }
 }
 
 onMounted(() => document.addEventListener("mousedown", handleClickOutside));
@@ -219,7 +341,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-8);
-  padding: 10px 12px;
+  padding: 0;
   position: relative;
   transition: background var(--agent-motion-fast);
 }
@@ -230,7 +352,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 
 .composer__mode-bar {
   border-bottom: 1px solid var(--agent-color-border-default);
-  padding-bottom: 6px;
+  padding: 10px 16px 6px;
 }
 
 .composer__mode-wrap {
@@ -298,6 +420,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   align-items: center;
   display: flex;
   justify-content: space-between;
+  padding: 0 16px;
 }
 
 .composer__tools {
@@ -328,6 +451,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 }
 
 .composer__textarea-wrap {
+  padding: 0 16px;
   position: relative;
 }
 
@@ -354,6 +478,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   display: flex;
   gap: var(--agent-space-8);
   justify-content: flex-end;
+  padding: 0 16px;
 }
 
 .composer__send-btn {
@@ -451,5 +576,234 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   text-align: center;
   top: -6px;
   width: 18px;
+}
+
+/* 翻译图标 wrap */
+.composer__translate-wrap {
+  position: relative;
+}
+
+/* 翻译面板 */
+.composer__translate-panel {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 220px;
+  padding: 6px 0;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: var(--agent-z-dropdown);
+}
+
+.composer__translate-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.composer__translate-row--lang {
+  cursor: pointer;
+}
+
+.composer__translate-row--lang:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.composer__translate-label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+}
+
+.composer__translate-lang-val {
+  align-items: center;
+  color: var(--agent-color-brand-primary);
+  display: inline-flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 2px;
+}
+
+/* Toggle 开关 */
+.composer__toggle {
+  background: #d1d5db;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  height: 22px;
+  outline: none;
+  position: relative;
+  transition: background var(--agent-motion-fast);
+  width: 40px;
+}
+
+.composer__toggle::after {
+  background: #fff;
+  border-radius: 50%;
+  content: '';
+  height: 18px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform var(--agent-motion-fast);
+  width: 18px;
+}
+
+.composer__toggle--on {
+  background: var(--agent-color-brand-primary);
+}
+
+.composer__toggle--on::after {
+  transform: translateX(18px);
+}
+
+/* 语言选择面板 */
+.composer__lang-panel {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  bottom: 0;
+  left: calc(100% + 4px);
+  max-height: 320px;
+  min-width: 200px;
+  overflow-y: auto;
+  padding: 8px 0;
+  position: absolute;
+  z-index: var(--agent-z-dropdown);
+}
+
+.composer__lang-hint {
+  color: var(--agent-color-text-tertiary);
+  font-size: var(--agent-font-size-xs);
+  padding: 4px 16px 8px;
+}
+
+.composer__lang-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  font-size: var(--agent-font-size-sm);
+  gap: 10px;
+  padding: 9px 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.composer__lang-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.composer__lang-item--active {
+  color: var(--agent-color-brand-primary);
+}
+
+.composer__lang-item svg {
+  margin-left: auto;
+}
+
+.composer__lang-code {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  font-size: 11px;
+  min-width: 32px;
+  padding: 1px 5px;
+  text-align: center;
+}
+
+/* 边写边译区域 */
+.composer__live-translate {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border-bottom: 1px solid var(--agent-color-border-default);
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.composer__live-lang-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.composer__live-lang {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  min-width: 32px;
+  padding: 2px 6px;
+  text-align: center;
+}
+
+.composer__live-lang:hover {
+  border-color: var(--agent-color-brand-primary);
+  color: var(--agent-color-brand-primary);
+}
+
+.composer__live-input {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  flex: 1;
+  font-family: inherit;
+  font-size: var(--agent-font-size-sm);
+  line-height: 1.5;
+  outline: none;
+  resize: none;
+}
+
+.composer__live-input::placeholder {
+  color: #a6afbd;
+}
+
+.composer__live-send {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: var(--agent-font-size-sm);
+  padding: 0 4px;
+}
+
+/* 工具图标激活态 */
+.tool-icon--active {
+  color: var(--agent-color-brand-primary) !important;
+}
+
+/* Tooltip */
+.tool-icon[data-tooltip],
+.composer__translate-wrap .tool-icon[data-tooltip] {
+  position: relative;
+}
+
+.tool-icon[data-tooltip]::after {
+  background: rgba(0,0,0,0.75);
+  border-radius: var(--agent-radius-sm);
+  bottom: calc(100% + 6px);
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: 12px;
+  left: 50%;
+  opacity: 0;
+  padding: 4px 8px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: opacity var(--agent-motion-fast);
+  white-space: nowrap;
+  z-index: var(--agent-z-dropdown);
+}
+
+.tool-icon[data-tooltip]:hover::after {
+  opacity: 1;
 }
 </style>
