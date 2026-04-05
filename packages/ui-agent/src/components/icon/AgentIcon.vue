@@ -116,9 +116,14 @@
     </g>
 
     <g v-else-if="name === 'filter'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4.5 6.2h15" />
-      <path d="M7.5 11.8h9" />
-      <path d="M10 17.4h4" />
+      <path d="M4 5.5h16l-6.5 7.5V19l-3-1.5v-4.5L4 5.5z" />
+    </g>
+
+    <g v-else-if="name === 'sort'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 18V6" />
+      <path d="M5 9l3-3l3 3" />
+      <path d="M16 6v12" />
+      <path d="M13 15l3 3l3-3" />
     </g>
 
     <g v-else-if="name === 'search'" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

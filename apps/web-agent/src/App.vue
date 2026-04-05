@@ -307,9 +307,15 @@
                 <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sessionFilterType === 'customer' }" @click="sessionFilterType = 'customer'">客户 {{ filterCounts.customer }}</button>
               </template>
             </div>
-            <button type="button" class="inbox-pane__filter-icon-btn" aria-label="筛选">
-              <AgentIcon name="filter" :size="14" />
-            </button>
+            <div class="inbox-pane__sort-wrapper" @mouseenter="showSortDropdown" @mouseleave="hideSortDropdown">
+              <button type="button" class="inbox-pane__filter-icon-btn" aria-label="排序">
+                <AgentIcon name="sort" :size="14" />
+              </button>
+              <div v-show="sortDropdownVisible" class="inbox-pane__sort-dropdown">
+                <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'desc' }" @click="sortOrder = 'desc'">倒序</button>
+                <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'asc' }" @click="sortOrder = 'asc'">正序</button>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -2277,6 +2283,22 @@ function hideSearchFieldDropdown() {
 function selectSearchField(key: SearchFieldType) {
   searchFieldType.value = key;
   searchFieldDropdownVisible.value = false;
+}
+
+type SortOrderType = "desc" | "asc";
+const sortOrder = ref<SortOrderType>("desc");
+const sortDropdownVisible = ref(false);
+let sortDropdownTimer: ReturnType<typeof setTimeout> | null = null;
+
+function showSortDropdown() {
+  if (sortDropdownTimer) clearTimeout(sortDropdownTimer);
+  sortDropdownVisible.value = true;
+}
+
+function hideSortDropdown() {
+  sortDropdownTimer = setTimeout(() => {
+    sortDropdownVisible.value = false;
+  }, 150);
 }
 
 const queueGroups = computed(() =>
@@ -4609,9 +4631,8 @@ onBeforeUnmount(() => {
 
 .inbox-pane__search-icon-btn {
   align-items: center;
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-sm);
+  background: transparent;
+  border: 0;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -4630,6 +4651,7 @@ onBeforeUnmount(() => {
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 1;
 }
 
 .inbox-pane__search-field-dropdown {
@@ -4702,15 +4724,51 @@ onBeforeUnmount(() => {
 
 .inbox-pane__filter-icon-btn {
   align-items: center;
-  background: var(--agent-color-bg-muted);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: var(--agent-radius-md);
+  background: transparent;
+  border: 0;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   height: 30px;
   justify-content: center;
   width: 30px;
+}
+
+.inbox-pane__sort-wrapper {
+  position: relative;
+}
+
+.inbox-pane__sort-dropdown {
+  background: #ffffff;
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 100px;
+  padding: var(--agent-space-8);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.inbox-pane__sort-option {
+  background: transparent;
+  border: 0;
+  border-radius: var(--agent-radius-md);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: block;
+  font-size: var(--agent-font-size-md);
+  padding: var(--agent-space-8) var(--agent-space-12);
+  text-align: left;
+  width: 100%;
+}
+
+.inbox-pane__sort-option:hover {
+  background: var(--agent-color-bg-panel);
+}
+
+.inbox-pane__sort-option--selected {
+  color: var(--agent-color-brand-primary);
 }
 
 .inbox-pane__list {
