@@ -320,6 +320,7 @@
               <div v-if="showFilterButton" class="inbox-pane__filter-btn-wrapper" @mouseenter="showFilterPanel" @mouseleave="hideFilterPanel">
                 <button type="button" class="inbox-pane__filter-icon-btn" :class="{ 'inbox-pane__filter-icon-btn--active': hasActiveFilter }" aria-label="筛选">
                   <AgentIcon name="filter" :size="14" />
+                  <span v-if="hasActiveFilter" class="inbox-pane__filter-badge"></span>
                 </button>
                 <div v-if="filterPanelVisible" class="inbox-filter-panel" @click.stop>
                   <div class="inbox-filter-panel__section">
@@ -339,9 +340,10 @@
                   <div class="inbox-filter-panel__section">
                     <div class="inbox-filter-panel__label">访客标签</div>
                     <div class="inbox-filter-panel__select-wrapper">
-                      <div class="inbox-filter-panel__select-trigger" @click.stop="visitorTagDropdownOpen = !visitorTagDropdownOpen">
-                        <span>{{ draftFilter.visitorTagIds.length ? globalVisitorTags.filter(t => draftFilter.visitorTagIds.includes(t.id)).map(t => t.name).join('、') : '请选择' }}</span>
-                        <AgentIcon name="chevron-down" :size="12" />
+                      <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.visitorTagIds.length }" @click.stop="visitorTagDropdownOpen = !visitorTagDropdownOpen" @mouseenter="visitorTagTriggerHover = true" @mouseleave="visitorTagTriggerHover = false">
+                        <span>{{ formatTagTriggerText(draftFilter.visitorTagIds, globalVisitorTags) }}</span>
+                        <button v-if="visitorTagTriggerHover && draftFilter.visitorTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.visitorTagIds = []">✕</button>
+                        <AgentIcon v-else name="chevron-down" :size="12" />
                       </div>
                       <div v-if="visitorTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
                         <label v-for="t in globalVisitorTags" :key="t.id" class="inbox-filter-panel__select-option">
@@ -354,9 +356,10 @@
                   <div class="inbox-filter-panel__section">
                     <div class="inbox-filter-panel__label">会话标签</div>
                     <div class="inbox-filter-panel__select-wrapper">
-                      <div class="inbox-filter-panel__select-trigger" @click.stop="conversationTagDropdownOpen = !conversationTagDropdownOpen">
-                        <span>{{ draftFilter.conversationTagIds.length ? globalConversationTags.filter(t => draftFilter.conversationTagIds.includes(t.id)).map(t => t.name).join('、') : '请选择' }}</span>
-                        <AgentIcon name="chevron-down" :size="12" />
+                      <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.conversationTagIds.length }" @click.stop="conversationTagDropdownOpen = !conversationTagDropdownOpen" @mouseenter="conversationTagTriggerHover = true" @mouseleave="conversationTagTriggerHover = false">
+                        <span>{{ formatTagTriggerText(draftFilter.conversationTagIds, globalConversationTags) }}</span>
+                        <button v-if="conversationTagTriggerHover && draftFilter.conversationTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.conversationTagIds = []">✕</button>
+                        <AgentIcon v-else name="chevron-down" :size="12" />
                       </div>
                       <div v-if="conversationTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
                         <label v-for="t in globalConversationTags" :key="t.id" class="inbox-filter-panel__select-option">
@@ -2625,6 +2628,16 @@ const draftFilter = ref<SessionFilter>({
 });
 const visitorTagDropdownOpen = ref(false);
 const conversationTagDropdownOpen = ref(false);
+const visitorTagTriggerHover = ref(false);
+const conversationTagTriggerHover = ref(false);
+
+function formatTagTriggerText(tagIds: string[], tagList: { id: string; name: string }[]) {
+  if (tagIds.length === 0) return '请选择';
+  const selectedTags = tagList.filter(t => tagIds.includes(t.id));
+  if (selectedTags.length <= 2) return selectedTags.map(t => t.name).join('、');
+  const visible = selectedTags.slice(0, 2).map(t => t.name).join('、');
+  return `${visible} +${selectedTags.length - 2}`;
+}
 const hasActiveFilter = computed(() =>
   activeFilter.value.visitorOnline !== null ||
   activeFilter.value.visitorTagIds.length > 0 ||
@@ -3532,19 +3545,30 @@ const sendPushNotification = (title: string, body: string) => {
   new Notification(title, { body, icon: "/favicon.ico" });
 };
 
+const closePlanSwitcher = () => { planSwitcherOpen.value = false; };
+
+const closeTagDropdowns = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  // 检查点击是否在标签下拉面板或触发器内部
+  if (!target.closest('.inbox-filter-panel__select-wrapper')) {
+    visitorTagDropdownOpen.value = false;
+    conversationTagDropdownOpen.value = false;
+  }
+};
+
 onMounted(() => {
   refreshAiAgentProfile();
   if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
   document.addEventListener("click", closePlanSwitcher);
+  document.addEventListener("click", closeTagDropdowns);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener("click", closePlanSwitcher);
+  document.removeEventListener("click", closeTagDropdowns);
 });
-
-const closePlanSwitcher = () => { planSwitcherOpen.value = false; };
 
 watch(
   () => route.fullPath,
@@ -5291,6 +5315,39 @@ onBeforeUnmount(() => {
 
 .inbox-pane__filter-icon-btn--active {
   color: var(--agent-color-brand-primary);
+}
+
+.inbox-pane__filter-badge {
+  background: var(--agent-color-status-error);
+  border-radius: 50%;
+  height: 6px;
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 6px;
+}
+
+.inbox-filter-panel__select-clear {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 16px;
+}
+
+.inbox-filter-panel__select-clear:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.inbox-pane__filter-icon-btn {
+  position: relative;
 }
 
 .inbox-pane__list {
