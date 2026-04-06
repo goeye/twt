@@ -40,6 +40,29 @@
         <router-view />
       </a-layout-content>
     </a-layout>
+
+    <!-- 版本更新弹窗 -->
+    <a-modal
+      :open="versionState.hasUpdate"
+      title="发现新版本"
+      :closable="false"
+      :mask-closable="false"
+      :footer="null"
+      :width="420"
+    >
+      <p style="color: #75869c; margin-bottom: 16px">
+        系统已更新，刷新页面即可使用最新功能
+      </p>
+      <div v-if="notesList.length" style="margin-bottom: 20px">
+        <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px">更新内容</h4>
+        <ul style="padding-left: 18px; color: #4e5969; font-size: 13px">
+          <li v-for="(note, i) in notesList" :key="i" style="margin-bottom: 4px">{{ note }}</li>
+        </ul>
+      </div>
+      <div>
+        <a-button type="primary" block @click="doRefresh">立即刷新</a-button>
+      </div>
+    </a-modal>
   </a-layout>
 </template>
 
@@ -52,18 +75,29 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons-vue'
+import { useVersionCheck } from './composables/useVersionCheck'
 
 const collapsed = ref(false)
 const route = useRoute()
+const { versionState, doRefresh, dismissUpdate } = useVersionCheck()
+
+const notesList = computed(() => {
+  if (!versionState.notes) return []
+  return versionState.notes
+    .split('\n')
+    .map((line) => line.replace(/^[a-f0-9]+ /, '').trim())
+    .filter(Boolean)
+})
 
 const selectedKeys = computed(() => {
-  if (route.path === '/resellers') return ['resellers']
+  if (route.path === '/resellers' || route.path.startsWith('/resellers/')) return ['resellers']
   if (route.path === '/platform') return ['platform']
   return ['resellers']
 })
 
 const currentTitle = computed(() => {
   if (route.path === '/resellers') return '代理商管理'
+  if (route.path.startsWith('/resellers/')) return '代理商详情'
   if (route.path === '/platform') return '平台配置'
   return 'TWT 管理后台'
 })

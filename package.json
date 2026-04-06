@@ -28,6 +28,14 @@
     "build:docs": "pnpm --filter docs build",
     "upload:docs": "cd apps && bash upcode.sh docs",
     "deploy:docs": "pnpm build:docs && pnpm upload:docs",
+    "dev:twt-admin": "pnpm --filter twt-admin dev",
+    "build:twt-admin": "pnpm --filter twt-admin build",
+    "upload:twt-admin": "cd apps && bash upcode.sh twt-admin",
+    "deploy:twt-admin": "pnpm build:twt-admin && pnpm upload:twt-admin",
+    "dev:reseller-admin": "pnpm --filter reseller-admin dev",
+    "build:reseller-admin": "pnpm --filter reseller-admin build",
+    "upload:reseller-admin": "cd apps && bash upcode.sh reseller-admin",
+    "deploy:reseller-admin": "pnpm build:reseller-admin && pnpm upload:reseller-admin",
     "deploy:all": "pnpm deploy:web-agent & pnpm deploy:web-customer & pnpm deploy:web-admin & pnpm deploy:mobile-app & pnpm deploy:web-website & pnpm deploy:docs & wait"
   }
 }

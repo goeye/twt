@@ -9,4 +9,16 @@ const packageJson = JSON.parse(
 export default defineConfig(({ command }) => ({
   plugins: [vue()],
   base: command === 'build' ? `/${packageJson.name}/` : '/',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'ant-design-vue': ['ant-design-vue'],
+          'ant-design-icons': ['@ant-design/icons-vue'],
+          'vue-vendor': ['vue', 'vue-router'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 }))

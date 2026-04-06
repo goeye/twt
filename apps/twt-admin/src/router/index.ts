@@ -13,6 +13,11 @@ const router = createRouter({
       meta: { title: '代理商管理' },
     },
     {
+      path: '/resellers/:id',
+      component: () => import('../views/ResellerDetailPage.vue'),
+      meta: { title: '代理商详情' },
+    },
+    {
       path: '/platform',
       component: () => import('../views/PlatformConfigPage.vue'),
       meta: { title: '平台配置' },

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@twt/branding": "workspace:*",
     "@twt/tokens": "workspace:*",
     "ant-design-vue": "^4.2.6",
     "dayjs": "^1.11.20",
