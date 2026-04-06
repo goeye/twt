@@ -1,6 +1,6 @@
 <template>
   <section class="composer" :class="{ 'composer--note': noteMode }">
-    <Teleport to="#chat-above-composer">
+    <Teleport defer to="#chat-above-composer">
       <!-- Copilot 推荐回复卡片 -->
       <CopilotPanel v-if="copilotOpen && !noteMode" :suggestion="MOCK_SUGGESTION" @send="handleCopilotSend" @close="copilotOpen = false" />
       <!-- 边写边译区域 -->

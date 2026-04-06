@@ -1,5 +1,5 @@
 <template>
-  <AgentAppShell :show-detail="isConversationRoute" :hide-subnav="isHomeRoute">
+  <AgentAppShell :key="currentShellRenderKey" :show-detail="isConversationRoute" :hide-subnav="isHomeRoute">
     <template #nav-rail>
       <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
         <template #brand="{ expanded }">
@@ -500,22 +500,25 @@
           @copilot="showTopToast('Copilot推荐开发中')"
         />
 
-        <MessageComposer
-          v-else
-          v-model="composerText"
-          class="chat-pane__composer"
-          :show-polish="canUse(FEATURES.TEXT_POLISH)"
-          :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
-          :quick-reply-categories="quickReplyCategories"
-          :session-id="activeSessionId"
-          placeholder="发消息或输入 / 选择快捷回复"
-          @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
-          @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
-          @quick-reply-settings="showTopToast('快捷回复设置开发中')"
-          @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
-          @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
-          @send="handleSend"
-        />
+        <template v-else>
+          <div id="chat-above-composer" class="chat-pane__above-composer"></div>
+
+          <MessageComposer
+            v-model="composerText"
+            class="chat-pane__composer"
+            :show-polish="canUse(FEATURES.TEXT_POLISH)"
+            :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
+            :quick-reply-categories="quickReplyCategories"
+            :session-id="activeSessionId"
+            placeholder="发消息或输入 / 选择快捷回复"
+            @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
+            @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+            @quick-reply-settings="showTopToast('快捷回复设置开发中')"
+            @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
+            @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
+            @send="handleSend"
+          />
+        </template>
       </section>
     </section>
 
@@ -2792,6 +2795,7 @@ const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
 
 const currentSubnavRenderKey = computed(() => `subnav-${currentRouteName.value}`);
+const currentShellRenderKey = computed(() => `shell-${currentRouteName.value}`);
 
 const currentContentRenderKey = computed(() => {
   if (isConversationRoute.value) return `view-conversation-${activeQueueKey.value}`;
@@ -4126,9 +4130,6 @@ watch(
   () => route.name,
   (name) => {
     if (typeof name === "string") {
-      if (name in navRoutePathMap) {
-        activeMainNav.value = name;
-      }
       syncRouteScopedState(name);
     }
   },
@@ -5379,6 +5380,10 @@ onBeforeUnmount(() => {
   gap: var(--agent-space-12);
   min-height: 0;
   padding: var(--agent-space-16);
+}
+
+.chat-pane__above-composer {
+  flex-shrink: 0;
 }
 
 .chat-pane__start-time {
