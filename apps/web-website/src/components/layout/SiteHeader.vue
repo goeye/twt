@@ -2,7 +2,7 @@
   <header class="site-header">
     <div class="site-header__inner">
       <router-link to="/links" class="site-header__logo">
-        <strong>TWT</strong>
+        <strong>{{ tenant.name }}</strong>
         <span class="site-header__logo-sub">资源导航</span>
       </router-link>
       <nav class="site-header__nav">
@@ -13,6 +13,12 @@
     </div>
   </header>
 </template>
+
+<script setup lang="ts">
+import { useTenant } from '@twt/branding';
+
+const tenant = useTenant();
+</script>
 
 <style scoped>
 .site-header {

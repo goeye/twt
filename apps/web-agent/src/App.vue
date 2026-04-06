@@ -6,9 +6,9 @@
           <div v-if="expanded" class="brand-expanded-wrap" @mouseenter="openProjectSwitcherHover" @mouseleave="closeProjectSwitcherHover">
             <div class="brand-expanded">
               <span class="brand-expanded__glyph">
-                <button type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+                <button type="button" class="brand-mark" :aria-label="`${tenant.name} 品牌`">{{ tenant.name.charAt(0) }}</button>
               </span>
-              <span class="brand-expanded__name">TWT Chat</span>
+              <span class="brand-expanded__name">{{ tenant.displayName }}</span>
               <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
             </div>
             <div v-if="projectSwitcherOpen" class="project-switcher-panel" @click.stop>
@@ -53,7 +53,7 @@
               </div>
             </div>
           </div>
-          <button v-else type="button" class="brand-mark" aria-label="TWT 品牌">T</button>
+          <button v-else type="button" class="brand-mark" :aria-label="`${tenant.name} 品牌`">{{ tenant.name.charAt(0) }}</button>
         </template>
         <template #footer="{ expanded }">
           <div class="rail-footer" :class="{ 'rail-footer--expanded': expanded }">
@@ -807,6 +807,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useTenant } from "@twt/branding";
 import ArchiveSubNav from "./components/ArchiveSubNav.vue";
 import ArchiveAssignModal from "./components/archive/ArchiveAssignModal.vue";
 import AiAgentRoutePage from "./views/AiAgentRoutePage.vue";
@@ -824,6 +825,8 @@ import WidgetCustomizePage from "./views/WidgetCustomizePage.vue";
 import { loadStoredAiAgentSettings, resolveAiAgentProfile } from "./lib/aiAgentSettings";
 import { track, TrackEvent } from "./lib/tracker";
 import { usePlan } from "./composables/usePlan";
+
+const tenant = useTenant();
 import { FEATURES } from "./lib/plan";
 import { usePermission } from "./composables/usePermission";
 import { useVersionCheck } from "./composables/useVersionCheck";

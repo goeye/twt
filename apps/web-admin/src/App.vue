@@ -2,8 +2,8 @@
   <a-layout style="min-height: 100vh">
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible :width="220">
       <div class="logo">
-        <span v-if="!collapsed" class="logo__text">TWT 运营后台</span>
-        <span v-else class="logo__text">T</span>
+        <span v-if="!collapsed" class="logo__text">{{ tenant.name }} 运营后台</span>
+        <span v-else class="logo__text">{{ tenant.name.charAt(0) }}</span>
       </div>
       <a-menu
         v-model:selectedKeys="selectedKeys"
@@ -135,6 +135,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useTenant } from "@twt/branding";
 import {
   DashboardOutlined,
   BarChartOutlined,
@@ -150,6 +151,7 @@ import {
 import { dictionaryData } from "./mock/sensitiveWordsData";
 import { useVersionCheck } from "./composables/useVersionCheck";
 
+const tenant = useTenant();
 const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 
 const notesList = computed(() => {

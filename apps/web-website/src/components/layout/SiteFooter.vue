@@ -22,7 +22,7 @@
 
         <div class="footer-col">
           <h4>关于我们</h4>
-          <a href="#">了解TWT</a>
+          <a href="#">了解{{ tenant.name }}</a>
           <a href="#">平台资讯</a>
           <a href="#">推广联盟</a>
           <a href="#">联系我们</a>
@@ -40,9 +40,9 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z" fill="currentColor"/>
             </svg>
-            <span>TWT</span>
+            <span>{{ tenant.name }}</span>
           </div>
-          <a href="mailto:support@twt.com" class="support-email">support@twt.com</a>
+          <a :href="`mailto:${tenant.email.replyTo}`" class="support-email">{{ tenant.email.replyTo }}</a>
           <div class="social-links">
             <a href="#" class="social-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -82,7 +82,7 @@
           <span class="badge">GDPR COMPLIANT</span>
           <span class="badge">ISO 27001 CERTIFIED</span>
         </div>
-        <p class="copyright">© 2025 TWT. Powered by TWT</p>
+        <p class="copyright">© 2025 {{ tenant.website.footer.companyName }}</p>
       </div>
     </div>
   </footer>
@@ -90,6 +90,9 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+import { useTenant } from '@twt/branding';
+
+const tenant = useTenant();
 </script>
 
 <style scoped>

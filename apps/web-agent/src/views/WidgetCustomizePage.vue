@@ -506,7 +506,7 @@
           <div class="wc-widget__header">
             <div class="wc-widget__header-left">
               <img :src="settings.brandLogoUrl" class="wc-widget__avatar-img" alt="" />
-              <span class="wc-widget__brand-name">{{ settings.brandName || 'TWT' }}</span>
+              <span class="wc-widget__brand-name">{{ settings.brandName || tenant.name }}</span>
             </div>
             <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
@@ -934,6 +934,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from "vue";
 import { AgentSwitch, TimeDurationInput } from "@twt/ui-agent";
+import { useTenant } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 import { getFaqOptions, isFaqExists } from "../lib/faqData";
@@ -1298,8 +1299,10 @@ const chatPreviewHeaderTitle = computed(() => {
   return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New conversation" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
 });
 
+const tenant = useTenant();
+
 const settings = reactive({
-  brandName: "项目名称",
+  brandName: tenant.displayName,
   brandLogoUrl: DEFAULT_LOGO,
   widgetPosition: "bottom-right" as "bottom-right" | "bottom-left",
   positionOffsetX: 20,

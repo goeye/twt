@@ -30,17 +30,20 @@
 </template>
 
 <script setup lang="ts">
+import { useTenant } from '@twt/branding';
+
 defineEmits<{
   (e: "toast", message: string): void;
 }>();
 
+const tenant = useTenant();
 const SE = "<" + "/script>";
 
-const baseInstallCode = `<!-- Start of TWT Chat code -->
+const baseInstallCode = `<!-- Start of ${tenant.displayName} code -->
 <script>
 window.__twt_config={appid:"3bd9ddb64538fac65f8e983767daf474",lang:"zh-cn",theme:"light",sbs:"",sbs_mm:"",ranstr:"",name:"",nickname:"",email:"",phone:"",icon:"1",position:{right:"80px",bottom:"80px"},};(function(){var en=init;(function(){var nt=document.createElement("script");n.src="https://fk-test.twt-test2.jishu666.com/install/core.js?version=1.2";t.head.appendChild(n)},e.init()}))(window,document);
 ${SE}
-<!-- End of TWT Chat code -->`;
+<!-- End of ${tenant.displayName} code -->`;
 </script>
 
 <style scoped>

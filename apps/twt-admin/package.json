@@ -1,5 +1,5 @@
 {
-  "name": "web-admin",
+  "name": "twt-admin",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -14,8 +14,7 @@
     "ant-design-vue": "^4.2.6",
     "dayjs": "^1.11.20",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.1",
-    "@twt/branding": "workspace:*"
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@twt/build-utils": "workspace:*",

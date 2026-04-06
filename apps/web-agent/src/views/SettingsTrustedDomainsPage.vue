@@ -116,6 +116,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useTenant } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 
@@ -130,6 +131,9 @@ interface DomainItem {
   createdAt: string;
 }
 
+const tenant = useTenant();
+const primaryDomain = tenant.domains?.[0] || 'example.com';
+
 const currentPage = ref(1);
 const pageSize = 20;
 let nextId = 2;
@@ -137,7 +141,7 @@ let nextId = 2;
 const items = ref<DomainItem[]>([
   {
     id: "1",
-    domain: "support.twt.com",
+    domain: `support.${primaryDomain}`,
     creator: "客服主管",
     createdAt: "2026-03-18 22:54:25",
   },

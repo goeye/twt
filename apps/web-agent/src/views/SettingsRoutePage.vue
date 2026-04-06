@@ -504,6 +504,7 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from "vue";
 import { DataTable, TimeDurationInput, AgentSwitch, type TableColumn } from "@twt/ui-agent";
+import { useTenant } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 import SettingsAgentsPage from "./SettingsAgentsPage.vue";
@@ -553,7 +554,9 @@ const emit = defineEmits<{
 
 const { canUse, guardFeature } = usePlan();
 
-const chatPageBaseUrl = "https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59";
+const tenant = useTenant();
+const primaryDomain = tenant.domains?.[0] || 'example.com';
+const chatPageBaseUrl = `https://visitorchat.${primaryDomain}/direct/040d99be00d826dd0ae83d6b2255df59`;
 
 /* Dev settings */
 const appId = "040d99be00d826dd0ae83d6b2255df59";
