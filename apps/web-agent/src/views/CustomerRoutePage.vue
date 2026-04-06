@@ -368,7 +368,7 @@ const openMenuId = ref<number | null>(null);
 const sortKey = ref("");
 const sortDir = ref<"asc" | "desc">("asc");
 
-const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email", telegram: "Telegram" };
 
 interface CustomerItem {
   id: number;

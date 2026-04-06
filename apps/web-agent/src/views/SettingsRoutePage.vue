@@ -1,9 +1,9 @@
 <template>
   <section
     class="agent-content-page agent-content-page--hide-scrollbar settings-page"
-    :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' || activeKey === 'email' || activeKey === 'quick-reply' || activeKey === 'personal-reply' || activeKey === 'visitor-tags' || activeKey === 'conversation-tags' || activeKey === 'blacklist' || activeKey === 'trusted-domains' }"
+    :class="{ 'settings-page--agents': activeKey === 'agents' || activeKey === 'roles' || activeKey === 'email' || activeKey === 'telegram' || activeKey === 'quick-reply' || activeKey === 'personal-reply' || activeKey === 'visitor-tags' || activeKey === 'conversation-tags' || activeKey === 'blacklist' || activeKey === 'trusted-domains' }"
   >
-    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains' && activeKey !== 'email'" class="agent-content-header" :class="{ 'settings-header--with-action': activeKey === 'install' || activeKey === 'website-code' || activeKey === 'webhooks' }">
+    <header v-if="activeKey !== 'agents' && activeKey !== 'roles' && activeKey !== 'quick-reply' && activeKey !== 'personal-reply' && activeKey !== 'visitor-tags' && activeKey !== 'conversation-tags' && activeKey !== 'blacklist' && activeKey !== 'trusted-domains' && activeKey !== 'email' && activeKey !== 'telegram'" class="agent-content-header" :class="{ 'settings-header--with-action': activeKey === 'install' || activeKey === 'website-code' || activeKey === 'webhooks' }">
       <h1 class="agent-content-title">{{ pageTitle }}</h1>
       <a v-if="activeKey === 'install' || activeKey === 'website-code' || activeKey === 'webhooks'" href="#" target="_blank" class="settings-api-link">查看 API 文档</a>
     </header>
@@ -445,6 +445,11 @@
       @toast="emitToast"
     />
 
+    <SettingsTelegramPage
+      v-else-if="activeKey === 'telegram'"
+      @toast="emitToast"
+    />
+
     <SettingsWebsiteCodePage
       v-else-if="activeKey === 'website-code'"
       @toast="emitToast"
@@ -511,8 +516,9 @@ import SettingsTagsPage from "./SettingsTagsPage.vue";
 import SettingsBlacklistPage from "./SettingsBlacklistPage.vue";
 import SettingsTrustedDomainsPage from "./SettingsTrustedDomainsPage.vue";
 import SettingsEmailPage from "./SettingsEmailPage.vue";
+import SettingsTelegramPage from "./SettingsTelegramPage.vue";
 
-type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "telegram" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 
 
 const props = defineProps<{
@@ -524,6 +530,7 @@ const pageTitleMap: Record<SettingsNavKey, string> = {
   "website-code": "网站代码",
   customize: "自定义",
   email: "Email",
+  telegram: "Telegram",
   agents: "成员",
   roles: "角色",
   team: "成员设置",

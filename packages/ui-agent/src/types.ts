@@ -5,7 +5,7 @@ export interface NavItem {
   badge?: number;
 }
 
-export type ChannelType = 'web' | 'widget' | 'email';
+export type ChannelType = 'web' | 'widget' | 'email' | 'telegram';
 
 export interface MessageTranslation {
   status: 'idle' | 'translating' | 'completed' | 'failed';

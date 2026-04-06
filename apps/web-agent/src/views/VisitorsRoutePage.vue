@@ -411,7 +411,7 @@ interface OnlineVisitorItem {
   ip: string;
 }
 
-const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
+const channelTypeLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email", telegram: "Telegram" };
 
 const onlineVisitorsList = ref<OnlineVisitorItem[]>([
   { id: 101, name: "Tom", remark: "Tom-VIP", email: "tom@example.com", phone: "+1 555-0101", tag: "VIP", channelType: "web", firstVisit: "2026-03-17 09:12", lastPage: "/pricing", ip: "192.168.1.23" },

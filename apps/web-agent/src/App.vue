@@ -450,7 +450,7 @@
             @reply="showTopToast('回复功能开发中')"
             @copy="showTopToast('已复制到剪贴板')"
             @translate="showTopToast('翻译功能开发中')"
-            @revoke="showTopToast('撤回功能开发中')"
+            @revoke="handleRevokeMessage(message.id)"
             @retry="showTopToast('重新发送开发中')"
             @retry-translation="handleRetryTranslation(message.id, message.content)"
           />
@@ -472,6 +472,10 @@
 
         <div v-else-if="isClosedSession && activeSession?.channelType === 'email'" class="chat-pane__closed">
           <button type="button" class="agent-btn agent-btn--primary chat-pane__reopen-btn" @click="handleReopenEmailSession">重新开启</button>
+        </div>
+
+        <div v-else-if="isClosedSession && activeSession?.channelType === 'telegram'" class="chat-pane__closed">
+          <button type="button" class="agent-btn agent-btn--primary chat-pane__reopen-btn" @click="handleReopenTelegramSession">重新开启</button>
         </div>
 
         <EmailComposer
@@ -496,7 +500,6 @@
           @copilot="showTopToast('Copilot推荐开发中')"
         />
 
-        <div id="chat-above-composer"></div>
         <MessageComposer
           v-else
           v-model="composerText"
@@ -538,8 +541,8 @@
     />
     <ReportRoutePage v-else-if="isReportRoute" :key="currentContentRenderKey" :active-key="activeReportNavKey" />
     <template v-else-if="isCampaignRoute">
-      <CampaignRoutePage v-show="activeCampaignNavKey === 'campaign-chatting'" :key="`${currentContentRenderKey}-chatting`" @toast="showTopToast" />
-      <ProactiveCampaignRoutePage v-show="activeCampaignNavKey === 'campaign-proactive'" :key="`${currentContentRenderKey}-proactive`" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
+      <CampaignRoutePage v-if="activeCampaignNavKey === 'campaign-chatting'" :key="`${currentContentRenderKey}-chatting`" @toast="showTopToast" />
+      <ProactiveCampaignRoutePage v-if="activeCampaignNavKey === 'campaign-proactive'" :key="`${currentContentRenderKey}-proactive`" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
     </template>
 
     <section v-else :key="currentContentRenderKey" class="agent-content-page module-page">
@@ -1009,7 +1012,7 @@ const switchPermRole = (role: 'admin' | 'agent' | 'limited') => {
 
 type DetailTabKey = "visitor" | "session";
 type AiAgentNavKey = "doc-knowledge" | "faq" | "copilot-settings" | "ai-agent-config";
-type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
+type SettingsNavKey = "install" | "website-code" | "customize" | "email" | "telegram" | "agents" | "roles" | "team" | "quick-reply" | "personal-reply" | "idle-conversation" | "visitor-tags" | "conversation-tags" | "blacklist" | "trusted-domains" | "dev-settings" | "webhooks";
 type CampaignNavKey = "campaign-chatting" | "campaign-proactive";
 type ReportNavKey = "data-overview" | "ai-agent-report" | "evaluation-analysis";
 type FilesNavKey = "all-conversations" | "all-chats";
@@ -1103,10 +1106,14 @@ interface ConversationSession extends SessionItem {
   avatarText: string;
   avatarColor: string;
   channel: string;
-  channelType?: "web" | "widget" | "email";
+  channelType?: "web" | "widget" | "email" | "telegram";
   remarkName?: string;
   visitorOnline?: boolean;
   fromEmail?: string;
+  telegramUserId?: number;
+  telegramUsername?: string;
+  telegramFirstName?: string;
+  telegramLastName?: string;
   visitorName: string;
   visitorId: string;
   phone: string;
@@ -1215,7 +1222,8 @@ const settingsNavGroupsBase = [
           { key: "customize", label: "自定义" }
         ]
       },
-      { key: "email", label: "Email" }
+      { key: "email", label: "Email" },
+      { key: "telegram", label: "Telegram" }
     ]
   },
   {
@@ -1762,6 +1770,97 @@ const allSessions = ref<ConversationSession[]>([
     acceptedAt: "08:10",
     assignee: "系统",
     assistants: []
+  },
+  {
+    id: "s-telegram-01",
+    queueKey: "pending-reply",
+    customerName: "Telegram 会话",
+    preview: "Hello! I have a question about your pricing plans",
+    updatedAt: "17:25",
+    unreadCount: 2,
+    tag: "访客",
+    avatarText: "JD",
+    avatarColor: "linear-gradient(135deg, #0088cc 0%, #229ed9 100%)",
+    channel: "Telegram",
+    channelType: "telegram" as const,
+    telegramUserId: 123456789,
+    telegramUsername: "johndoe",
+    telegramFirstName: "John",
+    telegramLastName: "Doe",
+    visitorName: "John Doe",
+    visitorId: "tg-123456789",
+    phone: "",
+    email: "",
+    entryPage: "",
+    visitStats: "1 会话",
+    deviceIp: "",
+    os: "Telegram",
+    browser: "",
+    startedAt: "17:20",
+    acceptedAt: "17:21",
+    assignee: "陈悦",
+    assistants: []
+  },
+  {
+    id: "s-telegram-02",
+    queueKey: "resolved",
+    customerName: "Telegram 会话",
+    preview: "Thanks for your help! Problem solved 👍",
+    updatedAt: "15:40",
+    unreadCount: 0,
+    tag: "客户",
+    avatarText: "AS",
+    avatarColor: "linear-gradient(135deg, #0088cc 0%, #229ed9 100%)",
+    channel: "Telegram",
+    channelType: "telegram" as const,
+    telegramUserId: 987654321,
+    telegramUsername: "alice_smith",
+    telegramFirstName: "Alice",
+    telegramLastName: "Smith",
+    visitorName: "Alice Smith",
+    visitorId: "tg-987654321",
+    phone: "",
+    email: "",
+    entryPage: "",
+    visitStats: "3 会话",
+    deviceIp: "",
+    os: "Telegram",
+    browser: "",
+    startedAt: "14:30",
+    acceptedAt: "14:31",
+    assignee: "王珂",
+    assistants: [],
+    visitorFeedback: "satisfied"
+  },
+  {
+    id: "s-telegram-03",
+    queueKey: "processing",
+    customerName: "Telegram 会话",
+    preview: "Can you send me the invoice for last month?",
+    updatedAt: "13:15",
+    unreadCount: 1,
+    tag: "VIP",
+    avatarText: "MJ",
+    avatarColor: "linear-gradient(135deg, #0088cc 0%, #229ed9 100%)",
+    channel: "Telegram",
+    channelType: "telegram" as const,
+    telegramUserId: 555666777,
+    telegramUsername: "mike_johnson",
+    telegramFirstName: "Mike",
+    telegramLastName: "Johnson",
+    visitorName: "Mike Johnson",
+    visitorId: "tg-555666777",
+    phone: "",
+    email: "",
+    entryPage: "",
+    visitStats: "5 会话",
+    deviceIp: "",
+    os: "Telegram",
+    browser: "",
+    startedAt: "13:00",
+    acceptedAt: "13:01",
+    assignee: "刘昊",
+    assistants: []
   }
 ]);
 
@@ -2169,11 +2268,150 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       fromEmail: "emma.r@enterprise.com",
       toEmail: "support@company.gmail.com"
     }
+  ],
+  "s-telegram-01": [
+    {
+      id: "m-tg-001",
+      role: "system",
+      sender: "系统",
+      content: " ",
+      time: "17:20"
+    },
+    {
+      id: "m-tg-002",
+      role: "customer",
+      sender: "John Doe",
+      content: "Hello! I have a question about your pricing plans",
+      time: "17:21"
+    },
+    {
+      id: "m-tg-003",
+      role: "customer",
+      sender: "John Doe",
+      content: "Do you offer discounts for annual subscriptions?",
+      time: "17:22"
+    },
+    {
+      id: "m-tg-004",
+      role: "agent",
+      sender: "陈悦",
+      content: "Hi John! Yes, we offer a 10% discount for annual subscriptions. Would you like me to send you the detailed pricing?",
+      time: "17:23"
+    },
+    {
+      id: "m-tg-005",
+      role: "customer",
+      sender: "John Doe",
+      content: "Yes please! Also, can I upgrade from monthly to annual later?",
+      time: "17:25"
+    }
+  ],
+  "s-telegram-02": [
+    {
+      id: "m-tg-101",
+      role: "system",
+      sender: "系统",
+      content: " ",
+      time: "14:30"
+    },
+    {
+      id: "m-tg-102",
+      role: "customer",
+      sender: "Alice Smith",
+      content: "Hi, I'm having trouble connecting my Telegram bot to your API",
+      time: "14:31"
+    },
+    {
+      id: "m-tg-103",
+      role: "customer",
+      sender: "Alice Smith",
+      content: "Getting error 401 - Unauthorized",
+      time: "14:31"
+    },
+    {
+      id: "m-tg-104",
+      role: "agent",
+      sender: "王珂",
+      content: "Hi Alice! Let me help you with that. Can you confirm you're using the correct API token from your dashboard?",
+      time: "14:32"
+    },
+    {
+      id: "m-tg-105",
+      role: "customer",
+      sender: "Alice Smith",
+      content: "Oh wait, I was using the test token instead of the production one 🤦‍♀️",
+      time: "14:33"
+    },
+    {
+      id: "m-tg-106",
+      role: "agent",
+      sender: "王珂",
+      content: "No worries! That's a common mistake. Make sure to use the production token from Settings > API Keys.",
+      time: "14:34"
+    },
+    {
+      id: "m-tg-107",
+      role: "customer",
+      sender: "Alice Smith",
+      content: "It works now! Thanks for your help! Problem solved 👍",
+      time: "15:40"
+    },
+    {
+      id: "m-tg-108",
+      role: "agent",
+      sender: "王珂",
+      content: "Great! Feel free to reach out if you need anything else. Have a great day!",
+      time: "15:41"
+    }
+  ],
+  "s-telegram-03": [
+    {
+      id: "m-tg-201",
+      role: "system",
+      sender: "系统",
+      content: " ",
+      time: "13:00"
+    },
+    {
+      id: "m-tg-202",
+      role: "customer",
+      sender: "Mike Johnson",
+      content: "Can you send me the invoice for last month?",
+      time: "13:01"
+    },
+    {
+      id: "m-tg-203",
+      role: "agent",
+      sender: "刘昊",
+      content: "Sure! Let me pull that up for you. Can you confirm your account email?",
+      time: "13:02"
+    },
+    {
+      id: "m-tg-204",
+      role: "customer",
+      sender: "Mike Johnson",
+      content: "mike.johnson@company.com",
+      time: "13:03"
+    },
+    {
+      id: "m-tg-205",
+      role: "agent",
+      sender: "刘昊",
+      content: "Found it! I'll send the invoice to your email in a moment. It's for $4,500 covering March 2026.",
+      time: "13:15"
+    }
   ]
 });
 
 const router = useRouter();
 const route = useRoute();
+
+// 监听路由变化，同步状态
+watch(() => route.name, (newRouteName) => {
+  if (newRouteName && typeof newRouteName === "string") {
+    syncRouteScopedState(newRouteName, { forceDefault: true });
+  }
+}, { immediate: false });
 
 const activeMainNav = computed(() => {
   const routeName = currentRouteName.value;
@@ -3145,7 +3383,6 @@ const handleMainNavSelect = (key: string) => {
   if (!nextPath) {
     return;
   }
-  syncRouteScopedState(key, { forceDefault: true });
   if (route.path === nextPath) {
     return;
   }
@@ -3790,6 +4027,45 @@ const handleReopenEmailSession = () => {
   if (!activeSession.value) return;
   activeSession.value.closed = false;
   showTopToast("会话已重新开启");
+};
+
+const handleReopenTelegramSession = () => {
+  if (!activeSession.value) return;
+  activeSession.value.closed = false;
+  showTopToast("Telegram 会话已重新开启");
+};
+
+const handleRevokeMessage = (messageId: string) => {
+  if (!activeSessionId.value) return;
+
+  const messages = messageMap.value[activeSessionId.value];
+  if (!messages) return;
+
+  const messageIndex = messages.findIndex(m => m.id === messageId);
+  if (messageIndex === -1) return;
+
+  const message = messages[messageIndex];
+
+  // 只允许撤回客服发送的消息
+  if (message.role !== 'agent') {
+    showTopToast('只能撤回自己发送的消息');
+    return;
+  }
+
+  // 模拟撤回：将消息标记为已撤回
+  messages[messageIndex] = {
+    ...message,
+    content: '消息已撤回',
+    contentType: 'text',
+    revoked: true
+  };
+
+  // 如果是 Telegram 渠道，提示会调用 Telegram API 删除消息
+  if (activeSession.value?.channelType === 'telegram') {
+    showTopToast('消息已撤回（Telegram 中已删除）');
+  } else {
+    showTopToast('消息已撤回');
+  }
 };
 
 const handleOpenCloseSession = () => {
