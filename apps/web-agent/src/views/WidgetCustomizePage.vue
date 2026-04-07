@@ -199,7 +199,7 @@
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorFeedback' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorFeedback')">
             <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">访客评价</h3>
+              <h3 class="wc-card__title">会话评价</h3>
               <p class="wc-card__desc">访客端始终显示会话评价入口，评价需会话创建且非排队中</p>
             </div>
             <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
@@ -587,33 +587,10 @@
 
           <!-- Chat content -->
             <div class="wc-widget__messages">
-              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__feedback-entry">
-                <div v-if="!feedbackPreviewOpen" class="wc-widget__feedback-capsule" @click="feedbackPreviewOpen = true">
-                  <svg class="wc-widget__feedback-capsule-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                  <span class="wc-widget__feedback-capsule-text">服务评价</span>
-                  <svg class="wc-widget__feedback-capsule-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </div>
-                <div v-else class="wc-widget__feedback-card-inline" @click="feedbackPreviewOpen = false">
-                  <p class="wc-widget__feedback-card-inline-title">{{ feedbackTitles[globalLang] || feedbackTitles.en }}</p>
-                  <div class="wc-widget__feedback-card-inline-options">
-                    <div class="wc-widget__feedback-card-inline-option">
-                      <span class="wc-widget__feedback-card-inline-emoji">😊</span>
-                      <span class="wc-widget__feedback-card-inline-label">满意</span>
-                    </div>
-                    <div class="wc-widget__feedback-card-inline-option">
-                      <span class="wc-widget__feedback-card-inline-emoji">😐</span>
-                      <span class="wc-widget__feedback-card-inline-label">一般</span>
-                    </div>
-                    <div class="wc-widget__feedback-card-inline-option">
-                      <span class="wc-widget__feedback-card-inline-emoji">😞</span>
-                      <span class="wc-widget__feedback-card-inline-label">不满意</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__msg wc-widget__msg--visitor">
+
+              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__msg wc-widget__msg--agent">
                 <span class="wc-widget__msg-time">10:32</span>
-                <div class="wc-widget__msg-bubble">Hi, I'd like to check my order status.</div>
+                <div class="wc-widget__msg-bubble">{{ autoReplyTexts.welcome[globalLang] }}</div>
               </div>
               <div v-if="settings.showQueuePosition" class="wc-widget__queue-pill">
                 <span>{{ queueTexts[globalLang].prefix }}<strong class="wc-widget__queue-pill-num">3</strong>{{ queueTexts[globalLang].suffix }}</span>
@@ -645,6 +622,12 @@
             </div>
             <div v-if="showQuickAccessPreview && settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
               <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-widget__qa-tag">{{ item.label }}</span>
+            </div>
+            <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__feedback-quick-access">
+              <div class="wc-widget__feedback-qa-btn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span>会话评价</span>
+              </div>
             </div>
             <div class="wc-widget__input-area">
               <div class="wc-widget__input-box" />
@@ -3427,51 +3410,24 @@ watch(previewMode, (mode) => {
 }
 
 /* Feedback preview */
-.wc-widget__feedback-entry {
-  display: flex;
-  justify-content: center;
-  padding: 6px 0 2px;
+.wc-widget__feedback-quick-access {
+  padding: 4px 8px;
 }
 
-.wc-widget__feedback-capsule {
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 999px;
-  cursor: pointer;
+.wc-widget__feedback-qa-btn {
   display: inline-flex;
+  align-items: center;
   gap: 4px;
-  padding: 5px 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--agent-color-text-secondary);
+  cursor: default;
 }
 
-.wc-widget__feedback-capsule-icon {
+.wc-widget__feedback-qa-btn svg {
   color: var(--agent-color-brand-primary);
   flex-shrink: 0;
-}
-
-.wc-widget__feedback-capsule-text {
-  color: var(--agent-color-text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.wc-widget__feedback-capsule-chevron {
-  color: var(--agent-color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.wc-widget__feedback-card-inline {
-  align-items: center;
-  background: #fff;
-  border-radius: 16px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin: 0 10px;
-  padding: 18px 20px;
-  width: calc(100% - 20px);
 }
 
 .wc-widget__feedback-card-inline-title {

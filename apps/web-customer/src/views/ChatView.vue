@@ -108,9 +108,8 @@
         </div>
       </div>
 
-      <div class="cw-input-area">
-        <div class="cw-quick-access">
-          <div class="cw-quick-access__btn-group">
+      <div class="cw-quick-access">
+        <div class="cw-quick-access__btn-group">
             <div
               class="cw-quick-access__btn"
               @mouseenter="showFeedbackCard = true"
@@ -138,8 +137,10 @@
               </div>
             </div>
           </div>
-        </div>
+      </div>
 
+      <div class="cw-input-area">
+        <div class="cw-input-card">
         <div class="cw-input-box" contenteditable="true" @input="onInput" @keydown.enter.prevent="sendMessage" />
         <div class="cw-input-toolbar">
           <div class="cw-toolbar-icons">
@@ -156,6 +157,7 @@
           <button type="button" class="cw-send-btn" :class="{ 'cw-send-btn--active': inputText.trim().length > 0 }" @click="sendMessage">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </button>
+        </div>
         </div>
       </div>
     </template>
@@ -641,7 +643,8 @@ resetConversation();
 }
 
 .cw-quick-access {
-  margin-bottom: 8px;
+  margin: 0 8px 4px;
+  padding: 0 0 0 12px;
 }
 
 .cw-quick-access__btn-group {
@@ -656,7 +659,7 @@ resetConversation();
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  background: #f5f7fa;
+  background: transparent;
   border-radius: 16px;
   font-size: 13px;
   color: #4a5568;
@@ -881,8 +884,17 @@ resetConversation();
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  gap: 12px;
+  gap: 8px;
   margin: 0 8px 8px;
+  padding: 0;
+}
+
+.cw-input-card {
+  background: #fff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 12px 0 8px;
 }
 
