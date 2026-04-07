@@ -18,27 +18,6 @@
       @settings="$emit('quick-reply-settings')"
       @select="handleQuickReplySelect"
     />
-    <!-- 模式切换行 -->
-    <div class="email-composer__mode-bar">
-      <div class="email-composer__mode-wrap" ref="modeWrapRef">
-        <button class="email-composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
-          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          <span>{{ noteMode ? '备注' : '回复' }}</span>
-        </button>
-        <div v-if="modeMenuOpen" class="email-composer__mode-menu">
-          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            回复
-          </button>
-          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            备注
-          </button>
-        </div>
-      </div>
-    </div>
     <div v-if="!noteMode" class="email-composer__header">
       <div class="email-composer__field">
         <label class="email-composer__label">To:</label>
@@ -156,7 +135,25 @@
     </div>
 
     <div class="email-composer__footer">
-      <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">发送</button>
+      <div class="email-composer__mode-wrap" ref="modeWrapRef">
+        <button class="email-composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
+          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span>{{ noteMode ? '备注' : '回复' }}</span>
+        </button>
+        <div v-if="modeMenuOpen" class="email-composer__mode-menu email-composer__mode-menu--up">
+          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            回复
+          </button>
+          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            备注
+          </button>
+        </div>
+      </div>
+      <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">{{ noteMode ? '添加备注' : '发送' }}</button>
     </div>
     </template>
   </section>
@@ -629,10 +626,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 24px rgba(211, 163, 61, 0.08);
 }
 
-.email-composer__mode-bar {
-  padding: 0 0 10px;
-}
-
 .email-composer__mode-wrap {
   display: inline-block;
   position: relative;
@@ -672,6 +665,11 @@ onBeforeUnmount(() => {
   position: absolute;
   top: calc(100% + 4px);
   z-index: var(--agent-z-dropdown);
+}
+
+.email-composer__mode-menu--up {
+  bottom: calc(100% + 4px);
+  top: auto;
 }
 
 .email-composer__mode-item {
@@ -990,6 +988,7 @@ onBeforeUnmount(() => {
 .email-composer__footer {
   align-items: center;
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: auto;
   padding: 8px 0 0;

@@ -27,28 +27,6 @@
         <button v-if="liveTranslatedText.trim()" class="composer__live-send" type="button" @click="sendLiveTranslation">发送</button>
       </div>
     </Teleport>
-    <!-- 顶部模式选择行 -->
-    <div class="composer__mode-bar">
-      <div class="composer__mode-wrap" ref="modeWrapRef">
-        <button class="composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
-          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          <span>{{ noteMode ? '备注' : '回复' }}</span>
-        </button>
-        <div v-if="modeMenuOpen" class="composer__mode-menu">
-          <button class="composer__mode-item" :class="{ 'composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            回复
-          </button>
-          <button class="composer__mode-item" :class="{ 'composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            备注
-          </button>
-        </div>
-      </div>
-    </div>
-
     <QuickReplyPanel
       v-if="showQuickReply && quickReplyCategories && quickReplyCategories.length > 0"
       :categories="quickReplyCategories"
@@ -121,6 +99,24 @@
     </div>
 
     <div class="composer__footer">
+      <div class="composer__mode-wrap" ref="modeWrapRef">
+        <button class="composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
+          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <span>{{ noteMode ? '备注' : '回复' }}</span>
+        </button>
+        <div v-if="modeMenuOpen" class="composer__mode-menu composer__mode-menu--up">
+          <button class="composer__mode-item" :class="{ 'composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            回复
+          </button>
+          <button class="composer__mode-item" :class="{ 'composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            备注
+          </button>
+        </div>
+      </div>
       <button class="composer__send-btn" type="button" :disabled="!modelValue.trim() && attachments.length === 0" @click="$emit('send', noteMode, attachments)">{{ noteMode ? '添加备注' : '发送' }}</button>
     </div>
     <input ref="fileInputRef" type="file" multiple style="display:none" @change="handleFileSelect" />
@@ -381,10 +377,6 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   box-shadow: 0 10px 24px rgba(211, 163, 61, 0.08);
 }
 
-.composer__mode-bar {
-  padding: 0 0 10px;
-}
-
 .composer__mode-wrap {
   display: inline-block;
   position: relative;
@@ -424,6 +416,11 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   position: absolute;
   top: calc(100% + 4px);
   z-index: var(--agent-z-dropdown);
+}
+
+.composer__mode-menu--up {
+  bottom: calc(100% + 4px);
+  top: auto;
 }
 
 .composer__mode-item {
@@ -515,7 +512,7 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 .composer__footer {
   align-items: center;
   display: flex;
-  gap: var(--agent-space-8);
+  gap: 8px;
   justify-content: flex-end;
   margin-top: auto;
   padding: 8px 0 0;
