@@ -30,20 +30,18 @@
     <section class="files-page__filters archive-filters">
       <div class="archive-filters__row archive-filters__row--primary">
 
-        <label class="archive-field archive-field--compact">
-          <select v-model="draftFilters.searchField" class="archive-field__control archive-field__control--select">
+        <label class="archive-field archive-field--search-combo">
+          <select v-model="draftFilters.searchField" class="archive-field__combo-select">
             <option value="visitorName">访客姓名</option>
             <option value="visitorAlias">访客备注名</option>
             <option value="title">会话标题</option>
             <option value="conversationRecord">沟通记录</option>
             <option value="customerIdentifier">客户标识</option>
           </select>
-          <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
-        </label>
-
-        <label class="archive-field archive-field--search">
-          <AgentIcon class="archive-field__prefix" name="search" :size="16" />
-          <input v-model.trim="draftFilters.keyword" class="archive-field__control" placeholder="请输入" />
+          <AgentIcon class="archive-field__combo-arrow" name="chevron-down" :size="12" />
+          <span class="archive-field__combo-divider"></span>
+          <AgentIcon class="archive-field__combo-search-icon" name="search" :size="15" />
+          <input v-model.trim="draftFilters.keyword" class="archive-field__combo-input" placeholder="请输入" />
         </label>
 
         <label class="archive-field">
@@ -1968,7 +1966,7 @@ onMounted(() => {
 }
 
 .archive-filters__row--primary {
-  grid-template-columns: 140px minmax(220px, 1fr) repeat(3, minmax(180px, 1fr));
+  grid-template-columns: minmax(320px, 1.5fr) repeat(3, minmax(180px, 1fr));
 }
 
 .archive-filters__row--secondary {
@@ -2005,6 +2003,72 @@ onMounted(() => {
 
 .archive-field--search .archive-field__control {
   padding-left: 42px;
+}
+
+.archive-field--search-combo {
+  align-items: center;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  display: flex;
+  height: 44px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color var(--agent-motion-fast) ease, box-shadow var(--agent-motion-fast) ease;
+}
+
+.archive-field--search-combo:focus-within {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.08);
+}
+
+.archive-field__combo-select {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+  height: 100%;
+  outline: none;
+  padding: 0 28px 0 14px;
+}
+
+.archive-field__combo-arrow {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+  margin-left: -22px;
+  pointer-events: none;
+}
+
+.archive-field__combo-divider {
+  background: var(--agent-color-border-default);
+  flex-shrink: 0;
+  height: 18px;
+  margin: 0 4px;
+  width: 1px;
+}
+
+.archive-field__combo-search-icon {
+  color: var(--agent-color-text-tertiary);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.archive-field__combo-input {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  flex: 1;
+  font-size: 14px;
+  min-width: 0;
+  outline: none;
+  padding: 0 14px 0 8px;
+}
+
+.archive-field__combo-input::placeholder {
+  color: var(--agent-color-text-tertiary);
 }
 
 .archive-field__prefix,
