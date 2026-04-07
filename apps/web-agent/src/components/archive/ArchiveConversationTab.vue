@@ -63,15 +63,24 @@
         </label>
 
         <label class="archive-field">
-          <select v-model="draftFilters.status" class="archive-field__control archive-field__control--select">
-            <option value="all">状态</option>
-            <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          <select v-model="draftFilters.autopilot" class="archive-field__control archive-field__control--select">
+            <option value="all">Autopilot 参与</option>
+            <option value="yes">是</option>
+            <option value="no">否</option>
           </select>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
       </div>
 
       <div class="archive-filters__row archive-filters__row--secondary">
+        <label class="archive-field">
+          <select v-model="draftFilters.status" class="archive-field__control archive-field__control--select">
+            <option value="all">状态</option>
+            <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+          <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
+        </label>
+
         <label class="archive-field">
           <select v-model="draftFilters.rating" class="archive-field__control archive-field__control--select">
             <option value="all">访客评价</option>
@@ -435,6 +444,7 @@ interface FilterState {
   keyword: string;
   tag: string;
   owner: string;
+  autopilot: "all" | "yes" | "no";
   status: "all" | ConversationStatus;
   rating: "all" | ConversationRating;
   channelType: "all" | "web" | "widget" | "email";
@@ -538,6 +548,7 @@ const createDefaultFilters = (): FilterState => ({
   keyword: "",
   tag: "all",
   owner: "all",
+  autopilot: "all",
   status: "all",
   rating: "all",
   channelType: "all",
@@ -1087,6 +1098,12 @@ const visibleRows = computed(() => {
       return false;
     }
     if (filters.owner !== "all" && row.owner !== filters.owner) {
+      return false;
+    }
+    if (filters.autopilot === "yes" && !row.aiAgentHandled) {
+      return false;
+    }
+    if (filters.autopilot === "no" && row.aiAgentHandled) {
       return false;
     }
     if (filters.status !== "all" && row.status !== filters.status) {
@@ -1956,7 +1973,7 @@ onMounted(() => {
 
 .archive-filters__row--secondary {
   align-items: center;
-  grid-template-columns: minmax(160px, 200px) minmax(160px, 200px) minmax(200px, 260px) 92px 92px;
+  grid-template-columns: minmax(160px, 200px) minmax(160px, 200px) minmax(160px, 200px) minmax(200px, 260px) 92px 92px;
 }
 
 .archive-field {
