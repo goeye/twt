@@ -114,7 +114,7 @@
       </div>
       <textarea
         class="composer__textarea"
-        :placeholder="noteMode ? '添加内部备注，仅客服可见…' : placeholder"
+        :placeholder="noteMode ? '添加内部备注，仅客服可见' : placeholder"
         :value="modelValue"
         @input="handleTextareaInput"
       />
@@ -362,22 +362,27 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 
 <style scoped>
 .composer {
-  background: transparent;
+  background: #ffffff;
+  border: 1px solid #d9e1ec;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
-  gap: var(--agent-space-8);
-  padding: 0;
+  gap: 0;
+  min-height: 214px;
+  padding: 12px 16px;
   position: relative;
-  transition: background var(--agent-motion-fast);
+  transition: background var(--agent-motion-fast), border-color var(--agent-motion-fast), box-shadow var(--agent-motion-fast);
 }
 
 .composer--note {
-  background: var(--agent-color-status-warning-bg);
+  background: linear-gradient(180deg, #fffaf1 0%, #fffef9 100%);
+  border-color: #f0d7aa;
+  box-shadow: 0 10px 24px rgba(211, 163, 61, 0.08);
 }
 
 .composer__mode-bar {
-  border-bottom: 1px solid var(--agent-color-border-default);
-  padding: 10px 16px 6px;
+  padding: 0 0 10px;
 }
 
 .composer__mode-wrap {
@@ -387,20 +392,22 @@ function handleQuickReplySelect(item: QuickReplyItem) {
 
 .composer__mode-btn {
   align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--agent-radius-sm);
+  background: #f5f7fb;
+  border: 1px solid #e3e9f3;
+  border-radius: 999px;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   font-size: var(--agent-font-size-sm);
-  gap: 4px;
-  height: 28px;
+  gap: 6px;
+  height: 32px;
   outline: none;
-  padding: 0 4px;
+  padding: 0 10px;
 }
 
 .composer__mode-btn:hover {
+  background: #eef3ff;
+  border-color: #cfd9eb;
   color: var(--agent-color-text-primary);
 }
 
@@ -445,39 +452,44 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   align-items: center;
   display: flex;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 0 8px;
   position: relative;
 }
 
 .composer__tools {
   display: flex;
-  gap: 2px;
+  gap: 4px;
 }
 
 .tool-icon {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--agent-radius-sm);
+  border-radius: 999px;
   color: var(--agent-color-text-secondary, #75869c);
   cursor: pointer;
   display: inline-flex;
-  height: 28px;
+  height: 30px;
   justify-content: center;
-  width: 28px;
+  width: 30px;
 }
 
 .tool-icon:hover {
-  background: var(--agent-color-bg-muted);
+  background: #f3f6fb;
   color: var(--agent-color-text-primary);
 }
 
 .composer--note .tool-icon:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(214, 167, 73, 0.12);
 }
 
 .composer__textarea-wrap {
-  padding: 0 16px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
   position: relative;
 }
 
@@ -485,12 +497,13 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   background: transparent;
   border: 0;
   color: var(--agent-color-text-primary);
+  flex: 1;
   font-family: inherit;
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
-  min-height: 122px;
+  min-height: 118px;
   outline: none;
-  padding: 2px 0;
+  padding: 6px 0 0;
   resize: none;
   width: 100%;
 }
@@ -504,7 +517,8 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   display: flex;
   gap: var(--agent-space-8);
   justify-content: flex-end;
-  padding: 0 16px;
+  margin-top: auto;
+  padding: 8px 0 0;
 }
 
 .composer__send-btn {
@@ -532,7 +546,6 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-bottom: var(--agent-space-8);
 }
 
 .composer__att-card {

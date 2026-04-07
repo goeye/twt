@@ -36,7 +36,7 @@ function handleSend() {
   background: #fff;
   border-radius: var(--agent-radius-lg);
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  margin: 0 12px 8px;
+  margin: 0 0 8px;
 }
 
 .copilot-panel__header {

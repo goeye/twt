@@ -611,19 +611,26 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .email-composer {
-  background: transparent;
+  background: #ffffff;
+  border: 1px solid #d9e1ec;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
+  gap: 0;
+  min-height: 214px;
+  padding: 12px 16px;
   position: relative;
 }
 
 .email-composer--note {
-  background: var(--agent-color-status-warning-bg);
+  background: linear-gradient(180deg, #fffaf1 0%, #fffef9 100%);
+  border-color: #f0d7aa;
+  box-shadow: 0 10px 24px rgba(211, 163, 61, 0.08);
 }
 
 .email-composer__mode-bar {
-  border-bottom: 1px solid var(--agent-color-border-default);
-  padding: 6px 12px;
+  padding: 0 0 10px;
 }
 
 .email-composer__mode-wrap {
@@ -633,19 +640,22 @@ onBeforeUnmount(() => {
 
 .email-composer__mode-btn {
   align-items: center;
-  background: transparent;
-  border: 0;
+  background: #f5f7fb;
+  border: 1px solid #e3e9f3;
+  border-radius: 999px;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   font-size: var(--agent-font-size-sm);
-  gap: 4px;
-  height: 28px;
+  gap: 6px;
+  height: 32px;
   outline: none;
-  padding: 0 4px;
+  padding: 0 10px;
 }
 
 .email-composer__mode-btn:hover {
+  background: #eef3ff;
+  border-color: #cfd9eb;
   color: var(--agent-color-text-primary);
 }
 
@@ -688,11 +698,12 @@ onBeforeUnmount(() => {
 .email-composer__disabled-overlay {
   align-items: center;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
   justify-content: center;
-  min-height: 160px;
-  padding: 24px;
+  min-height: 176px;
+  padding: 24px 8px 12px;
 }
 
 .email-composer__disabled-icon {
@@ -714,11 +725,14 @@ onBeforeUnmount(() => {
 }
 
 .email-composer__header {
-  border-bottom: 1px solid var(--agent-color-border-default);
+  background: #f8fafc;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 8px 12px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
 }
 
 .email-composer__field {
@@ -729,7 +743,8 @@ onBeforeUnmount(() => {
 }
 
 .email-composer__field + .email-composer__field {
-  border-top: 1px solid var(--agent-color-border-light, #f0f2f5);
+  border-top: 1px solid #e5eaf2;
+  padding-top: 6px;
 }
 
 .email-composer__label {
@@ -775,32 +790,31 @@ onBeforeUnmount(() => {
 }
 
 .email-composer__toolbar {
-  border-bottom: 1px solid var(--agent-color-border-default);
   display: flex;
-  padding: 4px 12px;
+  padding: 0 0 8px;
 }
 
 .email-composer__tools {
   align-items: center;
   display: flex;
-  gap: 2px;
+  gap: 4px;
 }
 
 .email-composer__tool-btn {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--agent-radius-sm);
+  border-radius: 999px;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
-  height: 28px;
+  height: 30px;
   justify-content: center;
-  width: 28px;
+  width: 30px;
 }
 
 .email-composer__tool-btn:hover {
-  background: var(--agent-color-bg-muted);
+  background: #f3f6fb;
   color: var(--agent-color-text-primary);
 }
 
@@ -808,17 +822,17 @@ onBeforeUnmount(() => {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--agent-radius-sm);
+  border-radius: 999px;
   color: var(--agent-color-text-secondary, #75869c);
   cursor: pointer;
   display: inline-flex;
-  height: 28px;
+  height: 30px;
   justify-content: center;
-  width: 28px;
+  width: 30px;
 }
 
 .tool-icon:hover {
-  background: var(--agent-color-bg-muted);
+  background: #f3f6fb;
   color: var(--agent-color-text-primary);
 }
 
@@ -898,18 +912,22 @@ onBeforeUnmount(() => {
 }
 
 .email-composer__editor-wrap {
+  display: flex;
+  flex: 1;
+  min-height: 0;
   position: relative;
 }
 
 .email-composer__editor {
   color: var(--agent-color-text-primary);
+  flex: 1;
   font-family: inherit;
   font-size: var(--agent-font-size-sm);
   line-height: 1.6;
-  min-height: 120px;
+  min-height: 118px;
   outline: none;
   overflow-y: auto;
-  padding: 10px 12px;
+  padding: 6px 0 0;
 }
 
 .email-composer__editor:empty::before {
@@ -922,7 +940,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 0 12px 8px;
+  padding: 8px 0 0;
 }
 
 .email-composer__att-card {
@@ -973,7 +991,8 @@ onBeforeUnmount(() => {
   align-items: center;
   display: flex;
   justify-content: flex-end;
-  padding: 8px 12px;
+  margin-top: auto;
+  padding: 8px 0 0;
   position: relative;
 }
 

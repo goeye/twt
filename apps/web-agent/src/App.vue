@@ -481,46 +481,49 @@
           <button type="button" class="agent-btn agent-btn--primary chat-pane__reopen-btn" @click="handleReopenTelegramSession">重新开启</button>
         </div>
 
-        <EmailComposer
-          v-else-if="activeSession?.channelType === 'email'"
-          ref="emailComposerRef"
-          v-model="emailComposerBody"
-          class="chat-pane__composer"
-          :to="activeSession?.email ?? ''"
-          :from-options="activeSessionFromOptions"
-          :selected-from="selectedFromEmail"
-          :show-translate="false"
-          :quick-reply-categories="quickReplyCategories"
-          :session-id="activeSessionId"
-          @update:selected-from="selectedFromEmail = $event"
-          @attachment="track(TrackEvent.ATTACHMENT)"
-          @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
-          @toast="showTopToast"
-          @send="handleSendEmail"
-          @send-and-pending="handleSendEmailAndPending"
-          @send-and-resolve="handleSendEmailAndClose"
-          @quick-reply-settings="showTopToast('快捷回复设置开发中')"
-          @copilot="showTopToast('Copilot推荐开发中')"
-        />
+        <div v-else-if="activeSession?.channelType === 'email'" class="chat-pane__composer-wrap">
+          <EmailComposer
+            ref="emailComposerRef"
+            v-model="emailComposerBody"
+            class="chat-pane__composer"
+            :to="activeSession?.email ?? ''"
+            :from-options="activeSessionFromOptions"
+            :selected-from="selectedFromEmail"
+            :show-translate="false"
+            :quick-reply-categories="quickReplyCategories"
+            :session-id="activeSessionId"
+            @update:selected-from="selectedFromEmail = $event"
+            @attachment="track(TrackEvent.ATTACHMENT)"
+            @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+            @toast="showTopToast"
+            @send="handleSendEmail"
+            @send-and-pending="handleSendEmailAndPending"
+            @send-and-resolve="handleSendEmailAndClose"
+            @quick-reply-settings="showTopToast('快捷回复设置开发中')"
+            @copilot="showTopToast('Copilot推荐开发中')"
+          />
+        </div>
 
         <template v-else>
           <div id="chat-above-composer" class="chat-pane__above-composer"></div>
 
-          <MessageComposer
-            v-model="composerText"
-            class="chat-pane__composer"
-            :show-polish="canUse(FEATURES.TEXT_POLISH)"
-            :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
-            :quick-reply-categories="quickReplyCategories"
-            :session-id="activeSessionId"
-            placeholder="发消息或输入 / 选择快捷回复"
-            @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
-            @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
-            @quick-reply-settings="showTopToast('快捷回复设置开发中')"
-            @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
-            @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
-            @send="handleSend"
-          />
+          <div class="chat-pane__composer-wrap">
+            <MessageComposer
+              v-model="composerText"
+              class="chat-pane__composer"
+              :show-polish="canUse(FEATURES.TEXT_POLISH)"
+              :show-translate="canUse(FEATURES.WRITE_TRANSLATE) || canUse(FEATURES.CHAT_TRANSLATE)"
+              :quick-reply-categories="quickReplyCategories"
+              :session-id="activeSessionId"
+              placeholder="发消息或输入 / 选择快捷回复"
+              @attachment="track(TrackEvent.ATTACHMENT); showTopToast('附件功能开发中')"
+              @emoji="track(TrackEvent.EMOJI); showTopToast('表情面板开发中')"
+              @quick-reply-settings="showTopToast('快捷回复设置开发中')"
+              @polish="track(TrackEvent.POLISH); showTopToast('润色功能开发中')"
+              @translate="track(TrackEvent.TRANSLATE); showTopToast('翻译功能开发中')"
+              @send="handleSend"
+            />
+          </div>
         </template>
       </section>
 
@@ -5440,7 +5443,9 @@ onBeforeUnmount(() => {
 }
 
 .chat-pane__above-composer {
+  background: var(--agent-color-bg-page);
   flex-shrink: 0;
+  padding: 0 var(--agent-space-16);
 }
 
 .chat-pane__start-time {
@@ -5450,9 +5455,14 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
+.chat-pane__composer-wrap {
+  background: var(--agent-color-bg-page);
+  flex-shrink: 0;
+  padding: 12px var(--agent-space-16) var(--agent-space-16);
+}
+
 .chat-pane__composer {
-  min-height: 196px;
-  padding: 0 0 var(--agent-space-16);
+  flex-shrink: 0;
 }
 
 .ai-takeover-bar {
@@ -6039,6 +6049,12 @@ onBeforeUnmount(() => {
 
   .inbox-pane__header,
   .chat-pane__stream {
+    padding-left: var(--agent-space-12);
+    padding-right: var(--agent-space-12);
+  }
+
+  .chat-pane__above-composer,
+  .chat-pane__composer-wrap {
     padding-left: var(--agent-space-12);
     padding-right: var(--agent-space-12);
   }
