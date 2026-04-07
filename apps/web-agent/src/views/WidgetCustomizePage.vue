@@ -200,7 +200,7 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorFeedback')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">会话评价</h3>
-              <p class="wc-card__desc">访客端始终显示会话评价入口，评价需会话创建且非排队中</p>
+              <p class="wc-card__desc">会话评价作为快捷入口始终可见，评价需会话已创建且非排队中</p>
             </div>
             <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
@@ -567,7 +567,7 @@
         </div>
 
         <!-- Chat Preview Widget -->
-        <div v-else-if="previewMode === 'chat'" class="wc-widget wc-widget--tall" :style="widgetPositionStyle">
+        <div v-else-if="previewMode === 'chat'" class="wc-widget wc-widget--tall wc-widget--chat-preview" :style="widgetPositionStyle">
           <div class="wc-widget__header wc-widget__header--chat">
             <div class="wc-widget__header-left">
               <span class="wc-widget__back-btn">
@@ -587,11 +587,6 @@
 
           <!-- Chat content -->
             <div class="wc-widget__messages">
-
-              <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__msg wc-widget__msg--agent">
-                <span class="wc-widget__msg-time">10:32</span>
-                <div class="wc-widget__msg-bubble">{{ autoReplyTexts.welcome[globalLang] }}</div>
-              </div>
               <div v-if="settings.showQueuePosition" class="wc-widget__queue-pill">
                 <span>{{ queueTexts[globalLang].prefix }}<strong class="wc-widget__queue-pill-num">3</strong>{{ queueTexts[globalLang].suffix }}</span>
               </div>
@@ -620,13 +615,26 @@
                 </div>
               </template>
             </div>
-            <div v-if="showQuickAccessPreview && settings.quickAccessItems.length > 0" class="wc-widget__quick-access">
-              <span v-for="item in settings.quickAccessItems" :key="item.id" class="wc-widget__qa-tag">{{ item.label }}</span>
-            </div>
-            <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-widget__feedback-quick-access">
-              <div class="wc-widget__feedback-qa-btn">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                <span>会话评价</span>
+            <div v-if="showPreviewActionStrip" class="wc-widget__action-strip">
+              <div v-if="feedbackEnabled" class="wc-widget__action-pill wc-widget__action-pill--feedback">
+                <span class="wc-widget__action-pill-icon wc-widget__action-pill-icon--image" aria-hidden="true">
+                  <img :src="feedbackQuickAccessIcon" alt="" />
+                </span>
+                <span class="wc-widget__action-pill-label">会话评价</span>
+              </div>
+              <div v-for="item in previewQuickAccessItems" :key="item.id" class="wc-widget__action-pill">
+                <span
+                  class="wc-widget__action-pill-icon"
+                  :class="{
+                    'wc-widget__action-pill-icon--image': isImageIcon(item.icon),
+                    'wc-widget__action-pill-icon--emoji': item.icon && !isImageIcon(item.icon)
+                  }"
+                  aria-hidden="true"
+                >
+                  <img v-if="item.icon && isImageIcon(item.icon)" :src="item.icon" alt="" />
+                  <span v-else>{{ item.icon || item.label.slice(0, 1) }}</span>
+                </span>
+                <span v-if="item.label" class="wc-widget__action-pill-label">{{ item.label }}</span>
               </div>
             </div>
             <div class="wc-widget__input-area">
@@ -917,19 +925,15 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from "vue";
 import { AgentSwitch, TimeDurationInput } from "@twt/ui-agent";
-import { useTenant } from "@twt/branding";
+import {
+  FEEDBACK_QUICK_ACCESS_ICON,
+  getWidgetQuickAccessItems,
+  type QuickAccessItem,
+  useTenant
+} from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 import { getFaqOptions, isFaqExists } from "../lib/faqData";
-
-interface QuickAccessItem {
-  id: string;
-  label: string;
-  url: string;
-  icon?: string;
-  actionType?: "link" | "copy" | "message";
-  faqId?: string;
-}
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
 
@@ -1252,6 +1256,21 @@ const activeAutoReplyKey = computed<AutoReplyKey>(() => {
 const showQuickAccessPreview = computed(() => openSection.value === "quickAccess");
 const isMsgStatusPreview = computed(() => openSection.value === "msgStatus");
 const showChatPreviewMessage = computed(() => !showQuickAccessPreview.value && openSection.value !== "visitorFeedback");
+const feedbackQuickAccessIcon = FEEDBACK_QUICK_ACCESS_ICON;
+const previewQuickAccessItems = computed(() => settings.quickAccessItems);
+const showPreviewActionStrip = computed(() => {
+  if (openSection.value === "visitorFeedback") {
+    return feedbackEnabled.value;
+  }
+
+  if (showQuickAccessPreview.value) {
+    return feedbackEnabled.value || previewQuickAccessItems.value.length > 0;
+  }
+
+  return false;
+});
+
+const isImageIcon = (icon?: string) => Boolean(icon && /^(data:image|https?:\/\/|\/)/.test(icon));
 
 const chatPreviewAgentMsg = computed(() => {
   const key = activeAutoReplyKey.value;
@@ -1291,10 +1310,7 @@ const settings = reactive({
   positionOffsetX: 20,
   positionOffsetY: 20,
   hideBrandLogo: false,
-  quickAccessItems: [
-    { id: "qa-1", label: "帮助中心", url: "#" },
-    { id: "qa-2", label: "常见问题", url: "#" }
-  ] as QuickAccessItem[],
+  quickAccessItems: getWidgetQuickAccessItems(tenant) as QuickAccessItem[],
   enableSessionForm: true,
   formTitle: {
     en: "Welcome! Please fill in the information.",
@@ -1570,23 +1586,29 @@ const confirmQuickAccess = () => {
   }
 
   if (quickAccessEditId.value) {
+    const messageContent = quickAccessForm.actionType === "message"
+      ? faqOptions.value.find(faq => faq.id === quickAccessForm.faqId)?.title || quickAccessForm.title
+      : quickAccessForm.content;
     const idx = settings.quickAccessItems.findIndex(i => i.id === quickAccessEditId.value);
     if (idx !== -1) {
       settings.quickAccessItems[idx] = {
         id: quickAccessEditId.value,
         label: quickAccessForm.title,
-        url: quickAccessForm.content,
+        url: messageContent,
         icon: quickAccessForm.icon,
         actionType: quickAccessForm.actionType,
         faqId: quickAccessForm.faqId
       };
     }
   } else {
+    const messageContent = quickAccessForm.actionType === "message"
+      ? faqOptions.value.find(faq => faq.id === quickAccessForm.faqId)?.title || quickAccessForm.title
+      : quickAccessForm.content;
     const id = `qa-${qaCounter++}`;
     settings.quickAccessItems.push({
       id,
       label: quickAccessForm.title,
-      url: quickAccessForm.content,
+      url: messageContent,
       icon: quickAccessForm.icon,
       actionType: quickAccessForm.actionType,
       faqId: quickAccessForm.faqId
@@ -2733,6 +2755,10 @@ watch(previewMode, (mode) => {
   min-height: 600px;
 }
 
+.wc-widget--chat-preview {
+  background: #f4f7fb;
+}
+
 .wc-widget__header {
   align-items: center;
   background: var(--agent-color-bg-panel);
@@ -3129,13 +3155,17 @@ watch(previewMode, (mode) => {
 }
 
 .wc-widget__messages {
-  background: var(--agent-color-bg-muted);
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 10px;
   min-height: 160px;
   padding: 14px;
+}
+
+.wc-widget--chat-preview .wc-widget__messages {
+  background: transparent;
+  padding: 14px 14px 12px;
 }
 
 .wc-widget__msg {
@@ -3204,22 +3234,68 @@ watch(previewMode, (mode) => {
   display: block;
 }
 
-/* Quick access in widget */
-.wc-widget__quick-access {
-  background: var(--agent-color-bg-panel);
-  border-top: 1px solid var(--agent-color-border-default);
+/* Action strip */
+.wc-widget__action-strip {
+  background: transparent;
+  box-sizing: border-box;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0 14px 8px;
+  scrollbar-width: none;
+  width: max-content;
 }
 
-.wc-widget__qa-tag {
-  background: var(--agent-color-bg-muted);
+.wc-widget__action-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.wc-widget__action-pill {
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(217, 226, 239, 0.92);
   border-radius: 999px;
-  color: var(--agent-color-text-secondary);
-  font-size: 10px;
-  padding: 3px 10px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+  color: #1f2937;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+}
+
+.wc-widget__action-pill-icon {
+  align-items: center;
+  background: #eef3ff;
+  border-radius: 50%;
+  color: #41516d;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 14px;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+}
+
+.wc-widget__action-pill-icon--image {
+  background: transparent;
+}
+
+.wc-widget__action-pill-icon img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.wc-widget__action-pill-label {
+  color: #1f2937;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 /* Welcome Buttons - Preview */
@@ -3246,71 +3322,78 @@ watch(previewMode, (mode) => {
 
 /* Input area */
 .wc-widget__input-area {
-  background: transparent;
-  border: 0;
-  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #d9e2ef;
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  gap: 12px;
-  margin: 0 8px 8px;
-  padding: 12px 0 8px;
+  gap: 24px;
+  margin: 0 14px 14px;
+  min-height: 132px;
+  padding: 16px 0 12px;
+  width: auto;
 }
 
 .wc-widget__input-box {
   color: rgba(100, 116, 145, 0.5);
-  font-size: 12px;
-  line-height: 1.4;
-  min-height: 1px;
-  padding: 0 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.wc-widget__input-box::before {
+  content: "输入信息...";
 }
 
 .wc-widget__input-toolbar {
   align-items: center;
   display: flex;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 0 14px;
 }
 
 .wc-widget__toolbar-icons {
   align-items: center;
   display: flex;
+  gap: 8px;
 }
 
 .wc-widget__toolbar-icon {
   align-items: center;
   border-radius: 10px;
-  color: var(--agent-color-text-secondary);
+  color: #20283a;
   display: inline-flex;
-  height: 34px;
+  height: 38px;
   justify-content: center;
-  width: 34px;
+  width: 38px;
 }
 
 .wc-widget__toolbar-icon--bg {
-  background: var(--agent-color-bg-muted);
-  border-radius: 9px;
+  background: #f5f8fd;
 }
 
 .wc-widget__send-btn {
   align-items: center;
-  background: var(--agent-color-bg-muted);
+  background: #edf1f7;
   border-radius: 50%;
-  color: var(--agent-color-text-tertiary);
+  color: #9aa7bc;
   display: inline-flex;
   flex-shrink: 0;
-  height: 32px;
+  height: 48px;
   justify-content: center;
-  width: 32px;
+  width: 48px;
 }
 
 /* Footer */
 .wc-widget__footer {
-  background: var(--agent-color-bg-panel);
-  color: var(--agent-color-text-tertiary);
+  background: transparent;
+  color: #8796b3;
   flex-shrink: 0;
-  font-size: 10px;
-  padding: 6px;
+  font-size: 12px;
+  padding: 2px 6px 18px;
   text-align: center;
 }
 
@@ -3407,27 +3490,6 @@ watch(previewMode, (mode) => {
 .wc-widget__dialog-btn--primary {
   background: var(--agent-color-status-error);
   color: #fff;
-}
-
-/* Feedback preview */
-.wc-widget__feedback-quick-access {
-  padding: 4px 8px;
-}
-
-.wc-widget__feedback-qa-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  color: var(--agent-color-text-secondary);
-  cursor: default;
-}
-
-.wc-widget__feedback-qa-btn svg {
-  color: var(--agent-color-brand-primary);
-  flex-shrink: 0;
 }
 
 .wc-widget__feedback-card-inline-title {

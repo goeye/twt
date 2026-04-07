@@ -1,6 +1,25 @@
 /**
  * 租户配置类型定义
  */
+export type QuickAccessActionType = 'link' | 'copy' | 'message'
+
+export interface QuickAccessItem {
+  id: string
+  label: string
+  url: string
+  icon?: string
+  actionType?: QuickAccessActionType
+  faqId?: string
+}
+
+export interface TenantWidgetMetadata {
+  quickAccessItems?: QuickAccessItem[]
+}
+
+export type TenantMetadata = Record<string, any> & {
+  widget?: TenantWidgetMetadata
+}
+
 export interface TenantConfig {
   tenantId: string
   name: string              // 品牌名称
@@ -70,5 +89,5 @@ export interface TenantConfig {
     independentApp: boolean  // 是否有独立 APP
   }
 
-  metadata: Record<string, any>  // 扩展字段
+  metadata: TenantMetadata  // 扩展字段
 }

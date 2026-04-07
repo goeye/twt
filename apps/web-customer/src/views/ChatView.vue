@@ -108,56 +108,86 @@
         </div>
       </div>
 
-      <div class="cw-quick-access">
-        <div class="cw-quick-access__btn-group">
-            <div
-              class="cw-quick-access__btn"
-              @mouseenter="showFeedbackCard = true"
-              @mouseleave="showFeedbackCard = false"
+      <div ref="quickAccessRef" class="cw-quick-access">
+        <div ref="quickAccessScrollRef" class="cw-quick-access__scroll" @scroll="handleQuickAccessScroll">
+          <div class="cw-quick-access__btn-group">
+            <button
+              ref="feedbackTriggerRef"
+              type="button"
+              class="cw-quick-access__btn cw-quick-access__btn--feedback"
+              @mouseenter="openFeedbackCard"
+              @mouseleave="scheduleHideFeedbackCard"
             >
-              <svg class="cw-quick-access__icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+              <span class="cw-quick-access__icon cw-quick-access__icon--image" aria-hidden="true">
+                <img :src="feedbackQuickAccessIcon" alt="" />
+              </span>
               <span class="cw-quick-access__text">会话评价</span>
+            </button>
+            <button
+              v-for="item in quickAccessItems"
+              :key="item.id"
+              type="button"
+              class="cw-quick-access__btn"
+              @click="handleQuickAccessAction(item)"
+            >
+              <span
+                class="cw-quick-access__icon"
+                :class="{
+                  'cw-quick-access__icon--image': isImageIcon(item.icon),
+                  'cw-quick-access__icon--emoji': item.icon && !isImageIcon(item.icon)
+                }"
+                aria-hidden="true"
+              >
+                <img v-if="item.icon && isImageIcon(item.icon)" :src="item.icon" alt="" />
+                <span v-else>{{ item.icon || item.label.slice(0, 1) }}</span>
+              </span>
+              <span v-if="item.label" class="cw-quick-access__text">{{ item.label }}</span>
+            </button>
+          </div>
+        </div>
 
-              <div v-if="showFeedbackCard" class="cw-feedback-hover-card" @click.stop>
-                <p class="cw-feedback-hover-card__title">请对我们的服务进行评价</p>
-                <div class="cw-feedback-hover-card__options">
-                  <div
-                    v-for="opt in feedbackOptions"
-                    :key="opt.value"
-                    class="cw-feedback-hover-card__option"
-                    :class="{ 'cw-feedback-hover-card__option--selected': selectedFeedback === opt.value }"
-                    @click="handleFeedbackClick(opt.value)"
-                  >
-                    <span class="cw-feedback-hover-card__emoji">{{ opt.emoji }}</span>
-                    <span class="cw-feedback-hover-card__label">{{ opt.label }}</span>
-                  </div>
-                </div>
-              </div>
+        <div
+          v-if="showFeedbackCard"
+          class="cw-feedback-hover-card"
+          :style="{ left: `${feedbackCardLeft}px` }"
+          @mouseenter="openFeedbackCard"
+          @mouseleave="scheduleHideFeedbackCard"
+          @click.stop
+        >
+          <p class="cw-feedback-hover-card__title">请对我们的服务进行评价</p>
+          <div class="cw-feedback-hover-card__options">
+            <div
+              v-for="opt in feedbackOptions"
+              :key="opt.value"
+              class="cw-feedback-hover-card__option"
+              :class="{ 'cw-feedback-hover-card__option--selected': selectedFeedback === opt.value }"
+              @click="handleFeedbackClick(opt.value)"
+            >
+              <span class="cw-feedback-hover-card__emoji">{{ opt.emoji }}</span>
+              <span class="cw-feedback-hover-card__label">{{ opt.label }}</span>
             </div>
           </div>
+        </div>
       </div>
-
       <div class="cw-input-area">
         <div class="cw-input-card">
-        <div class="cw-input-box" contenteditable="true" @input="onInput" @keydown.enter.prevent="sendMessage" />
-        <div class="cw-input-toolbar">
-          <div class="cw-toolbar-icons">
-            <span class="cw-toolbar-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            </span>
-            <button type="button" class="cw-toolbar-icon" @click="simulateUnsupported">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <div class="cw-input-box" contenteditable="true" @input="onInput" @keydown.enter.prevent="sendMessage" />
+          <div class="cw-input-toolbar">
+            <div class="cw-toolbar-icons">
+              <span class="cw-toolbar-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </span>
+              <button type="button" class="cw-toolbar-icon" @click="simulateUnsupported">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </button>
+              <span class="cw-toolbar-icon cw-toolbar-icon--bg">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" /><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><circle cx="9" cy="9" r="1" fill="currentColor" /><circle cx="15" cy="9" r="1" fill="currentColor" /></svg>
+              </span>
+            </div>
+            <button type="button" class="cw-send-btn" :class="{ 'cw-send-btn--active': inputText.trim().length > 0 }" @click="sendMessage">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </button>
-            <span class="cw-toolbar-icon cw-toolbar-icon--bg">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" /><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><circle cx="9" cy="9" r="1" fill="currentColor" /><circle cx="15" cy="9" r="1" fill="currentColor" /></svg>
-            </span>
           </div>
-          <button type="button" class="cw-send-btn" :class="{ 'cw-send-btn--active': inputText.trim().length > 0 }" @click="sendMessage">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </button>
-        </div>
         </div>
       </div>
     </template>
@@ -173,7 +203,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, reactive, ref } from "vue";
+import {
+  FEEDBACK_QUICK_ACCESS_ICON,
+  getWidgetQuickAccessItems,
+  type QuickAccessItem,
+  useTenant
+} from "@twt/branding";
 import {
   buildAiReply,
   buildHumanReply,
@@ -199,6 +235,7 @@ interface Message {
 }
 
 const agentSettings = ref<AiAgentDemoSettings>(loadAiAgentDemoSettings());
+const tenant = useTenant();
 const sessionEnded = ref(false);
 const selectedFeedback = ref<string | null>(null);
 const showFeedbackCard = ref(false);
@@ -209,6 +246,12 @@ const humanOnline = ref(agentSettings.value.agentResponseMode === "offline-only"
 const toastMessage = ref("");
 const toastVisible = ref(false);
 let toastTimer: number | null = null;
+let feedbackHideTimer: number | null = null;
+const feedbackQuickAccessIcon = FEEDBACK_QUICK_ACCESS_ICON;
+const quickAccessRef = ref<HTMLElement | null>(null);
+const quickAccessScrollRef = ref<HTMLElement | null>(null);
+const feedbackTriggerRef = ref<HTMLElement | null>(null);
+const feedbackCardLeft = ref(0);
 
 const feedbackOptions = [
   { value: "good", emoji: "\u{1F60A}", label: "满意" },
@@ -220,8 +263,10 @@ const feedbackLabel = computed(() => {
   const opt = feedbackOptions.find(o => o.value === selectedFeedback.value);
   return opt ? opt.label : "";
 });
+const quickAccessItems = computed(() => getWidgetQuickAccessItems(tenant));
 
 const hasVisitorSent = computed(() => messages.value.some(m => m.role === "visitor"));
+const isImageIcon = (icon?: string) => Boolean(icon && /^(data:image|https?:\/\/|\/)/.test(icon));
 
 const showToast = (message: string) => {
   if (toastTimer) {
@@ -233,6 +278,41 @@ const showToast = (message: string) => {
     toastVisible.value = false;
     toastTimer = null;
   }, 2000);
+};
+
+const clearFeedbackHideTimer = () => {
+  if (feedbackHideTimer) {
+    clearTimeout(feedbackHideTimer);
+    feedbackHideTimer = null;
+  }
+};
+
+const updateFeedbackCardPosition = () => {
+  if (!quickAccessRef.value || !feedbackTriggerRef.value) return;
+
+  const quickAccessRect = quickAccessRef.value.getBoundingClientRect();
+  const triggerRect = feedbackTriggerRef.value.getBoundingClientRect();
+  feedbackCardLeft.value = Math.max(0, triggerRect.left - quickAccessRect.left);
+};
+
+const openFeedbackCard = async () => {
+  clearFeedbackHideTimer();
+  showFeedbackCard.value = true;
+  await nextTick();
+  updateFeedbackCardPosition();
+};
+
+const scheduleHideFeedbackCard = () => {
+  clearFeedbackHideTimer();
+  feedbackHideTimer = window.setTimeout(() => {
+    showFeedbackCard.value = false;
+    feedbackHideTimer = null;
+  }, 120);
+};
+
+const handleQuickAccessScroll = () => {
+  if (!showFeedbackCard.value) return;
+  updateFeedbackCardPosition();
 };
 
 const handleFeedbackClick = (value: string) => {
@@ -260,6 +340,46 @@ const handleFeedbackClick = (value: string) => {
   const opt = feedbackOptions.find(o => o.value === value);
   const label = opt ? opt.label : value;
   pushMessage("feedback", `你提交了评价：${label}`);
+};
+
+const normalizeLink = (url: string) => {
+  if (!url) return "#";
+  if (/^https?:\/\//i.test(url) || url.startsWith("/")) return url;
+  return `https://${url}`;
+};
+
+const handleQuickAccessAction = async (item: QuickAccessItem) => {
+  if (sessionEnded.value) return;
+
+  const actionType = item.actionType ?? "link";
+
+  if (actionType === "copy") {
+    if (!navigator.clipboard?.writeText) {
+      showToast("当前浏览器不支持复制");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(item.url);
+      showToast("已复制快捷入口内容");
+    } catch {
+      showToast("复制失败，请稍后重试");
+    }
+    return;
+  }
+
+  if (actionType === "message") {
+    const message = item.url.trim() || item.label.trim();
+    if (!message) return;
+
+    pushMessage("visitor", message, true);
+    handleAgentOrHumanReply(message);
+    return;
+  }
+
+  if (!item.url || item.url === "#") return;
+
+  window.open(normalizeLink(item.url), "_blank", "noopener,noreferrer");
 };
 
 const floatingToggles = reactive({
@@ -482,6 +602,7 @@ const toggleFloatingAction = (actionId: keyof typeof floatingToggles) => {
 
 onBeforeUnmount(() => {
   clearAiReplyTimers();
+  clearFeedbackHideTimer();
 });
 
 resetConversation();
@@ -489,6 +610,7 @@ resetConversation();
 
 <style scoped>
 .cw-chat {
+  background: #f4f7fb;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -643,76 +765,122 @@ resetConversation();
 }
 
 .cw-quick-access {
-  margin: 0 8px 4px;
-  padding: 0 0 0 12px;
+  align-items: center;
+  background: transparent;
+  display: flex;
+  flex-shrink: 0;
+  margin: 0 14px 8px;
+  min-height: 34px;
+  position: relative;
+}
+
+.cw-quick-access__scroll {
+  background: transparent;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cw-quick-access__scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .cw-quick-access__btn-group {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  width: max-content;
 }
 
 .cw-quick-access__btn {
-  position: relative;
-  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: transparent;
-  border-radius: 16px;
-  font-size: 13px;
-  color: #4a5568;
+  background: #fff;
+  border: 1px solid rgba(217, 226, 239, 0.92);
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+  color: #1f2937;
   cursor: pointer;
-  transition: all 0.2s;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  font-size: 12px;
+  min-height: 34px;
+  padding: 4px 10px;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cw-quick-access__btn:hover {
-  background: #e2e8f0;
+  border-color: rgba(191, 203, 220, 0.96);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
 }
 
 .cw-quick-access__icon {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.6;
+  align-items: center;
+  background: #eef3ff;
+  border-radius: 50%;
+  color: #42526b;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 14px;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+}
+
+.cw-quick-access__icon--image {
+  background: transparent;
+}
+
+.cw-quick-access__icon img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .cw-quick-access__text {
+  color: #1f2937;
+  line-height: 1;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .cw-feedback-hover-card {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  min-width: 280px;
-  padding: 16px;
   background: white;
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  bottom: calc(100% + 8px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+  box-sizing: border-box;
+  left: 0;
+  max-width: calc(100vw - 40px);
+  min-width: 240px;
+  padding: 14px;
+  position: absolute;
+  width: min(300px, calc(100vw - 56px));
   z-index: 10;
 }
 
 .cw-feedback-hover-card__title {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #2d3748;
 }
 
 .cw-feedback-hover-card__options {
-  display: flex;
   gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .cw-feedback-hover-card__option {
-  flex: 1;
-  display: flex;
   flex-direction: column;
   align-items: center;
+  display: flex;
   gap: 6px;
+  min-width: 0;
   padding: 12px 8px;
   border-radius: 8px;
   cursor: pointer;
@@ -768,14 +936,13 @@ resetConversation();
 }
 
 .cw-messages {
-  background: #f5f5f5;
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 10px;
   min-height: 160px;
   overflow-y: auto;
-  padding: 14px;
+  padding: 14px 14px 12px;
 }
 
 .cw-msg {
@@ -880,31 +1047,33 @@ resetConversation();
 
 .cw-input-area {
   background: transparent;
-  border-radius: 16px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  gap: 8px;
-  margin: 0 8px 8px;
+  margin: 0 14px 14px;
   padding: 0;
 }
 
 .cw-input-card {
   background: #fff;
-  border-radius: 16px;
+  border: 1px solid #d9e2ef;
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 0 8px;
+  gap: 24px;
+  min-height: 132px;
+  padding: 16px 0 12px;
+  width: 100%;
 }
 
 .cw-input-box {
   color: var(--agent-color-text-primary);
-  font-size: 12px;
-  line-height: 1.4;
-  min-height: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 46px;
   outline: none;
-  padding: 0 14px;
+  padding: 0 18px;
 }
 
 .cw-input-box:empty::before {
@@ -916,12 +1085,13 @@ resetConversation();
   align-items: center;
   display: flex;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 0 14px;
 }
 
 .cw-toolbar-icons {
   align-items: center;
   display: flex;
+  gap: 8px;
 }
 
 .cw-toolbar-icon {
@@ -929,32 +1099,31 @@ resetConversation();
   background: transparent;
   border: none;
   border-radius: 10px;
-  color: #4a5568;
+  color: #20283a;
   cursor: pointer;
   display: inline-flex;
-  height: 34px;
+  height: 38px;
   justify-content: center;
-  width: 34px;
+  width: 38px;
 }
 
 .cw-toolbar-icon--bg {
-  background: #f5f7f9;
-  border-radius: 9px;
+  background: #f5f8fd;
 }
 
 .cw-send-btn {
   align-items: center;
-  background: #f2f4f8;
+  background: #edf1f7;
   border: none;
   border-radius: 50%;
-  color: #8c96a6;
+  color: #9aa7bc;
   cursor: pointer;
   display: inline-flex;
   flex-shrink: 0;
-  height: 32px;
+  height: 48px;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
-  width: 32px;
+  width: 48px;
 }
 
 .cw-send-btn--active {
@@ -1041,11 +1210,63 @@ resetConversation();
 }
 
 .cw-footer {
-  background: #fff;
-  color: var(--agent-color-text-tertiary);
+  background: transparent;
+  color: #8796b3;
   flex-shrink: 0;
-  font-size: 10px;
-  padding: 6px;
+  font-size: 12px;
+  padding: 2px 6px 18px;
   text-align: center;
+}
+
+@media (max-width: 360px) {
+  .cw-messages {
+    padding: 12px 12px 10px;
+  }
+
+  .cw-quick-access {
+    margin: 0 12px 12px;
+    min-height: 32px;
+  }
+
+  .cw-quick-access__btn-group {
+    gap: 6px;
+  }
+
+  .cw-quick-access__btn {
+    font-size: 11px;
+    min-height: 32px;
+    padding: 4px 9px;
+  }
+
+  .cw-input-area {
+    margin: 0 12px 14px;
+  }
+
+  .cw-input-card {
+    border-radius: 22px;
+    gap: 20px;
+    min-height: 122px;
+    padding: 14px 0 10px;
+  }
+
+  .cw-input-box {
+    font-size: 14px;
+    min-height: 42px;
+    padding: 0 16px;
+  }
+
+  .cw-input-toolbar {
+    padding: 0 12px;
+  }
+
+  .cw-toolbar-icon {
+    height: 34px;
+    width: 34px;
+  }
+
+  .cw-send-btn {
+    height: 44px;
+    width: 44px;
+  }
 }
 </style>

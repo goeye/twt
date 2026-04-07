@@ -1,4 +1,5 @@
 import type { TenantConfig } from './types'
+import { getDefaultQuickAccessItems } from './widget'
 
 /**
  * 默认租户配置（TWT）
@@ -73,7 +74,11 @@ export const DEFAULT_TENANT_CONFIG: TenantConfig = {
     independentApp: false,
   },
 
-  metadata: {},
+  metadata: {
+    widget: {
+      quickAccessItems: getDefaultQuickAccessItems(),
+    },
+  },
 }
 
 /**

@@ -2,13 +2,13 @@ export const redirects = JSON.parse("{}")
 
 export const routes = Object.fromEntries([
   ["/", { loader: () => import(/* webpackChunkName: "index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/index.html.js"), meta: {"title":"TWT Chat 开发者文档"} }],
-  ["/api/", { loader: () => import(/* webpackChunkName: "api_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/index.html.js"), meta: {"title":"开放 API"} }],
-  ["/api/authentication.html", { loader: () => import(/* webpackChunkName: "api_authentication.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/authentication.html.js"), meta: {"title":"鉴权与签名"} }],
-  ["/api/error-codes.html", { loader: () => import(/* webpackChunkName: "api_error-codes.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/error-codes.html.js"), meta: {"title":"错误码参考"} }],
   ["/chat-page/", { loader: () => import(/* webpackChunkName: "chat-page_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/index.html.js"), meta: {"title":"聊天页面"} }],
   ["/chat-page/direct-link.html", { loader: () => import(/* webpackChunkName: "chat-page_direct-link.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/direct-link.html.js"), meta: {"title":"直接链接"} }],
   ["/chat-page/parameters.html", { loader: () => import(/* webpackChunkName: "chat-page_parameters.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/parameters.html.js"), meta: {"title":"URL 参数说明"} }],
   ["/chat-page/self-hosted.html", { loader: () => import(/* webpackChunkName: "chat-page_self-hosted.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/self-hosted.html.js"), meta: {"title":"自托管部署"} }],
+  ["/api/", { loader: () => import(/* webpackChunkName: "api_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/index.html.js"), meta: {"title":"开放 API"} }],
+  ["/api/authentication.html", { loader: () => import(/* webpackChunkName: "api_authentication.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/authentication.html.js"), meta: {"title":"鉴权与签名"} }],
+  ["/api/error-codes.html", { loader: () => import(/* webpackChunkName: "api_error-codes.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/error-codes.html.js"), meta: {"title":"错误码参考"} }],
   ["/guide/", { loader: () => import(/* webpackChunkName: "guide_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/index.html.js"), meta: {"title":"概述"} }],
   ["/guide/quickstart.html", { loader: () => import(/* webpackChunkName: "guide_quickstart.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/quickstart.html.js"), meta: {"title":"快速开始"} }],
   ["/webhooks/", { loader: () => import(/* webpackChunkName: "webhooks_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/index.html.js"), meta: {"title":"Webhooks"} }],
