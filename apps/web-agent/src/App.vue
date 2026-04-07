@@ -266,21 +266,12 @@
 
           <div class="inbox-pane__search-row">
             <div class="inbox-pane__search-box">
-              <input v-model="searchKeyword" class="agent-input inbox-pane__search-input" placeholder="搜索" />
-              <div
-                class="inbox-pane__search-filter-wrapper"
-                @mouseenter="showSearchFieldDropdown"
-                @mouseleave="hideSearchFieldDropdown"
-              >
-                <button
-                  type="button"
-                  class="inbox-pane__search-icon-btn"
-                  :class="{ 'inbox-pane__search-icon-btn--active': searchFieldType !== 'all' }"
-                  aria-label="筛选"
-                >
-                  <AgentIcon name="filter" :size="14" />
+              <div class="inbox-pane__search-field-wrap" ref="searchFieldWrapRef">
+                <button type="button" class="inbox-pane__search-field-btn" @click="searchFieldDropdownVisible = !searchFieldDropdownVisible">
+                  <span>{{ searchFieldOptions.find(o => o.key === searchFieldType)?.label ?? '全部' }}</span>
+                  <AgentIcon name="chevron-down" :size="10" />
                 </button>
-                <div v-show="searchFieldDropdownVisible" class="inbox-pane__search-field-dropdown">
+                <div v-if="searchFieldDropdownVisible" class="inbox-pane__search-field-dropdown">
                   <button
                     v-for="opt in searchFieldOptions"
                     :key="opt.key"
@@ -296,6 +287,8 @@
                   </button>
                 </div>
               </div>
+              <div class="inbox-pane__search-divider"></div>
+              <input v-model="searchKeyword" class="agent-input inbox-pane__search-input" placeholder="搜索" />
             </div>
           </div>
 
@@ -2565,7 +2558,7 @@ const sessionFilterType = ref<SessionFilterType>("all");
 type SearchFieldType = "all" | "visitorName" | "visitorAlias" | "agentName" | "title" | "conversationRecord" | "customerIdentifier";
 const searchFieldType = ref<SearchFieldType>("all");
 const searchFieldDropdownVisible = ref(false);
-let searchFieldDropdownTimer: ReturnType<typeof setTimeout> | null = null;
+const searchFieldWrapRef = ref<HTMLElement | null>(null);
 
 const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string }>>(() => [
   { key: "all", label: "全部" },
@@ -2576,17 +2569,6 @@ const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string 
   { key: "conversationRecord", label: "沟通记录" },
   { key: "customerIdentifier", label: "客户标识" },
 ]);
-
-function showSearchFieldDropdown() {
-  if (searchFieldDropdownTimer) clearTimeout(searchFieldDropdownTimer);
-  searchFieldDropdownVisible.value = true;
-}
-
-function hideSearchFieldDropdown() {
-  searchFieldDropdownTimer = setTimeout(() => {
-    searchFieldDropdownVisible.value = false;
-  }, 150);
-}
 
 function selectSearchField(key: SearchFieldType) {
   searchFieldType.value = key;
@@ -3557,10 +3539,12 @@ const closePlanSwitcher = () => { planSwitcherOpen.value = false; };
 
 const closeTagDropdowns = (event: MouseEvent) => {
   const target = event.target as HTMLElement;
-  // 检查点击是否在标签下拉面板或触发器内部
   if (!target.closest('.inbox-filter-panel__select-wrapper')) {
     visitorTagDropdownOpen.value = false;
     conversationTagDropdownOpen.value = false;
+  }
+  if (searchFieldWrapRef.value && !searchFieldWrapRef.value.contains(target)) {
+    searchFieldDropdownVisible.value = false;
   }
 };
 
@@ -5059,46 +5043,66 @@ onBeforeUnmount(() => {
 }
 
 .inbox-pane__search-box {
+  align-items: center;
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  overflow: visible;
   position: relative;
 }
 
-.inbox-pane__search-input {
-  padding-right: 40px;
+.inbox-pane__search-box .agent-input {
+  background: transparent;
+  border: 0;
+  flex: 1;
+  min-width: 0;
+  padding-right: 12px;
 }
 
-.inbox-pane__search-icon-btn {
+.inbox-pane__search-input {
+  padding-right: 12px;
+}
+
+.inbox-pane__search-field-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.inbox-pane__search-field-btn {
   align-items: center;
   background: transparent;
   border: 0;
   color: var(--agent-color-text-secondary);
   cursor: pointer;
   display: inline-flex;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
+  font-size: var(--agent-font-size-sm);
+  gap: 4px;
+  height: 36px;
+  outline: none;
+  padding: 0 10px;
+  white-space: nowrap;
 }
 
-.inbox-pane__search-icon-btn--active {
-  border-color: var(--agent-color-brand-primary);
-  color: var(--agent-color-brand-primary);
+.inbox-pane__search-field-btn:hover {
+  color: var(--agent-color-text-primary);
 }
 
-.inbox-pane__search-filter-wrapper {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
+.inbox-pane__search-divider {
+  background: var(--agent-color-border-default);
+  flex-shrink: 0;
+  height: 16px;
+  width: 1px;
 }
 
 .inbox-pane__search-field-dropdown {
   background: #fff;
   border-radius: var(--agent-radius-lg);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  left: 0;
   min-width: 160px;
   padding: var(--agent-space-8) 0;
   position: absolute;
-  right: 0;
   top: calc(100% + 6px);
   z-index: var(--agent-z-dropdown);
 }
