@@ -5011,6 +5011,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   height: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .inbox-pane__header {
@@ -5376,6 +5377,7 @@ onBeforeUnmount(() => {
   height: 100%;
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 .chat-pane__header {
