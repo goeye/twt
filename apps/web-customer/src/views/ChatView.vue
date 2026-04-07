@@ -59,7 +59,7 @@
     </div>
 
     <template v-if="sessionEnded">
-      <div class="cw-feedback-area">
+      <div v-if="!hasFeedbackAttempted" class="cw-feedback-area">
         <div class="cw-feedback-card">
           <p class="cw-feedback-card__title">Please evaluate our service</p>
           <div class="cw-feedback-options">
@@ -239,6 +239,7 @@ const tenant = useTenant();
 const sessionEnded = ref(false);
 const selectedFeedback = ref<string | null>(null);
 const showFeedbackCard = ref(false);
+const hasFeedbackAttempted = ref(false);
 const inputText = ref("");
 const endedText = ref("会话已结束，请重新咨询");
 const humanOnline = ref(agentSettings.value.agentResponseMode === "offline-only" ? false : true);
@@ -329,6 +330,7 @@ const handleFeedbackClick = (value: string) => {
   }
 
   // 3. 执行评价逻辑
+  hasFeedbackAttempted.value = true;
   if (selectedFeedback.value === value) {
     selectedFeedback.value = null;
     showFeedbackCard.value = false;
@@ -472,6 +474,7 @@ const resetConversation = () => {
   sessionEnded.value = false;
   selectedFeedback.value = null;
   showFeedbackCard.value = false;
+  hasFeedbackAttempted.value = false;
   endedText.value = "会话已结束，请重新咨询";
   msgCounter = 1;
   messages.value = [];

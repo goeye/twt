@@ -83,7 +83,7 @@
 
         <label class="archive-field">
           <select v-model="draftFilters.rating" class="archive-field__control archive-field__control--select">
-            <option value="all">访客评价</option>
+            <option value="all">会话评价</option>
             <option value="satisfied">满意</option>
             <option value="none">未评价</option>
           </select>
@@ -162,7 +162,7 @@
                 </button>
               </th>
               <th>服务时长</th>
-              <th>访客评价</th>
+              <th>会话评价</th>
               <th class="archive-table__actions-head">操作</th>
             </tr>
           </thead>

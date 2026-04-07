@@ -342,7 +342,6 @@
     :open="Boolean(chatDrawerRow)"
     :title="chatDrawerRow?.title ?? ''"
     :messages="chatDrawerMessages"
-    :search-keyword="appliedChatFilters.keyword"
     assign-label="查看详情"
     :editable="false"
     @assign="handleChatDrawerAssign"
@@ -1271,6 +1270,17 @@ onMounted(() => {
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.archive-match-count {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  display: block;
+  font-size: var(--agent-font-size-xs);
+  margin-top: 4px;
+  padding: 0;
 }
 
 .archive-sort {

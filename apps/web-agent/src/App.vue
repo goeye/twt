@@ -3187,7 +3187,7 @@ const activeInfoSections = computed<InfoSection[]>(() => {
           { key: "session-title", label: "会话标题", value: activeSession.value.customerName },
           { key: "session-start", label: "发起时间", value: activeSession.value.startedAt },
           { key: "session-accept", label: "接待时间", value: activeSession.value.acceptedAt },
-          { key: "session-feedback", label: "访客评价", value: getFeedbackLabel(activeSession.value.visitorFeedback) }
+          { key: "session-feedback", label: "会话评价", value: getFeedbackLabel(activeSession.value.visitorFeedback) }
         ]
       },
       {
