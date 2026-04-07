@@ -1,5 +1,5 @@
 <template>
-  <AgentAppShell :key="currentShellRenderKey" :show-detail="isConversationRoute" :hide-subnav="isHomeRoute">
+  <AgentAppShell :key="currentShellRenderKey" :hide-subnav="isHomeRoute">
     <template #nav-rail>
       <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
         <template #brand="{ expanded }">
@@ -256,8 +256,8 @@
       </section>
     </template>
 
-    <section v-if="isConversationRoute" :key="currentContentRenderKey" class="session-page">
-      <aside class="inbox-pane agent-panel">
+    <section v-if="isConversationRoute" :key="currentContentRenderKey" class="session-page agent-panel">
+      <aside class="inbox-pane">
         <header class="inbox-pane__header">
           <div class="inbox-pane__title-row">
             <button type="button" class="inbox-pane__back" aria-label="返回">‹</button>
@@ -402,7 +402,7 @@
         </div>
       </aside>
 
-      <section class="chat-pane agent-panel">
+      <section class="chat-pane">
         <ConversationHeader
           class="chat-pane__header"
           :channel-type="activeSession?.channelType"
@@ -523,46 +523,8 @@
           />
         </template>
       </section>
-    </section>
 
-    <HomeRoutePage v-else-if="isHomeRoute" :key="currentContentRenderKey" />
-    <FilesRoutePage v-else-if="isFilesRoute" :key="currentContentRenderKey" :active-key="activeFilesNavKey" @toast="showTopToast" @navigate-to-session="handleNavigateToInbox($event.queueKey)" />
-    <VisitorsRoutePage v-else-if="isVisitorsRoute" :key="currentContentRenderKey" :active-key="activeVisitorsNavKey" @toast="showTopToast" @navigate-to-inbox="handleNavigateToInbox" />
-    <CustomerRoutePage v-else-if="isCustomerRoute" :key="currentContentRenderKey" :active-key="activeCustomerNavKey" @toast="showTopToast" />
-
-    <template v-else-if="isSettingsRoute">
-      <WidgetCustomizePage
-        v-if="activeSettingsNavKey === 'customize'"
-        :key="currentContentRenderKey"
-        @toast="showTopToast"
-      />
-      <SettingsRoutePage v-else :key="currentContentRenderKey" :active-key="activeSettingsNavKey" @toast="showTopToast" />
-    </template>
-    <AiAgentRoutePage
-      v-else-if="isAiAgentRoute"
-      :key="currentContentRenderKey"
-      :active-key="activeAiNavKey"
-      @toast="showTopToast"
-      @nav-change="handleAiNavSelect"
-    />
-    <ReportRoutePage v-else-if="isReportRoute" :key="currentContentRenderKey" :active-key="activeReportNavKey" />
-    <template v-else-if="isCampaignRoute">
-      <CampaignRoutePage v-if="activeCampaignNavKey === 'campaign-chatting'" :key="`${currentContentRenderKey}-chatting`" @toast="showTopToast" />
-      <ProactiveCampaignRoutePage v-if="activeCampaignNavKey === 'campaign-proactive'" :key="`${currentContentRenderKey}-proactive`" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
-    </template>
-
-    <section v-else :key="currentContentRenderKey" class="agent-content-page module-page">
-      <header class="agent-content-header">
-        <h1 class="agent-content-title">{{ currentModuleLabel }}</h1>
-        <p class="agent-content-subtitle">该模块页面开发中，已可通过左侧导航进行路由切换。</p>
-      </header>
-      <section class="module-placeholder agent-panel">
-        <p>当前路径：{{ route.path }}</p>
-      </section>
-    </section>
-
-    <template #detail-pane>
-      <section v-if="isConversationRoute" :key="currentDetailRenderKey" class="detail-pane">
+      <aside :key="currentDetailRenderKey" class="detail-pane">
         <header class="detail-pane__topbar">
           <div class="detail-pane__tabs">
             <button
@@ -622,8 +584,44 @@
             </div>
           </section>
         </div>
-      </section>
+      </aside>
+    </section>
+
+    <HomeRoutePage v-else-if="isHomeRoute" :key="currentContentRenderKey" />
+    <FilesRoutePage v-else-if="isFilesRoute" :key="currentContentRenderKey" :active-key="activeFilesNavKey" @toast="showTopToast" @navigate-to-session="handleNavigateToInbox($event.queueKey)" />
+    <VisitorsRoutePage v-else-if="isVisitorsRoute" :key="currentContentRenderKey" :active-key="activeVisitorsNavKey" @toast="showTopToast" @navigate-to-inbox="handleNavigateToInbox" />
+    <CustomerRoutePage v-else-if="isCustomerRoute" :key="currentContentRenderKey" :active-key="activeCustomerNavKey" @toast="showTopToast" />
+
+    <template v-else-if="isSettingsRoute">
+      <WidgetCustomizePage
+        v-if="activeSettingsNavKey === 'customize'"
+        :key="currentContentRenderKey"
+        @toast="showTopToast"
+      />
+      <SettingsRoutePage v-else :key="currentContentRenderKey" :active-key="activeSettingsNavKey" @toast="showTopToast" />
     </template>
+    <AiAgentRoutePage
+      v-else-if="isAiAgentRoute"
+      :key="currentContentRenderKey"
+      :active-key="activeAiNavKey"
+      @toast="showTopToast"
+      @nav-change="handleAiNavSelect"
+    />
+    <ReportRoutePage v-else-if="isReportRoute" :key="currentContentRenderKey" :active-key="activeReportNavKey" />
+    <template v-else-if="isCampaignRoute">
+      <CampaignRoutePage v-if="activeCampaignNavKey === 'campaign-chatting'" :key="`${currentContentRenderKey}-chatting`" @toast="showTopToast" />
+      <ProactiveCampaignRoutePage v-if="activeCampaignNavKey === 'campaign-proactive'" :key="`${currentContentRenderKey}-proactive`" ref="proactiveCampaignPageRef" @toast="showTopToast" @dirty-change="handleProactiveCampaignDirtyChange" />
+    </template>
+
+    <section v-else :key="currentContentRenderKey" class="agent-content-page module-page">
+      <header class="agent-content-header">
+        <h1 class="agent-content-title">{{ currentModuleLabel }}</h1>
+        <p class="agent-content-subtitle">该模块页面开发中，已可通过左侧导航进行路由切换。</p>
+      </header>
+      <section class="module-placeholder agent-panel">
+        <p>当前路径：{{ route.path }}</p>
+      </section>
+    </section>
 
     <TransferModal
       :open="transferModalOpen"
@@ -4198,10 +4196,6 @@ onBeforeUnmount(() => {
   padding-left: 0;
 }
 
-:deep(.agent-shell__detail) {
-  padding-left: 0;
-}
-
 .brand-mark {
   align-items: center;
   background: var(--agent-color-brand-primary);
@@ -5000,16 +4994,16 @@ onBeforeUnmount(() => {
 }
 
 .session-page {
+  border-radius: var(--agent-radius-xl);
   display: grid;
   gap: 0;
-  grid-template-columns: var(--agent-layout-inbox-pane-width) minmax(580px, 1fr);
+  grid-template-columns: minmax(320px, var(--agent-layout-inbox-pane-width)) minmax(520px, 1fr) minmax(280px, var(--agent-layout-detail-pane-width));
   height: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .inbox-pane {
-  border-radius: var(--agent-radius-xl) 0 0 var(--agent-radius-xl);
-  border-right: 0;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -5131,6 +5125,8 @@ onBeforeUnmount(() => {
 .inbox-pane__filter-row {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--agent-space-8);
   justify-content: space-between;
 }
 
@@ -5142,6 +5138,7 @@ onBeforeUnmount(() => {
 
 .inbox-pane__chips {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--agent-space-8);
 }
 
@@ -5371,9 +5368,9 @@ onBeforeUnmount(() => {
 
 .chat-pane {
   border-left: 1px solid var(--agent-color-border-default);
-  border-radius: 0 var(--agent-radius-xl) var(--agent-radius-xl) 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
   min-width: 0;
 }
@@ -5527,9 +5524,11 @@ onBeforeUnmount(() => {
 }
 
 .detail-pane {
+  border-left: 1px solid var(--agent-color-border-default);
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -5990,7 +5989,13 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1680px) {
   .session-page {
-    grid-template-columns: minmax(300px, var(--agent-layout-session-pane-width)) minmax(520px, 1fr);
+    grid-template-columns: minmax(300px, 340px) minmax(460px, 1fr) minmax(260px, 300px);
+  }
+}
+
+@media (max-width: 1440px) {
+  .session-page {
+    grid-template-columns: minmax(280px, 320px) minmax(380px, 1fr) minmax(240px, 280px);
   }
 
   .inbox-pane__title {
@@ -5999,26 +6004,52 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1280px) {
-  :deep(.agent-shell__detail) {
-    display: none;
-  }
-
   .session-page {
-    grid-template-columns: minmax(280px, var(--agent-layout-session-pane-width)) minmax(360px, 1fr);
+    grid-template-columns: minmax(260px, 300px) minmax(340px, 1fr) minmax(220px, 260px);
   }
 
   .inbox-pane__title {
-    font-size: 28px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .session-page {
+    grid-template-columns: minmax(228px, 260px) minmax(300px, 1fr) minmax(200px, 228px);
+  }
+
+  .detail-pane__content {
+    padding-left: var(--agent-space-12);
+    padding-right: var(--agent-space-12);
+  }
+
+  .detail-section__field {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .detail-pane__tab {
+    padding: 0 8px;
   }
 }
 
 @media (max-width: 980px) {
   .session-page {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(210px, 236px) minmax(280px, 1fr) minmax(180px, 210px);
   }
 
-  .chat-pane {
-    min-height: 62vh;
+  .inbox-pane__header,
+  .chat-pane__stream {
+    padding-left: var(--agent-space-12);
+    padding-right: var(--agent-space-12);
+  }
+
+  .detail-pane__topbar {
+    padding: 0 var(--agent-space-8);
+  }
+
+  .detail-section__field {
+    gap: var(--agent-space-6);
+    grid-template-columns: 64px 1fr;
   }
 }
 </style>
