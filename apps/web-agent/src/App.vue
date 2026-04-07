@@ -308,69 +308,69 @@
               </template>
             </div>
             <div class="inbox-pane__row-actions">
-              <div class="inbox-pane__sort-wrapper" @mouseenter="showSortDropdown" @mouseleave="hideSortDropdown">
-                <button type="button" class="inbox-pane__filter-icon-btn" aria-label="排序">
-                  <AgentIcon name="sort" :size="14" />
-                </button>
-                <div v-show="sortDropdownVisible" class="inbox-pane__sort-dropdown">
-                  <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'desc' }" @click="sortOrder = 'desc'">倒序</button>
-                  <button type="button" class="inbox-pane__sort-option" :class="{ 'inbox-pane__sort-option--selected': sortOrder === 'asc' }" @click="sortOrder = 'asc'">正序</button>
-                </div>
-              </div>
-              <div v-if="showFilterButton" class="inbox-pane__filter-btn-wrapper" @mouseenter="showFilterPanel" @mouseleave="hideFilterPanel">
+              <div class="inbox-pane__filter-btn-wrapper" @mouseenter="showFilterPanel" @mouseleave="hideFilterPanel">
                 <button type="button" class="inbox-pane__filter-icon-btn" :class="{ 'inbox-pane__filter-icon-btn--active': hasActiveFilter }" aria-label="筛选">
                   <AgentIcon name="filter" :size="14" />
                   <span v-if="hasActiveFilter" class="inbox-pane__filter-badge"></span>
                 </button>
                 <div v-if="filterPanelVisible" class="inbox-filter-panel" @click.stop>
                   <div class="inbox-filter-panel__section">
-                    <div class="inbox-filter-panel__label">访客在线状态</div>
+                    <div class="inbox-filter-panel__label">排序</div>
                     <div class="inbox-filter-panel__chips">
-                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === null }" @click="draftFilter.visitorOnline = null">全部</button>
-                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === true }" @click="draftFilter.visitorOnline = true">在线</button>
-                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === false }" @click="draftFilter.visitorOnline = false">离线</button>
+                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sortOrder === 'desc' }" @click="sortOrder = 'desc'">倒序</button>
+                      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': sortOrder === 'asc' }" @click="sortOrder = 'asc'">正序</button>
                     </div>
                   </div>
-                  <div class="inbox-filter-panel__section">
-                    <div class="inbox-filter-panel__label">渠道</div>
-                    <div class="inbox-filter-panel__chips">
-                      <button v-for="ch in [{ key: 'web', label: '网页' }, { key: 'widget', label: '网页插件' }, { key: 'email', label: 'Email' }]" :key="ch.key" type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.channelTypes.includes(ch.key) }" @click="draftFilter.channelTypes.includes(ch.key) ? draftFilter.channelTypes = draftFilter.channelTypes.filter(c => c !== ch.key) : draftFilter.channelTypes.push(ch.key)">{{ ch.label }}</button>
-                    </div>
-                  </div>
-                  <div class="inbox-filter-panel__section">
-                    <div class="inbox-filter-panel__label">访客标签</div>
-                    <div class="inbox-filter-panel__select-wrapper">
-                      <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.visitorTagIds.length }" @click.stop="visitorTagDropdownOpen = !visitorTagDropdownOpen" @mouseenter="visitorTagTriggerHover = true" @mouseleave="visitorTagTriggerHover = false">
-                        <span>{{ formatTagTriggerText(draftFilter.visitorTagIds, globalVisitorTags) }}</span>
-                        <button v-if="visitorTagTriggerHover && draftFilter.visitorTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.visitorTagIds = []">✕</button>
-                        <AgentIcon v-else name="chevron-down" :size="12" />
-                      </div>
-                      <div v-if="visitorTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
-                        <label v-for="t in globalVisitorTags" :key="t.id" class="inbox-filter-panel__select-option">
-                          <input type="checkbox" :value="t.id" v-model="draftFilter.visitorTagIds" />
-                          <span>{{ t.name }}</span>
-                        </label>
+                  <template v-if="showOnlineSessionFilter">
+                    <div class="inbox-filter-panel__section">
+                      <div class="inbox-filter-panel__label">访客在线状态</div>
+                      <div class="inbox-filter-panel__chips">
+                        <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === null }" @click="draftFilter.visitorOnline = null">全部</button>
+                        <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === true }" @click="draftFilter.visitorOnline = true">在线</button>
+                        <button type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.visitorOnline === false }" @click="draftFilter.visitorOnline = false">离线</button>
                       </div>
                     </div>
-                  </div>
-                  <div class="inbox-filter-panel__section">
-                    <div class="inbox-filter-panel__label">会话标签</div>
-                    <div class="inbox-filter-panel__select-wrapper">
-                      <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.conversationTagIds.length }" @click.stop="conversationTagDropdownOpen = !conversationTagDropdownOpen" @mouseenter="conversationTagTriggerHover = true" @mouseleave="conversationTagTriggerHover = false">
-                        <span>{{ formatTagTriggerText(draftFilter.conversationTagIds, globalConversationTags) }}</span>
-                        <button v-if="conversationTagTriggerHover && draftFilter.conversationTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.conversationTagIds = []">✕</button>
-                        <AgentIcon v-else name="chevron-down" :size="12" />
-                      </div>
-                      <div v-if="conversationTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
-                        <label v-for="t in globalConversationTags" :key="t.id" class="inbox-filter-panel__select-option">
-                          <input type="checkbox" :value="t.id" v-model="draftFilter.conversationTagIds" />
-                          <span>{{ t.name }}</span>
-                        </label>
+                    <div class="inbox-filter-panel__section">
+                      <div class="inbox-filter-panel__label">渠道</div>
+                      <div class="inbox-filter-panel__chips">
+                        <button v-for="ch in [{ key: 'web', label: '网页' }, { key: 'widget', label: '网页插件' }, { key: 'email', label: 'Email' }]" :key="ch.key" type="button" class="filter-chip" :class="{ 'filter-chip--active': draftFilter.channelTypes.includes(ch.key) }" @click="draftFilter.channelTypes.includes(ch.key) ? draftFilter.channelTypes = draftFilter.channelTypes.filter(c => c !== ch.key) : draftFilter.channelTypes.push(ch.key)">{{ ch.label }}</button>
                       </div>
                     </div>
-                  </div>
+                    <div class="inbox-filter-panel__section">
+                      <div class="inbox-filter-panel__label">访客标签</div>
+                      <div class="inbox-filter-panel__select-wrapper">
+                        <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.visitorTagIds.length }" @click.stop="visitorTagDropdownOpen = !visitorTagDropdownOpen" @mouseenter="visitorTagTriggerHover = true" @mouseleave="visitorTagTriggerHover = false">
+                          <span>{{ formatTagTriggerText(draftFilter.visitorTagIds, globalVisitorTags) }}</span>
+                          <button v-if="visitorTagTriggerHover && draftFilter.visitorTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.visitorTagIds = []">✕</button>
+                          <AgentIcon v-else name="chevron-down" :size="12" />
+                        </div>
+                        <div v-if="visitorTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
+                          <label v-for="t in globalVisitorTags" :key="t.id" class="inbox-filter-panel__select-option">
+                            <input type="checkbox" :value="t.id" v-model="draftFilter.visitorTagIds" />
+                            <span>{{ t.name }}</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="inbox-filter-panel__section">
+                      <div class="inbox-filter-panel__label">会话标签</div>
+                      <div class="inbox-filter-panel__select-wrapper">
+                        <div class="inbox-filter-panel__select-trigger" :class="{ 'inbox-filter-panel__select-trigger--has-value': draftFilter.conversationTagIds.length }" @click.stop="conversationTagDropdownOpen = !conversationTagDropdownOpen" @mouseenter="conversationTagTriggerHover = true" @mouseleave="conversationTagTriggerHover = false">
+                          <span>{{ formatTagTriggerText(draftFilter.conversationTagIds, globalConversationTags) }}</span>
+                          <button v-if="conversationTagTriggerHover && draftFilter.conversationTagIds.length" type="button" class="inbox-filter-panel__select-clear" @click.stop="draftFilter.conversationTagIds = []">✕</button>
+                          <AgentIcon v-else name="chevron-down" :size="12" />
+                        </div>
+                        <div v-if="conversationTagDropdownOpen" class="inbox-filter-panel__select-dropdown">
+                          <label v-for="t in globalConversationTags" :key="t.id" class="inbox-filter-panel__select-option">
+                            <input type="checkbox" :value="t.id" v-model="draftFilter.conversationTagIds" />
+                            <span>{{ t.name }}</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
                   <div class="inbox-filter-panel__footer">
-                    <button type="button" class="agent-btn agent-btn--ghost inbox-filter-panel__reset" @click="draftFilter = { visitorOnline: null, visitorTagIds: [], conversationTagIds: [], channelTypes: [] }">重置</button>
+                    <button type="button" class="agent-btn agent-btn--ghost inbox-filter-panel__reset" @click="draftFilter = { visitorOnline: null, visitorTagIds: [], conversationTagIds: [], channelTypes: [] }; sortOrder = 'desc'">重置</button>
                     <button type="button" class="agent-btn agent-btn--primary inbox-filter-panel__confirm" @click="applyFilter">确认</button>
                   </div>
                 </div>
@@ -2867,7 +2867,11 @@ const showSessionCategoryFilter = computed(() => {
 });
 
 const showFilterButton = computed(() =>
-  queueGroupSeed.find(g => g.key === "online-session")!.items.some(i => i.key === activeQueueKey.value)
+  ["pending-reply", "queueing", "processing", "resolved", "all-online", "chat-room", "ai-agent-queue"].includes(activeQueueKey.value)
+);
+
+const showOnlineSessionFilter = computed(() =>
+  ["pending-reply", "queueing", "processing", "resolved", "all-online", "chat-room", "ai-agent-queue"].includes(activeQueueKey.value)
 );
 
 const sessionMatchResults = computed(() => {
