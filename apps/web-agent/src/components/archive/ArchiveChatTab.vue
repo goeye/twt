@@ -25,9 +25,9 @@
 
     <section class="files-page__filters archive-filters">
       <div class="archive-filters__row archive-filters__row--chat-primary">
+
         <label class="archive-field archive-field--compact">
           <select v-model="chatDraftFilters.searchField" class="archive-field__control archive-field__control--select">
-            <option value="all">全部</option>
             <option value="visitorName">访客姓名</option>
             <option value="visitorAlias">访客备注名</option>
             <option value="staffName">客服姓名</option>
@@ -562,7 +562,7 @@ const buildChatStaffMembers = (count: number, ownerName: string, chatIndex: numb
 /* ------------------------------------------------------------------ */
 
 const createDefaultChatFilters = (): ChatFilterState => ({
-  searchField: "all",
+  searchField: "visitorName",
   keyword: "",
   messageCount: "all",
   owner: "all",

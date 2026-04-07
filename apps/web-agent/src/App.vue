@@ -2567,15 +2567,15 @@ const searchFieldType = ref<SearchFieldType>("all");
 const searchFieldDropdownVisible = ref(false);
 let searchFieldDropdownTimer: ReturnType<typeof setTimeout> | null = null;
 
-const searchFieldOptions: Array<{ key: SearchFieldType; label: string }> = [
+const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string }>>(() => [
   { key: "all", label: "全部" },
   { key: "visitorName", label: "访客姓名" },
   { key: "visitorAlias", label: "访客备注名" },
   { key: "agentName", label: "客服姓名" },
-  { key: "title", label: "聊天标题" },
+  { key: "title", label: isChatRoom.value ? "聊天标题" : "会话标题" },
   { key: "conversationRecord", label: "沟通记录" },
   { key: "customerIdentifier", label: "客户标识" },
-];
+]);
 
 function showSearchFieldDropdown() {
   if (searchFieldDropdownTimer) clearTimeout(searchFieldDropdownTimer);

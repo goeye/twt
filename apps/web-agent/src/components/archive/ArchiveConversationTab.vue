@@ -29,9 +29,9 @@
 
     <section class="files-page__filters archive-filters">
       <div class="archive-filters__row archive-filters__row--primary">
+
         <label class="archive-field archive-field--compact">
           <select v-model="draftFilters.searchField" class="archive-field__control archive-field__control--select">
-            <option value="all">全部</option>
             <option value="visitorName">访客姓名</option>
             <option value="visitorAlias">访客备注名</option>
             <option value="title">会话标题</option>
@@ -544,7 +544,7 @@ const visitorPool = [
 /* ------------------------------------------------------------------ */
 
 const createDefaultFilters = (): FilterState => ({
-  searchField: "all",
+  searchField: "visitorName",
   keyword: "",
   tag: "all",
   owner: "all",
