@@ -1,16 +1,10 @@
-import { inject, provide, type InjectionKey } from 'vue'
+import { inject, type App, type InjectionKey } from 'vue'
 import type { TenantConfig } from './types'
 
-/**
- * 租户配置的 Injection Key
- */
 const TENANT_KEY: InjectionKey<TenantConfig> = Symbol('tenant')
 
-/**
- * 提供租户配置到 Vue 应用
- */
-export function provideTenant(config: TenantConfig) {
-  provide(TENANT_KEY, config)
+export function provideTenant(app: App, config: TenantConfig) {
+  app.provide(TENANT_KEY, config)
 }
 
 /**

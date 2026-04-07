@@ -13,8 +13,7 @@ async function bootstrap() {
   const app = createApp(App)
 
   // 提供租户配置
-  app.provide('tenant', tenantConfig)
-  provideTenant(tenantConfig)
+  provideTenant(app, tenantConfig)
 
   // 注入 CSS 变量
   document.documentElement.style.setProperty('--agent-color-brand-primary', tenantConfig.primaryColor)

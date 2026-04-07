@@ -14,7 +14,7 @@ async function bootstrap() {
   const app = createApp(App);
 
   // 提供租户配置
-  provideTenant(tenantConfig);
+  provideTenant(app, tenantConfig);
 
   // 注入 CSS 变量（覆盖默认主题色）
   document.documentElement.style.setProperty(
