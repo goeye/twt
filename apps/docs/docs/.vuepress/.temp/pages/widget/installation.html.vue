@@ -1,4 +1,4 @@
-<template><div><h1 id="基础安装" tabindex="-1">按照安装 <a class="header-anchor" href="#基础安装">¶</a></h1>
+<template><div><h1 id="基础安装" tabindex="-1">基础安装 <a class="header-anchor" href="#基础安装">¶</a></h1>
 <p>在你网站的每个页面上嵌入 TWT Chat 聊天小部件。</p>
 <h2 id="安装步骤" tabindex="-1">安装步骤 <a class="header-anchor" href="#安装步骤">¶</a></h2>
 <p>在每个网页的 <code v-pre>&lt;/body&gt;</code> 标签之前，复制并粘贴以下代码：</p>
