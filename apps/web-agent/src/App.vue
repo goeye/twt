@@ -1358,11 +1358,11 @@ const queueGroupSeed: SessionQueueGroup[] = [
     key: "online-session",
     title: "在线会话",
     items: [
-      { key: "all-online", label: "全部", leadingEmoji: "🗂️" },
       { key: "pending-reply", label: "待回复", leadingEmoji: "👋" },
       { key: "queueing", label: "排队中", leadingEmoji: "⌛" },
       { key: "processing", label: "待处理", leadingEmoji: "📝" },
-      { key: "resolved", label: "已回复", leadingEmoji: "↩️" }
+      { key: "resolved", label: "已回复", leadingEmoji: "↩️" },
+      { key: "all-online", label: "全部", leadingEmoji: "🗂️" }
     ]
   },
   {
