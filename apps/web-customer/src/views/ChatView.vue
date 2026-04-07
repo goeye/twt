@@ -82,28 +82,6 @@
 
     <template v-else>
       <div class="cw-messages">
-        <div v-if="hasVisitorSent" class="cw-feedback-entry">
-          <div v-if="!isFeedbackPanelOpen" class="cw-feedback-capsule" @click="toggleFeedbackPanel">
-            <svg class="cw-feedback-capsule__icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            <span class="cw-feedback-capsule__text">服务评价</span>
-            <svg class="cw-feedback-capsule__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </div>
-          <div v-else class="cw-feedback-card-inline" @click="toggleFeedbackPanel">
-            <p class="cw-feedback-card-inline__title">请对我们的服务进行评价</p>
-            <div class="cw-feedback-card-inline__options">
-              <div
-                v-for="opt in feedbackOptions"
-                :key="opt.value"
-                class="cw-feedback-card-inline__option"
-                :class="{ 'cw-feedback-card-inline__option--selected': selectedFeedback === opt.value }"
-                @click.stop="selectFeedback(opt.value)"
-              >
-                <span class="cw-feedback-card-inline__emoji">{{ opt.emoji }}</span>
-                <span class="cw-feedback-card-inline__label">{{ opt.label }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
         <div v-if="showQueuePosition && isQueuing && !agentSettings.agentEnabled" class="cw-queue-pill">
           <span>排队中，前面还有<strong class="cw-queue-pill-num">{{ queuePosition }}</strong>人</span>
         </div>
@@ -131,6 +109,37 @@
       </div>
 
       <div class="cw-input-area">
+        <div class="cw-quick-access">
+          <div class="cw-quick-access__btn-group">
+            <div
+              class="cw-quick-access__btn"
+              @mouseenter="showFeedbackCard = true"
+              @mouseleave="showFeedbackCard = false"
+            >
+              <svg class="cw-quick-access__icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="cw-quick-access__text">会话评价</span>
+
+              <div v-if="showFeedbackCard" class="cw-feedback-hover-card" @click.stop>
+                <p class="cw-feedback-hover-card__title">请对我们的服务进行评价</p>
+                <div class="cw-feedback-hover-card__options">
+                  <div
+                    v-for="opt in feedbackOptions"
+                    :key="opt.value"
+                    class="cw-feedback-hover-card__option"
+                    :class="{ 'cw-feedback-hover-card__option--selected': selectedFeedback === opt.value }"
+                    @click="handleFeedbackClick(opt.value)"
+                  >
+                    <span class="cw-feedback-hover-card__emoji">{{ opt.emoji }}</span>
+                    <span class="cw-feedback-hover-card__label">{{ opt.label }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="cw-input-box" contenteditable="true" @input="onInput" @keydown.enter.prevent="sendMessage" />
         <div class="cw-input-toolbar">
           <div class="cw-toolbar-icons">
@@ -150,6 +159,12 @@
         </div>
       </div>
     </template>
+
+    <transition name="cw-toast-fade">
+      <div v-if="toastVisible" class="cw-toast">
+        {{ toastMessage }}
+      </div>
+    </transition>
 
     <div class="cw-footer">Powered by <strong>Chat</strong></div>
   </div>
@@ -184,10 +199,14 @@ interface Message {
 const agentSettings = ref<AiAgentDemoSettings>(loadAiAgentDemoSettings());
 const sessionEnded = ref(false);
 const selectedFeedback = ref<string | null>(null);
-const isFeedbackPanelOpen = ref(false);
+const showFeedbackCard = ref(false);
 const inputText = ref("");
 const endedText = ref("会话已结束，请重新咨询");
 const humanOnline = ref(agentSettings.value.agentResponseMode === "offline-only" ? false : true);
+
+const toastMessage = ref("");
+const toastVisible = ref(false);
+let toastTimer: number | null = null;
 
 const feedbackOptions = [
   { value: "good", emoji: "\u{1F60A}", label: "满意" },
@@ -202,19 +221,40 @@ const feedbackLabel = computed(() => {
 
 const hasVisitorSent = computed(() => messages.value.some(m => m.role === "visitor"));
 
-const toggleFeedbackPanel = () => {
-  isFeedbackPanelOpen.value = !isFeedbackPanelOpen.value;
+const showToast = (message: string) => {
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+  toastMessage.value = message;
+  toastVisible.value = true;
+  toastTimer = window.setTimeout(() => {
+    toastVisible.value = false;
+    toastTimer = null;
+  }, 2000);
 };
 
-const selectFeedback = (value: string) => {
+const handleFeedbackClick = (value: string) => {
+  // 1. 判断会话是否创建
+  if (!hasVisitorSent.value) {
+    showToast("请先发送消息创建会话");
+    return;
+  }
+
+  // 2. 判断是否在排队中
+  if (isQueuing.value) {
+    showToast("排队中无法评价，请等待客服接待");
+    return;
+  }
+
+  // 3. 执行评价逻辑
   if (selectedFeedback.value === value) {
     selectedFeedback.value = null;
-    isFeedbackPanelOpen.value = false;
+    showFeedbackCard.value = false;
     pushMessage("feedback", "你取消了评价");
     return;
   }
   selectedFeedback.value = value;
-  isFeedbackPanelOpen.value = false;
+  showFeedbackCard.value = false;
   const opt = feedbackOptions.find(o => o.value === value);
   const label = opt ? opt.label : value;
   pushMessage("feedback", `你提交了评价：${label}`);
@@ -309,7 +349,7 @@ const resetConversation = () => {
   resetRiskAlerts();
   sessionEnded.value = false;
   selectedFeedback.value = null;
-  isFeedbackPanelOpen.value = false;
+  showFeedbackCard.value = false;
   endedText.value = "会话已结束，请重新咨询";
   msgCounter = 1;
   messages.value = [];
@@ -600,6 +640,130 @@ resetConversation();
   font-weight: 700;
 }
 
+.cw-quick-access {
+  margin-bottom: 8px;
+}
+
+.cw-quick-access__btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cw-quick-access__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f5f7fa;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cw-quick-access__btn:hover {
+  background: #e2e8f0;
+}
+
+.cw-quick-access__icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+}
+
+.cw-quick-access__text {
+  font-weight: 500;
+}
+
+.cw-feedback-hover-card {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 280px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.cw-feedback-hover-card__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.cw-feedback-hover-card__options {
+  display: flex;
+  gap: 12px;
+}
+
+.cw-feedback-hover-card__option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cw-feedback-hover-card__option:hover {
+  background: #f7fafc;
+}
+
+.cw-feedback-hover-card__option--selected {
+  background: #ebf8ff;
+}
+
+.cw-feedback-hover-card__emoji {
+  font-size: 24px;
+  filter: grayscale(0.8);
+  transition: filter 0.2s;
+}
+
+.cw-feedback-hover-card__option:hover .cw-feedback-hover-card__emoji,
+.cw-feedback-hover-card__option--selected .cw-feedback-hover-card__emoji {
+  filter: grayscale(0);
+}
+
+.cw-feedback-hover-card__label {
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.cw-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.cw-toast-fade-enter-active,
+.cw-toast-fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.cw-toast-fade-enter-from,
+.cw-toast-fade-leave-to {
+  opacity: 0;
+}
+
 .cw-messages {
   background: #f5f5f5;
   display: flex;
@@ -862,103 +1026,6 @@ resetConversation();
   font-weight: 500;
   margin: 0;
   text-align: center;
-}
-
-.cw-feedback-entry {
-  display: flex;
-  justify-content: center;
-  padding: 6px 0 2px;
-}
-
-.cw-feedback-capsule {
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 999px;
-  cursor: pointer;
-  display: inline-flex;
-  gap: 4px;
-  padding: 5px 12px;
-  transition: background 0.15s, box-shadow 0.15s;
-  user-select: none;
-}
-
-.cw-feedback-capsule:hover {
-  background: #f8f9fb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.cw-feedback-capsule__icon {
-  color: var(--agent-color-brand-primary);
-  flex-shrink: 0;
-}
-
-.cw-feedback-capsule__text {
-  color: var(--agent-color-text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.cw-feedback-capsule__chevron {
-  color: var(--agent-color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.cw-feedback-card-inline {
-  align-items: center;
-  background: #fff;
-  border-radius: 16px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 0 10px;
-  padding: 22px 20px;
-}
-
-.cw-feedback-card-inline__title {
-  color: var(--agent-color-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  margin: 0;
-  text-align: center;
-}
-
-.cw-feedback-card-inline__options {
-  display: flex;
-  gap: 28px;
-  justify-content: center;
-}
-
-.cw-feedback-card-inline__option {
-  align-items: center;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.cw-feedback-card-inline__emoji {
-  filter: grayscale(0.8);
-  font-size: 32px;
-  line-height: 1;
-  transition: filter 0.15s;
-}
-
-.cw-feedback-card-inline__option:hover .cw-feedback-card-inline__emoji,
-.cw-feedback-card-inline__option--selected .cw-feedback-card-inline__emoji {
-  filter: grayscale(0);
-}
-
-.cw-feedback-card-inline__label {
-  color: var(--agent-color-text-secondary);
-  font-size: 12px;
-}
-
-.cw-feedback-card-inline__option--selected .cw-feedback-card-inline__label {
-  color: var(--agent-color-brand-primary);
-  font-weight: 600;
 }
 
 .cw-footer {

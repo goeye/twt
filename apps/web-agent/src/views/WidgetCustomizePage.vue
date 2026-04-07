@@ -200,7 +200,7 @@
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('visitorFeedback')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">访客评价</h3>
-              <p class="wc-card__desc">会话创建后常驻显示评价入口，会话中和结束后都可评价</p>
+              <p class="wc-card__desc">访客端始终显示会话评价入口，评价需会话创建且非排队中</p>
             </div>
             <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
