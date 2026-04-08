@@ -622,7 +622,7 @@
                 </span>
                 <span class="wc-widget__action-pill-label">会话评价</span>
               </div>
-              <div v-for="item in previewQuickAccessItems" :key="item.id" class="wc-widget__action-pill">
+              <div v-for="item in (openSection === 'visitorFeedback' ? [] : previewQuickAccessItems)" :key="item.id" class="wc-widget__action-pill">
                 <span
                   class="wc-widget__action-pill-icon"
                   :class="{
@@ -3340,7 +3340,7 @@ watch(previewMode, (mode) => {
   color: rgba(100, 116, 145, 0.5);
   font-size: 15px;
   line-height: 1.5;
-  min-height: 46px;
+  min-height: 30px;
   padding: 0 18px;
 }
 
