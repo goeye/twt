@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link - 产品高保真原型导航</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1677FF;
+            --primary-hover: #4096FF;
+            --bg: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text-main: #1F1F1F;
+            --text-sub: #5C5C5C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            color: #1F1F1F;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(0, 0, 0, 0.65);
+        }
+
+        .cards-container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1200px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 40px;
+            width: 320px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 30px 60px rgba(0, 118, 255, 0.15);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), #82B1FF);
+            color: white;
+            font-size: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 20px rgba(22, 119, 255, 0.2);
+        }
+        
+        .card.admin .card-icon { background: linear-gradient(135deg, #722ED1, #B37FEB); box-shadow: 0 10px 20px rgba(114, 46, 209, 0.2); }
+        .card.mobile .card-icon { background: linear-gradient(135deg, #52C41A, #95DE64); box-shadow: 0 10px 20px rgba(82, 196, 26, 0.2); }
+
+        .card h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: var(--text-sub);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .card-btn {
+            padding: 12px 32px;
+            background: var(--text-main);
+            color: white;
+            border-radius: 99px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .card:hover .card-btn {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+        .card.admin:hover .card-btn { background: #722ED1; }
+        .card.mobile:hover .card-btn { background: #52C41A; }
+    
+        /* 通用滚动条样式优化 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Link 原型聚合页</h1>
+        <p>基于第 1 期需求说明文档设计的高保真交互原型体系</p>
+    </div>
+
+    <div class="cards-container">
+        <!-- 后台管理端 -->
+        <a href="link_admin.html" class="card admin" target="_blank">
+            <div class="card-icon"><i class="ri-dashboard-3-line"></i></div>
+            <h2>后台管理端</h2>
+            <p>企业管理员专属的控制台。提供成员管理、部门维护、信息配置呈现、权限分配及企业全局设置能力。</p>
+            <div class="card-btn">进入演示</div>
+        </a>
+
+        <!-- 客户端 Web/PC -->
+        <a href="link_client.html" class="card client" target="_blank">
+            <div class="card-icon"><i class="ri-computer-line"></i></div>
+            <h2>桌面客户端</h2>
+            <p>员工日常核心办公平台。包含单聊群聊、全局搜索、聊天记录查找检索、通讯录架构及组织名片互动。</p>
+            <div class="card-btn">进入演示</div>
+        </a>
+
+        <!-- 移动端 App -->
+        <a href="link_mobile.html" class="card mobile" target="_blank">
+            <div class="card-icon"><i class="ri-smartphone-line"></i></div>
+            <h2>移动端 App</h2>
+            <p>随身移动协作中心。兼容手势的底部导航栏设计结构、消息列表、聚合搜索与快捷发起群聊沉浸式体验。</p>
+            <div class="card-btn">进入演示</div>
+        </a>
+    </div>
+</body>
+</html>
