@@ -37,6 +37,23 @@
 
     <div class="email-composer__toolbar">
       <div class="email-composer__tools">
+        <div class="email-composer__mode-wrap" ref="modeWrapRef">
+          <button class="email-composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
+            <span>{{ noteMode ? '备注' : '回复' }}</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div v-if="modeMenuOpen" class="email-composer__mode-menu">
+            <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              回复
+            </button>
+            <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              备注
+            </button>
+          </div>
+        </div>
+        <span class="email-composer__divider" />
         <button class="email-composer__tool-btn" type="button" aria-label="加粗" @click="execFormat('bold')">
           <AgentIcon name="bold" :size="14" />
         </button>
@@ -135,24 +152,6 @@
     </div>
 
     <div class="email-composer__footer">
-      <div class="email-composer__mode-wrap" ref="modeWrapRef">
-        <button class="email-composer__mode-btn" type="button" @click="modeMenuOpen = !modeMenuOpen">
-          <svg v-if="!noteMode" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          <span>{{ noteMode ? '备注' : '回复' }}</span>
-        </button>
-        <div v-if="modeMenuOpen" class="email-composer__mode-menu email-composer__mode-menu--up">
-          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': !noteMode }" type="button" @click="setMode(false)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            回复
-          </button>
-          <button class="email-composer__mode-item" :class="{ 'email-composer__mode-item--active': noteMode }" type="button" @click="setMode(true)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            备注
-          </button>
-        </div>
-      </div>
       <button class="email-composer__send-btn" type="button" :disabled="isSendDisabled" @click="handlePrimarySend">{{ noteMode ? '添加备注' : '发送' }}</button>
     </div>
     </template>
@@ -633,43 +632,36 @@ onBeforeUnmount(() => {
 
 .email-composer__mode-btn {
   align-items: center;
-  background: #f5f7fb;
-  border: 1px solid #e3e9f3;
-  border-radius: 999px;
-  color: var(--agent-color-text-secondary);
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
   cursor: pointer;
   display: inline-flex;
   font-size: var(--agent-font-size-sm);
-  gap: 6px;
-  height: 32px;
+  font-weight: var(--agent-font-weight-medium);
+  gap: 4px;
+  height: 30px;
   outline: none;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
 .email-composer__mode-btn:hover {
-  background: #eef3ff;
-  border-color: #cfd9eb;
-  color: var(--agent-color-text-primary);
+  color: var(--agent-color-brand-primary);
 }
 
 .email-composer__mode-menu {
   background: #ffffff;
   border: 1px solid var(--agent-color-border-default);
   border-radius: var(--agent-radius-md);
-  box-shadow: var(--agent-shadow-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   left: 0;
   min-width: 110px;
   padding: 4px;
   position: absolute;
-  top: calc(100% + 4px);
+  bottom: calc(100% + 6px);
   z-index: var(--agent-z-dropdown);
-}
-
-.email-composer__mode-menu--up {
-  bottom: calc(100% + 4px);
-  top: auto;
 }
 
 .email-composer__mode-item {
@@ -995,10 +987,6 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
-.email-composer__split-btn {
-  display: inline-flex;
-}
-
 .email-composer__send-btn {
   align-items: center;
   background: #f0f3f8;
@@ -1017,26 +1005,6 @@ onBeforeUnmount(() => {
 
 .email-composer__send-btn:enabled {
   background: var(--agent-color-brand-primary);
-  color: #ffffff;
-}
-
-.email-composer__split-arrow {
-  align-items: center;
-  background: #f0f3f8;
-  border: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0 10px 10px 0;
-  color: #9ca8ba;
-  cursor: pointer;
-  display: inline-flex;
-  height: 36px;
-  justify-content: center;
-  width: 30px;
-}
-
-.email-composer__split-arrow:enabled {
-  background: var(--agent-color-brand-primary);
-  border-left-color: rgba(255, 255, 255, 0.3);
   color: #ffffff;
 }
 
