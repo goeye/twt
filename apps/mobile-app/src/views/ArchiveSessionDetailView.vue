@@ -54,36 +54,27 @@
       </template>
     </div>
 
-    <!-- 底部输入栏 -->
-    <div class="input-bar-wrap">
-      <div class="input-bar" :class="{ 'input-bar--active': inputFocused }">
-        <textarea
-          ref="textareaRef"
-          v-model="inputText"
-          class="input-field"
-          :class="{ 'input-field--active': inputFocused }"
-          placeholder="输入信息…"
-          rows="1"
-          @focus="inputFocused = true"
-          @blur="handleBlur"
-        />
-        <div class="input-actions">
-          <button class="input-action">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#C0C4CC" stroke-width="1.5" />
-              <circle cx="8.5" cy="10" r="1" fill="#C0C4CC" />
-              <circle cx="15.5" cy="10" r="1" fill="#C0C4CC" />
-              <path d="M8.5 14.5C9.5 16 10.5 16.5 12 16.5C13.5 16.5 14.5 16 15.5 14.5" stroke="#C0C4CC" stroke-width="1.2" stroke-linecap="round" />
-            </svg>
-          </button>
-          <button v-if="!inputText.trim()" class="input-action">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#C0C4CC" stroke-width="1.5" />
-              <path d="M12 8V16M8 12H16" stroke="#C0C4CC" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-          </button>
-          <button v-else class="input-send" @click="handleSend">发送</button>
-        </div>
+    <!-- 底部操作栏 -->
+    <div class="bottom-action-wrap">
+      <!-- 已回复状态 -->
+      <button v-if="sessionStatus === 'replied' && !isCurrentAgentInSession" class="action-btn action-btn--primary" @click="handleJoinSession">
+        加入会话
+      </button>
+      <button v-else-if="sessionStatus === 'replied' && isCurrentAgentInSession" class="action-btn action-btn--primary" @click="handleEnterSession">
+        进入会话
+      </button>
+
+      <!-- 排队中状态 -->
+      <button v-else-if="sessionStatus === 'queuing'" class="action-btn action-btn--primary" @click="handleClaimSession">
+        领取会话
+      </button>
+
+      <!-- 已关闭状态 -->
+      <button v-else-if="sessionStatus === 'closed' && isAdmin" class="action-btn action-btn--danger" @click="handleDeleteSession">
+        删除会话
+      </button>
+      <div v-else-if="sessionStatus === 'closed' && !isAdmin" class="action-text">
+        会话已结束
       </div>
     </div>
 
@@ -147,6 +138,24 @@ import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
+
+// 从路由参数获取会话状态，并映射到对应的状态值
+const statusMap: Record<string, 'replied' | 'queuing' | 'closed'> = {
+  'replied': 'replied',
+  'queuing': 'queuing',
+  'closed': 'closed',
+  'pending': 'replied',
+  'processing': 'replied'
+};
+
+const sessionStatus = ref<'replied' | 'queuing' | 'closed'>(
+  statusMap[route.query.status as string] || 'replied'
+);
+
+// 当前客服是否在会话中
+const isCurrentAgentInSession = ref(false);
+// 是否是管理员
+const isAdmin = ref(true);
 
 const session = ref({
   title: "未知问题",
@@ -251,6 +260,26 @@ function handleGoInfo(tab: string) {
   showActionSheet.value = false;
   const id = route.params.id || '1';
   router.push({ path: `/session/${id}/info`, query: { tab } });
+}
+
+function handleJoinSession() {
+  showToast('已加入会话');
+  isCurrentAgentInSession.value = true;
+}
+
+function handleEnterSession() {
+  showToast('进入会话');
+  // 这里可以跳转到实时会话页面
+}
+
+function handleClaimSession() {
+  showToast('领取会话');
+  // 这里可以领取会话并跳转到会话详情
+}
+
+function handleDeleteSession() {
+  showToast('删除会话');
+  // 这里可以打开确认删除的弹窗
 }
 
 function loadPendingSystemMessages() {
@@ -499,92 +528,47 @@ onMounted(() => {
   word-break: break-word;
 }
 
-/* 底部输入栏 */
-.input-bar-wrap {
+/* 底部操作栏 */
+.bottom-action-wrap {
   padding: 8px 16px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   background: #f5f7f9;
   flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.input-bar {
-  display: flex;
-  align-items: center;
-  min-height: 52px;
-  background: #fff;
+.action-btn {
+  width: 100%;
+  height: 52px;
   border-radius: 70px;
-  padding: 0 12px 0 20px;
-  box-shadow: 0 -7px 28px rgba(0, 0, 0, 0.02);
-  gap: 4px;
-  transition: border-radius 0.2s, min-height 0.2s;
-}
-
-.input-bar--active {
-  border-radius: 20px;
-  min-height: 100px;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 14px 16px 10px 20px;
-}
-
-.input-field {
-  flex: 1;
   font-size: 16px;
-  color: #222;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  resize: none;
-  font-family: inherit;
-  line-height: 22px;
-  padding: 0;
-}
-
-.input-field--active {
-  flex: 1;
-  min-height: 48px;
-}
-
-.input-field::placeholder {
-  color: rgba(100, 116, 145, 0.5);
-}
-
-.input-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.input-bar--active .input-actions {
-  justify-content: flex-end;
-}
-
-.input-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.input-send {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 16px;
-  background: #105EFF;
-  border-radius: 20px;
-  color: #fff;
-  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s;
+}
+
+.action-btn:active {
+  opacity: 0.8;
+}
+
+.action-btn--primary {
+  background: #105EFF;
+  color: #fff;
+}
+
+.action-btn--danger {
+  background: transparent;
+  color: #ff382e;
+  border: 1px solid #ff382e;
+}
+
+.action-text {
+  font-size: 14px;
+  color: #647491;
+  text-align: center;
 }
 
 /* 操作面板 */

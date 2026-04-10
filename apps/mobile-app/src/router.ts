@@ -50,6 +50,12 @@ const router = createRouter({
       name: "TransferSession",
       component: () => import("./views/TransferSessionView.vue"),
       meta: { hideTabBar: true }
+    },
+    {
+      path: "/archive/session/:id",
+      name: "ArchiveSessionDetail",
+      component: () => import("./views/ArchiveSessionDetailView.vue"),
+      meta: { hideTabBar: true }
     }
   ]
 });

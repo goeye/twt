@@ -14,7 +14,7 @@
           class="header-tab"
           :class="{ 'header-tab--active': activeTab === 'chat' }"
           @click="activeTab = 'chat'"
-        >沟通记录</span>
+        >聊天记录</span>
       </div>
     </div>
 
@@ -118,7 +118,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const activeTab = ref<"session" | "chat">("session");
 
 const sessionFilters = ["状态", "标签", "访客评价"];
@@ -214,7 +216,12 @@ const chatRecordList = ref<ChatRecordItem[]>([
 
 function handleFieldSelect() {}
 function handleFilter(_f: string) {}
-function handleSessionClick(_item: SessionItem) {}
+function handleSessionClick(item: SessionItem) {
+  router.push({
+    path: `/archive/session/${item.id}`,
+    query: { status: item.statusType }
+  });
+}
 function handleChatClick(_item: ChatRecordItem) {}
 </script>
 
@@ -250,6 +257,7 @@ function handleChatClick(_item: ChatRecordItem) {}
   display: flex;
   align-items: baseline;
   gap: 16px;
+  min-height: 29px;
 }
 
 .header-tab {
@@ -258,7 +266,6 @@ function handleChatClick(_item: ChatRecordItem) {}
   color: #222;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: font-size 0.2s ease;
   white-space: nowrap;
 }
 

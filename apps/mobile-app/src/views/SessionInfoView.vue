@@ -129,11 +129,6 @@
           </div>
           <div class="card-divider" />
           <div class="card-row">
-            <span class="card-label">访客ID</span>
-            <span class="card-value">13</span>
-          </div>
-          <div class="card-divider" />
-          <div class="card-row">
             <span class="card-label">发起时间</span>
             <span class="card-value">2025-07-24 12:12:12</span>
           </div>
@@ -141,6 +136,11 @@
           <div class="card-row">
             <span class="card-label">接待时间</span>
             <span class="card-value">2025-07-24 12:12:12</span>
+          </div>
+          <div class="card-divider" />
+          <div class="card-row">
+            <span class="card-label">会话评价</span>
+            <span class="card-value">{{ sessionRatingText }}</span>
           </div>
         </div>
 
@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
@@ -201,6 +201,17 @@ const serviceAgents = ref<ServiceAgent[]>([
   { name: "李维利", initial: "李", color: "#f5a623", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face", badge: "会话负责人" },
   { name: "马未果", initial: "马", color: "#f5a623", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face" },
 ]);
+
+// 会话评价数据，可以是 'satisfied'（满意）、'neutral'（一般）、'unsatisfied'（不满意）或 null（无评价）
+const sessionRating = ref<'satisfied' | 'neutral' | 'unsatisfied' | null>('satisfied');
+
+// 计算显示的评价文本
+const sessionRatingText = computed(() => {
+  if (sessionRating.value === 'satisfied') return '满意';
+  if (sessionRating.value === 'neutral') return '一般';
+  if (sessionRating.value === 'unsatisfied') return '不满意';
+  return '-';
+});
 
 onMounted(() => {
   const raw = sessionStorage.getItem("addedAgents");
