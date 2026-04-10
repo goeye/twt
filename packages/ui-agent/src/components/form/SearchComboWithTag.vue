@@ -1,7 +1,7 @@
 <template>
   <div class="search-combo" ref="containerRef">
     <div class="search-combo__input-wrap">
-      <span class="search-combo__tag">
+      <span v-if="hasUserSelected" class="search-combo__tag">
         {{ selectedLabel }}
       </span>
 
@@ -87,6 +87,7 @@ const showDropdown = ref(false);
 const isFocused = ref(false);
 const activeIndex = ref(0);
 const dropdownStyle = ref<Record<string, string>>({});
+const hasUserSelected = ref(false); // 跟踪用户是否主动选择过选项
 
 const keyword = computed({
   get: () => props.modelValue,
@@ -183,6 +184,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const selectOption = (option: SearchOption) => {
   emit("update:selectedField", option.value);
+  hasUserSelected.value = true; // 标记用户已选择
   showDropdown.value = false;
 
   if (keyword.value.trim()) {
@@ -197,6 +199,7 @@ const selectOption = (option: SearchOption) => {
 const clearAll = () => {
   emit("update:modelValue", "");
   emit("update:selectedField", "all");
+  hasUserSelected.value = false; // 重置选择状态
   emit("search"); // 触发搜索以清空过滤
   nextTick(() => {
     inputRef.value?.focus();
