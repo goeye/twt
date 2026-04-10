@@ -39,6 +39,7 @@ export { default as AgentToast } from "./components/feedback/AgentToast.vue";
 export { default as FilterBar } from "./components/form/FilterBar.vue";
 export { default as AgentSwitch } from "./components/form/AgentSwitch.vue";
 export { default as TimeDurationInput } from "./components/form/TimeDurationInput.vue";
+export { default as SearchComboWithTag } from "./components/form/SearchComboWithTag.vue";
 
 export { default as DataTable } from "./components/table/DataTable.vue";
 export { default as PaginationBar } from "./components/table/PaginationBar.vue";

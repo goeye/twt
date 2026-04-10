@@ -265,31 +265,12 @@
           </div>
 
           <div class="inbox-pane__search-row">
-            <div class="inbox-pane__search-box">
-              <div class="inbox-pane__search-field-wrap" ref="searchFieldWrapRef">
-                <button type="button" class="inbox-pane__search-field-btn" @click="searchFieldDropdownVisible = !searchFieldDropdownVisible">
-                  <span>{{ searchFieldOptions.find(o => o.key === searchFieldType)?.label ?? '全部' }}</span>
-                  <AgentIcon name="chevron-down" :size="10" />
-                </button>
-                <div v-if="searchFieldDropdownVisible" class="inbox-pane__search-field-dropdown">
-                  <button
-                    v-for="opt in searchFieldOptions"
-                    :key="opt.key"
-                    type="button"
-                    class="inbox-pane__search-field-option"
-                    :class="{ 'inbox-pane__search-field-option--selected': searchFieldType === opt.key }"
-                    @click="selectSearchField(opt.key)"
-                  >
-                    <span>{{ opt.label }}</span>
-                    <span v-if="searchFieldType === opt.key" class="inbox-pane__search-field-check">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="#2f6bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </span>
-                  </button>
-                </div>
-              </div>
-              <div class="inbox-pane__search-divider"></div>
-              <input v-model="searchKeyword" class="agent-input inbox-pane__search-input" placeholder="搜索" />
-            </div>
+            <SearchComboWithTag
+              v-model="searchKeyword"
+              v-model:selected-field="searchFieldType"
+              :options="searchFieldOptionsFormatted"
+              @search="handleSearch"
+            />
           </div>
 
           <div class="inbox-pane__filter-row">
@@ -845,6 +826,7 @@ import {
   SessionQueueNav,
   TransferModal,
   SearchMatchDialog,
+  SearchComboWithTag,
   type MessageItem,
   type NavItem,
   type SessionItem,
@@ -2475,6 +2457,7 @@ async function handleRetryTranslation(messageId: string, content: string) {
 }
 
 const searchKeyword = ref("");
+const appliedSearchKeyword = ref(""); // 实际应用的搜索关键词，只在触发搜索时更新
 const searchMatchDialogVisible = ref(false);
 const searchMatchDialogMessages = ref<Array<{
   id: string;
@@ -2569,6 +2552,15 @@ const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string 
   { key: "conversationRecord", label: "沟通记录" },
   { key: "customerIdentifier", label: "客户标识" },
 ]);
+
+const searchFieldOptionsFormatted = computed(() =>
+  searchFieldOptions.value.map(opt => ({ value: opt.key, label: opt.label }))
+);
+
+function handleSearch() {
+  // 触发搜索时更新实际应用的关键词
+  appliedSearchKeyword.value = searchKeyword.value;
+}
 
 function selectSearchField(key: SearchFieldType) {
   searchFieldType.value = key;
@@ -2829,7 +2821,7 @@ const queueSessionList = computed(() => activeQueueKey.value === "all-online"
   ? displaySessions.value.filter((s) => onlineQueueKeys.includes(s.queueKey))
   : displaySessions.value.filter((s) => s.queueKey === activeQueueKey.value));
 
-watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; searchKeyword.value = ""; });
+watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; searchKeyword.value = ""; appliedSearchKeyword.value = ""; });
 
 const filterCounts = computed(() => {
   const list = queueSessionList.value;
@@ -2858,7 +2850,7 @@ const showOnlineSessionFilter = computed(() =>
 
 const sessionMatchResults = computed(() => {
   const results = new Map<string, { matchedIds: string[]; firstMatchContent: string; matchCount: number }>();
-  const keyword = searchKeyword.value.trim();
+  const keyword = appliedSearchKeyword.value.trim();
   if (!keyword) return results;
   const field = searchFieldType.value;
   if (field !== "all" && field !== "conversationRecord") return results;
@@ -2895,7 +2887,7 @@ const sessionMatchResults = computed(() => {
 });
 
 const visibleSessions = computed(() => {
-  const keyword = searchKeyword.value.trim().toLowerCase();
+  const keyword = appliedSearchKeyword.value.trim().toLowerCase();
   const f = activeFilter.value;
   return queueSessionList.value.filter((session) => {
     if (sessionFilterType.value === "visitor" && session.tag !== "访客") return false;
@@ -3331,6 +3323,7 @@ const syncRouteScopedState = (
       : resolveScopedKey(activeQueueKey.value, validQueueKeys, defaultQueueKey);
     if (options.forceDefault) {
       searchKeyword.value = "";
+      appliedSearchKeyword.value = "";
     }
     return;
   }
@@ -3456,6 +3449,7 @@ const handleQueueGroupAction = ({ groupKey, actionKey }: { groupKey: string; act
 const handleQueueSelect = (key: string) => {
   activeQueueKey.value = resolveScopedKey(key, validQueueKeys, defaultQueueKey);
   searchKeyword.value = "";
+  appliedSearchKeyword.value = "";
 };
 
 const handleFilesNavSelect = (key: string) => {
@@ -3689,6 +3683,7 @@ const handleStartChatConfirm = (contacts: StartChatContact[]) => {
       activeQueueKey.value = "chat-room";
       activeSessionId.value = existingSession.id;
       searchKeyword.value = "";
+      appliedSearchKeyword.value = "";
       startChatModalOpen.value = false;
       showTopToast(`已打开与 ${effectiveContacts[0].name} 的聊天`);
       return;
@@ -3706,6 +3701,7 @@ const handleStartChatConfirm = (contacts: StartChatContact[]) => {
   activeQueueKey.value = "chat-room";
   activeSessionId.value = session.id;
   searchKeyword.value = "";
+  appliedSearchKeyword.value = "";
   startChatModalOpen.value = false;
   showTopToast(effectiveContacts.length > 1 ? "群聊已创建" : "聊天已创建");
 };
