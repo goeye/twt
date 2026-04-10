@@ -71,7 +71,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: "搜索全部..."
+  placeholder: "搜索"
 });
 
 const emit = defineEmits<{
@@ -101,9 +101,9 @@ const selectedLabel = computed(() => {
 
 const computedPlaceholder = computed(() => {
   if (props.selectedField === "all") {
-    return "搜索全部...";
+    return props.placeholder;
   }
-  return `搜索${selectedLabel.value}...`;
+  return selectedLabel.value ? `搜索${selectedLabel.value}` : props.placeholder;
 });
 
 const updateDropdownPosition = () => {

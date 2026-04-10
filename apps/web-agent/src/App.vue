@@ -2543,15 +2543,25 @@ const searchFieldType = ref<SearchFieldType>("all");
 const searchFieldDropdownVisible = ref(false);
 const searchFieldWrapRef = ref<HTMLElement | null>(null);
 
-const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string }>>(() => [
-  { key: "all", label: "全部" },
-  { key: "visitorName", label: "访客姓名" },
-  { key: "visitorAlias", label: "访客备注名" },
-  { key: "agentName", label: "客服姓名" },
-  { key: "title", label: isChatRoom.value ? "聊天标题" : "会话标题" },
-  { key: "conversationRecord", label: "沟通记录" },
-  { key: "customerIdentifier", label: "客户标识" },
-]);
+const searchFieldOptions = computed<Array<{ key: SearchFieldType; label: string }>>(() => {
+  const options: Array<{ key: SearchFieldType; label: string }> = [
+    { key: "all", label: "全部" },
+    { key: "visitorName", label: "访客姓名" },
+    { key: "visitorAlias", label: "访客备注名" },
+  ];
+
+  if (isChatRoom.value) {
+    options.push({ key: "agentName", label: "客服姓名" });
+  }
+
+  options.push(
+    { key: "title", label: isChatRoom.value ? "聊天标题" : "会话标题" },
+    { key: "conversationRecord", label: "沟通记录" },
+    { key: "customerIdentifier", label: "客户标识" },
+  );
+
+  return options;
+});
 
 const searchFieldOptionsFormatted = computed(() =>
   searchFieldOptions.value.map(opt => ({ value: opt.key, label: opt.label }))
@@ -2909,7 +2919,7 @@ const visibleSessions = computed(() => {
         session.visitorId.toLowerCase().includes(keyword) ||
         session.visitorName.toLowerCase().includes(keyword) ||
         (session.remarkName ?? "").toLowerCase().includes(keyword) ||
-        (session.assignee ?? "").toLowerCase().includes(keyword) ||
+        (isChatRoom.value && (session.assignee ?? "").toLowerCase().includes(keyword)) ||
         session.customerName.toLowerCase().includes(keyword) ||
         sessionMatchResults.value.has(session.id)
       );
