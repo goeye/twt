@@ -230,14 +230,6 @@ const messages = ref<Message[]>(
     ? [
         {
           id: 1,
-          type: 'system',
-          sender: '',
-          avatar: '',
-          time: '',
-          content: '系统消息 22:04'
-        },
-        {
-          id: 2,
           role: 'agent',
           sender: 'Autopilot',
           avatar: 'data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" rx="40" fill="%23105EFF"/%3E%3Ccircle cx="40" cy="32" r="8" fill="white"/%3E%3Ccircle cx="32" cy="48" r="4" fill="white"/%3E%3Ccircle cx="48" cy="48" r="4" fill="white"/%3E%3C/svg%3E',
@@ -245,15 +237,7 @@ const messages = ref<Message[]>(
           content: '你好，请问有什么可以帮您的？'
         },
         {
-          id: 3,
-          type: 'system',
-          sender: '',
-          avatar: '',
-          time: '',
-          content: '开始时间 22:04'
-        },
-        {
-          id: 4,
+          id: 2,
           role: 'customer',
           sender: 'Visitor5',
           avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
@@ -261,7 +245,7 @@ const messages = ref<Message[]>(
           content: '123'
         },
         {
-          id: 5,
+          id: 3,
           role: 'agent',
           sender: 'Autopilot',
           avatar: 'data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" rx="40" fill="%23105EFF"/%3E%3Ccircle cx="40" cy="32" r="8" fill="white"/%3E%3Ccircle cx="32" cy="48" r="4" fill="white"/%3E%3Ccircle cx="48" cy="48" r="4" fill="white"/%3E%3C/svg%3E',

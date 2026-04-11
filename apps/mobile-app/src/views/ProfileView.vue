@@ -20,7 +20,7 @@
       </div>
       <div class="user-info">
         <span class="user-name">客服主管-粒粒</span>
-        <span class="user-role">客服主管</span>
+        <span class="user-role">超级管理员</span>
       </div>
       <svg class="chevron" width="7" height="10" viewBox="0 0 7 10" fill="none">
         <path d="M1 1L5 5L1 9" stroke="#C0C4CC" stroke-width="1.5" stroke-linecap="round" />

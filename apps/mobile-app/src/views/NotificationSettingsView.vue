@@ -149,7 +149,7 @@ function handleOpenSettings() {
 .tip-section {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   padding: 24px 16px 16px;
 }
@@ -157,7 +157,7 @@ function handleOpenSettings() {
 .tip-text {
   font-size: 12px;
   color: #75869c;
-  text-align: center;
+  text-align: left;
 }
 
 .tip-link {
