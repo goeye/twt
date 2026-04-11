@@ -28,6 +28,12 @@ const router = createRouter({
       component: () => import("./views/ProfileView.vue")
     },
     {
+      path: "/profile/info",
+      name: "ProfileInfo",
+      component: () => import("./views/ProfileInfoView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
       path: "/session/:id",
       name: "SessionDetail",
       component: () => import("./views/SessionDetailView.vue"),
@@ -52,9 +58,27 @@ const router = createRouter({
       meta: { hideTabBar: true }
     },
     {
+      path: "/session/:id/add-tags",
+      name: "AddVisitorTags",
+      component: () => import("./views/AddVisitorTagsView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
       path: "/archive/session/:id",
       name: "ArchiveSessionDetail",
       component: () => import("./views/ArchiveSessionDetailView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/archive/filters",
+      name: "ArchiveFilters",
+      component: () => import("./views/ArchiveFiltersView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/archive/chat-filters",
+      name: "ArchiveChatFilters",
+      component: () => import("./views/ArchiveChatFiltersView.vue"),
       meta: { hideTabBar: true }
     },
     {
@@ -67,6 +91,24 @@ const router = createRouter({
       path: "/settings/notification",
       name: "NotificationSettings",
       component: () => import("./views/NotificationSettingsView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/switch-project",
+      name: "SwitchProject",
+      component: () => import("./views/SwitchProjectView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/session/:id/edit-title",
+      name: "EditSessionTitle",
+      component: () => import("./views/EditSessionTitleView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/archive/chat/:id",
+      name: "ArchiveChatDetail",
+      component: () => import("./views/ArchiveChatDetailView.vue"),
       meta: { hideTabBar: true }
     }
   ]

@@ -94,6 +94,20 @@
           </div>
         </div>
 
+        <p class="section-label">访客标签</p>
+        <div class="card">
+          <div class="tag-container">
+            <button class="add-tag-btn" @click="handleAddTags">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M6 1V11M1 6H11" stroke="#105eff" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div v-for="tag in visitorTags" :key="tag.id" class="tag-chip">
+              <span class="tag-chip-text">{{ tag.name }}</span>
+            </div>
+          </div>
+        </div>
+
         <p class="section-label">设备信息</p>
         <div class="card">
           <div class="card-row">
@@ -122,7 +136,7 @@
             <span class="card-value">34</span>
           </div>
           <div class="card-divider" />
-          <div class="card-row">
+          <div class="card-row" @click="handleEditTitle">
             <span class="card-label">会话标题</span>
             <span class="card-value card-value--ellipsis">这是个很长很长的标题显示…</span>
             <svg class="card-arrow" width="7" height="10" viewBox="0 0 7 10" fill="none"><path d="M1 1L5 5L1 9" stroke="#C0C4CC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -141,6 +155,20 @@
           <div class="card-row">
             <span class="card-label">会话评价</span>
             <span class="card-value">{{ sessionRatingText }}</span>
+          </div>
+        </div>
+
+        <p class="section-label">会话标签</p>
+        <div class="card">
+          <div class="tag-container">
+            <button class="add-tag-btn" @click="handleAddSessionTags">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M6 1V11M1 6H11" stroke="#105eff" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div v-for="tag in sessionTags" :key="tag.id" class="tag-chip">
+              <span class="tag-chip-text">{{ tag.name }}</span>
+            </div>
           </div>
         </div>
 
@@ -197,10 +225,29 @@ interface ServiceAgent {
   badge?: string;
 }
 
+interface Tag {
+  id: number;
+  name: string;
+}
+
+const allTags: Tag[] = [
+  { id: 1, name: "有购买意向" },
+  { id: 2, name: "外部推荐" },
+  { id: 3, name: "广告投放" },
+  { id: 4, name: "待跟进" },
+  { id: 5, name: "这里是一个超长字段的tag黑名单标签展示" },
+  { id: 6, name: "SVIP" },
+  { id: 7, name: "价格敏感" },
+  { id: 8, name: "视频电话咨询客户已预约需演示核心功能" },
+];
+
 const serviceAgents = ref<ServiceAgent[]>([
   { name: "李维利", initial: "李", color: "#f5a623", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face", badge: "会话负责人" },
   { name: "马未果", initial: "马", color: "#f5a623", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face" },
 ]);
+
+const visitorTags = ref<Tag[]>([]);
+const sessionTags = ref<Tag[]>([]);
 
 // 会话评价数据，可以是 'satisfied'（满意）、'neutral'（一般）、'unsatisfied'（不满意）或 null（无评价）
 const sessionRating = ref<'satisfied' | 'neutral' | 'unsatisfied' | null>('satisfied');
@@ -225,7 +272,27 @@ onMounted(() => {
       }
     }
   }
+
+  // 加载访客标签
+  loadVisitorTags();
+  loadSessionTags();
 });
+
+function loadVisitorTags() {
+  const raw = sessionStorage.getItem("visitorTags");
+  if (raw) {
+    const tagIds = JSON.parse(raw) as number[];
+    visitorTags.value = allTags.filter(t => tagIds.includes(t.id));
+  }
+}
+
+function loadSessionTags() {
+  const raw = sessionStorage.getItem("sessionTags");
+  if (raw) {
+    const tagIds = JSON.parse(raw) as number[];
+    sessionTags.value = allTags.filter(t => tagIds.includes(t.id));
+  }
+}
 
 const toastText = ref("");
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -245,6 +312,27 @@ function handleTransfer() {
   const id = route.params.id || '1';
   router.push(`/session/${id}/transfer`);
 }
+
+function handleAddTags() {
+  const id = route.params.id || '1';
+  router.push(`/session/${id}/add-tags?type=visitor`);
+}
+
+function handleAddSessionTags() {
+  const id = route.params.id || '1';
+  router.push(`/session/${id}/add-tags?type=session`);
+}
+
+function handleEditTitle() {
+  const id = route.params.id || '1';
+  router.push(`/session/${id}/edit-title`);
+}
+
+// 监听路由变化，重新加载标签
+router.afterEach(() => {
+  loadVisitorTags();
+  loadSessionTags();
+});
 </script>
 
 <style scoped>
@@ -544,6 +632,51 @@ function handleTransfer() {
 
 .transfer-btn:active {
   background: #f5f7f9;
+}
+
+/* 访客标签 */
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 17px 20px;
+  align-items: center;
+}
+
+.add-tag-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: #f4f5fb;
+  border: 1px dashed #e2e8ef;
+  border-radius: 50%;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.add-tag-btn:active {
+  opacity: 0.7;
+}
+
+.tag-chip {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 2px 8px;
+  background: #f4f5fb;
+  border-radius: 8px;
+  flex-shrink: 0;
+  max-width: 120px;
+}
+
+.tag-chip-text {
+  font-size: 14px;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Toast */

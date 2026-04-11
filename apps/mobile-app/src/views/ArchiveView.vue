@@ -20,8 +20,8 @@
 
     <!-- 搜索栏 -->
     <div class="search-bar">
-      <div class="search-field-select" @click="handleFieldSelect">
-        <span class="search-field-label">{{ activeTab === 'session' ? '访客姓名' : '聊天标题' }}</span>
+      <div class="search-field-select" @click="showFieldSheet = true">
+        <span class="search-field-label">{{ currentSearchField }}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path d="M3 4.5L6 7.5L9 4.5" stroke="#222" stroke-width="1.2" stroke-linecap="round" />
         </svg>
@@ -38,7 +38,7 @@
     <div class="filter-row">
       <div class="filter-chips">
         <template v-if="activeTab === 'session'">
-          <button v-for="f in sessionFilters" :key="f" class="filter-chip" @click="handleFilter(f)">
+          <button v-for="f in sessionFilters" :key="f" class="filter-chip" @click="handleFilterClick(f)">
             {{ f }}
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M3 4.5L6 7.5L9 4.5" stroke="#222" stroke-width="1.2" stroke-linecap="round" />
@@ -46,7 +46,7 @@
           </button>
         </template>
         <template v-else>
-          <button v-for="f in chatFilters" :key="f" class="filter-chip" @click="handleFilter(f)">
+          <button v-for="f in chatFilters" :key="f" class="filter-chip" @click="handleFilterClick(f)">
             {{ f }}
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M3 4.5L6 7.5L9 4.5" stroke="#222" stroke-width="1.2" stroke-linecap="round" />
@@ -55,12 +55,12 @@
         </template>
       </div>
       <div class="filter-actions">
-        <button class="filter-action-btn">
+        <button class="filter-action-btn" @click="showSortSheet = true">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M4 2V14M4 2L2 4M4 2L6 4M12 14V2M12 14L10 12M12 14L14 12" stroke="#222" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
-        <button class="filter-action-btn">
+        <button class="filter-action-btn" @click="goToAllFilters">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M2 4H14L10 9V13L6 14V9L2 4Z" stroke="#222" stroke-width="1.2" stroke-linejoin="round" />
           </svg>
@@ -113,18 +113,193 @@
         </div>
       </template>
     </div>
+
+    <!-- 搜索字段选择弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showFieldSheet" class="sheet-overlay" @click.self="showFieldSheet = false">
+        <div class="sheet">
+          <div class="sheet-options">
+            <button
+              v-for="field in searchFieldOptions"
+              :key="field"
+              class="sheet-option"
+              @click="selectSearchField(field)"
+            >
+              {{ field }}
+            </button>
+          </div>
+          <button class="sheet-cancel" @click="showFieldSheet = false">取消</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 状态筛选弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showStatusSheet" class="sheet-overlay" @click.self="showStatusSheet = false">
+        <div class="sheet">
+          <div class="sheet-options">
+            <button
+              v-for="status in statusOptions"
+              :key="status"
+              class="sheet-option"
+              @click="selectStatus(status)"
+            >
+              {{ status }}
+            </button>
+          </div>
+          <button class="sheet-cancel" @click="showStatusSheet = false">取消</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 标签筛选弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showTagSheet" class="sheet-overlay" @click.self="showTagSheet = false">
+        <div class="sheet">
+          <div class="sheet-options">
+            <button
+              v-for="tag in tagOptions"
+              :key="tag"
+              class="sheet-option"
+              :class="{ 'sheet-option--selected': selectedTags.has(tag) }"
+              @click="toggleTag(tag)"
+            >
+              <span>{{ tag }}</span>
+              <span v-if="selectedTags.has(tag)" class="sheet-option-check">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="9" cy="9" r="8" fill="#105eff" stroke="#105eff" stroke-width="2" />
+                  <path d="M5 9L8 12L13 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span v-else class="sheet-option-check">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="9" cy="9" r="8" stroke="#e2e8ef" stroke-width="2" />
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div class="sheet-actions">
+            <button class="sheet-action-btn sheet-action-btn--secondary" @click="resetTags">重置</button>
+            <button class="sheet-action-btn sheet-action-btn--primary" @click="confirmTags">确定</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 访客评价筛选弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showRatingSheet" class="sheet-overlay" @click.self="showRatingSheet = false">
+        <div class="sheet">
+          <div class="sheet-options">
+            <button
+              v-for="rating in ratingOptions"
+              :key="rating"
+              class="sheet-option"
+              @click="selectRating(rating)"
+            >
+              {{ rating }}
+            </button>
+          </div>
+          <button class="sheet-cancel" @click="showRatingSheet = false">取消</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 排序筛选弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showSortSheet" class="sheet-overlay" @click.self="showSortSheet = false">
+        <div class="sheet">
+          <div class="sheet-options">
+            <button
+              v-for="sort in (activeTab === 'session' ? sortOptions : chatSortOptions)"
+              :key="sort"
+              class="sheet-option"
+              @click="selectSort(sort)"
+            >
+              {{ sort }}
+            </button>
+          </div>
+          <button class="sheet-cancel" @click="showSortSheet = false">取消</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 消息数量筛选弹窗 -->
+    <Transition name="sheet">
+      <div v-if="showMessageCountSheet" class="sheet-overlay" @click.self="showMessageCountSheet = false">
+        <div class="sheet sheet--message-count">
+          <div class="message-count-header">
+            <button class="message-count-close" @click="showMessageCountSheet = false">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M6 6L18 18M18 6L6 18" stroke="#222" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <span class="message-count-title">消息数量</span>
+            <span class="message-count-placeholder" />
+          </div>
+          <div class="message-count-content">
+            <div class="message-count-label">消息数量范围</div>
+            <div class="message-count-inputs">
+              <input
+                v-model.number="messageCountMin"
+                type="number"
+                class="message-count-input"
+                placeholder="最小值"
+              />
+              <span class="message-count-separator">-</span>
+              <input
+                v-model.number="messageCountMax"
+                type="number"
+                class="message-count-input"
+                placeholder="不限"
+              />
+            </div>
+          </div>
+          <div class="message-count-actions">
+            <button class="message-count-btn message-count-btn--secondary" @click="resetMessageCount">重置</button>
+            <button class="message-count-btn message-count-btn--primary" @click="confirmMessageCount">确定</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const activeTab = ref<"session" | "chat">("session");
+const showFieldSheet = ref(false);
+const showStatusSheet = ref(false);
+const showTagSheet = ref(false);
+const showRatingSheet = ref(false);
+const showSortSheet = ref(false);
+const showMessageCountSheet = ref(false);
+const currentSearchField = ref("访客姓名");
+const selectedTags = ref(new Set<string>());
+const messageCountMin = ref<number | null>(null);
+const messageCountMax = ref<number | null>(null);
 
 const sessionFilters = ["状态", "标签", "访客评价"];
 const chatFilters = ["类型", "分类", "消息数量"];
+
+const statusOptions = ["不限", "待回复", "排队中", "待处理", "已回复", "已关闭"];
+const tagOptions = ["有购买意向", "外部推荐", "广告投放", "待跟进", "情绪稳定"];
+const ratingOptions = ["不限", "满意", "一般", "不满意"];
+const sortOptions = ["默认排序", "按发起时间", "按接待时间"];
+
+// 聊天记录筛选选项
+const chatTypeOptions = ["聊天标题", "参与人", "消息内容"];
+const chatCategoryOptions = ["全部", "内部", "外部"];
+const chatSortOptions = ["默认排序", "按最后消息时间"];
+
+const searchFieldOptions = computed(() => {
+  return activeTab.value === "session"
+    ? ["访客姓名", "访客备注名", "会话标题"]
+    : ["聊天标题", "参与人", "消息内容"];
+});
 
 interface SessionItem {
   id: number;
@@ -224,15 +399,95 @@ const chatRecordList = ref<ChatRecordItem[]>([
   }
 ]);
 
-function handleFieldSelect() {}
-function handleFilter(_f: string) {}
+function selectSearchField(field: string) {
+  currentSearchField.value = field;
+  showFieldSheet.value = false;
+}
+
+function handleFilterClick(filterName: string) {
+  if (activeTab.value === "session") {
+    // 会话记录筛选
+    if (filterName === "状态") {
+      showStatusSheet.value = true;
+    } else if (filterName === "标签") {
+      showTagSheet.value = true;
+    } else if (filterName === "访客评价") {
+      showRatingSheet.value = true;
+    }
+  } else {
+    // 聊天记录筛选
+    if (filterName === "类型") {
+      showStatusSheet.value = true; // 复用状态弹窗，显示类型选项
+    } else if (filterName === "分类") {
+      showTagSheet.value = true; // 复用标签弹窗，显示分类选项
+    } else if (filterName === "消息数量") {
+      showMessageCountSheet.value = true;
+    }
+  }
+}
+
+function selectStatus(status: string) {
+  console.log("选择状态:", status);
+  showStatusSheet.value = false;
+}
+
+function toggleTag(tag: string) {
+  const tags = new Set(selectedTags.value);
+  if (tags.has(tag)) {
+    tags.delete(tag);
+  } else {
+    tags.add(tag);
+  }
+  selectedTags.value = tags;
+}
+
+function resetTags() {
+  selectedTags.value = new Set();
+}
+
+function confirmTags() {
+  console.log("选择标签:", Array.from(selectedTags.value));
+  showTagSheet.value = false;
+}
+
+function selectRating(rating: string) {
+  console.log("选择评价:", rating);
+  showRatingSheet.value = false;
+}
+
+function selectSort(sort: string) {
+  console.log("选择排序:", sort);
+  showSortSheet.value = false;
+}
+
+function resetMessageCount() {
+  messageCountMin.value = null;
+  messageCountMax.value = null;
+}
+
+function confirmMessageCount() {
+  console.log("消息数量范围:", messageCountMin.value, "-", messageCountMax.value);
+  showMessageCountSheet.value = false;
+}
+
+function goToAllFilters() {
+  if (activeTab.value === "session") {
+    router.push("/archive/filters");
+  } else {
+    router.push("/archive/chat-filters");
+  }
+}
+
 function handleSessionClick(item: SessionItem) {
   router.push({
     path: `/archive/session/${item.id}`,
     query: { status: item.statusType }
   });
 }
-function handleChatClick(_item: ChatRecordItem) {}
+
+function handleChatClick(item: ChatRecordItem) {
+  router.push(`/archive/chat/${item.id}`);
+}
 </script>
 
 <style scoped>
@@ -608,5 +863,249 @@ function handleChatClick(_item: ChatRecordItem) {}
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+</style>
+
+<style scoped>
+/* 底部弹窗 */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 56px;
+  font-size: 16px;
+  color: #222;
+  border-bottom: 0.5px solid #f0f2f5;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0 20px;
+}
+
+.sheet-option:first-child {
+  border-radius: 20px 20px 0 0;
+}
+
+.sheet-option:active {
+  background: #f5f7f9;
+}
+
+.sheet-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  font-size: 16px;
+  color: #222;
+  margin-top: 8px;
+  background: #f5f7f9;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheet-cancel:active {
+  opacity: 0.7;
+}
+
+.sheet-cancel:active {
+  opacity: 0.7;
+}
+
+/* 标签选择特殊样式 */
+.sheet-option--selected {
+  background: #f5f7f9;
+}
+
+.sheet-option-check {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 底部操作按钮 */
+.sheet-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.sheet-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheet-action-btn--secondary {
+  background: #fff;
+  color: #222;
+}
+
+.sheet-action-btn--secondary:active {
+  background: #f5f7f9;
+}
+
+.sheet-action-btn--primary {
+  background: #105eff;
+  color: #fff;
+}
+
+.sheet-action-btn--primary:active {
+  opacity: 0.85;
+}
+
+/* 弹窗过渡 */
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 0.25s;
+}
+
+.sheet-enter-active .sheet,
+.sheet-leave-active .sheet {
+  transition: transform 0.25s ease-out;
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+
+.sheet-enter-from .sheet,
+.sheet-leave-to .sheet {
+  transform: translateY(100%);
+}
+
+/* 消息数量弹窗特殊样式 */
+.sheet--message-count {
+  padding: 0;
+}
+
+.message-count-header {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 0.5px solid #f0f2f5;
+}
+
+.message-count-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.message-count-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: #222;
+  text-align: center;
+}
+
+.message-count-placeholder {
+  width: 24px;
+}
+
+.message-count-content {
+  padding: 24px 20px;
+}
+
+.message-count-label {
+  font-size: 14px;
+  color: #75869c;
+  margin-bottom: 12px;
+}
+
+.message-count-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.message-count-input {
+  flex: 1;
+  height: 44px;
+  background: #f5f7f9;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #222;
+  text-align: center;
+}
+
+.message-count-input::placeholder {
+  color: #c0c4cc;
+}
+
+.message-count-separator {
+  font-size: 16px;
+  color: #222;
+}
+
+.message-count-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.message-count-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.message-count-btn--secondary {
+  background: #f5f7f9;
+  color: #222;
+}
+
+.message-count-btn--secondary:active {
+  opacity: 0.7;
+}
+
+.message-count-btn--primary {
+  background: #105eff;
+  color: #fff;
+}
+
+.message-count-btn--primary:active {
+  opacity: 0.85;
 }
 </style>

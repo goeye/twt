@@ -89,12 +89,14 @@ const isOnline = ref(true);
 const hasSettingsBadge = ref(true);
 
 function handleProfileClick() {
-  // placeholder
+  router.push('/profile/info');
 }
 
 function handleMenuClick(key: string) {
   if (key === 'settings') {
     router.push('/settings');
+  } else if (key === 'project') {
+    router.push('/switch-project');
   }
   // placeholder for other menu items
 }
