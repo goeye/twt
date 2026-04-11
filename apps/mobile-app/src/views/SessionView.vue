@@ -66,10 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 
 interface SessionItem {
   id: number;
@@ -87,7 +88,7 @@ interface SessionItem {
 const activeFilter = ref("pending");
 
 const filterTabs = [
-  { key: "pending", label: "待回复", badge: 1 },
+  { key: "pending", label: "待回复", badge: 3 },
   { key: "queuing", label: "排队中", badge: 0 },
   { key: "processing", label: "待处理", badge: 0 },
   { key: "replied", label: "已回复", badge: 0 }
@@ -116,6 +117,17 @@ const sessionList = ref<SessionItem[]>([
     status: "pending"
   },
   {
+    id: 8,
+    title: "咨询产品功能",
+    lastMessage: "Autopilot: 我会立刻为您处理。",
+    time: "22:10",
+    avatarChar: "咨",
+    avatarBg: "#ff6b6b",
+    online: true,
+    unread: true,
+    status: "pending"
+  },
+  {
     id: 3,
     title: "未知问题",
     lastMessage: "快点接入客服",
@@ -127,6 +139,17 @@ const sessionList = ref<SessionItem[]>([
   },
   {
     id: 4,
+    title: "咨询业务问题",
+    lastMessage: "您好，我是客服 Autopilot...",
+    time: "22:05",
+    avatarChar: "A",
+    avatarBg: "#105EFF",
+    online: true,
+    unread: true,
+    status: "pending"
+  },
+  {
+    id: 5,
     title: "未知问题",
     lastMessage: "[图片] [语音] [视频] [文件：文件名称.pdf]",
     time: "06:56",
@@ -136,8 +159,8 @@ const sessionList = ref<SessionItem[]>([
     status: "processing"
   },
   {
-    id: 5,
-    title: "了解��名金牌会员业务…",
+    id: 6,
+    title: "了解域名金牌会员业务…",
     lastMessage: "已记录，专人跟进。",
     time: "06:56",
     avatarChar: "了",
@@ -146,7 +169,7 @@ const sessionList = ref<SessionItem[]>([
     status: "replied"
   },
   {
-    id: 6,
+    id: 7,
     title: "未知问题",
     lastMessage: "快点接入客服",
     time: "06:56",
@@ -166,6 +189,27 @@ const filteredSessions = computed(() => {
 function handleSessionClick(item: SessionItem) {
   router.push(`/session/${item.id}`);
 }
+
+// 页面加载时检查是否需要自动定位和打开会话
+onMounted(() => {
+  const sessionId = route.query.sessionId as string;
+  const category = route.query.category as string;
+
+  if (sessionId && category) {
+    // 如果是 autopilot 分类，切换到"待回复"标签
+    if (category === 'autopilot') {
+      activeFilter.value = 'pending';
+    }
+
+    // 延迟一下，确保 DOM 渲染完成后再跳转
+    setTimeout(() => {
+      router.push({
+        path: `/session/${sessionId}`,
+        query: { fromTakeover: 'true' }
+      });
+    }, 300);
+  }
+});
 </script>
 
 <style scoped>

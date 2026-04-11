@@ -56,8 +56,18 @@
 
     <!-- 底部操作栏 -->
     <div class="bottom-action-wrap">
+      <!-- Autopilot 待回复状态 -->
+      <template v-if="isAutopilotSession && sessionStatus === 'pending'">
+        <button class="action-btn action-btn--secondary" @click="handleAssignSession">
+          分配会话
+        </button>
+        <button class="action-btn action-btn--primary" @click="handleTakeoverSession">
+          接管会话
+        </button>
+      </template>
+
       <!-- 已回复状态 -->
-      <button v-if="sessionStatus === 'replied' && !isCurrentAgentInSession" class="action-btn action-btn--primary" @click="handleJoinSession">
+      <button v-else-if="sessionStatus === 'replied' && !isCurrentAgentInSession" class="action-btn action-btn--primary" @click="handleJoinSession">
         加入会话
       </button>
       <button v-else-if="sessionStatus === 'replied' && isCurrentAgentInSession" class="action-btn action-btn--primary" @click="handleEnterSession">
@@ -125,6 +135,37 @@
       </div>
     </Transition>
 
+    <!-- 分配会话面板 -->
+    <Transition name="sheet">
+      <div v-if="showAssignSheet" class="action-sheet-overlay" @click.self="showAssignSheet = false">
+        <div class="assign-sheet">
+          <div class="assign-list">
+            <div v-for="agent in agentList" :key="agent.id" class="assign-item">
+              <img :src="agent.avatar" class="assign-avatar" />
+              <span class="assign-name">{{ agent.name }}</span>
+              <button class="assign-btn" @click="handleAssignToAgent(agent)">分配</button>
+            </div>
+          </div>
+          <div class="assign-divider" />
+          <button class="assign-cancel" @click="showAssignSheet = false">取消</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 接管确认弹窗 -->
+    <Transition name="dialog">
+      <div v-if="showTakeoverDialog" class="dialog-overlay" @click.self="showTakeoverDialog = false">
+        <div class="dialog-box">
+          <h3 class="dialog-title">确认接管</h3>
+          <p class="dialog-message">确定接管该会话吗？</p>
+          <div class="dialog-actions">
+            <button class="dialog-btn dialog-btn--cancel" @click="showTakeoverDialog = false">取消</button>
+            <button class="dialog-btn dialog-btn--confirm" @click="confirmTakeover">确认</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Toast -->
     <Transition name="toast">
       <div v-if="toastText" class="toast">{{ toastText }}</div>
@@ -140,15 +181,15 @@ const router = useRouter();
 const route = useRoute();
 
 // 从路由参数获取会话状态，并映射到对应的状态值
-const statusMap: Record<string, 'replied' | 'queuing' | 'closed'> = {
+const statusMap: Record<string, 'replied' | 'queuing' | 'closed' | 'pending'> = {
   'replied': 'replied',
   'queuing': 'queuing',
   'closed': 'closed',
-  'pending': 'replied',
+  'pending': 'pending',
   'processing': 'replied'
 };
 
-const sessionStatus = ref<'replied' | 'queuing' | 'closed'>(
+const sessionStatus = ref<'replied' | 'queuing' | 'closed' | 'pending'>(
   statusMap[route.query.status as string] || 'replied'
 );
 
@@ -156,12 +197,22 @@ const sessionStatus = ref<'replied' | 'queuing' | 'closed'>(
 const isCurrentAgentInSession = ref(false);
 // 是否是管理员
 const isAdmin = ref(true);
+// 是否是 Autopilot 会话
+const isAutopilotSession = ref(route.params.id === '4');
 
-const session = ref({
-  title: "未知问题",
-  avatarChar: "?",
-  avatarBg: "#36c6d9"
-});
+const session = ref(
+  isAutopilotSession.value
+    ? {
+        title: "咨询业务问题",
+        avatarChar: "A",
+        avatarBg: "#105EFF"
+      }
+    : {
+        title: "未知问题",
+        avatarChar: "?",
+        avatarBg: "#36c6d9"
+      }
+);
 
 interface Message {
   id: number;
@@ -174,58 +225,124 @@ interface Message {
   ratingValue?: 'satisfied' | 'neutral' | 'unsatisfied';
 }
 
-const messages = ref<Message[]>([
-  {
-    id: 1,
-    role: 'customer',
-    sender: "这里展示的应该为一个超长的昵…",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
-    time: "12/31 23:59",
-    content: "这是一条示例消息。它展示了来自【会话】的客户对话在您的收件箱中的显示方式。"
-  },
-  {
-    id: 2,
-    type: 'system',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '李明已将会话转移给张思远'
-  },
-  {
-    id: 3,
-    type: 'note',
-    role: 'agent',
-    sender: '大王',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-    time: '10:34',
-    content: '这是一条内部备注信息，仅客服可见。'
-  },
-  {
-    id: 4,
-    type: 'rating',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '访客提交了评价：满意',
-    ratingValue: 'satisfied'
-  },
-  {
-    id: 5,
-    type: 'system',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '李明添加了张思远、江晚柠、王子豪等5人加入会话'
-  }
-]);
+const messages = ref<Message[]>(
+  isAutopilotSession.value
+    ? [
+        {
+          id: 1,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '系统消息 22:04'
+        },
+        {
+          id: 2,
+          role: 'agent',
+          sender: 'Autopilot',
+          avatar: 'data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" rx="40" fill="%23105EFF"/%3E%3Ccircle cx="40" cy="32" r="8" fill="white"/%3E%3Ccircle cx="32" cy="48" r="4" fill="white"/%3E%3Ccircle cx="48" cy="48" r="4" fill="white"/%3E%3C/svg%3E',
+          time: '22:04',
+          content: '你好，请问有什么可以帮您的？'
+        },
+        {
+          id: 3,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '开始时间 22:04'
+        },
+        {
+          id: 4,
+          role: 'customer',
+          sender: 'Visitor5',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
+          time: '22:04',
+          content: '123'
+        },
+        {
+          id: 5,
+          role: 'agent',
+          sender: 'Autopilot',
+          avatar: 'data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" rx="40" fill="%23105EFF"/%3E%3Ccircle cx="40" cy="32" r="8" fill="white"/%3E%3Ccircle cx="32" cy="48" r="4" fill="white"/%3E%3Ccircle cx="48" cy="48" r="4" fill="white"/%3E%3C/svg%3E',
+          time: '22:05',
+          content: '您好，我是客服 Autopilot。看到您发送了"123"，请问具体是想查询什么业务或遇到什么问题需要帮助吗？\n\n您可以简单描述一下您的需求，我会立刻为您处理。'
+        }
+      ]
+    : [
+        {
+          id: 1,
+          role: 'customer',
+          sender: "这里展示的应该为一个超长的昵…",
+          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
+          time: "12/31 23:59",
+          content: "这是一条示例消息。它展示了来自【会话】的客户对话在您的收件箱中的显示方式。"
+        },
+        {
+          id: 2,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '李明已将会话转移给张思远'
+        },
+        {
+          id: 3,
+          type: 'note',
+          role: 'agent',
+          sender: '大王',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
+          time: '10:34',
+          content: '这是一条内部备注信息，仅客服可见。'
+        },
+        {
+          id: 4,
+          type: 'rating',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '访客提交了评价：满意',
+          ratingValue: 'satisfied'
+        },
+        {
+          id: 5,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '李明添加了张思远、江晚柠、王子豪等5人加入会话'
+        }
+      ]
+);
 
 const inputText = ref("");
 const inputFocused = ref(false);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const showActionSheet = ref(false);
+const showAssignSheet = ref(false);
+const showTakeoverDialog = ref(false);
 const isPending = ref(false);
 const toastText = ref("");
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+interface Agent {
+  id: number;
+  name: string;
+  avatar: string;
+}
+
+const agentList = ref<Agent[]>([
+  {
+    id: 1,
+    name: "Alienwang",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face"
+  },
+  {
+    id: 2,
+    name: "李伟",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
+  }
+]);
 
 function showToast(text: string) {
   if (toastTimer) clearTimeout(toastTimer);
@@ -280,6 +397,36 @@ function handleClaimSession() {
 function handleDeleteSession() {
   showToast('删除会话');
   // 这里可以打开确认删除的弹窗
+}
+
+function handleTakeoverSession() {
+  showTakeoverDialog.value = true;
+}
+
+function confirmTakeover() {
+  showTakeoverDialog.value = false;
+  showToast('接管成功');
+
+  // 延迟跳转，让 toast 显示一下
+  setTimeout(() => {
+    // 跳转到会话页面，并传递会话信息
+    router.push({
+      path: '/session',
+      query: {
+        sessionId: route.params.id,
+        category: 'autopilot' // 标记为 Autopilot 分类
+      }
+    });
+  }, 500);
+}
+
+function handleAssignSession() {
+  showAssignSheet.value = true;
+}
+
+function handleAssignToAgent(agent: Agent) {
+  showAssignSheet.value = false;
+  showToast(`已分配给 ${agent.name}`);
 }
 
 function loadPendingSystemMessages() {
@@ -537,10 +684,11 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 12px;
 }
 
 .action-btn {
-  width: 100%;
+  flex: 1;
   height: 52px;
   border-radius: 70px;
   font-size: 16px;
@@ -557,6 +705,12 @@ onMounted(() => {
 .action-btn--primary {
   background: #105EFF;
   color: #fff;
+}
+
+.action-btn--secondary {
+  background: #fff;
+  color: #105EFF;
+  border: 1px solid #105EFF;
 }
 
 .action-btn--danger {
@@ -683,6 +837,181 @@ onMounted(() => {
 
 .toast-enter-from,
 .toast-leave-to {
+  opacity: 0;
+}
+
+/* 分配会话面板 */
+.assign-sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.assign-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  min-height: 64px;
+}
+
+.assign-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.assign-name {
+  flex: 1;
+  font-size: 16px;
+  color: #222;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assign-btn {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 1px solid #105EFF;
+  background: #fff;
+  color: #105EFF;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s;
+}
+
+.assign-btn:active {
+  opacity: 0.7;
+}
+
+.assign-divider {
+  height: 1px;
+  background: #e2e8ef;
+  margin: 8px 0;
+}
+
+.assign-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  font-size: 18px;
+  color: #222;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 8px;
+}
+
+.assign-cancel:active {
+  background: #f5f7f9;
+}
+
+/* 确认弹窗 */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+}
+
+.dialog-box {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  text-align: center;
+  margin: 0;
+}
+
+.dialog-message {
+  font-size: 16px;
+  color: #647491;
+  text-align: center;
+  margin: 0;
+  line-height: 24px;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.dialog-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s;
+}
+
+.dialog-btn:active {
+  opacity: 0.8;
+}
+
+.dialog-btn--cancel {
+  background: #f5f7f9;
+  color: #222;
+}
+
+.dialog-btn--confirm {
+  background: #105EFF;
+  color: #fff;
+}
+
+/* 弹窗过渡动画 */
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: opacity 0.25s;
+}
+
+.dialog-enter-active .dialog-box,
+.dialog-leave-active .dialog-box {
+  transition: transform 0.25s ease-out, opacity 0.25s;
+}
+
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+}
+
+.dialog-enter-from .dialog-box,
+.dialog-leave-to .dialog-box {
+  transform: scale(0.9);
   opacity: 0;
 }
 </style>

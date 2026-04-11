@@ -82,7 +82,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const isOnline = ref(true);
 const hasSettingsBadge = ref(true);
 
@@ -90,8 +92,11 @@ function handleProfileClick() {
   // placeholder
 }
 
-function handleMenuClick(_key: string) {
-  // placeholder
+function handleMenuClick(key: string) {
+  if (key === 'settings') {
+    router.push('/settings');
+  }
+  // placeholder for other menu items
 }
 </script>
 

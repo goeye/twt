@@ -24,13 +24,6 @@
 
     <!-- 消息区域 -->
     <div class="messages-area">
-      <!-- 时间分隔 -->
-      <div class="time-divider">
-        <span class="time-divider-line" />
-        <span class="time-divider-text">开始时间 -10:30</span>
-        <span class="time-divider-line" />
-      </div>
-
       <!-- 消息列表 -->
       <template v-for="msg in messages" :key="msg.id">
         <div v-if="msg.type === 'system'" class="system-message">
@@ -148,11 +141,22 @@ import { useRouter, useRoute } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 
-const session = ref({
-  title: "未知问题",
-  avatarChar: "?",
-  avatarBg: "#36c6d9"
-});
+// 判断是否是被接管的 Autopilot 会话
+const isTakeoverSession = ref(route.params.id === '8');
+
+const session = ref(
+  isTakeoverSession.value
+    ? {
+        title: "咨询产品功能",
+        avatarChar: "咨",
+        avatarBg: "#ff6b6b"
+      }
+    : {
+        title: "未知问题",
+        avatarChar: "?",
+        avatarBg: "#36c6d9"
+      }
+);
 
 interface Message {
   id: number;
@@ -165,50 +169,87 @@ interface Message {
   ratingValue?: 'satisfied' | 'neutral' | 'unsatisfied';
 }
 
-const messages = ref<Message[]>([
-  {
-    id: 1,
-    role: 'customer',
-    sender: "这里展示的应该为一个超长的昵…",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
-    time: "12/31 23:59",
-    content: "这是一条示例消息。它展示了来自【会话】的客户对话在您的收件箱中的显示方式。"
-  },
-  {
-    id: 2,
-    type: 'system',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '李明已将会话转移给张思远'
-  },
-  {
-    id: 3,
-    type: 'note',
-    role: 'agent',
-    sender: '大王',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-    time: '10:34',
-    content: '这是一条内部备注信息，仅客服可见。'
-  },
-  {
-    id: 4,
-    type: 'rating',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '访客提交了评价：满意',
-    ratingValue: 'satisfied'
-  },
-  {
-    id: 5,
-    type: 'system',
-    sender: '',
-    avatar: '',
-    time: '',
-    content: '李明添加了张思远、江晚柠、王子豪等5人加入会话'
-  }
-]);
+const messages = ref<Message[]>(
+  isTakeoverSession.value
+    ? [
+        {
+          id: 1,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '开始时间 22:08'
+        },
+        {
+          id: 2,
+          role: 'customer',
+          sender: 'Visitor7',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
+          time: '22:09',
+          content: '我想了解一下你们的产品功能'
+        },
+        {
+          id: 3,
+          role: 'agent',
+          sender: 'Autopilot',
+          avatar: 'data:image/svg+xml,%3Csvg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" rx="40" fill="%23105EFF"/%3E%3Ccircle cx="40" cy="32" r="8" fill="white"/%3E%3Ccircle cx="32" cy="48" r="4" fill="white"/%3E%3Ccircle cx="48" cy="48" r="4" fill="white"/%3E%3C/svg%3E',
+          time: '22:10',
+          content: '您好，我是客服 Autopilot。看到您想了解产品功能，我会立刻为您处理。\n\n请问您具体想了解哪方面的功能呢？'
+        },
+        {
+          id: 4,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: 'Autopilot 已将会话转接给人工客服'
+        }
+      ]
+    : [
+        {
+          id: 1,
+          role: 'customer',
+          sender: "这里展示的应该为一个超长的昵…",
+          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
+          time: "12/31 23:59",
+          content: "这是一条示例消息。它展示了来自【会话】的客户对话在您的收件箱中的显示方式。"
+        },
+        {
+          id: 2,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '李明已将会话转移给张思远'
+        },
+        {
+          id: 3,
+          type: 'note',
+          role: 'agent',
+          sender: '大王',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
+          time: '10:34',
+          content: '这是一条内部备注信息，仅客服可见。'
+        },
+        {
+          id: 4,
+          type: 'rating',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '访客提交了评价：满意',
+          ratingValue: 'satisfied'
+        },
+        {
+          id: 5,
+          type: 'system',
+          sender: '',
+          avatar: '',
+          time: '',
+          content: '李明添加了张思远、江晚柠、王子豪等5人加入会话'
+        }
+      ]
+);
 
 const inputText = ref("");
 const inputFocused = ref(false);
@@ -225,7 +266,16 @@ function showToast(text: string) {
 }
 
 function handleBack() {
-  router.back();
+  // 检查是否是从接管会话跳转过来的
+  const fromTakeover = route.query.fromTakeover;
+
+  if (fromTakeover) {
+    // 如果是接管会话跳转过来的，返回到会话列表页并保持在待回复标签
+    router.push('/session');
+  } else {
+    // 否则正常返回上一页
+    router.back();
+  }
 }
 
 function handleBlur() {

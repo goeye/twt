@@ -56,6 +56,18 @@ const router = createRouter({
       name: "ArchiveSessionDetail",
       component: () => import("./views/ArchiveSessionDetailView.vue"),
       meta: { hideTabBar: true }
+    },
+    {
+      path: "/settings",
+      name: "Settings",
+      component: () => import("./views/SettingsView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
+      path: "/settings/notification",
+      name: "NotificationSettings",
+      component: () => import("./views/NotificationSettingsView.vue"),
+      meta: { hideTabBar: true }
     }
   ]
 });

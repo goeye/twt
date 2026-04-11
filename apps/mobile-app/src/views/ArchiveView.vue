@@ -176,6 +176,16 @@ const sessionList = ref<SessionItem[]>([
     agentName: "AlienWang",
     visitor: "Visitor11",
     tags: ["价格敏感"]
+  },
+  {
+    id: 4,
+    title: "咨询业务问题",
+    status: "待回复",
+    statusType: "pending",
+    agentAvatar: "data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' rx='24' fill='%23105EFF'/%3E%3Cpath d='M24 14C18.48 14 14 18.48 14 24C14 29.52 18.48 34 24 34C29.52 34 34 29.52 34 24C34 18.48 29.52 14 24 14ZM24 20C25.1 20 26 20.9 26 22C26 23.1 25.1 24 24 24C22.9 24 22 23.1 22 22C22 20.9 22.9 20 24 20ZM24 30C21.58 30 19.5 28.58 18.5 26.5C18.68 24.83 21.67 24 24 24C26.33 24 29.32 24.83 29.5 26.5C28.5 28.58 26.42 30 24 30Z' fill='white'/%3E%3C/svg%3E",
+    agentName: "Autopilot",
+    visitor: "Visitor5",
+    tags: []
   }
 ]);
 
