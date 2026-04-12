@@ -14,6 +14,10 @@
 <li><a href="./configuration">配置项参考</a> — 自定义外观与行为</li>
 <li><a href="./javascript-api">JavaScript API</a> — 程序化控制聊天组件</li>
 </ul>
+<div class="hint-container tip">
+<p class="hint-container-title">开始使用</p>
+<p>还没有账号？<a href="https://app.twt.com" target="_blank" rel="noopener noreferrer">免费注册 TWT Chat</a> 获取 API Key，3 分钟完成接入。</p>
+</div>
 </div></template>
 
 

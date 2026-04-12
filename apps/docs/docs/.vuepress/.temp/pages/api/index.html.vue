@@ -74,6 +74,10 @@
 </table>
 <h2 id="错误处理" tabindex="-1">错误处理 <a class="header-anchor" href="#错误处理">¶</a></h2>
 <p>所有 API 遵循统一的错误响应格式，详见 <a href="./error-codes">错误码参考</a>。</p>
+<div class="hint-container tip">
+<p class="hint-container-title">开始使用</p>
+<p>还没有账号？<a href="https://app.twt.com" target="_blank" rel="noopener noreferrer">免费注册 TWT Chat</a> 获取 API Key，3 分钟完成接入。</p>
+</div>
 </div></template>
 
 

@@ -1,5 +1,5 @@
-<template><div><h1 id="快速开始" tabindex="-1">快速开始 <a class="header-anchor" href="#快速开始">¶</a></h1>
-<p>5 分钟完成 TWT Chat 接入。</p>
+<template><div><h1 id="_3-分钟接入" tabindex="-1">3 分钟接入 <a class="header-anchor" href="#_3-分钟接入">¶</a></h1>
+<p>快速完成 TWT Chat 接入。</p>
 <h2 id="第-1-步-获取安装代码" tabindex="-1">第 1 步：获取安装代码 <a class="header-anchor" href="#第-1-步-获取安装代码">¶</a></h2>
 <p>登录 <a href="https://app.twt.com" target="_blank" rel="noopener noreferrer">TWT Chat 后台</a>，进入 <strong>设置 &gt; 网站代码</strong>，复制安装代码片段。</p>
 <h2 id="第-2-步-粘贴到网页" tabindex="-1">第 2 步：粘贴到网页 <a class="header-anchor" href="#第-2-步-粘贴到网页">¶</a></h2>
@@ -32,6 +32,10 @@
 <li><a href="/widget/javascript-api" target="_blank" rel="noopener noreferrer">JavaScript API</a> — 程序化控制聊天组件</li>
 <li><a href="/chat-page/parameters" target="_blank" rel="noopener noreferrer">传递客户信息</a> — 将已登录用户信息同步到聊天</li>
 </ul>
+<div class="hint-container tip">
+<p class="hint-container-title">开始使用</p>
+<p>还没有账号？<a href="https://app.twt.com" target="_blank" rel="noopener noreferrer">免费注册 TWT Chat</a> 获取 API Key，3 分钟完成接入。</p>
+</div>
 </div></template>
 
 
