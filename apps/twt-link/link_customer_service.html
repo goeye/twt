@@ -354,7 +354,7 @@ window.addEventListener('error', function(e) {
             </div>
             <div class="submenu-container" style="display: none;">
                 <div class="submenu-item" onclick="switchMenu(this)">会话记录</div>
-                <div class="submenu-item" onclick="switchMenu(this)">消息记录</div>
+                <div class="submenu-item" onclick="switchMenu(this)">聊天记录</div>
             </div>
 
             <div class="menu-item menu-parent" onclick="toggleSubMenu(this)">
@@ -473,7 +473,10 @@ window.addEventListener('error', function(e) {
                 <table id="customerTable" style="margin-top: 0;">
                     <thead>
                         <tr>
-                            <th style="width: 200px;">姓名</th>
+                            <th style="width: 80px;">ID</th>
+                            <th style="width: 180px;">姓名</th>
+                            <th style="width: 150px;">昵称</th>
+                            <th style="width: 140px;">角色</th>
                             <th>工号</th>
                             <th>状态</th>
                             <th>人数上限</th>
@@ -485,6 +488,59 @@ window.addEventListener('error', function(e) {
                         <!-- Javascript will render rows here -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="table-container" id="accountDetailsContainer" style="display: none; flex-direction: column; background: #fff; padding: 24px 40px; overflow-y: auto;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px; cursor: pointer;" onclick="backToCustomerList()">
+                <i class="ri-arrow-left-s-line" style="font-size: 24px; color: #111;"></i>
+                <div style="font-size: 18px; font-weight: 600; color: #111;">账号详情</div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
+                <div style="position: relative; width: 80px; height: 80px;">
+                    <img id="adAvatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #f0f0f0;">
+                    <div style="position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 2px solid #fff;">
+                        <i class="ri-pencil-line" style="font-size: 14px; color: #111;"></i>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn" style="background: #E8F3FF; color: #2970FF; border: none; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; width: fit-content;" onclick="showToast('上传图片功能开发中')">上传图片</button>
+                    <p style="font-size: 13px; color: #888;">此图像将向访客显示</p>
+                </div>
+            </div>
+
+            <div style="height: 1px; background-color: #f0f0f0; margin-bottom: 32px;"></div>
+
+            <div style="font-size: 16px; font-weight: 600; margin-bottom: 24px; color: #111;">个人信息</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; row-gap: 24px; max-width: 900px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 14px; font-weight: 500; color: #111; display: flex; align-items: center;">姓名</label>
+                    <input type="text" id="adName" class="search-input" readonly style="padding-left: 12px; height: 44px; border-radius: 8px; background: #f7f8fa; border-color: transparent; cursor: not-allowed;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 14px; font-weight: 500; color: #111; display: flex; align-items: center;"><span style="color: #f53f3f; margin-right: 4px;">*</span>昵称</label>
+                    <input type="text" id="adNickname" class="search-input" style="padding-left: 12px; height: 44px; border-radius: 8px; border-color: #e5e6eb;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 14px; font-weight: 500; color: #111;">会话限制</label>
+                    <input type="text" id="adLimit" class="search-input" style="padding-left: 12px; height: 44px; border-radius: 8px; border-color: #e5e6eb;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="font-size: 14px; font-weight: 500; color: #111;">角色</label>
+                    <input type="text" id="adRoleDisplay" class="search-input" readonly style="padding-left: 12px; height: 44px; border-radius: 8px; background: #f7f8fa; border-color: transparent; cursor: not-allowed; display: none;">
+                    <div id="adRoleSelectWrapper" style="display: none; position: relative;">
+                        <select id="adRoleSelect" class="search-input" style="padding: 0 32px 0 12px; height: 44px; border-radius: 8px; border-color: #e5e6eb; width: 100%; cursor: pointer; appearance: none; -webkit-appearance: none; background: #fff;">
+                            <option value="客服">客服</option>
+                        </select>
+                        <i class="ri-arrow-down-s-line" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #86909c; font-size: 18px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 32px;">
+                <button class="btn btn-primary" style="height: 40px; padding: 0 32px; border-radius: 6px; font-weight: 500;" onclick="saveAccountDetails()">保存</button>
             </div>
         </div>
 
@@ -690,12 +746,21 @@ window.addEventListener('error', function(e) {
                     <div style="font-size: 13px; color: #4e5969;">总会话数</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1;">
+                    <div id="statPendingReply" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
+                    <div style="font-size: 13px; color: #4e5969;">待回复</div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1;">
                     <div id="statQueueing" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
                     <div style="font-size: 13px; color: #4e5969;">排队中</div>
                 </div>
+                
                 <div style="display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1;">
-                    <div id="statInProgress" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
-                    <div style="font-size: 13px; color: #4e5969;">进行中</div>
+                    <div id="statPendingHandle" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
+                    <div style="font-size: 13px; color: #4e5969;">待处理</div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1;">
+                    <div id="statReplied" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
+                    <div style="font-size: 13px; color: #4e5969;">已回复</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1;">
                     <div id="statClosed" style="font-size: 28px; font-weight: 700; color: #111; margin-bottom: 8px;">0</div>
@@ -710,11 +775,11 @@ window.addEventListener('error', function(e) {
             <div style="display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; flex-shrink: 0; align-items: center;">
                 <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
                     <select id="sessionSearchType" style="border: none; background: #f7f8fa; padding: 0 8px; font-size: 13px; outline: none; border-right: 1px solid #e5e6eb; cursor: pointer; color: #444; min-width: 105px; flex-shrink: 0;">
-                        <option value="sessionId">会话ID</option>
+                        <option value="sessionTitle">会话标题</option>
                         <option value="visitorName">姓名</option>
-                        <option value="visitorId">客户ID</option>
                         <option value="identifier">客户标识</option>
                         <option value="remark">访客备注名</option>
+                        <option value="rating">访客评价</option>
                     </select>
                     <div style="position: relative; display: flex; align-items: center; flex: 1; background: #fdfdfd; min-width: 0;">
                         <i class="ri-search-line" style="position: absolute; left: 8px; color: #c0c4cc; font-size: 14px;"></i>
@@ -733,8 +798,10 @@ window.addEventListener('error', function(e) {
                 <div style="position: relative; width: 100%; display: flex; align-items: center;">
                     <select id="sessionStatusFilter" onchange="toggleClearIcon(this, 'sessionStatusClear', renderSessions)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
                         <option value="" disabled selected hidden>状态</option>
+                        <option value="待回复">待回复</option>
                         <option value="排队中">排队中</option>
-                        <option value="进行中">进行中</option>
+                        <option value="待处理">待处理</option>
+                        <option value="已回复">已回复</option>
                         <option value="已关闭">已关闭</option>
                     </select>
                     <i class="ri-arrow-down-s-line" style="position: absolute; right: 8px; color: #86909c; font-size: 16px; pointer-events: none;"></i>
@@ -751,6 +818,24 @@ window.addEventListener('error', function(e) {
                     <i class="ri-calendar-event-line" style="position: absolute; right: 10px; color: #c0c4cc; pointer-events: none;"></i>
                     <i id="sessionReceiveTimeClear" class="ri-close-circle-fill" style="position: absolute; right: 28px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="clearFilter('sessionReceiveTimeFilter', 'sessionReceiveTimeClear', renderSessions); event.stopPropagation();"></i>
                 </div>
+                <div style="position: relative; width: 100%; display: flex; align-items: center;">
+                    <div id="sessionRatingFilter" onclick="toggleRatingDropdown(event)" style="cursor: pointer; width: 100%; height: 32px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 4px; font-size: 13px; outline: none; background: #fdfdfd; color: #c0c4cc; display: flex; align-items: center; justify-content: space-between; overflow: hidden; white-space: nowrap;">
+                        <span id="sessionRatingValue">访客评价</span>
+                        <i class="ri-arrow-down-s-line"></i>
+                    </div>
+                    <div id="ratingDropdown" style="display: none; position: absolute; top: 34px; left: 0; width: 100%; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; padding: 8px 0;">
+                        <label style="display: flex; align-items: center; padding: 6px 12px; cursor: pointer; gap: 8px; font-size: 13px;" onclick="event.stopPropagation()">
+                            <input type="checkbox" value="满意" onchange="updateRatingFilter()"> 满意
+                        </label>
+                        <label style="display: flex; align-items: center; padding: 6px 12px; cursor: pointer; gap: 8px; font-size: 13px;" onclick="event.stopPropagation()">
+                            <input type="checkbox" value="一般" onchange="updateRatingFilter()"> 一般
+                        </label>
+                        <label style="display: flex; align-items: center; padding: 6px 12px; cursor: pointer; gap: 8px; font-size: 13px;" onclick="event.stopPropagation()">
+                            <input type="checkbox" value="不满意" onchange="updateRatingFilter()"> 不满意
+                        </label>
+                    </div>
+                    <i id="sessionRatingClear" class="ri-close-circle-fill" style="position: absolute; right: 28px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="resetRatingFilter(event)"></i>
+                </div>
                 <div style="display: flex; gap: 12px; grid-column: span 2; align-items: center;">
                     <button class="btn btn-primary" style="height: 32px; padding: 0 20px; font-size: 13px; flex-shrink: 0;" onclick="renderSessions()">搜索</button>
                     <button class="btn" style="height: 32px; padding: 0 20px; font-size: 13px; background: #fff; border: 1px solid #e5e6eb; border-radius: 4px; cursor: pointer; color: #444; flex-shrink: 0;" onclick="resetSessionFilters()">重置</button>
@@ -761,19 +846,20 @@ window.addEventListener('error', function(e) {
                 <table id="sessionTable" style="margin-top: 0; width: max-content; min-width: 100%; border-collapse: collapse; white-space: nowrap;">
                     <thead style="position: sticky; top: 0; z-index: 10; background: #f7f8fa;">
                         <tr>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">会话ID</th>
+                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">会话标题</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">姓名</th>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">客户ID</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">客户标识</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">访客备注名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">状态</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">消息数量</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">会话负责人</th>
+                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">服务客服</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">客服数量</th>
 
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; cursor: pointer;">发起时间 <i class="ri-expand-up-down-fill" style="color: #c0c4cc; font-size: 12px; margin-left: 2px;"></i></th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; cursor: pointer;">接待时间 <i class="ri-expand-up-down-fill" style="color: #c0c4cc; font-size: 12px; margin-left: 2px;"></i></th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">服务时长</th>
+                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">访客评价</th>
                             <th style="width: 60px; padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; position: sticky; right: 0; background: #f7f8fa; z-index: 11; text-align: center; box-shadow: -4px 0 8px rgba(0,0,0,0.02);">操作</th>
                         </tr>
                     </thead>
@@ -786,7 +872,7 @@ window.addEventListener('error', function(e) {
         <!-- 消息记录面板 -->
         <div class="table-container" id="messageRecordContainer" style="display: none; flex-direction: column;">
             <div style="padding-top: 16px; margin-bottom: 16px;">
-                <div style="font-size: 16px; font-weight: 600; color: #111;">所有聊天</div>
+                <div style="font-size: 16px; font-weight: 600; color: #111;">聊天记录</div>
             </div>
 
             <div style="background: #f7f8fa; border-radius: 12px; padding: 28px 0; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative;">
@@ -815,8 +901,10 @@ window.addEventListener('error', function(e) {
             <div style="display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; flex-shrink: 0; align-items: center;">
                 <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
                     <select id="messageSearchType" style="border: none; background: #f7f8fa; padding: 0 8px; font-size: 13px; outline: none; border-right: 1px solid #e5e6eb; cursor: pointer; color: #444; width: 100px; flex-shrink: 0;">
-                        <option value="msgId">消息ID</option>
-                        <option value="title">消息标题</option>
+                        <option value="title">聊天标题</option>
+                        <option value="visitorName">访客姓名</option>
+                        <option value="remark">访客备注名</option>
+                        <option value="owner">客服姓名</option>
                     </select>
                     <div style="position: relative; display: flex; align-items: center; flex: 1; background: #fdfdfd; min-width: 0;">
                         <i class="ri-search-line" style="position: absolute; left: 8px; color: #c0c4cc; font-size: 14px;"></i>
@@ -886,9 +974,9 @@ window.addEventListener('error', function(e) {
                 <table id="messageRecordTable" style="margin-top: 0; width: max-content; min-width: 100%; border-collapse: collapse; white-space: nowrap;">
                     <thead style="position: sticky; top: 0; z-index: 10; background: #f7f8fa;">
                         <tr>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">消息ID</th>
+
+                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">聊天标题</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">类型</th>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">消息标题</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">状态</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">分类</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; cursor: pointer;">消息数量 <i class="ri-expand-up-down-fill" style="color: #c0c4cc; font-size: 12px; margin-left: 2px;"></i></th>
@@ -918,7 +1006,7 @@ window.addEventListener('error', function(e) {
                         <option value="remark">备注名</option>
                         <option value="email">邮箱</option>
                         <option value="phone">电话</option>
-                        <option value="clientId">客户ID</option>
+
                     </select>
                     <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
                         <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
@@ -928,7 +1016,7 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                    <select id="onlineVisitorTagFilter" onchange="this.style.color=\'#444\'; toggleClearIcon(this, 'onlineVisitorTagClear', renderOnlineVisitors)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
+                    <select id="onlineVisitorTagFilter" onchange="this.style.color='#444'; toggleClearIcon(this, 'onlineVisitorTagClear', renderOnlineVisitors)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
                         <option value="" disabled selected hidden style="color: #c0c4cc">标签</option>
                         <option value="标签1" style="color: #444">标签1</option>
                         <option value="标签2" style="color: #444">标签2</option>
@@ -956,7 +1044,7 @@ window.addEventListener('error', function(e) {
                 <table id="onlineVisitorTable" style="margin-top: 0; width: max-content; min-width: 100%; border-collapse: collapse; white-space: nowrap;">
                     <thead style="position: sticky; top: 0; z-index: 10;">
                         <tr style="background: #f7f8fa;">
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">客户ID</th>
+
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">姓名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">备注名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 180px;">邮箱</th>
@@ -984,7 +1072,7 @@ window.addEventListener('error', function(e) {
                         <option value="remark">备注名</option>
                         <option value="email">邮箱</option>
                         <option value="phone">电话</option>
-                        <option value="clientId">客户ID</option>
+
                     </select>
                     <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
                         <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
@@ -994,7 +1082,7 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                    <select id="allVisitorTagFilter" onchange="this.style.color=\'#444\'; toggleClearIcon(this, 'allVisitorTagClear', renderAllVisitors)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
+                    <select id="allVisitorTagFilter" onchange="this.style.color='#444'; toggleClearIcon(this, 'allVisitorTagClear', renderAllVisitors)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
                         <option value="" disabled selected hidden style="color: #c0c4cc">标签</option>
                         <option value="标签1" style="color: #444">标签1</option>
                         <option value="标签2" style="color: #444">标签2</option>
@@ -1029,7 +1117,7 @@ window.addEventListener('error', function(e) {
                 <table id="allVisitorTable" style="margin-top: 0; width: max-content; min-width: 100%; border-collapse: collapse; white-space: nowrap;">
                     <thead style="position: sticky; top: 0; z-index: 10;">
                         <tr style="background: #f7f8fa;">
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">客户ID</th>
+
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">姓名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">备注名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 180px;">邮箱</th>
@@ -1059,7 +1147,7 @@ window.addEventListener('error', function(e) {
                         <option value="email">邮箱</option>
                         <option value="phone">电话</option>
                         <option value="agentId">客服标识</option>
-                        <option value="clientId">客户ID</option>
+
                     </select>
                     <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
                         <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
@@ -1069,7 +1157,7 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                    <select id="onlineClientTagFilter" onchange="this.style.color=\'#444\'; toggleClearIcon(this, 'onlineClientTagClear', renderOnlineClients)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
+                    <select id="onlineClientTagFilter" onchange="this.style.color='#444'; toggleClearIcon(this, 'onlineClientTagClear', renderOnlineClients)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
                         <option value="" disabled selected hidden style="color: #c0c4cc">标签</option>
                         <option value="标签1" style="color: #444">标签1</option>
                         <option value="标签2" style="color: #444">标签2</option>
@@ -1098,7 +1186,7 @@ window.addEventListener('error', function(e) {
                     <thead style="position: sticky; top: 0; z-index: 10;">
                         <tr style="background: #f7f8fa;">
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">客服标识</th>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">客户ID</th>
+
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">姓名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">备注名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 180px;">邮箱</th>
@@ -1127,7 +1215,7 @@ window.addEventListener('error', function(e) {
                         <option value="email">邮箱</option>
                         <option value="phone">电话</option>
                         <option value="agentId">客服标识</option>
-                        <option value="clientId">客户ID</option>
+
                     </select>
                     <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
                         <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
@@ -1137,7 +1225,7 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                    <select id="allClientTagFilter" onchange="this.style.color=\'#444\'; toggleClearIcon(this, 'allClientTagClear', renderAllClients)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
+                    <select id="allClientTagFilter" onchange="this.style.color='#444'; toggleClearIcon(this, 'allClientTagClear', renderAllClients)" style="height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 28px 0 12px; font-size: 13px; background: #fdfdfd; width: 100%; outline: none; cursor: pointer; color: #c0c4cc; appearance: none; -webkit-appearance: none;">
                         <option value="" disabled selected hidden style="color: #c0c4cc">标签</option>
                         <option value="标签1" style="color: #444">标签1</option>
                         <option value="标签2" style="color: #444">标签2</option>
@@ -1173,7 +1261,7 @@ window.addEventListener('error', function(e) {
                     <thead style="position: sticky; top: 0; z-index: 10;">
                         <tr style="background: #f7f8fa;">
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">客服标识</th>
-                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">客户ID</th>
+
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 120px;">姓名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 100px;">备注名</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; min-width: 180px;">邮箱</th>
@@ -3042,11 +3130,202 @@ window.addEventListener('error', function(e) {
                             <td style="padding: 16px 24px; font-size: 13px; color: #4e5969;">AppSecret</td>
                             <td style="padding: 16px 24px; font-size: 13px; color: #4e5969;">VduF************************Ecri</td>
                             <td style="padding: 16px 24px; text-align: right;">
-                                <span style="color: #2970FF; cursor: pointer; font-size: 13px;">重置 <i class="ri-question-line" style="color: #86909c; position: relative; top: 1px; margin-left: 2px;"></i></span>
+                                <style>
+                                    .tooltip-secret { left: auto !important; right: -12px; white-space: normal !important; width: 260px; line-height: 1.6; text-align: left; font-size: 14px; padding: 12px 16px !important; background: #262626 !important; color: #fff; cursor: default; border-radius: 8px !important; font-weight: normal; }
+                                    .tooltip-secret::after { left: auto !important; right: 19px !important; border-color: #262626 transparent transparent transparent !important; }
+                                </style>
+                                <span onclick="openResetAppSecretModal()" style="color: #2970FF; cursor: pointer; font-size: 13px;">重置 <div class="tooltip-container" style="display: inline-block; vertical-align: middle; margin-left: 2px;"><i class="ri-question-line" style="color: #86909c; position: relative; top: 1px;"></i><div class="tooltip-content tooltip-secret">出于安全考虑，AppSecret只展示一次，若丢失请点击重置</div></div></span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Webhooks 面板 -->
+        <div class="table-container" id="webhooksContainer" style="display: none; flex-direction: column; overflow-y: auto; padding-bottom: 32px;">
+            <div style="font-size: 16px; font-weight: 600; color: #111; padding-top: 16px; margin-bottom: 8px; flex-shrink: 0;">Webhooks</div>
+            <div style="font-size: 14px; color: #86909c; margin-bottom: 24px; flex-shrink: 0;">通过 Webhook 将 Link 平台事件实时推送至外部服务</div>
+            
+            <div style="display: flex; flex-direction: column; gap: 24px; flex-shrink: 0;">
+                <!-- 配置块 1 -->
+                <div style="border: 1px solid #e5e6eb; border-radius: 12px; padding: 24px; background: #fff;">
+                    <div style="font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px;">Webhook URL</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 16px;">输入接收事件通知的 URL 地址</div>
+                    <input type="text" placeholder="请输入URL地址" style="width: 100%; height: 40px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 0 16px; font-size: 14px; outline: none; background: #fdfdfd; box-sizing: border-box; margin-bottom: 24px; transition: 0.2s;" onfocus="this.style.borderColor='#2970FF'; this.style.background='#fff'" onblur="this.style.borderColor='#e5e6eb'; this.style.background='#fdfdfd'">
+                    
+                    <div style="font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px;">支持的事件</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 16px;">当前系统支持的 Webhook 事件类型</div>
+                    
+                    <div style="border: 1px solid #e5e6eb; border-radius: 8px; padding: 20px;">
+                        <div id="unrepliedSettingsHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; transition: 0.2s;">
+                            <div style="font-size: 14px; font-weight: 600; color: #111;">访客消息未回复</div>
+                            <div data-on="false" style="width: 40px; height: 20px; background: #e5e6eb; border-radius: 10px; position: relative; cursor: pointer; transition: 0.3s;" onclick="(function(el){ var isOn = el.getAttribute('data-on') === 'true'; var nextState = !isOn; el.setAttribute('data-on', nextState); el.style.background = nextState ? '#2970FF' : '#e5e6eb'; var knob = el.children[0]; if(nextState) { knob.style.left = 'auto'; knob.style.right = '2px'; document.getElementById('unrepliedSettingsBlock').style.display = 'flex'; document.getElementById('unrepliedSettingsHeader').style.marginBottom = '16px'; } else { knob.style.right = 'auto'; knob.style.left = '2px'; document.getElementById('unrepliedSettingsBlock').style.display = 'none'; document.getElementById('unrepliedSettingsHeader').style.marginBottom = '0px'; } })(this)">
+                                <div style="width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; left: 2px; top: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: 0.2s;"></div>
+                            </div>
+                        </div>
+                        <div id="unrepliedSettingsBlock" style="font-size: 13px; color: #4e5969; line-height: 2; display: none; align-items: center; flex-wrap: wrap;">
+                            当访客发送消息后，若客服未回复；首次于 
+                            <input type="number" value="0" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 时 
+                            <input type="number" value="1" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 分 
+                            <input type="number" value="0" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 秒 
+                            后提醒，后续每 
+                            <input type="number" value="0" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 时 
+                            <input type="number" value="10" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 分 
+                            <input type="number" value="0" style="width: 48px; height: 32px; border: 1px solid #e5e6eb; border-radius: 4px; padding: 0 8px; font-size: 13px; margin: 0 4px; outline: none; text-align: center;"> 秒 
+                            后再次提醒，最多提醒4次。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 配置块 2 -->
+                <div style="border: 1px solid #e5e6eb; border-radius: 12px; padding: 24px; background: #fff;">
+                    <div style="font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px;">配置说明</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 16px;">如何正确配置和使用 Webhooks</div>
+                    
+                    <div style="font-size: 13px; color: #4e5969; line-height: 1.8; margin-bottom: 24px;">
+                        <div>1. 签名校验：在开发设置中生成「AppSecret」，并通过 x-chat-signature 头部发送。X-Chat-Signature:HMAC_SHA256(secret, raw_body)</div>
+                        <div>2. 填写 URL：在 Webhooks 页面输入你的接收地址，点击「保存」。（注意：需先进行签名校验，否则无法保存。）</div>
+                        <div>3. 结构</div>
+                    </div>
+
+                    <div style="font-size: 13px; color: #111; margin-bottom: 8px;">请求头</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 12px;">每个 webhook 至少包含这二个请求头</div>
+                    <div style="background: #f7f8fa; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 13px; color: #4e5969; margin-bottom: 24px; line-height: 1.6;">
+                        content-type: application/json<br>
+                        x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70
+                    </div>
+
+                    <div style="font-size: 13px; color: #111; margin-bottom: 8px;">请求体</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 12px;">每个 webhook 正文都包含以下结构</div>
+                    <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #e5e6eb; margin-bottom: 32px;">
+                        <thead style="background: #f7f8fa;">
+                            <tr>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 200px;">参数名</th>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb;">说明</th>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 300px;">参数示例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">created_at</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">webhook 发送日期（时间戳）</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">1765439941</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">event</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">事件名称</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">UNREPLIED</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">webhook_id</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">唯一的 webhook ID</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">58946f5f583edd94f5cf87e3534d04fb</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">content</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">包含特定事件数据的对象</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="font-size: 13px; color: #111; margin-bottom: 4px;">事件数据：UNREPLIED（访客消息无回复）</div>
+                    <div style="font-size: 13px; color: #86909c; margin-bottom: 16px;">访客发出首条消息后 0小时1分0秒 首次触发；后续每 0小时10分0秒 后再次触发，直到被客服回复或提醒 4 次以上为止。</div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #e5e6eb; margin-bottom: 24px;">
+                        <thead style="background: #f7f8fa;">
+                            <tr>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 200px;">参数名</th>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb;">说明</th>
+                                <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 300px;">参数示例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">content</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">-</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">-</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">subject</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">会话主题</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">New Conversation</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">visitor_name</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">访客姓名</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">Visitor15</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">created_at</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">消息创建时间</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">1765439652</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">message_content</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">消息内容</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">1</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">property_name</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">项目名称</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">test</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">visitor_nickname</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">访客备注名</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">VIP</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">sbs</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">客户标识</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">234442313</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">status</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">状态</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">1: 待回复 2: 排队中 3: 待处理 4: 已回复</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">push_times</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">推送次数</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">4</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">time_sec</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">超时时间（秒）</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969; border-bottom: 1px solid #e5e6eb;">289</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">assigned_agent_nickname</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">服务客服名称</td>
+                                <td style="padding: 12px 16px; font-size: 13px; color: #4e5969;">ctccccd</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="background: #f7f8fa; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 13px; color: #4e5969; white-space: pre-wrap; line-height: 1.6;">{
+  "created_at": 1765439941,
+  "event": "UNREPLIED",
+  "webhook_id": "58946f5f583edd94f5cf87e3534d04fb",
+  "content": [
+    {
+      "subject": "New Conversation",
+      "visitor_name": "Visitor15",
+      "created_at": 1765439652,
+      "message_content": "1",
+      "property_name": "test",
+      "visitor_nickname": "visitor nickname",
+      "sbs": "",
+      "status": "1",
+      "push_times": 4,
+      "time_sec": 289,
+      "assigned_agent_nickname": "ctccccd"
+    }
+  ]
+}</div>
+                </div>
             </div>
         </div>
 
@@ -3169,7 +3448,7 @@ window.addEventListener('error', function(e) {
                 </div>
 
                 <!-- 文本润色 -->
-                <div style="border: 1px solid #e5e6eb; border-radius: 8px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <div style="border: 1px solid #e5e6eb; border-radius: 8px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: #fff; margin-top: 16px;">
                     <div>
                         <div style="font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px;">文本润色</div>
                         <div style="font-size: 13px; color: #86909c;">借助 AI 优化客服回复内容，支持润色、丰富内容、精简内容等</div>
@@ -3254,7 +3533,18 @@ window.addEventListener('error', function(e) {
                     <div style="display:flex; flex-wrap:wrap; gap:12px; align-content:flex-start; flex: 1; overflow-y: auto;" id="contactSelectedContainer">
                         <!-- JS Rendered -->
                     </div>
-                    <div style="position: absolute; bottom: 24px; right: 24px; display:flex; gap:12px;">
+                    
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 14px; color: #4E5969; white-space: nowrap;">选择角色</div>
+                        <div style="position: relative; flex: 1;">
+                            <select id="newCustomerRole" style="width: 100%; height: 32px; padding: 0 12px; border: 1px solid #E5E6EB; border-radius: 6px; outline: none; font-size: 14px; color: #1D2129; appearance: none; background: #fff; cursor: pointer; transition: border-color 0.2s;" onfocus="this.style.borderColor='#2970FF'" onblur="this.style.borderColor='#E5E6EB'">
+                                <option value="客服">客服</option>
+                            </select>
+                            <i class="ri-arrow-down-s-line" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #86909c; pointer-events: none; font-size: 16px;"></i>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; display:flex; gap:12px; justify-content: flex-end;">
                         <button class="btn hover-bg" style="border-radius: 20px; padding: 0 24px; height: 36px; line-height: 36px; background: #f2f3f5; color: #111; border: none; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e6eb'" onmouseout="this.style.background='#f2f3f5'" onclick="cancelContactSelection()">取消</button>
                         <button id="contactConfirmBtn" class="btn btn-primary" style="border-radius: 20px; padding: 0 24px; height: 36px; line-height: 36px; font-size: 14px; background: #2970FF; color: #fff; border: none; cursor: pointer; transition: 0.2s;" onmouseover="if(!this.disabled) this.style.opacity='0.8'" onmouseout="if(!this.disabled) this.style.opacity='1'" onclick="confirmContactSelection()">确定</button>
                     </div>
@@ -3322,8 +3612,19 @@ window.addEventListener('error', function(e) {
     <!-- 会话详情右侧抽屉 -->
     <div class="drawer-mask" id="sessionDetailDrawer" onclick="closeSessionDetail()">
         <div class="drawer-content" onclick="event.stopPropagation()">
-            <div class="drawer-header">
-                <span id="detailDrawerTitle" style="font-size: 16px; font-weight: 600; color: #111;">会话详情</span>
+            <div class="drawer-header" style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span id="detailDrawerTitle" style="font-size: 16px; font-weight: 600; color: #111;">会话详情</span>
+                    <i class="ri-edit-line" id="editTitleIcon" onclick="startEditTitle()" style="font-size: 14px; color: #86909c; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#2970FF'" onmouseout="this.style.color='#86909c'"></i>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 16px;">
+                    <div id="navPrevBtn" onclick="navigateDetail(-1)" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #e5e6eb; border-radius: 4px; cursor: pointer; color: #111; transition: background 0.2s;">
+                        <i class="ri-arrow-up-s-line" style="font-size: 18px; font-weight: bold;"></i>
+                    </div>
+                    <div id="navNextBtn" onclick="navigateDetail(1)" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #e5e6eb; border-radius: 4px; cursor: pointer; color: #111; transition: background 0.2s;">
+                        <i class="ri-arrow-down-s-line" style="font-size: 18px; font-weight: bold;"></i>
+                    </div>
+                </div>
                 <i class="ri-close-fill" style="font-size: 20px; color: #111; font-weight: bold; cursor: pointer;" onclick="closeSessionDetail()"></i>
             </div>
             <div class="drawer-body">
@@ -3346,6 +3647,10 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div id="sysMessageWarning" class="system-message">客户已超过 30 分钟未回复，会话自动关闭</div>
+            </div>
+            <div id="sessionDetailFooter" style="padding: 16px 24px; border-top: 1px solid #f2f3f5; display: none;">
+                <button id="footerDeleteBtn" onclick="handleFooterDelete()" style="width: 100%; height: 40px; border: 1px solid #F53F3F; border-radius: 20px; background: transparent; color: #F53F3F; font-size: 14px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(245, 63, 63, 0.05)'" onmouseout="this.style.background='transparent'">删除会话</button>
+                <button id="footerChatBtn" style="width: 100%; height: 40px; border: 1px solid #2970FF; border-radius: 20px; background: transparent; color: #2970FF; font-size: 14px; cursor: pointer; transition: all 0.2s; display: none;" onmouseover="this.style.background='rgba(41, 112, 255, 0.05)'" onmouseout="this.style.background='transparent'">开始聊天</button>
             </div>
         </div>
     </div>
@@ -3775,28 +4080,30 @@ window.addEventListener('error', function(e) {
 
         // 模拟数据模型
         let customers = [
-            { id: 1, name: '王三', avatar: '王三', empId: 'JM0001', status: 'online', maxCapacity: 10, addTime: '2026-03-19 10:00', hasActiveSession: true },
-            { id: 2, name: '李四', avatar: '李四', empId: 'JM0002', status: 'online', maxCapacity: 10, addTime: '2026-03-18 15:30', hasActiveSession: false }
+            { id: 1, idStr: '0001', name: '王三', nickname: '王三', avatar: '王三', role: '超级管理员', empId: 'JM0001', status: 'online', maxCapacity: 10, addTime: '2026-03-19 10:00', hasActiveSession: true },
+            { id: 2, idStr: '0002', name: '李四', nickname: '李四', avatar: '李四', role: '客服', empId: 'JM0002', status: 'online', maxCapacity: 10, addTime: '2026-03-18 15:30', hasActiveSession: false }
         ];
 
         let sessions = [
-            { id: '20250890990', sessionId: 'HH00001', visitorId: 'FK00001', visitorName: '访客FK00001', nickname: '神秘顾客_01', identifier: '-', remark: '-', status: '排队中', msgCount: 8, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '-', duration: '-' },
-            { id: '20250890991', sessionId: 'HH00002', visitorId: 'FK00002', visitorName: '访客FK00002', nickname: '李女士', identifier: '-', remark: '-', status: '排队中', msgCount: 1, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '2025-03-25 12:18', duration: '-' },
-            { id: '20250890992', sessionId: 'HH00003', visitorId: 'FK00003', visitorName: '访客FK00003', nickname: '王总', identifier: '-', remark: '-', status: '排队中', msgCount: 8, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '-', duration: '-' },
-            { id: '20250890993', sessionId: 'HH00004', visitorId: 'FK00004', visitorName: '访客FK00004', nickname: '吴总', identifier: '-', remark: '-', status: '进行中', msgCount: 3, owner: '王三', primaryCs: 'Ariza', csCount: 1, startTime: '2025-03-25 12:17', receiveTime: '2025-03-25 12:17', endTime: '-', duration: '1天10小时10分' },
-            { id: '20250890994', sessionId: 'HH00005', visitorId: 'FK00005', visitorName: '访客FK00005', nickname: '赵钱孙', identifier: '-', remark: '-', status: '已关闭', msgCount: 3, owner: '王三', primaryCs: 'Ariza', csCount: 1, startTime: '2025-03-25 12:17', receiveTime: '2025-03-25 12:17', endTime: '-', duration: '1天10小时10分' }
+            { id: '20250890990', sessionId: 'HH00001', visitorId: 'FK00001', visitorName: '访客FK00001', nickname: '神秘顾客_01', identifier: '-', remark: '-', status: '待回复', msgCount: 8, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '-', duration: '-', rating: '-' },
+            { id: '20250890991', sessionId: 'HH00002', visitorId: 'FK00002', visitorName: '访客FK00002', nickname: '李女士', identifier: '-', remark: '-', status: '排队中', msgCount: 1, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '2025-03-25 12:18', duration: '-', rating: '-' },
+            { id: '20250890992', sessionId: 'HH00003', visitorId: 'FK00003', visitorName: '访客FK00003', nickname: '王总', identifier: '-', remark: '-', status: '待处理', msgCount: 8, owner: '-', primaryCs: 'Ariza', csCount: 0, startTime: '2025-03-25 12:17', receiveTime: '-', endTime: '-', duration: '-', rating: '-' },
+            { id: '20250890993', sessionId: 'HH00004', visitorId: 'FK00004', visitorName: '访客FK00004', nickname: '吴总', identifier: '-', remark: '-', status: '已回复', msgCount: 3, owner: '王三', primaryCs: 'Ariza', csCount: 1, startTime: '2025-03-25 12:17', receiveTime: '2025-03-25 12:17', endTime: '-', duration: '1天10小时10分', rating: '-' },
+            { id: '20250890994', sessionId: 'HH00005', visitorId: 'FK00005', visitorName: '访客FK00005', nickname: '赵钱孙', identifier: '-', remark: '-', status: '已关闭', msgCount: 3, owner: '王三', primaryCs: 'Ariza', csCount: 1, startTime: '2025-03-25 12:17', receiveTime: '2025-03-25 12:17', endTime: '-', duration: '1天10小时10分', rating: '-' }
         ];
 
         const messagesData = [
-            { msgId: 'XX00001', type: '单聊', title: '客户00001', status: '活跃', category: '外部', msgCount: '1', owner: '-', visitorCount: 1, csCount: 1, startTime: '2026-03-23 14:45', lastUpdateTime: '2026-03-23 14:45:34' },
+            { msgId: 'XX00001', type: '单聊', title: '王三和访客的聊天', status: '活跃', category: '外部', msgCount: '1', owner: '-', visitorCount: 1, csCount: 1, startTime: '2026-03-23 14:45', lastUpdateTime: '2026-03-23 14:45:34' },
             { msgId: 'XX00002', type: '群聊', title: '王三、客户00002、李四的群聊', status: '活跃', category: '外部', msgCount: '25', owner: '王三', visitorCount: 1, csCount: 2, startTime: '2026-02-24 18:10', lastUpdateTime: '2026-02-28 15:12:35' }
         ];
+        let lastFilteredSessions = [];
+        let lastFilteredMessages = [];
 
         function renderMessageRecords() {
             const tbody = document.getElementById('messageRecordTableBody');
             if(!tbody) return;
             const searchVal = document.getElementById('messageSearchInput') ? document.getElementById('messageSearchInput').value.trim().toLowerCase() : '';
-            const searchTypeVal = document.getElementById('messageSearchType') ? document.getElementById('messageSearchType').value : 'msgId';
+            const searchTypeVal = document.getElementById('messageSearchType') ? document.getElementById('messageSearchType').value : 'title';
             const ownerVal = document.getElementById('messageOwnerFilter') ? document.getElementById('messageOwnerFilter').value : '';
             const typeVal = document.getElementById('messageTypeFilter') ? document.getElementById('messageTypeFilter').value : '';
             const statusVal = document.getElementById('messageStatusFilter') ? document.getElementById('messageStatusFilter').value : '';
@@ -3805,10 +4112,14 @@ window.addEventListener('error', function(e) {
             const filtered = messagesData.filter(m => {
                 let matchSearch = true;
                 if (searchVal !== '') {
-                    if (searchTypeVal === 'msgId') {
-                        matchSearch = m.msgId && m.msgId.toLowerCase().includes(searchVal);
-                    } else if (searchTypeVal === 'title') {
+                    if (searchTypeVal === 'title') {
                         matchSearch = m.title && m.title.toLowerCase().includes(searchVal);
+                    } else if (searchTypeVal === 'visitorName') {
+                        matchSearch = m.title && m.title.toLowerCase().includes(searchVal);
+                    } else if (searchTypeVal === 'remark') {
+                        matchSearch = m.title && m.title.toLowerCase().includes(searchVal);
+                    } else if (searchTypeVal === 'owner') {
+                        matchSearch = m.owner && m.owner.toLowerCase().includes(searchVal);
                     }
                 }
                 let matchOwner = ownerVal === '' || m.owner === ownerVal;
@@ -3817,15 +4128,16 @@ window.addEventListener('error', function(e) {
                 let matchCat = catVal === '' || m.category === catVal;
                 return matchSearch && matchOwner && matchType && matchStatus && matchCat;
             });
+            lastFilteredMessages = filtered;
             
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="12" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无数据</div></td></tr>`;
             } else {
                 tbody.innerHTML = filtered.slice(0, 20).map((m, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><span class="blue-link" onclick="openSessionDetail(event, '${m.msgId}', 'message')" style="color: #2970FF; text-decoration: underline; cursor: pointer; text-underline-offset: 3px;">${m.msgId}</span></td>
+
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><span onclick="openSessionDetail(event, '${m.msgId}', 'message')" style="color: #111; text-decoration: underline; cursor: pointer; text-underline-offset: 3px;">${renderEllipsisTooltip(m.title, 180)}</span></td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${m.type}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${renderEllipsisTooltip(m.title, 180)}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${m.status}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${m.category}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${m.msgCount}</td>
@@ -3840,7 +4152,7 @@ window.addEventListener('error', function(e) {
                                 <i class="ri-more-2-fill" style="color: #444; font-size: 16px;"></i>
                             </div>
                             <div class="op-hover-menu">
-                                <div class="op-hover-item" onclick="openSessionDetail(event, '${m.msgId}', 'message')">查看消息</div>
+                                <div class="op-hover-item" onclick="openSessionDetail(event, '${m.msgId}', 'message')">查看聊天</div>
                             </div>
                         </div>
                     </td>
@@ -3878,11 +4190,24 @@ window.addEventListener('error', function(e) {
 
         function getStatusStyling(status) {
             switch(status) {
-                case '排队中': return '<span style="color: #FF7D00;">排队中</span>';
-                case '进行中': return '<span style="color: #2970FF;">进行中</span>';
+                case '待回复': return '<span style="color: #F53F3F;">待回复</span>';
+                case '排队中': return '<span style="color: #F7BA1E;">排队中</span>';
+                case '待处理': return '<span style="color: #FF7D00;">待处理</span>';
+                case '已回复': return '<span style="color: #00B42A;">已回复</span>';
                 case '已关闭': return '<span style="color: #8da2cc;">已关闭</span>';
                 default: return `<span style="color: #888;">${status}</span>`;
             }
+        }
+
+        function getRatingTag(rating) {
+            if (!rating || rating === '-') return '<span style="color: #c0c4cc;">-</span>';
+            const styles = {
+                '满意': { color: '#00B42A' },
+                '一般': { color: '#FF7D00' },
+                '不满意': { color: '#F53F3F' }
+            };
+            const s = styles[rating] || { color: '#4e5969' };
+            return `<span style="color: ${s.color};">${rating}</span>`;
         }
         function renderSessions() {
             const emptyState = document.getElementById('emptyState');
@@ -3898,19 +4223,23 @@ window.addEventListener('error', function(e) {
             const statusVal = statusFilter ? statusFilter.value : '';
             const ownerVal = ownerFilter ? ownerFilter.value : '';
 
+            // Get selected ratings
+            const ratingCheckboxes = document.querySelectorAll('#ratingDropdown input:checked');
+            const selectedRatings = Array.from(ratingCheckboxes).map(cb => cb.value);
+
             const filteredSessions = sessions.filter(s => {
                 let matchSearch = true;
                 if (searchVal !== '') {
-                    if (searchTypeVal === 'sessionId') {
-                        matchSearch = s.sessionId && s.sessionId.toLowerCase().includes(searchVal);
-                    } else if (searchTypeVal === 'visitorId') {
-                        matchSearch = s.visitorId && s.visitorId.toLowerCase().includes(searchVal);
+                    if (searchTypeVal === 'sessionTitle') {
+                        matchSearch = true; // Since all are "新的会话", simple check or truthy
                     } else if (searchTypeVal === 'visitorName') {
                         matchSearch = s.visitorName && s.visitorName.toLowerCase().includes(searchVal);
                     } else if (searchTypeVal === 'identifier') {
                         matchSearch = s.identifier && s.identifier.toLowerCase().includes(searchVal);
                     } else if (searchTypeVal === 'remark') {
                         matchSearch = s.remark && s.remark.toLowerCase().includes(searchVal);
+                    } else if (searchTypeVal === 'rating') {
+                        matchSearch = s.rating && s.rating.toLowerCase().includes(searchVal);
                     } else {
                         matchSearch = (s.sessionId && s.sessionId.toLowerCase().includes(searchVal)) || 
                                       (s.visitorId && s.visitorId.toLowerCase().includes(searchVal)) || 
@@ -3922,15 +4251,21 @@ window.addEventListener('error', function(e) {
                 
                 const matchStatus = statusVal === '' || s.status === statusVal;
                 const matchOwner = ownerVal === '' || s.owner === ownerVal;
+                // Filter by Rating (Multi-select)
+                if (selectedRatings.length > 0) {
+                    if (!selectedRatings.includes(s.rating)) return false;
+                }
+
                 return matchSearch && matchStatus && matchOwner;
             });
+            lastFilteredSessions = filteredSessions;
             
             if (filteredSessions.length === 0) {
                 emptyState.style.display = 'none';
                 sessionTableContainer.style.display = 'flex';
                 document.getElementById('sessionTableScrollArea').style.display = 'block';
                 
-                tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 100px 0; color: #888; border-bottom: none;">
+                tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 100px 0; color: #888; border-bottom: none;">
                     <div style="font-size: 16px; font-weight: 500; color: #111; margin-bottom: 8px;">未找到匹配记录</div>
                     <div style="font-size: 14px; color: #888;">请尝试更换关键词或筛选状态</div>
                 </td></tr>`;
@@ -3941,19 +4276,22 @@ window.addEventListener('error', function(e) {
                 
                 tbody.innerHTML = filteredSessions.slice(0, 20).map((s, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
-                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><span class="blue-link" onclick="openSessionDetail(event, '${s.id}')" style="color: #2970FF; text-decoration: underline; cursor: pointer; text-underline-offset: 3px;">${s.sessionId}</span></td>
-                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" class="blue-link" onclick="openVisitorDetail(event, '${s.visitorId}')" style="color: #2970FF; text-decoration: underline; text-underline-offset: 3px;">${s.visitorName}</a></td>
-                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.visitorId}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><span onclick="openSessionDetail(event, '${s.id}')" style="color: #111; text-decoration: underline; cursor: pointer; text-underline-offset: 3px;">${s.title || '新的会话'}</span></td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" class="blue-link" onclick="openVisitorDetail(event, '${s.visitorId}')" style="color: #111; text-decoration: underline; text-underline-offset: 3px;">${s.visitorName}</a></td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.identifier}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.remark}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">${getStatusStyling(s.status)}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${s.msgCount}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.owner}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.owner}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${s.csCount}</td>
 
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.startTime || '-'}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.receiveTime || '-'}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.duration || '-'}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                            ${getRatingTag(s.rating)}
+                        </td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; position: sticky; right: 0; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; z-index: 5; text-align: center; box-shadow: -4px 0 8px rgba(0,0,0,0.02); transition: background 0.2s; overflow: visible;">
                             <div class="op-hover-container">
                                 <div style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='transparent'">
@@ -3962,6 +4300,7 @@ window.addEventListener('error', function(e) {
                                 <div class="op-hover-menu">
                                     <div class="op-hover-item" onclick="openSessionDetail(event, '${s.id}')">查看会话</div>
                                     ${s.status === '排队中' ? `<div class="op-hover-item" onclick="openAssignSessionModal(event, '${s.id}')">分配会话</div>` : ''}
+                                    ${s.status === '已关闭' ? `<div class="op-hover-item" onclick="deleteSession(event, '${s.id}')" style="color: #F53F3F;">删除会话</div>` : ''}
                                 </div>
                             </div>
                         </td>
@@ -4218,7 +4557,7 @@ window.addEventListener('error', function(e) {
             } else {
                 tbody.innerHTML = filtered.slice(0, 20).map((c, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.id}</td>
+
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" onclick="openVisitorDetail(event, '${c.name}')" style="color: #4e5969; text-decoration: underline; text-underline-offset: 3px;">${c.name}</a></td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
@@ -4279,7 +4618,7 @@ window.addEventListener('error', function(e) {
             } else {
                 tbody.innerHTML = filtered.slice(0, 20).map((c, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.id}</td>
+
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" onclick="openVisitorDetail(event, '${c.name}')" style="color: #4e5969; text-decoration: underline; text-underline-offset: 3px;">${c.name}</a></td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
@@ -4342,7 +4681,7 @@ window.addEventListener('error', function(e) {
                 tbody.innerHTML = filtered.slice(0, 20).map((c, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #111;">${c.agentId}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.id}</td>
+
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" onclick="openVisitorDetail(event, '${c.name}')" style="color: #4e5969; text-decoration: underline; text-underline-offset: 3px;">${c.name}</a></td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
@@ -4390,8 +4729,6 @@ function renderAllClients() {
                         matchSearch = c.phone && c.phone.toLowerCase().includes(searchVal);
                     } else if (searchTypeVal === 'agentId') {
                         matchSearch = c.agentId && c.agentId.toLowerCase().includes(searchVal);
-                    } else if (searchTypeVal === 'clientId') {
-                        matchSearch = c.id && c.id.toLowerCase().includes(searchVal);
                     }
                 }
                 let matchFirst = firstVisitVal === '' || c.firstVisit.startsWith(firstVisitVal);
@@ -4405,7 +4742,7 @@ function renderAllClients() {
                 tbody.innerHTML = filtered.slice(0, 20).map((c, idx) => `
                     <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'; this.lastElementChild.style.background='#f2f3f5'; this.lastElementChild.style.zIndex='100';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}'; this.lastElementChild.style.zIndex='5';">
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #111;">${c.agentId}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.id}</td>
+
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;"><a href="#" onclick="openVisitorDetail(event, '${c.name}')" style="color: #4e5969; text-decoration: underline; text-underline-offset: 3px;">${c.name}</a></td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
@@ -4509,9 +4846,9 @@ function resetAllClientFilters() {
                 
                 if (filteredCustomers.length === 0) {
                     if (customers.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="6" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无客服成员</div></td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="7" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无客服成员</div></td></tr>`;
                     } else {
-                        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 100px 0; color: #888;">
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 100px 0; color: #888;">
                             <div style="font-size: 16px; font-weight: 500; color: #111; margin-bottom: 8px;">未找到匹配人员</div>
                             <div style="font-size: 14px; color: #888;">请尝试更换关键词或筛选状态</div>
                         </td></tr>`;
@@ -4519,6 +4856,7 @@ function resetAllClientFilters() {
                 } else {
                     tbody.innerHTML = filteredCustomers.slice(0, 20).map(c => `
                         <tr>
+                            <td style="color: #86909c;">${c.idStr || String(c.id).padStart(4, '0')}</td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 32px; height: 32px; border-radius: 50%; background: #E8F3FF; color: #2970FF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0;">
@@ -4527,6 +4865,13 @@ function resetAllClientFilters() {
                                     <span>${c.name}</span>
                                 </div>
                             </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${c.name}" style="width: 28px; height: 28px; border-radius: 50%; background: #f7f8fa; flex-shrink: 0; object-fit: cover;">
+                                    <span>${c.nickname || c.name}</span>
+                                </div>
+                            </td>
+                            <td>${c.role || '客服'}</td>
                             <td>${c.empId}</td>
                             <td>
                                 <div class="status-badge" style="cursor: default; background: transparent; padding-left: 0;">
@@ -4542,8 +4887,13 @@ function resetAllClientFilters() {
                                         <i class="ri-more-2-fill" style="color: #444; font-size: 16px;"></i>
                                     </div>
                                     <div class="op-hover-menu">
-                                        <div class="op-hover-item" onclick="promptSetCapacity(${c.id}, event)">人数设置</div>
-                                        <div class="op-hover-item" style="color: #F53F3F;" onmouseover="this.style.background='#fff2f2'" onmouseout="this.style.background=''" onclick="promptRemoveCustomer(${c.id}, event)">移除</div>
+                                        ${c.role === '超级管理员' 
+                                            ? `<div class="op-hover-item" style="opacity: 0.5; cursor: not-allowed;" onclick="event.stopPropagation();">发起聊天</div>` 
+                                            : `<div class="op-hover-item" onclick="event.stopPropagation(); showToast('发起聊天功能开发中')">发起聊天</div>`}
+                                        <div class="op-hover-item" onclick="event.stopPropagation(); showAccountDetails('${c.id}')">账号详情</div>
+                                        ${c.role === '超级管理员' 
+                                            ? `<div class="op-hover-item" style="color: #F53F3F; opacity: 0.5; cursor: not-allowed;" onclick="event.stopPropagation();">移除</div>` 
+                                            : `<div class="op-hover-item" style="color: #F53F3F;" onmouseover="this.style.background='#fff2f2'" onmouseout="this.style.background=''" onclick="promptRemoveCustomer(${c.id}, event)">移除</div>`}
                                     </div>
                                 </div>
                             </td>
@@ -4923,12 +5273,18 @@ function resetAllClientFilters() {
         function confirmContactSelection() {
             tempContactSelected.forEach(item => {
                 if (!customers.find(c => c.name === item.name)) {
+                    const nextId = customers.length + 1;
+                    const selectedRole = document.getElementById('newCustomerRole').value;
                     customers.push({
                         id: Date.now() + Math.random(),
+                        idStr: String(nextId).padStart(4, '0'),
                         name: item.name,
+                        nickname: item.name,
                         avatar: item.name,
+                        role: selectedRole,
                         empId: 'JM' + (Math.floor(1000 + Math.random() * 9000)),
                         status: 'online',
+                        maxCapacity: 10,
                         addTime: new Date().toLocaleString(),
                         hasActiveSession: Math.random() > 0.5
                     });
@@ -5110,18 +5466,119 @@ function resetAllClientFilters() {
             backToRole(true);
         }
 
-        function backToRole(force = false) {
+        function showRoleLeaveConfirmModal() {
+            let targetDoc = document;
+            try {
+                if (window.parent && window.parent.document) {
+                    targetDoc = window.parent.document;
+                }
+            } catch(e) {}
+            
+            let modal = targetDoc.getElementById('roleLeaveConfirmModal');
+            if (!modal) {
+                const modalHtml = `
+                <div id="roleLeaveConfirmModal" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+                    <div style="background: #fff; border-radius: 8px; width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 32px 32px 24px 32px; font-family: 'Inter', sans-serif;">
+                        <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+                            <!-- Ensure the icon inherits remixicon family locally or via CDN, we use an inline svg for absolute safety, but remixicon should work since parent has it -->
+                            <i class="ri-error-warning-fill" style="color: #ff7d00; font-size: 24px; margin-right: 12px; margin-top: -2px;"></i>
+                            <div>
+                                <div style="font-size: 16px; font-weight: 600; color: #111; margin-bottom: 8px;">离开本页面</div>
+                                <div style="font-size: 14px; color: #4e5969; line-height: 1.5;">当前页面有内容修改，点击「放弃修改」将离开本页面</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
+                            <button onclick="document.getElementById('roleLeaveConfirmModal').style.display='none'" style="height: 32px; padding: 0 20px; border: 1px solid #e5e6eb; background: #fff; border-radius: 4px; cursor: pointer; color: #111; font-size: 14px;">取消</button>
+                            <button onclick="document.getElementById('roleLeaveConfirmModal').style.display='none'; if(window.roleLeaveConfirmCallback) window.roleLeaveConfirmCallback(); else window.frames[0].executeRoleLeaveForce();" style="height: 32px; padding: 0 20px; border: none; background: #1677FF; color: #fff; border-radius: 4px; cursor: pointer; font-size: 14px;">放弃修改</button>
+                        </div>
+                    </div>
+                </div>`;
+                targetDoc.body.insertAdjacentHTML('beforeend', modalHtml);
+                modal = targetDoc.getElementById('roleLeaveConfirmModal');
+            } else {
+                modal.style.display = 'flex';
+            }
+            
+            // Set callback on target window
+            targetDoc.defaultView.roleLeaveConfirmCallback = function() {
+                executeRoleLeaveForce();
+            };
+        }
+
+        function executeRoleLeaveForce() {
+            roleCheckboxesDirty = false;
+            backToRole(true);
+        }
+
+        function backToRole(force) {
             if (force !== true && isRoleFormDirty()) {
-                document.getElementById('roleLeaveConfirmModal').style.display = 'flex';
+                showRoleLeaveConfirmModal();
                 return;
             }
             document.querySelectorAll('.table-container').forEach(c => c.style.display = 'none');
             document.getElementById('roleTableContainer').style.display = 'flex';
         }
 
-        function executeRoleLeave() {
-            document.getElementById('roleLeaveConfirmModal').style.display = 'none';
-            backToRole(true);
+        let currentEditingCustomerId = null;
+        function showAccountDetails(id) {
+            currentEditingCustomerId = id;
+            const customer = customers.find(c => String(c.id) === String(id)) || {};
+            
+            document.querySelectorAll('.table-container').forEach(c => c.style.display = 'none');
+            document.getElementById('emptyState').style.display = 'none';
+            const container = document.getElementById('accountDetailsContainer');
+            
+            // Fill data
+            document.getElementById('adName').value = customer.name || 'tuski';
+            document.getElementById('adNickname').value = customer.nickname || customer.name || 'tuski';
+            document.getElementById('adLimit').value = customer.maxCapacity !== undefined ? customer.maxCapacity : '1';
+            
+            const role = customer.role || '客服';
+            const roleDisplay = document.getElementById('adRoleDisplay');
+            const roleSelectWrapper = document.getElementById('adRoleSelectWrapper');
+            const roleSelect = document.getElementById('adRoleSelect');
+            
+            if (role === '超级管理员') {
+                roleDisplay.value = role;
+                roleDisplay.style.display = 'block';
+                roleSelectWrapper.style.display = 'none';
+            } else {
+                roleDisplay.style.display = 'none';
+                roleSelectWrapper.style.display = 'block';
+                roleSelect.value = role;
+            }
+            
+            // Avatar seed or use default
+            const seed = customer.name || 'Felix';
+            document.getElementById('adAvatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+            
+            container.style.display = 'flex';
+        }
+
+        function saveAccountDetails() {
+            if (currentEditingCustomerId) {
+                const customer = customers.find(c => String(c.id) === String(currentEditingCustomerId));
+                if (customer) {
+                    // Sync Nickname
+                    customer.nickname = document.getElementById('adNickname').value.trim() || customer.name;
+                    // Sync Session Limit (Max Capacity)
+                    customer.maxCapacity = parseInt(document.getElementById('adLimit').value, 10) || 10;
+                    
+                    // Sync Role if not Super Admin
+                    const roleSelect = document.getElementById('adRoleSelect');
+                    if (customer.role !== '超级管理员' && roleSelect.offsetParent !== null) {
+                        customer.role = roleSelect.value;
+                    }
+                }
+            }
+            showToast('保存成功');
+            backToCustomerList();
+        }
+
+        function backToCustomerList() {
+            document.querySelectorAll('.table-container').forEach(c => c.style.display = 'none');
+            document.getElementById('customerTableContainer').style.display = 'flex';
+            renderCustomers();
         }
 
         function toggleSubMenu(element) {
@@ -5181,7 +5638,7 @@ function resetAllClientFilters() {
                 
                 renderSessions();
                 
-            } else if (title === '消息记录') {
+            } else if (title === '聊天记录') {
                 document.querySelector('.empty-btn').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
                 document.getElementById('messageRecordContainer').style.display = 'flex';
@@ -5257,7 +5714,11 @@ function resetAllClientFilters() {
                 document.querySelector('.empty-btn').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
                 document.getElementById('devSettingsContainer').style.display = 'flex';
-                renderDevSettings();
+                if(typeof renderDevSettings === 'function') renderDevSettings();
+            } else if (title === 'Webhooks') {
+                document.querySelector('.empty-btn').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('webhooksContainer').style.display = 'flex';
 } else if (title === '成员设置') {
                 document.querySelector('.empty-btn').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
@@ -5392,15 +5853,160 @@ function resetAllClientFilters() {
         function toggleCloseGreeting() {
             setToggleState('closeGreeting', document.getElementById('closeGreetingText').innerText === '已关闭');
         }
+        let currentNavInfo = { list: [], index: -1, mode: '' };
+
         function openSessionDetail(e, id, mode = 'session') {
             if(e) e.stopPropagation();
+            
+            // Setup navigation
+            let list = [];
+            if (mode === 'session') {
+                // Get the current filtered sessions from the table logic or re-filter
+                // For simplicity, we can reuse the logic from renderSessions but we need the actual filtered list
+                // Let's assume we have access to the filtered list. I will tweak renderSessions/renderMessageRecords to expose it.
+                list = typeof lastFilteredSessions !== 'undefined' ? lastFilteredSessions : sessions;
+            } else {
+                list = typeof lastFilteredMessages !== 'undefined' ? lastFilteredMessages : messagesData;
+            }
+            
+            const index = list.findIndex(item => (mode === 'session' ? item.id : item.msgId) === id);
+            currentNavInfo = { list, index, mode };
+            updateNavButtons();
+
+            let displayTitle = mode === 'message' ? '消息详情' : '会话详情';
+            const currentItem = list[index];
+            if (currentItem) {
+                displayTitle = currentItem.title || (mode === 'session' ? '新的会话' : '消息详情');
+            }
+            
             if (document.getElementById('detailDrawerTitle')) {
-                document.getElementById('detailDrawerTitle').innerText = mode === 'message' ? '消息详情' : '会话详情';
+                document.getElementById('detailDrawerTitle').innerText = displayTitle;
             }
             if (document.getElementById('sysMessageWarning')) {
                 document.getElementById('sysMessageWarning').style.display = mode === 'message' ? 'none' : 'block';
             }
+            
+            // Toggle edit icon: only show for session details
+            const editIcon = document.getElementById('editTitleIcon');
+            if (editIcon) {
+                editIcon.style.display = mode === 'session' ? 'inline-block' : 'none';
+            }
+            
+            // Toggle footer for closed sessions or messages
+            const footer = document.getElementById('sessionDetailFooter');
+            const delBtn = document.getElementById('footerDeleteBtn');
+            const chatBtn = document.getElementById('footerChatBtn');
+            if (footer && delBtn && chatBtn) {
+                if (mode === 'message') {
+                    footer.style.display = 'block';
+                    delBtn.style.display = 'none';
+                    chatBtn.style.display = 'block';
+                } else {
+                    const isClosed = currentItem && currentItem.status === '已关闭';
+                    footer.style.display = isClosed ? 'block' : 'none';
+                    delBtn.style.display = isClosed ? 'block' : 'none';
+                    chatBtn.style.display = 'none';
+                }
+            }
+
             document.getElementById('sessionDetailDrawer').classList.add('show');
+        }
+
+        function navigateDetail(dir) {
+            const nextIdx = currentNavInfo.index + dir;
+            if (nextIdx >= 0 && nextIdx < currentNavInfo.list.length) {
+                const item = currentNavInfo.list[nextIdx];
+                const id = currentNavInfo.mode === 'session' ? item.id : item.msgId;
+                openSessionDetail(null, id, currentNavInfo.mode);
+            }
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('navPrevBtn');
+            const nextBtn = document.getElementById('navNextBtn');
+            if (!prevBtn || !nextBtn) return;
+            
+            const canPrev = currentNavInfo.index > 0;
+            const canNext = currentNavInfo.index < currentNavInfo.list.length - 1;
+            
+            prevBtn.style.opacity = canPrev ? '1' : '0.3';
+            prevBtn.style.pointerEvents = canPrev ? 'auto' : 'none';
+            prevBtn.style.background = canPrev ? '#fff' : '#f5f5f5';
+            
+            nextBtn.style.opacity = canNext ? '1' : '0.3';
+            nextBtn.style.pointerEvents = canNext ? 'auto' : 'none';
+            nextBtn.style.background = canNext ? '#fff' : '#f5f5f5';
+        }
+
+        function startEditTitle() {
+            const titleSpan = document.getElementById('detailDrawerTitle');
+            const icon = document.getElementById('editTitleIcon');
+            const parent = titleSpan.parentNode;
+            const oldTitle = titleSpan.innerText;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = oldTitle;
+            input.style.fontSize = '16px';
+            input.style.fontWeight = '600';
+            input.style.color = '#111';
+            input.style.border = '1px solid #2970FF';
+            input.style.borderRadius = '4px';
+            input.style.padding = '2px 6px';
+            input.style.outline = 'none';
+            input.style.width = '180px';
+            input.style.background = '#fff';
+            
+            titleSpan.style.display = 'none';
+            icon.style.display = 'none';
+            parent.insertBefore(input, titleSpan);
+            input.focus();
+            input.select();
+            
+            let isDone = false;
+            const done = () => {
+                if(isDone) return;
+                isDone = true;
+                const newTitle = input.value.trim() || oldTitle;
+                titleSpan.innerText = newTitle;
+                titleSpan.style.display = 'inline';
+                icon.style.display = 'inline';
+                
+                // Update data
+                const item = currentNavInfo.list[currentNavInfo.index];
+                if (item) {
+                    item.title = newTitle;
+                }
+                
+                input.remove();
+                if (currentNavInfo.mode === 'session') renderSessions();
+                else renderMessageRecords();
+            };
+
+            input.onblur = done;
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') done();
+                if (e.key === 'Escape') {
+                    input.value = oldTitle;
+                    done();
+                }
+            };
+        }
+        
+        function deleteSession(e, id) {
+            if(e) e.stopPropagation();
+            if (confirm('确定要删除该条会话记录吗？')) {
+                sessions = sessions.filter(s => s.id !== id);
+                renderSessions();
+            }
+        }
+
+        function handleFooterDelete() {
+            const item = currentNavInfo.list[currentNavInfo.index];
+            if (item) {
+                deleteSession(null, item.id);
+                closeSessionDetail();
+            }
         }
         
         function closeSessionDetail() {
@@ -5817,6 +6423,7 @@ function resetAllClientFilters() {
                     if (clearIcon) clearIcon.style.display = 'none';
                 }
             });
+            if (typeof resetRatingFilter === 'function') resetRatingFilter();
             renderSessions();
         }
 
@@ -5920,6 +6527,43 @@ function resetAllClientFilters() {
         let currentAssignSessionId = null;
         let selectedAssignAgent = null;
 
+        function toggleRatingDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('ratingDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateRatingFilter() {
+            const checkboxes = document.querySelectorAll('#ratingDropdown input:checked');
+            const label = document.getElementById('sessionRatingValue');
+            const clearIcon = document.getElementById('sessionRatingClear');
+            const filterBox = document.getElementById('sessionRatingFilter');
+            
+            if (checkboxes.length > 0) {
+                const vals = Array.from(checkboxes).map(cb => cb.value);
+                label.innerText = vals.join(', ');
+                label.style.color = '#444';
+                clearIcon.style.display = 'block';
+            } else {
+                label.innerText = '访客评价';
+                label.style.color = '#c0c4cc';
+                clearIcon.style.display = 'none';
+            }
+            renderSessions();
+        }
+
+        function resetRatingFilter(e) {
+            if(e) e.stopPropagation();
+            const checkboxes = document.querySelectorAll('#ratingDropdown input');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateRatingFilter();
+        }
+
+        document.addEventListener('click', () => {
+            const dropdown = document.getElementById('ratingDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        });
+
         function openAssignSessionModal(e, id) {
             if(e) e.stopPropagation();
             currentAssignSessionId = id;
@@ -6009,7 +6653,7 @@ function resetAllClientFilters() {
                 const s = sessions.find(x => x.id === currentAssignSessionId);
                 if (s) {
                     s.owner = selectedAssignAgent.name;
-                    s.status = '进行中';
+                    s.status = '已回复';
                 }
                 renderSessions();
             }
@@ -7608,23 +8252,62 @@ About Baidu<br>
                 document.getElementById('deletePublicReplyModal').style.display = 'none';
             }
         }
+        function openResetAppSecretModal() {
+            let targetDoc = window.parent ? window.parent.document : document;
+            let modal = targetDoc.getElementById('resetAppSecretModal');
+            
+            if (!modal) {
+                const modalHtml = `
+                    <div class="modal center" id="resetAppSecretModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center;">
+                        <div class="modal-center-content" style="width: 500px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                            <div style="padding: 24px 24px 16px;">
+                                <div style="font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px;">重置AppSecret</div>
+                                <div style="font-size: 14px; color: #86909c; line-height: 1.6;">重置后旧的AppSecret将立即失效，并生成新的AppSecret，请妥善保存</div>
+                            </div>
+                            <div style="padding: 16px 24px 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                                <button style="height: 38px; padding: 0 16px; border: 1px solid #e5e6eb; background: #fff; color: #111; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='#fff'" id="btnResetAppSecretCancel">取消</button>
+                                <button style="height: 38px; padding: 0 20px; border: none; background: #2970FF; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" id="btnResetAppSecretConfirm">确认</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal center" id="resetAppSecretSuccessModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center;">
+                        <div class="modal-center-content" style="width: 500px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                            <div style="padding: 24px 24px 16px;">
+                                <div style="font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px;">重置成功</div>
+                                <div style="font-size: 14px; color: #86909c; line-height: 1.6; margin-bottom: 20px;">请将此AppSecret保存在安全且易于访问的地方。出于安全原因，你将无法通过开发设置界面再次查看它。如果丢失了将需要重置</div>
+                                <div style="background: #f7f8fa; border-radius: 8px; padding: 12px 16px; font-family: monospace; font-size: 14px; color: #111; border: 1px solid #e5e6eb; word-break: break-all;">uiHQxQkGF5BivmPTOprurxTY4xCnnVag</div>
+                            </div>
+                            <div style="padding: 0 24px 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                                <button style="height: 38px; padding: 0 16px; border: 1px solid #e5e6eb; background: #fff; color: #111; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='#fff'" id="btnResetSuccessCancel">取消</button>
+                                <button style="height: 38px; padding: 0 20px; border: none; background: #2970FF; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" id="btnResetSuccessCopy">复制</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                targetDoc.body.insertAdjacentHTML('beforeend', modalHtml);
+                modal = targetDoc.getElementById('resetAppSecretModal');
+                let successModal = targetDoc.getElementById('resetAppSecretSuccessModal');
+                
+                targetDoc.getElementById('btnResetAppSecretCancel').onclick = () => { modal.style.display = 'none'; };
+                targetDoc.getElementById('btnResetAppSecretConfirm').onclick = () => { 
+                    modal.style.display = 'none'; 
+                    successModal.style.display = 'flex'; 
+                };
+                targetDoc.getElementById('btnResetSuccessCancel').onclick = () => { successModal.style.display = 'none'; };
+                targetDoc.getElementById('btnResetSuccessCopy').onclick = () => { 
+                    successModal.style.display = 'none'; 
+                    if (typeof showToast === 'function') {
+                        showToast('复制成功');
+                    } else if (window.showToast) {
+                        window.showToast('复制成功');
+                    }
+                };
+            }
+            modal.style.display = 'flex';
+        }
     </script>
 
-    <!-- Role Leave Confirm Modal -->
-    <div id="roleLeaveConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-        <div style="background: #fff; border-radius: 8px; width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 32px 32px 24px 32px;">
-            <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                <i class="ri-error-warning-fill" style="color: #ff7d00; font-size: 24px; margin-right: 12px; margin-top: -2px;"></i>
-                <div>
-                    <div style="font-size: 16px; font-weight: 600; color: #111; margin-bottom: 8px;">离开本页面</div>
-                    <div style="font-size: 14px; color: #4e5969; line-height: 1.5;">当前页面有内容修改，点击「放弃修改」将离开本页面</div>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
-                <div class="btn" onclick="document.getElementById('roleLeaveConfirmModal').style.display = 'none';" style="height: 32px; font-size: 14px; padding: 0 20px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e5e6eb; color: #111; border-radius: 4px;">取消</div>
-                <div class="btn btn-primary" onclick="executeRoleLeave();" style="height: 32px; font-size: 14px; padding: 0 20px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #007BFF; color: #fff; border-radius: 4px;">放弃修改</div>
-            </div>
-        </div>
-    </div>
+    <!-- Previous inline Modal has been moved to JS for top-level window injection -->
 </body>
 </html>

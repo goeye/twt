@@ -745,9 +745,48 @@
                                 <td style="color: #1D2129;">TWT</td>
                                 <td><span id="listAppScopeTag" style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
                                 <td>
-                                    <span class="action-link" onclick="openAppDetail()">设置</span>
-                                    <span class="action-link" id="listAppEnterBtn" onclick="openAppEnter()">进入</span>
+                                    <span class="action-link" onclick="openAppDetail('kefu')">设置</span>
                                     <span class="action-link danger" id="listAppStatusBtn" onclick="toggleAppStatus()">停用</span>
+                                </td>
+                            </tr>
+
+                            <tr class="app-row" style="transition: 0.2s;">
+                                <td style="padding-left: 24px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FF7D00 0%, #F77234 100%); border-radius: 10px; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 22px; box-shadow: 0 4px 10px rgba(255, 125, 0, 0.2);">
+                                            <i class="ri-calendar-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 500; color: #1D2129;">日历</div>
+                                            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">Link 应用</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color: #1D2129;">TWT</td>
+                                <td><span style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
+                                <td>
+                                    <span class="action-link" onclick="openAppDetail('calendar')">设置</span>
+                                    <span class="action-link danger" onclick="toggleAppStatus()">停用</span>
+                                </td>
+                            </tr>
+
+                            <tr class="app-row" style="transition: 0.2s;">
+                                <td style="padding-left: 24px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #00B42A 0%, #23C343 100%); border-radius: 10px; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 22px; box-shadow: 0 4px 10px rgba(0, 180, 42, 0.2);">
+                                            <i class="ri-checkbox-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 500; color: #1D2129;">待办</div>
+                                            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">Link 应用</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color: #1D2129;">TWT</td>
+                                <td><span style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
+                                <td>
+                                    <span class="action-link" onclick="openAppDetail('todo')">设置</span>
+                                    <span class="action-link danger" onclick="toggleAppStatus()">停用</span>
                                 </td>
                             </tr>
 
@@ -757,7 +796,7 @@
 
                 <!-- 分页器 -->
                 <div class="pagination">
-                    <span>共 1 条</span>
+                    <span>共 3 条</span>
                     <div class="page-btn disabled"><i class="ri-arrow-left-s-line"></i></div>
                     <div class="page-btn active">1</div>
                     <div class="page-btn disabled"><i class="ri-arrow-right-s-line"></i></div>
@@ -780,12 +819,12 @@
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <!-- 左侧：Logo 与名称 -->
                 <div style="display: flex; align-items: center;">
-                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #408aFF 0%, #2970FF 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 24px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(41, 112, 255, 0.2);">
-                        <i class="ri-customer-service-2-fill" style="font-size: 32px; color: #fff;"></i>
+                    <div id="appDetailIconBox" style="width: 56px; height: 56px; background: linear-gradient(135deg, #408aFF 0%, #2970FF 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 24px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(41, 112, 255, 0.2);">
+                        <i id="appDetailIcon" class="ri-customer-service-2-fill" style="font-size: 32px; color: #fff;"></i>
                     </div>
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px;">
-                        <span style="color: var(--text-primary); font-weight: 600; font-size: 16px;">客服</span>
-                        <span style="color: var(--text-secondary); font-size: 13px;">实时沟通，进行内外部服务的智能客服平台</span>
+                        <span id="appDetailName" style="color: var(--text-primary); font-weight: 600; font-size: 16px;">客服</span>
+                        <span id="appDetailDesc" style="color: var(--text-secondary); font-size: 13px;">实时沟通，进行内外部服务的智能客服平台</span>
                     </div>
                 </div>
                 <!-- 右侧：状态与开关 -->
@@ -828,10 +867,11 @@
             </div>
 
             <!-- 管理员 -->
-            <div style="margin-top: 48px;">
-                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+            <div id="appAdminSectionWrapper" style="margin-top: 48px;">
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
                     管理员
                 </div>
+                <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px;">在该范围内选择的用户，将作为客服管理后台的超级管理员</div>
                 
                 <div id="adminSetLink" style="display: flex; align-items: flex-start;">
                     <span style="color: var(--primary); font-size: 14px; cursor: pointer; font-weight: 500;" onclick="openMixedSelectModal('admin')">设置</span>
@@ -1079,10 +1119,11 @@
                         <input type="text" placeholder="搜索" style="border:none; outline:none; flex:1; font-size:14px;">
                     </div>
                     <div style="flex:1; overflow-y:auto; user-select:none;">
-                        <div style="display:flex; align-items:center; gap: 12px; padding:8px 0;">
-                            <input type="checkbox" class="modal-contact-cb" value="王三" onchange="renderSelectedContacts()" style="width:16px; height:16px; accent-color:var(--primary);">
-                            <div style="background:#E6F0FF; color:var(--primary); width:32px; height:32px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-weight:bold; font-size:12px;">王三</div>
-                            <span style="font-size:14px;">王三</span>
+                        <div style="display:flex; align-items:center; gap: 12px; padding:8px 0; opacity:0.45; cursor:not-allowed;" title="企业超级管理员不可被选为客服管理员">
+                            <input type="checkbox" class="modal-contact-cb" value="王三" disabled style="width:16px; height:16px; cursor:not-allowed;">
+                            <div style="background:#F2F3F5; color:#999; width:32px; height:32px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-weight:bold; font-size:12px;">王三</div>
+                            <span style="font-size:14px; color:#999;">王三</span>
+                            <span style="font-size:11px; color:#999; background:#F2F3F5; padding:1px 6px; border-radius:4px; flex-shrink:0;">企业超管</span>
                         </div>
                         <div style="display:flex; align-items:center; gap: 12px; padding:8px 0;">
                             <input type="checkbox" class="modal-contact-cb" value="李四" checked onchange="renderSelectedContacts()" style="width:16px; height:16px; accent-color:var(--primary);">
@@ -1314,7 +1355,42 @@
         }
 
         // 应用详情/设置全页开关
-        function openAppDetail() {
+        const appDetailConfigs = {
+            kefu: {
+                name: '客服',
+                desc: '实时沟通，进行内外部服务的智能客服平台',
+                icon: 'ri-customer-service-2-fill',
+                bg: 'linear-gradient(135deg, #408aFF 0%, #2970FF 100%)',
+                shadow: '0 4px 12px rgba(41, 112, 255, 0.2)'
+            },
+            calendar: {
+                name: '日历',
+                desc: '高效日程管理，轻松安排会议与事项提醒',
+                icon: 'ri-calendar-fill',
+                bg: 'linear-gradient(135deg, #FF7D00 0%, #F77234 100%)',
+                shadow: '0 4px 12px rgba(255, 125, 0, 0.2)'
+            },
+            todo: {
+                name: '待办',
+                desc: '任务清单与进度跟踪，提升团队协作效率',
+                icon: 'ri-checkbox-fill',
+                bg: 'linear-gradient(135deg, #00B42A 0%, #23C343 100%)',
+                shadow: '0 4px 12px rgba(0, 180, 42, 0.2)'
+            }
+        };
+        function openAppDetail(appType) {
+            const cfg = appDetailConfigs[appType] || appDetailConfigs.kefu;
+            document.getElementById('appDetailIconBox').style.background = cfg.bg;
+            document.getElementById('appDetailIconBox').style.boxShadow = cfg.shadow;
+            document.getElementById('appDetailIcon').className = cfg.icon;
+            document.getElementById('appDetailName').textContent = cfg.name;
+            document.getElementById('appDetailDesc').textContent = cfg.desc;
+
+            const adminSection = document.getElementById('appAdminSectionWrapper');
+            if (adminSection) {
+                adminSection.style.display = appType === 'kefu' ? 'block' : 'none';
+            }
+
             switchPage('app-detail');
             updateBreadcrumb('协同办公', '应用管理', '应用设置');
         }
@@ -2068,7 +2144,7 @@
 
         let tempMixedSelected = [];
         let finalMixedSelected = [];
-        let finalAdminSelected = [{ type: 'user', id: 'wang3', name: '王三' }];
+        let finalAdminSelected = []; // 被添加的人为客服后台管理的超级管理员
         let mixedModalContext = 'scope';
 
         const mixedTreeData = {
@@ -2139,15 +2215,27 @@
                 } else if (item.type === 'user') {
                     const isSuperAdmin = mixedModalContext === 'admin' && item.id === 'wang3';
                     const lockedAttr = isSuperAdmin ? 'data-locked="true"' : '';
-                    html += `
-                        <div style="display:flex; align-items:center; justify-content: space-between; padding: 10px 0;">
-                            <div style="display:flex; align-items:center; gap: 12px;">
-                                <input type="checkbox" class="modal-mixed-cb" data-type="user" data-id="${item.id}" data-name="${item.name}" value="${item.name}" onchange="handleMixedCheckboxChange(this)" style="width: 16px; height: 16px; accent-color: var(--primary); ${isSuperAdmin ? 'pointer-events:none; opacity:0.5;' : ''}" ${isChecked} ${lockedAttr}>
-                                <div style="background:#E6F0FF; color:var(--primary); width:36px; height:36px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-weight:500; font-size:14px; white-space:nowrap; overflow:hidden;">${item.name.slice(0,2)}</div>
-                                <div style="font-size:15px; color:#111;">${item.name}</div>
+                    if (isSuperAdmin) {
+                        html += `
+                            <div style="display:flex; align-items:center; justify-content: space-between; padding: 10px 0;">
+                                <div style="display:flex; align-items:center; gap: 12px;">
+                                    <input type="checkbox" class="modal-mixed-cb" data-type="user" data-id="${item.id}" data-name="${item.name}" value="${item.name}" disabled data-locked="true" style="width: 16px; height: 16px; cursor:not-allowed;">
+                                    <div style="background:#E6F0FF; color:var(--primary); width:36px; height:36px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-weight:500; font-size:14px; white-space:nowrap; overflow:hidden;">${item.name.slice(0,2)}</div>
+                                    <div style="font-size:15px; color:#111;">${item.name}</div>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        html += `
+                            <div style="display:flex; align-items:center; justify-content: space-between; padding: 10px 0;">
+                                <div style="display:flex; align-items:center; gap: 12px;">
+                                    <input type="checkbox" class="modal-mixed-cb" data-type="user" data-id="${item.id}" data-name="${item.name}" value="${item.name}" onchange="handleMixedCheckboxChange(this)" style="width: 16px; height: 16px; accent-color: var(--primary);" ${isChecked} ${lockedAttr}>
+                                    <div style="background:#E6F0FF; color:var(--primary); width:36px; height:36px; display:flex; justify-content:center; align-items:center; border-radius:6px; font-weight:500; font-size:14px; white-space:nowrap; overflow:hidden;">${item.name.slice(0,2)}</div>
+                                    <div style="font-size:15px; color:#111;">${item.name}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             });
             listContainer.innerHTML = html;

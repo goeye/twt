@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账号详情 - Link</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2970FF;
+            --text-main: #111;
+            --text-secondary: #86909C;
+            --border-color: #F0F0F0;
+            --input-bg: #F7F8FA;
+            --required-color: #F53F3F;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            cursor: pointer;
+        }
+
+        .header i {
+            font-size: 24px;
+            color: var(--text-main);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Avatar Section */
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .avatar-edit-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 24px;
+            height: 24px;
+            background: #F2F3F5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid var(--white);
+        }
+
+        .avatar-edit-icon i {
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .avatar-upload-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-upload {
+            background: #E8F3FF;
+            color: var(--primary-color);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            width: fit-content;
+            transition: 0.2s;
+        }
+
+        .btn-upload:hover {
+            background: #D1E9FF;
+        }
+
+        .upload-tip {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin-bottom: 32px;
+        }
+
+        /* Form Section */
+        .personal-info-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 24px;
+            row-gap: 24px;
+            max-width: 900px;
+        }
+
+        .form-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-item label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+        }
+
+        .required-star {
+            color: var(--required-color);
+            margin-right: 4px;
+        }
+
+        .input-field {
+            height: 44px;
+            background: var(--white);
+            border: 1px solid #E5E6EB;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(41, 112, 255, 0.1);
+        }
+
+        .input-field.disabled {
+            background: var(--input-bg);
+            border-color: transparent;
+            color: var(--text-main);
+            cursor: not-allowed;
+        }
+
+        /* Save Button */
+        .save-container {
+            margin-top: 32px;
+        }
+
+        .btn-save {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 10px 32px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="ri-arrow-left-s-line"></i>
+        <h1>账号详情</h1>
+    </div>
+
+    <div class="avatar-section">
+        <div class="avatar-container">
+            <!-- Simulated avatar image -->
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" alt="Avatar" class="avatar-img">
+            <div class="avatar-edit-icon">
+                <i class="ri-pencil-line"></i>
+            </div>
+        </div>
+        <div class="avatar-upload-info">
+            <button class="btn-upload">上传图片</button>
+            <p class="upload-tip">此图像将向访客显示</p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="personal-info-title">个人信息</div>
+
+    <div class="form-grid">
+        <div class="form-item">
+            <label>姓名</label>
+            <input type="text" class="input-field disabled" value="tuski" readonly>
+        </div>
+        <div class="form-item">
+            <label><span class="required-star">*</span>昵称</label>
+            <input type="text" class="input-field" value="tuski">
+        </div>
+        <div class="form-item">
+            <label>会话限制</label>
+            <input type="text" class="input-field" value="1">
+        </div>
+        <div class="form-item">
+            <label>角色</label>
+            <input type="text" class="input-field disabled" value="超级管理员" readonly>
+        </div>
+    </div>
+
+    <div class="save-container">
+        <button class="btn-save">保存</button>
+    </div>
+
+</body>
+</html>

@@ -2822,7 +2822,7 @@
 
         <div class="main-content">
             <div class="sidebar">
-                <div class="nav-item" onclick="switchAppView('msg')" title="消息">
+                <div class="nav-item active" onclick="switchAppView('msg')" title="消息">
                     <svg class="icon-outline" width="22" height="22" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -2891,7 +2891,7 @@
                     <span>待办</span>
                     <div id="globalTodoBadge" style="position:absolute; right:6px; background:#F53F3F; color:#fff; font-size:10px; font-weight:bold; height:16px; min-width:16px; display:flex; align-items:center; justify-content:center; border-radius:8px; padding:0 4px; pointer-events:none;">2</div>
                 </div>
-                <div class="nav-item active" onclick="switchAppView('cs')" title="客服">
+                <div class="nav-item" onclick="switchAppView('cs')" title="客服">
                     <svg class="icon-outline" width="22" height="22" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
@@ -2909,10 +2909,10 @@
             </div>
 
             <!-- 消息应用区 -->
-            <div class="app-view" id="view-msg">
+            <div class="app-view active" id="view-msg">
                 <div class="list-panel">
                     <div class="list-header" style="border-bottom: none; min-height: fit-content; flex-shrink: 0; padding-bottom: 0;">
-                        <div class="list-header-top" style="margin-bottom: 8px;">
+                        <div class="list-header-top" style="margin-bottom: 10px;">
                             <div class="list-header-title" id="mainListTitle" style="display: flex; align-items: center;">消息</div>
                             <div class="add-btn" id="mainListAddBtn"><i class="ri-add-line"></i></div>
                         </div>
@@ -2936,11 +2936,13 @@
                                     <div class="filter-dropdown-item custom-filter-opt" onclick="selectCustomFilter('单聊', 'private')"><span>单聊</span> <span class="filter-dropdown-badge">2</span></div>
                                     <div class="filter-dropdown-item custom-filter-opt" onclick="selectCustomFilter('群聊', 'group')"><span>群聊</span></div>
                                     <div class="filter-dropdown-item custom-filter-opt" onclick="selectCustomFilter('客服', 'service')"><span>客服</span> <span class="filter-dropdown-badge">2</span></div>
+                                    <div class="filter-dropdown-item custom-filter-opt" onclick="selectCustomFilter('客户', 'customer')"><span>客户</span> <span class="filter-dropdown-badge">2</span></div>
+                                    <div class="filter-dropdown-item custom-filter-opt" onclick="selectCustomFilter('访客', 'visitor')"><span>访客</span> <span class="filter-dropdown-badge">2</span></div>
                                 </div>
                             </div>
                             <div class="filter-tabs" style="gap: 2px; padding: 2px; border-radius: 16px; box-sizing: border-box; background: #F2F3F5; margin: 0; display: flex; align-items: center;">
-                                <div class="filter-tab active" onclick="filterChats(this)" id="chatFilterAll" style="font-size: 12px; padding: 2px 10px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">消息<span class="filter-count" style="margin-left: 2px; font-weight: 600;">2</span></div>
-                                <div class="filter-tab" onclick="filterChats(this)" id="chatFilterUnread" style="font-size: 12px; padding: 2px 10px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">未读<span class="filter-count" style="margin-left: 2px; font-weight: 600;">2</span></div>
+                                <div class="filter-tab active" onclick="filterChats(this)" id="chatFilterAll" style="font-size: 12px; padding: 2px 15px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">消息<span class="filter-count" style="margin-left: 2px; font-weight: 600;">2</span></div>
+                                <div class="filter-tab" onclick="filterChats(this)" id="chatFilterUnread" style="font-size: 12px; padding: 2px 15px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">未读<span class="filter-count" style="margin-left: 2px; font-weight: 600;">2</span></div>
                             </div>
                     </div>
                     <div class="list-content" id="chatList">
@@ -2998,92 +3000,22 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="chat-item" onclick="selectChat(this, '排队中 · 2', null, 'private', false)" data-type="private" data-unread="true">
+
+                        <div class="chat-item" onclick="selectChat(this, '在线会话', null, 'private', false)" data-type="private" data-unread="false">
                             <div class="chat-avatar" style="position:relative;background:#1677FF;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;">
                                 <i class="ri-message-3-fill"></i>
                                 <div style="position:absolute; right:-2px; top:-2px; width:10px; height:10px; border-radius:50%; background:#F53F3F; border:2px solid #fff; z-index:10;"></div>
                             </div>
                             <div style="flex:1; overflow:hidden;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    排队中 · 2
+                                    在线会话
                                     <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">08:59</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-top:4px;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">[2条]访客00005: 你好</div>
+                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">[1条]访客00005: 你好。</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="chat-item" onclick="selectChat(this, '访客00001', null, 'private', true, '待回复')" data-type="private" data-unread="true">
-                            <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
-                                ?
-                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
-                                <div class="msg-unread-badge" style="position:absolute; right:-6px; top:-6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #F53F3F; border: 2px solid #fff; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; z-index: 10;">1</div>
-                            </div>
-                            <div style="flex:1; overflow:hidden;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;">
-                                        <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px;">
-                                            <i class="ri-customer-service-2-fill" style="font-size:11px;"></i>
-                                            <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                                <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
-                                            </span>
-                                        </span>
-                                        访客00001
-                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; margin-top:4px; align-items:center;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00001: 你好</div>
-                                    <i class="ri-time-line pending-status-icon" style="font-size: 14px; color: #FF7D00; flex-shrink: 0; margin-left: 8px; display: none;" title="待处理"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="chat-item" onclick="selectChat(this, '访客00003', null, 'private', true, '待回复')" data-type="private" data-unread="true">
-                            <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
-                                ?
-                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
-                                <div class="msg-unread-badge" style="position:absolute; right:-6px; top:-6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #F53F3F; border: 2px solid #fff; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; z-index: 10;">1</div>
-                            </div>
-                            <div style="flex:1; overflow:hidden;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;">
-                                        <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px;">
-                                            <i class="ri-customer-service-2-fill" style="font-size:11px;"></i>
-                                            <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                                <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
-                                            </span>
-                                        </span>
-                                        访客00003
-                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; margin-top:4px;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00003: 请问发货了吗？</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chat-item" onclick="selectChat(this, '访客00004', null, 'private', true, '已回复')" data-type="private" data-unread="false">
-                            <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
-                                ?
-                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#86909c; border:2px solid #fff;"></div>
-                            </div>
-                            <div style="flex:1; overflow:hidden;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;">
-                                        <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px;">
-                                            <i class="ri-customer-service-2-fill" style="font-size:11px;"></i>
-                                            <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                                <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
-                                            </span>
-                                        </span>
-                                        访客00004
-                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; margin-top:4px;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">王三: 好的，明白了</div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="chat-item" onclick="selectChat(this, '客户00006', null, 'private', true)" data-type="private" data-unread="false">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 客
@@ -3131,6 +3063,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                         <!-- chat list empty state -->
                         <div id="chatEmptyState" style="display: none; flex: 1; align-items: center; justify-content: center; flex-direction: column; color: var(--text-tertiary); padding: 40px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -3141,20 +3075,184 @@
                     </div>
                 </div>
 
-                <div id="msgListPanelQueue" style="display: none; flex-direction: column; flex: 1; overflow: hidden; background: #FFF;">
-                    <!-- previous internal back button header removed as it is now lifted to the top-level main title -->
-                    
-                    <div class="list-header" style="padding-top: 0; border-top: none; display: flex; align-items: center; padding: 0 16px 10px 16px;">
-                        <div class="filter-tabs" style="width: fit-content; gap: 2px; padding: 2px; border-radius: 16px; box-sizing: border-box; background: #F2F3F5; margin: 0; display: flex; align-items: center;">
-                            <div class="filter-tab active" onclick="filterQueueChats(this, 'all')" style="flex: 0 0 auto; font-size: 12px; padding: 2px 10px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">全部<span id="queueFAll" style="margin-left: 2px; font-weight: 600;">2</span></div>
-                            <div class="filter-tab" onclick="filterQueueChats(this, 'visitor')" style="flex: 0 0 auto; font-size: 12px; padding: 2px 10px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">访客<span id="queueFVisitor" style="margin-left: 2px; font-weight: 600;">2</span></div>
-                            <div class="filter-tab" onclick="filterQueueChats(this, 'customer')" style="flex: 0 0 auto; font-size: 12px; padding: 2px 10px; border-radius: 14px; line-height: 20px; white-space: nowrap; display: flex; align-items: center;">客户<span id="queueFCustomer" style="margin-left: 2px; font-weight: 600; display: none;"></span></div>
+
+
+                <!-- Online List Panel -->
+                <div id="msgListPanelOnline" style="display: none; flex-direction: column; flex: 1; overflow: hidden; background: #FFF;">
+                    <style>
+                        .online-tab-btn {
+                            font-weight: 500;
+                            font-size: 14px;
+                            color: var(--text-secondary);
+                            border-bottom: 2px solid transparent;
+                            cursor: pointer;
+                            padding: 8px 0;
+                            transition: all 0.2s;
+                            user-select: none;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .online-tab-btn:hover {
+                            color: #111;
+                        }
+                        .online-tab-btn.active {
+                            font-weight: 600;
+                            color: #111;
+                            border-bottom: 2px solid #1677FF;
+                        }
+                        .tab-count {
+                            margin-left: 4px;
+                            font-size: 12px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                            color: var(--text-tertiary);
+                        }
+                        .online-tab-btn.active .tab-count {
+                            color: #1677FF;
+                        }
+                        .online-sub-pill {
+                            padding: 4px 12px;
+                            font-size: 13px;
+                            border-radius: 6px;
+                            background: #F2F3F5;
+                            color: var(--text-secondary);
+                            cursor: pointer;
+                            font-weight: 400;
+                            transition: all 0.2s;
+                        }
+                        .online-sub-pill:hover {
+                            background: #E5E6E8;
+                        }
+                        .online-sub-pill.active {
+                            background: #E8F3FF;
+                            color: #1677FF;
+                            font-weight: 500;
+                        }
+                    </style>
+                    <script>
+                        window.applyOnlineChatsFilter = function() {
+                            const mainTabActive = document.querySelector('.online-tab-btn.active');
+                            const mainType = mainTabActive ? mainTabActive.innerText.split(/[\n0-9]+/).join('').trim() : '待回复';
+
+                            const subTabActive = document.querySelector('.online-sub-pill.active');
+                            const subType = subTabActive ? subTabActive.innerText.replace(/[0-9 ]/g, '') : '全部';
+
+                            const items = document.querySelectorAll('#onlineListContent .online-item');
+                            
+                            let totalMatchMain = 0;
+                            let totalVisitorMain = 0;
+                            let totalCustomerMain = 0;
+
+                            let finalVisibleCount = 0;
+                            let primaryCounts = { '待回复': 0, '排队中': 0, '待处理': 0, '已回复': 0 };
+                            
+                            items.forEach(el => {
+                                const onclickAttr = el.getAttribute('onclick') || '';
+                                if (onclickAttr.includes("'待回复'")) primaryCounts['待回复']++;
+                                else if (onclickAttr.includes("'排队中'")) primaryCounts['排队中']++;
+                                else if (onclickAttr.includes("'待处理'")) primaryCounts['待处理']++;
+                                else if (onclickAttr.includes("'已回复'")) primaryCounts['已回复']++;
+
+                                let matchMain = false;
+                                if (mainType === '待回复' && onclickAttr.includes("'待回复'")) matchMain = true;
+                                else if (mainType === '已回复' && onclickAttr.includes("'已回复'")) matchMain = true;
+                                else if (mainType === '待处理' && onclickAttr.includes("'待处理'")) matchMain = true;
+                                else if (mainType === '排队中' && onclickAttr.includes("'排队中'")) matchMain = true;
+                                
+                                if (matchMain) {
+                                    totalMatchMain++;
+                                    let visitorName = el.getAttribute('data-visitor') || '';
+                                    if (!visitorName) {
+                                        const tNode = el.querySelector('.session-item-title');
+                                        if (tNode) visitorName = tNode.innerText.trim();
+                                    }
+                                    if (visitorName.startsWith('访客')) totalVisitorMain++;
+                                    else if (visitorName.startsWith('客户')) totalCustomerMain++;
+                                }
+
+                                let matchSub = false;
+                                if (subType === '全部') matchSub = true;
+                                else if (subType === '访客') {
+                                    let visitorName = el.getAttribute('data-visitor') || '';
+                                    if (!visitorName) {
+                                        const tNode = el.querySelector('.session-item-title');
+                                        if (tNode) visitorName = tNode.innerText.trim();
+                                    }
+                                    if (visitorName.startsWith('访客')) matchSub = true;
+                                }
+                                else if (subType === '客户') {
+                                    let visitorName = el.getAttribute('data-visitor') || '';
+                                    if (!visitorName) {
+                                        const tNode = el.querySelector('.session-item-title');
+                                        if (tNode) visitorName = tNode.innerText.trim();
+                                    }
+                                    if (visitorName.startsWith('客户')) matchSub = true;
+                                }
+
+                                const show = matchMain && matchSub;
+                                el.style.display = show ? 'flex' : 'none';
+                                if (show) finalVisibleCount++;
+                            });
+
+                            const subPills = document.querySelectorAll('.online-sub-pill');
+                            if (subPills.length === 3) {
+                                subPills[0].innerText = `全部 ${totalMatchMain}`;
+                                subPills[1].innerText = `访客 ${totalVisitorMain}`;
+                                subPills[2].innerText = `客户 ${totalCustomerMain}`;
+                            }
+
+                            const tabBtns = document.querySelectorAll('.online-tab-btn');
+                            tabBtns.forEach(btn => {
+                                const name = btn.innerText.split(/[\n0-9]+/).join('').trim();
+                                const countSpan = btn.querySelector('.tab-count');
+                                if (countSpan && primaryCounts[name] !== undefined) {
+                                    countSpan.innerText = primaryCounts[name];
+                                }
+                            });
+
+
+                            const onlineListContent = document.getElementById('onlineListContent');
+                            const emptyState = document.getElementById('onlineEmptyState');
+                            if (finalVisibleCount === 0) {
+                                if (onlineListContent) onlineListContent.style.display = 'none';
+                                if (emptyState) emptyState.style.display = 'flex';
+                            } else {
+                                if (onlineListContent) onlineListContent.style.display = 'block';
+                                if (emptyState) emptyState.style.display = 'none';
+                            }
+                        };
+
+                        window.selectOnlineSubFilter = function(el) {
+                            const parent = el.parentElement;
+                            const items = parent.querySelectorAll('.online-sub-pill');
+                            items.forEach(item => item.classList.remove('active'));
+                            el.classList.add('active');
+                            window.applyOnlineChatsFilter();
+                        };
+                    </script>
+                    <div style="padding: 10px 16px 4px 16px;">
+                        <div style="display: flex; align-items: center; background: #F2F3F5; border-radius: 4px; padding: 6px 12px; transition: all 0.2s; border: 1px solid transparent;" onfocusin="this.style.background='#FFF'; this.style.borderColor='#1677FF'" onfocusout="this.style.background='#F2F3F5'; this.style.borderColor='transparent'">
+                            <i class="ri-search-line" style="color: #86909c; font-size: 14px; margin-right: 6px;"></i>
+                            <input type="text" placeholder="搜索" style="border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: var(--text-primary);">
+                        </div>
+                    </div>
+                    <div class="list-header" style="padding-top: 0; border-top: none; display: flex; align-items: center; padding: 0 16px;">
+                        <div class="online-filter-tabs" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); width: 100%; margin: 0; box-sizing: border-box;">
+                            <div class="online-tab-btn active" onclick="filterOnlineChats(this, '待回复')">待回复<span class="tab-count">1</span></div>
+                            <div class="online-tab-btn" onclick="filterOnlineChats(this, '排队中')">排队中<span class="tab-count">1</span></div>
+                            <div class="online-tab-btn" onclick="filterOnlineChats(this, '待处理')">待处理<span class="tab-count">0</span></div>
+                            <div class="online-tab-btn" onclick="filterOnlineChats(this, '已回复')">已回复<span class="tab-count">1</span></div>
+                        </div>
+                    </div>
+                    <div style="padding: 10px 16px 10px 16px; display: flex; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="online-sub-pill active" onclick="selectOnlineSubFilter(this)">全部 2</div>
+                            <div class="online-sub-pill" onclick="selectOnlineSubFilter(this)">访客 2</div>
+                            <div class="online-sub-pill" onclick="selectOnlineSubFilter(this)">客户 0</div>
                         </div>
                     </div>
 
-                    <!-- queue list items -->
-                    <div class="list-content" id="queueListContent" style="flex: 1;">
-                        <div class="chat-item queue-item" onclick="selectChat(this, '访客00005', null, 'private', true, '排队中')" data-type="private" data-unread="false">
+                    <div class="list-content" id="onlineListContent" style="flex: 1;">
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '待回复')" data-type="private" data-unread="true" data-visitor="访客00001">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 ?
                                 <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
@@ -3162,66 +3260,69 @@
                             </div>
                             <div style="flex:1; overflow:hidden;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;">
-                                        <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px;">
-                                            <i class="ri-customer-service-2-fill" style="font-size:11px;"></i>
-                                            <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                                <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
-                                            </span>
-                                        </span>
-                                        访客00005
+                                    <div class="session-item-title" style="display:flex; align-items:center;">
+                                        新的会话
+                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-top:4px; align-items:center;">
+                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00001: 你好</div>
+                                    <i class="ri-time-line pending-status-icon" style="font-size: 14px; color: #FF7D00; flex-shrink: 0; margin-left: 8px; display: none;" title="待处理"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '排队中')" data-type="private" data-unread="true" data-visitor="访客00003">
+                            <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
+                                ?
+                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
+                                <div class="msg-unread-badge" style="position:absolute; right:-6px; top:-6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #F53F3F; border: 2px solid #fff; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; z-index: 10;">1</div>
+                            </div>
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
+                                    <div class="session-item-title" style="display:flex; align-items:center;">
+                                        新的会话
                                     </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-top:4px;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00005: 你好</div>
+                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00003: 请问发货了吗？</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="chat-item queue-item" onclick="selectChat(this, '访客00006', null, 'private', true, '排队中')" data-type="private" data-unread="false">
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '已回复')" data-type="private" data-unread="false" data-visitor="访客00004">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 ?
-                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
-                                <div class="msg-unread-badge" style="position:absolute; right:-6px; top:-6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #F53F3F; border: 2px solid #fff; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; z-index: 10;">1</div>
+                                <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#86909c; border:2px solid #fff;"></div>
                             </div>
                             <div style="flex:1; overflow:hidden;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;">
-                                        <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px;">
-                                            <i class="ri-customer-service-2-fill" style="font-size:11px;"></i>
-                                            <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                                <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
-                                            </span>
-                                        </span>
-                                        访客00006
-                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">08:59</span>
+                                    <div class="session-item-title" style="display:flex; align-items:center;">
+                                        新的会话
+                                    </div> <span style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-top:4px;">
-                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">访客00006: 你好</div>
+                                    <div style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" class="msg-preview">王三: 好的，明白了</div>
                                 </div>
                             </div>
                         </div>
+
+
                     </div>
-                    <!-- queue empty state -->
-                    <div id="queueEmptyState" style="display: none; flex: 1; align-items: center; justify-content: center; flex-direction: column; color: var(--text-tertiary); padding: 0 16px;">
+                    <!-- online empty state -->
+                    <div id="onlineEmptyState" style="display: none; flex: 1; align-items: center; justify-content: center; flex-direction: column; color: var(--text-tertiary); padding: 0 16px;">
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: -40px;">
                             <i class="ri-inbox-2-line" style="font-size: 56px; margin-bottom: 12px; color: #E5E6EB;"></i>
-                            <span style="font-size: 13px; color: #C9CDD4;">暂无排队会话</span>
+                            <span style="font-size: 13px; color: #C9CDD4;">暂无在线会话</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="empty-state" id="emptyStatePanel">
-                    <div class="empty-icon-wrap">
-                        <div class="empty-icon-inner"></div>
-                        <div class="empty-icon-center">
-                            <i class="ri-chat-3-fill"></i>
-                        </div>
-                    </div>
-                    <h3>在Link高效协作</h3>
-                    <p>从侧边栏选择一个对话，开始与团队交流、分享文件并高效完成工作。</p>
+                <div style="font-size: 160px; color: #E5E6EB; line-height: 1;">
+                    <i class="ri-customer-service-2-fill"></i>
                 </div>
+            </div>
 
                 <div id="emptyWechatStatePanel" style="display: none; height: 100%; flex: 1; align-items: center; justify-content: center; background: #F5F6F7;">
                     <i class="ri-customer-service-2-fill" style="font-size: 160px; color: #E5E6EB;"></i>
@@ -3233,8 +3334,16 @@
                             <div id="headerAvatarContainer"
                                 style="margin-right: 8px; display:flex; align-items:center;"></div>
                             <div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div class="chat-title-text" id="chatTitle">反重力交流大群</div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div id="chatTitleView" style="display: flex; align-items: center; gap: 4px;">
+                                        <div class="chat-title-text" id="chatTitle">反重力交流大群</div>
+                                        <div id="chatTitleEditBtn" style="display: none; padding: 2px; cursor: pointer; color: #86909c; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#F2F3F5'; this.style.color='#111'" onmouseout="this.style.background='transparent'; this.style.color='#86909c'" onclick="openChatTitleEdit(event)">
+                                            <i class="ri-edit-2-fill" style="font-size: 16px;"></i>
+                                        </div>
+                                    </div>
+                                    <div id="chatTitleEdit" style="display: none; align-items: center;">
+                                        <input type="text" id="chatTitleInput" maxlength="20" style="font-size: 16px; font-weight: 500; height: 28px; background: #f2f3f5; border: 1px solid #1677FF; border-radius: 4px; padding: 0 8px; color: #111; outline: none; box-sizing: border-box;" onblur="saveChatTitle()" onkeydown="if(event.key==='Enter') this.blur();">
+                                    </div>
                                 </div>
                                 <div style="font-size: 12px; color: var(--text-tertiary); margin-top:2px;"
                                     id="chatSubtitle">54人 • 允许私聊</div>
@@ -3266,9 +3375,12 @@
                         </div>
                     </div>
 
-                    <div id="chatActionGroupQueue" style="display: none; position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10;">
-                        <button style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 32px; background: var(--primary-color); color: #fff; border: none; border-radius: 24px; box-shadow: 0 6px 16px rgba(22, 119, 255, 0.2); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--primary-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--primary-color)'; this.style.transform='translateY(0)';" onclick="assignQueueToMe()">
-                            分配给我
+                    <div id="chatActionGroupQueue" style="display: none; position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10; align-items: center; gap: 12px;">
+                        <button style="display: flex; align-items: center; justify-content: center; padding: 10px 32px; background: #fff; color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#F2F3F5'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#fff'; this.style.transform='translateY(0)';">
+                            分配会话
+                        </button>
+                        <button style="display: flex; align-items: center; justify-content: center; padding: 10px 32px; background: var(--primary-color); color: #fff; border: none; border-radius: 24px; box-shadow: 0 6px 16px rgba(22, 119, 255, 0.2); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--primary-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--primary-color)'; this.style.transform='translateY(0)';" onclick="promptClaimOnlineSession()">
+                            领取会话
                         </button>
                     </div>
 
@@ -3860,8 +3972,8 @@
             </div>
 
             <!-- 客服管理后台 -->
-            <div class="app-view active" id="view-cs" style="padding: 0; flex-direction: column;">
-                <iframe src="link_customer_service.html?v=2" style="flex: 1; width: 100%; height: 100%; border: none; display: block; overflow: hidden;"></iframe>
+            <div class="app-view" id="view-cs" style="padding: 0; flex-direction: column;">
+                <iframe src="link_customer_service.html?v=4" style="flex: 1; width: 100%; height: 100%; border: none; display: block; overflow: hidden;"></iframe>
             </div>
 
             <!-- To-Do View -->
@@ -5152,6 +5264,16 @@
             </div>
         </div>
     </div>
+    <div class="modal" id="claimOnlineSessionConfirmModal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000;">
+        <div class="modal-content" style="background: #fff; width: 400px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+            <div style="font-size: 18px; font-weight: 500; color: #111; margin-bottom: 20px;">确认领取</div>
+            <div style="font-size: 14px; color: #86909c; margin-bottom: 32px;">确认领取该会话吗？</div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button style="padding: 6px 20px; font-size: 14px; color: #111; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('claimOnlineSessionConfirmModal').style.display='none'">取 消</button>
+                <button style="padding: 6px 20px; font-size: 14px; color: #fff; background: var(--primary-color); border: none; border-radius: 8px; cursor: pointer;" onclick="executeClaimOnlineSession()">确 认</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const csListAll = [
@@ -6067,15 +6189,33 @@
                 icon.style.color = '#00B42A';
                 
                 if (activeMsgItem) {
-                    let pendingIcon = activeMsgItem.querySelector('.pending-status-icon');
-                    if (!pendingIcon) {
-                        const previewWrapper = activeMsgItem.querySelector('.msg-preview').parentElement;
-                        if (previewWrapper) {
-                            previewWrapper.insertAdjacentHTML('beforeend', '<i class="ri-time-line pending-status-icon" style="font-size: 14px; color: #FF7D00; flex-shrink: 0; margin-left: 8px;" title="待处理"></i>');
+                    // Hide any pending icon explicitly ("不再显示标识")
+                    const pendingIcon = activeMsgItem.querySelector('.pending-status-icon');
+                    if (pendingIcon) pendingIcon.style.display = 'none';
+                    
+                    // Move to 待处理 category by updating onclick arg
+                    let currentOnclick = activeMsgItem.getAttribute('onclick') || '';
+                    const statuses = ['待回复', '排队中', '已回复'];
+                    let original = null;
+                    for (let s of statuses) {
+                        if (currentOnclick.includes(`'${s}'`)) {
+                            original = s;
+                            break;
                         }
-                    } else {
-                        pendingIcon.style.display = '';
                     }
+                    if (original) {
+                        activeMsgItem.setAttribute('data-original-status', original);
+                        activeMsgItem.setAttribute('onclick', currentOnclick.replace(`'${original}'`, `'待处理'`));
+                    }
+                    
+                    if (window.applyOnlineChatsFilter) window.applyOnlineChatsFilter();
+                    
+                    // Revert to empty state view
+                    activeMsgItem.classList.remove('active');
+                    activeMsgItem.style.background = '';
+                    document.getElementById('mainChatPanel').style.display = 'none';
+                    document.getElementById('emptyStatePanel').style.display = 'flex';
+                    document.getElementById('customerInfoPanel').style.display = 'none';
                 }
             } else {
                 btn.setAttribute('data-tooltip', '标记为待处理');
@@ -6083,10 +6223,58 @@
                 icon.style.color = '';
                 
                 if (activeMsgItem) {
-                    const pendingIcon = activeMsgItem.querySelector('.pending-status-icon');
-                    if (pendingIcon) pendingIcon.style.display = 'none';
+                    // Return to original category ("回归到原分类")
+                    let original = activeMsgItem.getAttribute('data-original-status');
+                    if (original) {
+                        let currentOnclick = activeMsgItem.getAttribute('onclick') || '';
+                        activeMsgItem.setAttribute('onclick', currentOnclick.replace(`'待处理'`, `'${original}'`));
+                        activeMsgItem.removeAttribute('data-original-status');
+                    }
+                    
+                    if (window.applyOnlineChatsFilter) window.applyOnlineChatsFilter();
+                    
+                    // Revert to empty state view
+                    activeMsgItem.classList.remove('active');
+                    activeMsgItem.style.background = '';
+                    document.getElementById('mainChatPanel').style.display = 'none';
+                    document.getElementById('emptyStatePanel').style.display = 'flex';
+                    document.getElementById('customerInfoPanel').style.display = 'none';
                 }
             }
+        }
+
+        function promptClaimOnlineSession() {
+            document.getElementById('claimOnlineSessionConfirmModal').style.display = 'flex';
+        }
+
+        function executeClaimOnlineSession() {
+            document.getElementById('claimOnlineSessionConfirmModal').style.display = 'none';
+            
+            const activeMsgItem = document.querySelector('.chat-item.active.online-item');
+            if (activeMsgItem) {
+                // Change status from 排队中 to 待回复
+                let currentOnclick = activeMsgItem.getAttribute('onclick') || '';
+                activeMsgItem.setAttribute('onclick', currentOnclick.replace("'排队中'", "'待回复'"));
+                activeMsgItem.removeAttribute('data-original-status');
+                
+                // Hide pending clock if somehow active
+                const pendingIcon = activeMsgItem.querySelector('.pending-status-icon');
+                if (pendingIcon) pendingIcon.style.display = 'none';
+
+                if (window.applyOnlineChatsFilter) window.applyOnlineChatsFilter();
+            }
+            
+            // Show toast
+            if (typeof showToast === 'function') showToast('领取成功', 'success');
+            
+            // Revert to empty state view
+            if (activeMsgItem) {
+                activeMsgItem.classList.remove('active');
+                activeMsgItem.style.background = '';
+            }
+            document.getElementById('mainChatPanel').style.display = 'none';
+            document.getElementById('emptyStatePanel').style.display = 'flex';
+            document.getElementById('customerInfoPanel').style.display = 'none';
         }
 
         function openTransferCustomerServiceModal() {
@@ -6323,19 +6511,27 @@
                             <div style="background: url('https://api.dicebear.com/7.x/identicon/svg?seed=D') center/cover;"></div>
                         </div>
                         <div style="flex: 1; min-width: 0;">
-                            <div style="font-size: 15px; color: #111; margin-bottom: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">TWT-Chat 项目内部群(200 人)</div>
+                            <div style="font-size: 15px; color: #111; margin-bottom: 2px; display: flex; align-items: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px; flex-shrink:0;">
+                                    <i class="ri-customer-service-2-fill" style="font-size:10px;"></i>
+                                    <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
+                                        <i class="ri-message-3-fill" style="font-size:12px; color:#1677FF; transform: scale(0.55);"></i>
+                                    </span>
+                                </span>
+                                <span>TWT-Chat 项目内部群(200 人)</span>
+                            </div>
                             <div style="font-size: 12px; color: #FF7D00;">99+<span style="color: #86909c;">条相关聊天记录</span></div>
                         </div>
                     </div>
                     <!-- 列表项3 -->
                     <div style="display: flex; align-items: center; padding: 12px 24px; background: #fff; cursor: pointer; border-left: 3px solid transparent; transition: 0.2s;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='#fff'">
-                        <div style="width: 40px; height: 40px; border-radius: 4px; background: #DCECFE; color: #1677FF; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; margin-right: 12px; flex-shrink: 0;">?</div>
+                        <div style="width: 40px; height: 40px; border-radius: 4px; background: #DCECFE; color: #1677FF; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; margin-right: 12px; flex-shrink: 0;">访</div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="font-size: 15px; color: #111; margin-bottom: 2px; display: flex; align-items: center;">
                                 <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px; flex-shrink:0;">
                                     <i class="ri-customer-service-2-fill" style="font-size:10px;"></i>
                                     <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                        <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
+                                        <i class="ri-message-3-fill" style="font-size:12px; color:#1677FF; transform: scale(0.55);"></i>
                                     </span>
                                 </span>
                                 <span>访客00001</span>
@@ -6362,14 +6558,14 @@
                     
                     <!-- Result 2 -->
                     <div style="display: flex; align-items: flex-start;">
-                        <div style="width: 36px; height: 36px; border-radius: 4px; background: #DCECFE; color: #1677FF; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; margin-right: 12px;">?</div>
+                        <div style="width: 36px; height: 36px; border-radius: 4px; background: #DCECFE; color: #1677FF; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; margin-right: 12px;">访</div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                 <div style="font-size: 13px; color: #86909c; display: flex; align-items: center;">
                                     <span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; background:#1677FF; color:#fff; border-radius:50%; margin-right:4px; flex-shrink:0;">
                                         <i class="ri-customer-service-2-fill" style="font-size:9px;"></i>
                                         <span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;">
-                                            <i class="ri-message-3-fill" style="font-size:12px; color:#FF7D00; transform: scale(0.55);"></i>
+                                            <i class="ri-message-3-fill" style="font-size:12px; color:#1677FF; transform: scale(0.55);"></i>
                                         </span>
                                     </span>
                                     <span>访客00001</span>
@@ -6424,11 +6620,61 @@
         </div>
     </div>
 
+    <!-- Image Crop Modal Structure -->
+    <input type="file" id="csAgentGlobalAvatarInput" accept="image/*" style="display: none;" onchange="handleCsAgentGlobalAvatarInput(event)">
+    <div class="modal" id="imageCropModal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000;">
+        <div class="modal-content" style="width: 400px; padding: 24px; background: #fff; border-radius: 8px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-weight: 500; font-size: 16px;">图片裁剪</div>
+                <i class="ri-close-line" style="font-size: 20px; cursor: pointer; color: var(--text-secondary);" onclick="closeModal('imageCropModal')"></i>
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; background: #f2f3f5; min-height: 200px; border-radius: 4px; overflow: hidden; position: relative;">
+                <img id="cropPreviewImg" src="" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                <!-- Simulated cropping overlay for visual purposes -->
+                <div style="position: absolute; width: 150px; height: 150px; border: 2px solid white; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); pointer-events: none; border-radius: 50%;"></div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px;">
+                <div class="btn btn-secondary" onclick="closeModal('imageCropModal')">取消</div>
+                <div class="btn btn-primary" onclick="confirmAvatarCrop()">确定</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast" id="sysToast"><i class="ri-checkbox-circle-fill" style="color:#52c41a"></i> <span
             id="toastMsg">提示</span></div>
 
     <script>
+        let currentAvatarFileUrl = null;
+
+        window.handleCsAgentGlobalAvatarInput = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentAvatarFileUrl = e.target.result;
+                    document.getElementById('cropPreviewImg').src = currentAvatarFileUrl;
+                    openModal('imageCropModal');
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = ''; // Ensure same file triggers onchange logic
+        };
+
+        window.confirmAvatarCrop = function() {
+            if (currentAvatarFileUrl) {
+                const img = document.getElementById('csAgentGlobalAvatarImg');
+                const icon = document.getElementById('csAgentGlobalAvatarIcon');
+                if (img) {
+                    img.src = currentAvatarFileUrl;
+                    img.style.display = 'block';
+                }
+                if (icon) {
+                    icon.style.display = 'none';
+                }
+            }
+            closeModal('imageCropModal');
+        };
         function openGlobalSearch() {
             document.getElementById('searchModal').style.display = 'flex';
         }
@@ -7390,15 +7636,22 @@
         }
 
         function returnToMainMsgList() {
-            document.getElementById('msgListPanelQueue').style.display = 'none';
+            if(document.getElementById('msgListPanelQueue')) document.getElementById('msgListPanelQueue').style.display = 'none';
+            if(document.getElementById('msgListPanelOnline')) document.getElementById('msgListPanelOnline').style.display = 'none';
             document.getElementById('msgListPanelMain').style.display = 'flex';
             document.getElementById('emptyWechatStatePanel').style.display = 'none';
             document.getElementById('mainChatPanel').style.display = 'none';
             
             const mainTitle = document.getElementById('mainListTitle');
-            if (mainTitle) mainTitle.innerHTML = '消息';
+            if (mainTitle) {
+                mainTitle.innerHTML = '消息';
+                mainTitle.style.flex = "";
+            }
             const mainAdd = document.getElementById('mainListAddBtn');
-            if (mainAdd) mainAdd.style.visibility = 'visible';
+            if (mainAdd) {
+                mainAdd.style.visibility = 'visible';
+                mainAdd.style.display = '';
+            }
 
             const customerInfoPanel = document.getElementById('customerInfoPanel');
             if (customerInfoPanel) customerInfoPanel.style.display = 'none';
@@ -7436,13 +7689,123 @@
             openModal('profileModal');
         }
 
+        // Global Customer Service Status
+        window.toggleOnlineSessionStatusDropdown = function(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('csAgentGlobalStatusMenu');
+            if (menu) {
+                menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+            }
+        };
+
+        window.selectCsAgentGlobalStatus = function(event, status) {
+            event.stopPropagation();
+            const textEl = document.getElementById('csAgentGlobalStatusText');
+            if (textEl) {
+                textEl.innerText = status;
+            }
+            const dotEl = document.getElementById('csAgentGlobalStatusDot');
+            if (dotEl) {
+                dotEl.style.background = status === '在线' ? '#00B42A' : '#86909C';
+            }
+            const menu = document.getElementById('csAgentGlobalStatusMenu');
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        };
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('csAgentGlobalStatusMenu');
+            if (menu && menu.style.display === 'flex' && !e.target.closest('#csAgentGlobalStatusMenu') && !e.target.closest('[onclick="toggleOnlineSessionStatusDropdown(event)"]')) {
+                menu.style.display = 'none';
+            }
+            const typeMenu = document.getElementById('csSessionTypeMenu');
+            if (typeMenu && typeMenu.style.display === 'flex' && !e.target.closest('#csSessionTypeMenu') && !e.target.closest('[onclick="toggleOnlineSessionTypeDropdown(event)"]')) {
+                typeMenu.style.display = 'none';
+            }
+        });
+
+        window.toggleOnlineSessionTypeDropdown = function(event) {
+            event.stopPropagation();
+            const typeMenu = document.getElementById('csSessionTypeMenu');
+            if (typeMenu) {
+                typeMenu.style.display = typeMenu.style.display === 'none' ? 'flex' : 'none';
+            }
+        };
+
+        window.selectCsSessionType = function(event, type) {
+            event.stopPropagation();
+            const textEl = document.getElementById('csSessionTypeText');
+            if (textEl) {
+                textEl.innerText = type;
+            }
+            const typeMenu = document.getElementById('csSessionTypeMenu');
+            if (typeMenu) {
+                typeMenu.style.display = 'none';
+            }
+        };
+        
+        function openChatTitleEdit(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('chatTitleView').style.display = 'none';
+            document.getElementById('chatTitleEdit').style.display = 'flex';
+            const input = document.getElementById('chatTitleInput');
+            input.value = document.getElementById('chatTitle').innerText;
+            setTimeout(() => {
+                input.focus();
+                input.selectionStart = input.selectionEnd = input.value.length;
+            }, 50);
+        }
+        
+        function saveChatTitle() {
+            const input = document.getElementById('chatTitleInput');
+            let newTitle = input.value.trim();
+            if (!newTitle) newTitle = document.getElementById('chatTitle').innerText;
+            
+            document.getElementById('chatTitle').innerText = newTitle;
+            document.getElementById('chatTitleView').style.display = 'flex';
+            document.getElementById('chatTitleEdit').style.display = 'none';
+            
+            if (currentItem && currentIsServiceChat) {
+                const listTitleEl = currentItem.querySelector('.session-item-title');
+                if (listTitleEl) {
+                    listTitleEl.innerText = newTitle;
+                }
+            }
+        }
+
         // Chat Features
         let currentItem = null;
         let currentIsServiceChat = false;
         function selectChat(el, name, count, type, isServiceChat = false, serviceStatus = null) {
+            if (name === '在线会话') {
+                document.getElementById('msgListPanelMain').style.display = 'none';
+                if(document.getElementById('msgListPanelQueue')) document.getElementById('msgListPanelQueue').style.display = 'none';
+                if(document.getElementById('msgListPanelOnline')) document.getElementById('msgListPanelOnline').style.display = 'flex';
+                document.getElementById('mainChatPanel').style.display = 'none';
+                document.getElementById('emptyStatePanel').style.display = 'none';
+                document.getElementById('emptyWechatStatePanel').style.display = 'flex';
+                
+                const mainTitle = document.getElementById('mainListTitle');
+                if (mainTitle) {
+                    mainTitle.innerHTML = `<div style="display: flex; align-items: center; width: 100%; margin-left: -6px; font-size: 14px;"><div onclick="returnToMainMsgList(); event.stopPropagation();" style="display: flex; align-items: center; cursor: pointer;"><i class="ri-arrow-left-s-line" style="font-size: 20px; color: var(--text-primary); margin-right: 2px;"></i></div><div style="display: flex; align-items: center; gap: 8px; margin-left: 2px;"><div style="position: relative; width: 24px; height: 24px; flex-shrink: 0;"><div style="width: 100%; height: 100%; border-radius: 50%; background: #F9A873; color: #FFF; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden;" onclick="document.getElementById('csAgentGlobalAvatarInput').click()" onmouseover="document.getElementById('csAgentGlobalAvatarEdit').style.display='flex'" onmouseout="document.getElementById('csAgentGlobalAvatarEdit').style.display='none'"><img id="csAgentGlobalAvatarImg" src="" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;"><i id="csAgentGlobalAvatarIcon" class="ri-user-smile-fill" style="font-size: 16px; position: relative; z-index: 1;"></i><div id="csAgentGlobalAvatarEdit" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; color: white; z-index: 2;"><i class="ri-edit-2-line" style="font-size: 10px;"></i></div></div><div id="csAgentGlobalStatusDot" style="position: absolute; bottom: 0px; right: -1px; width: 5px; height: 5px; background: #00B42A; border-radius: 50%; border: 1.5px solid #fff; box-sizing: content-box; pointer-events: none; z-index: 3;"></div></div><div style="display: flex; align-items: center; gap: 4px; position: relative; cursor: pointer;" onclick="toggleOnlineSessionStatusDropdown(event)"><span id="csAgentGlobalStatusText">在线</span><i class="ri-arrow-down-s-line" style="color: var(--text-tertiary); font-size: 14px;"></i><div id="csAgentGlobalStatusMenu" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; z-index: 1000; flex-direction: column; gap: 2px; min-width: 80px; font-size: 13px;"><div onclick="selectCsAgentGlobalStatus(event, '在线')" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #111;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'"><div style="width: 6px; height: 6px; border-radius: 50%; background: #00B42A;"></div>在线</div><div onclick="selectCsAgentGlobalStatus(event, '离开')" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #111;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'"><div style="width: 6px; height: 6px; border-radius: 50%; background: #86909C;"></div>离开</div></div></div></div></div>`;
+                    mainTitle.style.flex = "1";
+                }
+                const mainAdd = document.getElementById('mainListAddBtn');
+                if (mainAdd) mainAdd.style.display = 'none';
+                
+                const customerInfoPanel = document.getElementById('customerInfoPanel');
+                if (customerInfoPanel) customerInfoPanel.style.display = 'none';
+                
+                if (currentItem) currentItem.classList.remove('active');
+                return;
+            }
+
             if (name && name.includes('排队中')) {
                 document.getElementById('msgListPanelMain').style.display = 'none';
-                document.getElementById('msgListPanelQueue').style.display = 'flex';
+                if(document.getElementById('msgListPanelOnline')) document.getElementById('msgListPanelOnline').style.display = 'none';
+                if(document.getElementById('msgListPanelQueue')) document.getElementById('msgListPanelQueue').style.display = 'flex';
                 document.getElementById('mainChatPanel').style.display = 'none';
                 document.getElementById('emptyStatePanel').style.display = 'none';
                 document.getElementById('emptyWechatStatePanel').style.display = 'flex';
@@ -7451,7 +7814,7 @@
                 
                 const mainTitle = document.getElementById('mainListTitle');
                 if (mainTitle) {
-                    mainTitle.innerHTML = `<div onclick="returnToMainMsgList(); event.stopPropagation();" style="display: flex; align-items: center; cursor: pointer; margin-left: -6px;"><i class="ri-arrow-left-s-line" style="font-size: 24px; color: var(--text-primary); margin-right: 2px;"></i><span>排队中 · ${queueCount}</span></div>`;
+                    mainTitle.innerHTML = `<div onclick="returnToMainMsgList(); event.stopPropagation();" style="display: flex; align-items: center; cursor: pointer; margin-left: -6px; font-size: 14px;"><i class="ri-arrow-left-s-line" style="font-size: 20px; color: var(--text-primary); margin-right: 2px;"></i><span>排队中 · ${queueCount}</span></div>`;
                 }
                 const mainAdd = document.getElementById('mainListAddBtn');
                 if (mainAdd) mainAdd.style.visibility = 'hidden';
@@ -7511,23 +7874,24 @@
                 if (divider) divider.style.display = 'none';
 
                 if (isServiceChat) {
+                    const actualVisitorName = el.getAttribute('data-visitor') || name;
                     const cname = document.getElementById('customerInfoName');
-                    if (cname) cname.innerText = name;
+                    if (cname) cname.innerText = actualVisitorName;
                     
                     const exclusiveClientInfoBox = document.getElementById('exclusiveClientInfoBox');
                     if (exclusiveClientInfoBox) {
-                        exclusiveClientInfoBox.style.display = name.startsWith('客户') ? 'block' : 'none';
+                        exclusiveClientInfoBox.style.display = actualVisitorName.startsWith('客户') ? 'block' : 'none';
                     }
 
                     const sessionTabBtn = document.getElementById('sessionInfoTabBtn');
                     if (sessionTabBtn) {
-                        sessionTabBtn.style.display = name.startsWith('访客') ? 'block' : 'none';
-                        if (name.startsWith('访客')) {
+                        sessionTabBtn.style.display = actualVisitorName.startsWith('访客') ? 'block' : 'none';
+                        if (actualVisitorName.startsWith('访客')) {
                             if (window.renderSessionCSRListContainer) {
                                 if (!window.chatSessionCSRMap) window.chatSessionCSRMap = {};
-                                if (!window.chatSessionCSRMap[name]) window.chatSessionCSRMap[name] = ['cs_1'];
-                                window.csAlreadyInSession = window.chatSessionCSRMap[name];
-                                window.renderSessionCSRListContainer(name);
+                                if (!window.chatSessionCSRMap[actualVisitorName]) window.chatSessionCSRMap[actualVisitorName] = ['cs_1'];
+                                window.csAlreadyInSession = window.chatSessionCSRMap[actualVisitorName];
+                                window.renderSessionCSRListContainer(actualVisitorName);
                             }
                         }
                     }
@@ -7538,10 +7902,8 @@
                     if (customerTab) {
                         if (type === 'group') {
                             customerTab.innerText = '群设置';
-                        } else if (name.startsWith('访客')) {
-                            customerTab.innerText = '访客信息';
                         } else {
-                            customerTab.innerText = '客户信息';
+                            customerTab.innerText = '访客信息';
                         }
                         switchRightTab('customer', customerTab);
                     }
@@ -7559,7 +7921,13 @@
                         child.remove();
                     }
                 });
-                headerAvatarContainer.appendChild(clonedAvatar);
+                
+                if (isServiceChat && name === '新的会话') {
+                    headerAvatarContainer.style.display = 'none';
+                } else {
+                    headerAvatarContainer.style.display = 'flex';
+                    headerAvatarContainer.appendChild(clonedAvatar);
+                }
                 
                 const gsAvatarContainer = document.getElementById('groupSettingsAvatarContainer');
                 if (gsAvatarContainer) {
@@ -7572,7 +7940,25 @@
                 }
             }
 
-            document.getElementById('chatTitle').innerText = name;
+            let finalName = name;
+            if (isServiceChat && el.classList.contains('online-item')) {
+                const titleNode = el.querySelector('.session-item-title');
+                if (titleNode) {
+                    finalName = titleNode.innerText.trim() || name;
+                }
+            }
+
+            document.getElementById('chatTitle').innerText = finalName;
+            
+            const chatTitleView = document.getElementById('chatTitleView');
+            const chatTitleEdit = document.getElementById('chatTitleEdit');
+            if (chatTitleView) chatTitleView.style.display = 'flex';
+            if (chatTitleEdit) chatTitleEdit.style.display = 'none';
+            
+            const chatTitleEditBtn = document.getElementById('chatTitleEditBtn');
+            if (chatTitleEditBtn) {
+                chatTitleEditBtn.style.display = (isServiceChat && name === '新的会话') ? 'flex' : 'none';
+            }
 
             // Toggle Chat Actions Based on Context
             const normalActions = document.getElementById('chatActionGroupNormal');
@@ -7616,8 +8002,8 @@
                     if (xferBtn) xferBtn.style.display = hideServiceTools ? 'none' : 'flex';
                     if (pendBtn) {
                         pendBtn.style.display = hideServiceTools ? 'none' : 'flex';
-                        // Sync pending button state based on whether this chat has a pending icon
-                        const hasPending = el.querySelector('.pending-status-icon') && el.querySelector('.pending-status-icon').style.display !== 'none';
+                        // Sync pending button state based on whether this chat is in pending status or has the icon
+                        const hasPending = serviceStatus === '待处理' || (el.querySelector('.pending-status-icon') && el.querySelector('.pending-status-icon').style.display !== 'none');
                         const pendIcon = pendBtn.querySelector('i');
                         if (hasPending) {
                             pendBtn.setAttribute('data-tooltip', '取消待处理');
@@ -7883,16 +8269,7 @@
     </div>
 </div>
 
-<div class="msg-row self" style="margin-top: 16px;">
-    <div class="chat-avatar" style="width: 32px; height: 32px; background:#DCE6FE; color:var(--primary-color); border-radius:8px; font-size:14px; font-weight:500;">王三</div>
-    <div class="msg-col">
-        <div class="msg-wrapper">
-            <div class="msg-bubble" style="padding: 0; background: transparent; border: none; border-radius: 8px;"><img src="./broken_light.png" style="max-width: 240px; display: block; border-radius: 8px; border: 1px solid var(--border-color); cursor: zoom-in;" onclick="openImageViewer(this.src)"></div>
-            <div class="msg-actions" onclick="showMsgMenu(event, true)"><i class="ri-more-fill"></i></div>
-        </div>
-        <div class="msg-read-status read">已读</div>
-    </div>
-</div>
+
                 `;
             } else {
                 messageArea.innerHTML = '';
@@ -8018,6 +8395,11 @@
                     const itemType = item.getAttribute('data-type');
                     const onClickAttr = item.getAttribute('onclick') || '';
 
+                    // Special rule: "在线会话" (Online Sessions) aggregate only shows in the base "Messages" view
+                    if (item.innerText.includes('在线会话')) {
+                        show = false;
+                    }
+
                     if (customFilter === 'private' && itemType !== 'private') show = false;
                     if (customFilter === 'group' && itemType !== 'group') show = false;
                     if (customFilter === 'unread' && item.getAttribute('data-unread') !== 'true') show = false;
@@ -8025,6 +8407,8 @@
                     if (customFilter === 'at' && !item.innerText.includes('[有人@我]')) show = false;
                     if (customFilter === 'company' && !item.innerText.includes('聚名科技集团股份有限公司')) show = false;
                     if (customFilter === 'service' && !item.querySelector('.ri-customer-service-2-fill')) show = false;
+                    if (customFilter === 'customer' && !item.innerText.includes('客户')) show = false;
+                    if (customFilter === 'visitor' && !item.innerText.includes('访客')) show = false;
                 }
 
                 // Hide aggregate tags depending on types
@@ -10459,7 +10843,7 @@
             
             const mainListTitle = document.getElementById('mainListTitle');
             if (mainListTitle && document.getElementById('msgListPanelQueue').style.display === 'flex') {
-                mainListTitle.innerHTML = `<div onclick="returnToMainMsgList(); event.stopPropagation();" style="display: flex; align-items: center; cursor: pointer; margin-left: -6px;"><i class="ri-arrow-left-s-line" style="font-size: 24px; color: var(--text-primary); margin-right: 2px;"></i><span>排队中 · ${count}</span></div>`;
+                mainListTitle.innerHTML = `<div onclick="returnToMainMsgList(); event.stopPropagation();" style="display: flex; align-items: center; cursor: pointer; margin-left: -6px; font-size: 14px;"><i class="ri-arrow-left-s-line" style="font-size: 20px; color: var(--text-primary); margin-right: 2px;"></i><span>排队中 · ${count}</span></div>`;
             }
             
             if (count === 0) {
@@ -10497,6 +10881,27 @@
                     }
                 }
             }
+        };
+
+        window.filterOnlineChats = function(btn, type) {
+            Array.from(btn.parentNode.children).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            window.applyOnlineChatsFilter();
+
+            const activeMsgItem = document.querySelector('.chat-item.active');
+            if (activeMsgItem) {
+                activeMsgItem.classList.remove('active');
+            }
+            
+            const mainChatPanel = document.getElementById('mainChatPanel');
+            const emptyStatePanel = document.getElementById('emptyStatePanel');
+            const customerInfoPanel = document.getElementById('customerInfoPanel');
+            const emptyWechatStatePanel = document.getElementById('emptyWechatStatePanel');
+            
+            if (mainChatPanel) mainChatPanel.style.display = 'none';
+            if (emptyWechatStatePanel) emptyWechatStatePanel.style.display = 'none';
+            if (emptyStatePanel) emptyStatePanel.style.display = 'flex';
+            if (customerInfoPanel) customerInfoPanel.style.display = 'none';
         };
 
         window.filterQueueChats = function(btn, type) {
@@ -10572,6 +10977,7 @@
         
         // Initial setup
         window.updateGlobalMsgBadge();
+        if (window.applyOnlineChatsFilter) window.applyOnlineChatsFilter();
     });
 </script>
     <!-- 筛选弹窗 (Filter Modal) -->
