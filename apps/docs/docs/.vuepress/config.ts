@@ -11,26 +11,24 @@ export default defineUserConfig({
   description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服，支持网站小部件、聊天页面、REST API、Webhooks',
 
   theme: defaultTheme({
-    logo: '/images/logo.png',
+    siteTitle: false,
     navbar: [
       { text: '快速开始', link: '/guide/quickstart' },
-      { text: 'Widget', link: '/widget/' },
-      { text: 'API', link: '/api/' },
-      { text: 'Webhooks', link: '/webhooks/' },
-      { text: '免费注册', link: 'https://app.twt.com' },
+      { text: '接口', link: '/api/' },
+      { text: 'TWT.com', link: 'https://twt.com' },
     ],
     sidebar: [
       {
         text: '快速开始',
         children: [
-          '/guide/README.md',
           '/guide/quickstart.md',
         ],
       },
       {
         text: '网站小部件',
+        collapsible: true,
+        collapsed: true,
         children: [
-          '/widget/README.md',
           '/widget/installation.md',
           '/widget/configuration.md',
           '/widget/javascript-api.md',
@@ -38,8 +36,9 @@ export default defineUserConfig({
       },
       {
         text: '聊天页面',
+        collapsible: true,
+        collapsed: true,
         children: [
-          '/chat-page/README.md',
           '/chat-page/direct-link.md',
           '/chat-page/self-hosted.md',
           '/chat-page/parameters.md',
@@ -47,13 +46,15 @@ export default defineUserConfig({
       },
       {
         text: '开放 API',
+        collapsible: true,
+        collapsed: true,
         children: [
-          '/api/README.md',
           '/api/authentication.md',
           {
             text: '在线聊天',
+            collapsible: true,
+            collapsed: true,
             children: [
-              '/api/chat/README.md',
               '/api/chat/create-session.md',
               '/api/chat/create-session-batch.md',
               '/api/chat/create-group.md',
@@ -67,24 +68,18 @@ export default defineUserConfig({
       },
       {
         text: 'Webhooks',
+        collapsible: true,
+        collapsed: true,
         children: [
-          '/webhooks/README.md',
           '/webhooks/setup.md',
           '/webhooks/signature.md',
           '/webhooks/events.md',
           '/webhooks/payload.md',
         ],
       },
-      {
-        text: '更多',
-        children: [
-          '/examples.md',
-          '/why-twt-chat.md',
-          '/changelog.md',
-        ],
-      },
+      '/examples.md',
     ],
-    sidebarDepth: 1,
+    sidebarDepth: 0,
     editLink: false,
     lastUpdated: true,
     lastUpdatedText: '最后更新',
@@ -96,6 +91,8 @@ export default defineUserConfig({
   markdown: {
     anchor: {
       permalink: true,
+      permalinkSymbol: '#',
+      permalinkBefore: false,
     },
     toc: {
       level: [2, 3],

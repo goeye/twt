@@ -1,12 +1,12 @@
-<template><div><h1 id="创建单聊-批量" tabindex="-1">创建单聊-批量 <a class="header-anchor" href="#创建单聊-批量">¶</a></h1>
+<template><div><h1 id="创建单聊-批量" tabindex="-1">创建单聊-批量 <a class="header-anchor" href="#创建单聊-批量">#</a></h1>
 <blockquote>
 <p><strong>POST</strong> <code v-pre>https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch</code> -- 需要签名鉴权</p>
 </blockquote>
 <p>批量创建多个单聊会话。</p>
-<h2 id="请求" tabindex="-1">请求 <a class="header-anchor" href="#请求">¶</a></h2>
+<h2 id="请求" tabindex="-1">请求 <a class="header-anchor" href="#请求">#</a></h2>
 <div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text" data-title="text"><pre v-pre><code><span class="line">POST https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch</span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="header-参数" tabindex="-1">Header 参数 <a class="header-anchor" href="#header-参数">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div><h3 id="header-参数" tabindex="-1">Header 参数 <a class="header-anchor" href="#header-参数">#</a></h3>
 <table>
 <thead>
 <tr>
@@ -37,7 +37,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="body-参数" tabindex="-1">Body 参数 <a class="header-anchor" href="#body-参数">¶</a></h3>
+<h3 id="body-参数" tabindex="-1">Body 参数 <a class="header-anchor" href="#body-参数">#</a></h3>
 <table>
 <thead>
 <tr>
@@ -74,7 +74,7 @@
 </tr>
 </tbody>
 </table>
-<h4 id="u-info-对象字段" tabindex="-1">u_info 对象字段 <a class="header-anchor" href="#u-info-对象字段">¶</a></h4>
+<h4 id="u-info-对象字段" tabindex="-1">u_info 对象字段 <a class="header-anchor" href="#u-info-对象字段">#</a></h4>
 <table>
 <thead>
 <tr>
@@ -117,7 +117,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="请求示例" tabindex="-1">请求示例 <a class="header-anchor" href="#请求示例">¶</a></h3>
+<h3 id="请求示例" tabindex="-1">请求示例 <a class="header-anchor" href="#请求示例">#</a></h3>
 <div class="language-bash line-numbers-mode" data-highlighter="prismjs" data-ext="sh" data-title="sh"><pre v-pre><code><span class="line"><span class="token function">curl</span> <span class="token parameter variable">-X</span> POST <span class="token string">'https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch'</span> <span class="token punctuation">\</span></span>
 <span class="line"><span class="token parameter variable">-H</span> <span class="token string">'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70'</span> <span class="token punctuation">\</span></span>
 <span class="line"><span class="token parameter variable">-H</span> <span class="token string">'Content-Type: application/json'</span> <span class="token punctuation">\</span></span>
@@ -141,8 +141,8 @@
 <span class="line">    ]</span>
 <span class="line">}'</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="返回响应" tabindex="-1">返回响应 <a class="header-anchor" href="#返回响应">¶</a></h2>
-<h3 id="_200-成功" tabindex="-1">200 成功 <a class="header-anchor" href="#_200-成功">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="返回响应" tabindex="-1">返回响应 <a class="header-anchor" href="#返回响应">#</a></h2>
+<h3 id="_200-成功" tabindex="-1">200 成功 <a class="header-anchor" href="#_200-成功">#</a></h3>
 <table>
 <thead>
 <tr>

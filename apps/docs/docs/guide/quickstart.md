@@ -4,7 +4,7 @@
 
 ## 第 1 步：获取安装代码
 
-登录 [TWT Chat 后台](https://app.twt.com)，进入 **设置 > 网站代码**，复制安装代码片段。
+登录 [TWT Chat 客服端](https://twt.chat.com)，进入 **设置 > 网站代码**，复制安装代码片段。
 
 ## 第 2 步：粘贴到网页
 
@@ -16,7 +16,15 @@
 window.__twt__config = {
   appid: "你的APPID",
   lang: "zh-cn",
-  theme: "light"
+  theme: "light",
+  sbs: "",
+  sbs_mm: "",
+  ranstr: "",
+  name: "",
+  nickname: "",
+  email: "",
+  phone: "",
+  icon: "1"
 };
 (function(n, t) {
   var e = { init: function() {
@@ -43,5 +51,5 @@ window.__twt__config = {
 - [传递客户信息](/chat-page/parameters) — 将已登录用户信息同步到聊天
 
 ::: tip 开始使用
-还没有账号？[免费注册 TWT Chat](https://app.twt.com) 获取 API Key，3 分钟完成接入。
+还没有账号？[免费注册 TWT Chat](https://twt.com) 获取 API Key，3 分钟完成接入。
 :::

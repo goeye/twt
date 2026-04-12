@@ -22,7 +22,15 @@
   window.__twt__config = {
     appid: "你的APPID",
     lang: "zh-cn",
-    theme: "light"
+    theme: "light",
+    sbs: "",
+    sbs_mm: "",
+    ranstr: "",
+    name: "",
+    nickname: "",
+    email: "",
+    phone: "",
+    icon: "1"
   };
   (function(n, t) {
     var e = { init: function() {
@@ -110,5 +118,5 @@ onUnmounted(() => {
 :::
 
 ::: tip 开始使用
-还没有账号？[免费注册 TWT Chat](https://app.twt.com) 获取 API Key，3 分钟完成接入。
+还没有账号？[免费注册 TWT Chat](https://twt.com) 获取 API Key，3 分钟完成接入。
 :::

@@ -33,5 +33,5 @@
 所有 API 遵循统一的错误响应格式，详见 [错误码参考](./error-codes)。
 
 ::: tip 开始使用
-还没有账号？[免费注册 TWT Chat](https://app.twt.com) 获取 API Key，3 分钟完成接入。
+还没有账号？[免费注册 TWT Chat](https://twt.com) 获取 API Key，3 分钟完成接入。
 :::

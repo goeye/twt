@@ -1,6 +1,6 @@
-<template><div><h1 id="基础安装" tabindex="-1">基础安装 <a class="header-anchor" href="#基础安装">¶</a></h1>
+<template><div><h1 id="基础安装" tabindex="-1">基础安装 <a class="header-anchor" href="#基础安装">#</a></h1>
 <p>在你网站的每个页面上嵌入 TWT Chat 聊天小部件。</p>
-<h2 id="安装步骤" tabindex="-1">安装步骤 <a class="header-anchor" href="#安装步骤">¶</a></h2>
+<h2 id="安装步骤" tabindex="-1">安装步骤 <a class="header-anchor" href="#安装步骤">#</a></h2>
 <p>在每个网页的 <code v-pre>&lt;/body&gt;</code> 标签之前，复制并粘贴以下代码：</p>
 <div class="language-html line-numbers-mode" data-highlighter="prismjs" data-ext="html" data-title="html"><pre v-pre><code><span class="line"><span class="token comment">&lt;!-- Start of TWT Chat code --></span></span>
 <span class="line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"></span>
@@ -34,7 +34,7 @@
 <p class="hint-container-title">提示</p>
 <p>你可以在 TWT Chat 后台的 <strong>设置 &gt; 网站代码</strong> 页面直接复制已填入 <code v-pre>appid</code> 的代码。</p>
 </div>
-<h2 id="配置字段说明" tabindex="-1">配置字段说明 <a class="header-anchor" href="#配置字段说明">¶</a></h2>
+<h2 id="配置字段说明" tabindex="-1">配置字段说明 <a class="header-anchor" href="#配置字段说明">#</a></h2>
 <table>
 <thead>
 <tr>

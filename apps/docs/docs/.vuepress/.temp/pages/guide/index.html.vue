@@ -1,6 +1,6 @@
-<template><div><h1 id="概述" tabindex="-1">概述 <a class="header-anchor" href="#概述">¶</a></h1>
+<template><div><h1 id="概述" tabindex="-1">概述 <a class="header-anchor" href="#概述">#</a></h1>
 <p>TWT Chat 是一款在线客服 SaaS 平台，提供多种接入方式帮助你快速为网站和应用添加实时聊天能力。</p>
-<h2 id="接入方式" tabindex="-1">接入方式 <a class="header-anchor" href="#接入方式">¶</a></h2>
+<h2 id="接入方式" tabindex="-1">接入方式 <a class="header-anchor" href="#接入方式">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -32,7 +32,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="前置条件" tabindex="-1">前置条件 <a class="header-anchor" href="#前置条件">¶</a></h2>
+<h2 id="前置条件" tabindex="-1">前置条件 <a class="header-anchor" href="#前置条件">#</a></h2>
 <ul>
 <li>已注册 TWT Chat 账号</li>
 <li>已在后台创建应用并获取 <code v-pre>appid</code></li>

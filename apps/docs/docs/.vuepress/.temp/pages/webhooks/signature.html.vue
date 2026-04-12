@@ -1,6 +1,6 @@
-<template><div><h1 id="签名校验" tabindex="-1">签名校验 <a class="header-anchor" href="#签名校验">¶</a></h1>
+<template><div><h1 id="签名校验" tabindex="-1">签名校验 <a class="header-anchor" href="#签名校验">#</a></h1>
 <p>每个 Webhook 请求都携带签名，你应在接收端验证签名以确保请求来自 TWT Chat。</p>
-<h2 id="签名算法" tabindex="-1">签名算法 <a class="header-anchor" href="#签名算法">¶</a></h2>
+<h2 id="签名算法" tabindex="-1">签名算法 <a class="header-anchor" href="#签名算法">#</a></h2>
 <ul>
 <li><strong>算法</strong>：HMAC-SHA256</li>
 <li><strong>密钥</strong>：你的 AppSecret</li>
@@ -8,15 +8,15 @@
 <li><strong>签名结果</strong>：Hex 编码（小写）</li>
 </ul>
 <p>签名值通过请求头 <code v-pre>X-Chat-Signature</code> 传递。</p>
-<h2 id="校验流程" tabindex="-1">校验流程 <a class="header-anchor" href="#校验流程">¶</a></h2>
+<h2 id="校验流程" tabindex="-1">校验流程 <a class="header-anchor" href="#校验流程">#</a></h2>
 <ol>
 <li>从请求头中获取 <code v-pre>X-Chat-Signature</code> 的值</li>
 <li>使用 AppSecret 对请求体原文进行 HMAC-SHA256 计算</li>
 <li>将计算结果（Hex 小写）与 <code v-pre>X-Chat-Signature</code> 比较</li>
 <li>一致则验证通过，否则拒绝该请求</li>
 </ol>
-<h2 id="代码示例" tabindex="-1">代码示例 <a class="header-anchor" href="#代码示例">¶</a></h2>
-<h3 id="php" tabindex="-1">PHP <a class="header-anchor" href="#php">¶</a></h3>
+<h2 id="代码示例" tabindex="-1">代码示例 <a class="header-anchor" href="#代码示例">#</a></h2>
+<h3 id="php" tabindex="-1">PHP <a class="header-anchor" href="#php">#</a></h3>
 <div class="language-php line-numbers-mode" data-highlighter="prismjs" data-ext="php" data-title="php"><pre v-pre><code><span class="line"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span></span>
 <span class="line"><span class="token variable">$rawBody</span> <span class="token operator">=</span> <span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'php://input'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
 <span class="line"><span class="token variable">$appSecret</span> <span class="token operator">=</span> <span class="token string single-quoted-string">'YOUR_APP_SECRET'</span><span class="token punctuation">;</span></span>
@@ -32,7 +32,7 @@
 <span class="line">    <span class="token keyword">exit</span><span class="token punctuation">;</span></span>
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="python-3" tabindex="-1">Python 3 <a class="header-anchor" href="#python-3">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="python-3" tabindex="-1">Python 3 <a class="header-anchor" href="#python-3">#</a></h3>
 <div class="language-python line-numbers-mode" data-highlighter="prismjs" data-ext="py" data-title="py"><pre v-pre><code><span class="line"><span class="token keyword">import</span> hmac</span>
 <span class="line"><span class="token keyword">import</span> hashlib</span>
 <span class="line"></span>
@@ -54,7 +54,7 @@
 <span class="line">    <span class="token comment"># 验证失败</span></span>
 <span class="line">    abort<span class="token punctuation">(</span><span class="token number">403</span><span class="token punctuation">)</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="node-js" tabindex="-1">Node.js <a class="header-anchor" href="#node-js">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="node-js" tabindex="-1">Node.js <a class="header-anchor" href="#node-js">#</a></h3>
 <div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js" data-title="js"><pre v-pre><code><span class="line"><span class="token keyword">const</span> crypto <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'crypto'</span><span class="token punctuation">)</span></span>
 <span class="line"></span>
 <span class="line"><span class="token keyword">const</span> rawBody <span class="token operator">=</span> req<span class="token punctuation">.</span>body <span class="token comment">// 需要原始字符串，非解析后的对象</span></span>
@@ -74,7 +74,7 @@
 <span class="line">  res<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token number">403</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span>
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="go" tabindex="-1">Go <a class="header-anchor" href="#go">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="go" tabindex="-1">Go <a class="header-anchor" href="#go">#</a></h3>
 <div class="language-go line-numbers-mode" data-highlighter="prismjs" data-ext="go" data-title="go"><pre v-pre><code><span class="line"><span class="token keyword">import</span> <span class="token punctuation">(</span></span>
 <span class="line">    <span class="token string">"crypto/hmac"</span></span>
 <span class="line">    <span class="token string">"crypto/sha256"</span></span>
@@ -88,7 +88,7 @@
 <span class="line">    <span class="token keyword">return</span> hmac<span class="token punctuation">.</span><span class="token function">Equal</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>expected<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>headerSignature<span class="token punctuation">)</span><span class="token punctuation">)</span></span>
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="java-jdk-8" tabindex="-1">Java (JDK 8+) <a class="header-anchor" href="#java-jdk-8">¶</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="java-jdk-8" tabindex="-1">Java (JDK 8+) <a class="header-anchor" href="#java-jdk-8">#</a></h3>
 <div class="language-java line-numbers-mode" data-highlighter="prismjs" data-ext="java" data-title="java"><pre v-pre><code><span class="line"><span class="token keyword">import</span> <span class="token import"><span class="token namespace">javax<span class="token punctuation">.</span>crypto<span class="token punctuation">.</span></span><span class="token class-name">Mac</span></span><span class="token punctuation">;</span></span>
 <span class="line"><span class="token keyword">import</span> <span class="token import"><span class="token namespace">javax<span class="token punctuation">.</span>crypto<span class="token punctuation">.</span>spec<span class="token punctuation">.</span></span><span class="token class-name">SecretKeySpec</span></span><span class="token punctuation">;</span></span>
 <span class="line"></span>

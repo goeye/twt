@@ -1,6 +1,6 @@
-<template><div><h1 id="在线聊天" tabindex="-1">在线聊天 <a class="header-anchor" href="#在线聊天">¶</a></h1>
+<template><div><h1 id="在线聊天" tabindex="-1">在线聊天 <a class="header-anchor" href="#在线聊天">#</a></h1>
 <p>在线聊天模块提供会话的创建、删除和管理接口。</p>
-<h2 id="接口列表" tabindex="-1">接口列表 <a class="header-anchor" href="#接口列表">¶</a></h2>
+<h2 id="接口列表" tabindex="-1">接口列表 <a class="header-anchor" href="#接口列表">#</a></h2>
 <table>
 <thead>
 <tr>

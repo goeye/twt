@@ -1,6 +1,6 @@
-<template><div><h1 id="聊天页面" tabindex="-1">聊天页面 <a class="header-anchor" href="#聊天页面">¶</a></h1>
+<template><div><h1 id="聊天页面" tabindex="-1">聊天页面 <a class="header-anchor" href="#聊天页面">#</a></h1>
 <p>除了在网站中嵌入小部件，你还可以通过独立聊天页面为客户提供咨询入口，适用于无需部署网站代码的场景。</p>
-<h2 id="两种接入方式" tabindex="-1">两种接入方式 <a class="header-anchor" href="#两种接入方式">¶</a></h2>
+<h2 id="两种接入方式" tabindex="-1">两种接入方式 <a class="header-anchor" href="#两种接入方式">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -22,7 +22,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="自定义配置" tabindex="-1">自定义配置 <a class="header-anchor" href="#自定义配置">¶</a></h2>
+<h2 id="自定义配置" tabindex="-1">自定义配置 <a class="header-anchor" href="#自定义配置">#</a></h2>
 <p>两种方式均支持通过 URL 参数自定义语言和传递客户信息，详见 <a href="./parameters">URL 参数说明</a>。</p>
 </div></template>
 
