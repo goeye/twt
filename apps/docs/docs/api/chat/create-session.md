@@ -1,5 +1,7 @@
 # 创建单聊
 
+> **POST** `https://apichat.twt.com/openapi/zxlt/fqlt_dl` -- 需要签名鉴权
+
 创建一个单聊会话。
 
 ## 请求
@@ -33,19 +35,18 @@ POST https://apichat.twt.com/openapi/zxlt/fqlt_dl
 ### 请求示例
 
 ```bash
-curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl' \
---header 'x-chat-signature: 7ac03ccc306902234f3b40cbe797fcb0f' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "appid": "string",
-    "sbs": "string",
-    "timestamp": 0,
-    "ranstr": "string",
-    "kefu_id": "string",
-    "ip": "string",
-    "sbs_mc": "string",
-    "content": "string"
+curl -X POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl' \
+-H 'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70' \
+-H 'Content-Type: application/json' \
+-d '{
+    "appid": "1b621280becdb0fa3d3e041ff69e1e1f",
+    "sbs": "user_1001",
+    "timestamp": 1712899200,
+    "ranstr": "4ad0faec14a58112",
+    "kefu_id": "10078",
+    "ip": "203.0.113.1",
+    "sbs_mc": "张三",
+    "content": "你好，我想咨询一下产品功能"
 }'
 ```
 
@@ -59,10 +60,22 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl' \
 | `msg` | string | 是 | 失败时的错误信息 |
 | `data` | string | 是 | 返回数据 |
 
+成功响应：
+
 ```json
 {
   "code": 1,
   "msg": "ok",
+  "data": ""
+}
+```
+
+失败响应：
+
+```json
+{
+  "code": -1,
+  "msg": "appid不存在",
   "data": ""
 }
 ```

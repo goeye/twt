@@ -1,5 +1,7 @@
 # 创建群聊-批量
 
+> **POST** `https://apichat.twt.com/openapi/zxlt/fqlt_ql_batch` -- 需要签名鉴权
+
 批量创建多个群聊会话。
 
 ## 请求
@@ -43,24 +45,21 @@ POST https://apichat.twt.com/openapi/zxlt/fqlt_ql_batch
 ### 请求示例
 
 ```bash
-curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_ql_batch' \
---header 'x-chat-signature: 7ac03ccc306902234f3b40cbe797fcb0f' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "appid": "string",
-    "timestamp": 0,
-    "ranstr": "string",
+curl -X POST 'https://apichat.twt.com/openapi/zxlt/fqlt_ql_batch' \
+-H 'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70' \
+-H 'Content-Type: application/json' \
+-d '{
+    "appid": "1b621280becdb0fa3d3e041ff69e1e1f",
+    "timestamp": 1712899200,
+    "ranstr": "4ad0faec14a58112",
     "u_info": [
         {
             "item": [
-                {
-                    "u_lx": "string",
-                    "uid": 0
-                }
+                { "u_lx": "kefu", "uid": 10078 },
+                { "u_lx": "visitor", "uid": 20056 }
             ],
-            "qlmc": "string",
-            "content": "string"
+            "qlmc": "VIP 客户服务群",
+            "content": "欢迎加入群聊"
         }
     ]
 }'
@@ -83,6 +82,8 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_ql_bat
 | `chat_id` | string | 群聊 ID |
 | `uid` | string | 群主 UID |
 
+成功响应：
+
 ```json
 {
   "code": 1,
@@ -90,8 +91,18 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_ql_bat
   "data": [
     {
       "chat_id": "1841",
-      "uid": "10005"
+      "uid": "10078"
     }
   ]
+}
+```
+
+失败响应：
+
+```json
+{
+  "code": -1,
+  "msg": "参数缺失：u_info",
+  "data": ""
 }
 ```

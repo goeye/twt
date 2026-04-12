@@ -1,6 +1,6 @@
-# 快速开始
+# 3 分钟接入
 
-5 分钟完成 TWT Chat 接入。
+快速完成 TWT Chat 接入。
 
 ## 第 1 步：获取安装代码
 
@@ -41,3 +41,7 @@ window.__twt__config = {
 - [自定义配置](/widget/configuration) — 调整外观和行为
 - [JavaScript API](/widget/javascript-api) — 程序化控制聊天组件
 - [传递客户信息](/chat-page/parameters) — 将已登录用户信息同步到聊天
+
+::: tip 开始使用
+还没有账号？[免费注册 TWT Chat](https://app.twt.com) 获取 API Key，3 分钟完成接入。
+:::

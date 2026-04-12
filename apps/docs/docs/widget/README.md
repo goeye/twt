@@ -15,3 +15,7 @@
 - [基础安装](./installation) — 获取并嵌入安装代码
 - [配置项参考](./configuration) — 自定义外观与行为
 - [JavaScript API](./javascript-api) — 程序化控制聊天组件
+
+::: tip 开始使用
+还没有账号？[免费注册 TWT Chat](https://app.twt.com) 获取 API Key，3 分钟完成接入。
+:::

@@ -1,5 +1,7 @@
 # 创建单聊-批量
 
+> **POST** `https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch` -- 需要签名鉴权
+
 批量创建多个单聊会话。
 
 ## 请求
@@ -38,19 +40,25 @@ POST https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch
 ### 请求示例
 
 ```bash
-curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch' \
---header 'x-chat-signature: 7ac03ccc306902234f3b40cbe797fcb0f' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "appid": "string",
-    "timestamp": 0,
-    "ranstr": "string",
+curl -X POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl_batch' \
+-H 'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70' \
+-H 'Content-Type: application/json' \
+-d '{
+    "appid": "1b621280becdb0fa3d3e041ff69e1e1f",
+    "timestamp": 1712899200,
+    "ranstr": "4ad0faec14a58112",
     "u_info": [
         {
-            "kefu_id": 0,
-            "sbs": "string",
-            "content": "string"
+            "kefu_id": 10078,
+            "sbs": "user_1001",
+            "sbs_mc": "张三",
+            "content": "你好，请问有什么可以帮您？"
+        },
+        {
+            "kefu_id": 10079,
+            "sbs": "user_1002",
+            "sbs_mc": "李四",
+            "content": "欢迎咨询"
         }
     ]
 }'
@@ -66,10 +74,22 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/fqlt_dl_bat
 | `msg` | string | 是 | 失败时的错误信息 |
 | `data` | string | 是 | 返回数据 |
 
+成功响应：
+
 ```json
 {
   "code": 1,
   "msg": "ok",
+  "data": ""
+}
+```
+
+失败响应：
+
+```json
+{
+  "code": -1,
+  "msg": "签名校验失败",
   "data": ""
 }
 ```

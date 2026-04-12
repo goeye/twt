@@ -8,11 +8,17 @@ export default defineUserConfig({
   bundler: viteBundler(),
   lang: 'zh-CN',
   title: 'TWT Chat 开发者文档',
-  description: 'TWT Chat 开发者接入文档 - 网站小部件、聊天页面、Webhooks、开放 API',
+  description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服，支持网站小部件、聊天页面、REST API、Webhooks',
 
   theme: defaultTheme({
     logo: '/images/logo.png',
-    navbar: false,
+    navbar: [
+      { text: '快速开始', link: '/guide/quickstart' },
+      { text: 'Widget', link: '/widget/' },
+      { text: 'API', link: '/api/' },
+      { text: 'Webhooks', link: '/webhooks/' },
+      { text: '免费注册', link: 'https://app.twt.com' },
+    ],
     sidebar: [
       {
         text: '快速开始',
@@ -40,16 +46,6 @@ export default defineUserConfig({
         ],
       },
       {
-        text: 'Webhooks',
-        children: [
-          '/webhooks/README.md',
-          '/webhooks/setup.md',
-          '/webhooks/signature.md',
-          '/webhooks/events.md',
-          '/webhooks/payload.md',
-        ],
-      },
-      {
         text: '开放 API',
         children: [
           '/api/README.md',
@@ -69,8 +65,26 @@ export default defineUserConfig({
           '/api/error-codes.md',
         ],
       },
+      {
+        text: 'Webhooks',
+        children: [
+          '/webhooks/README.md',
+          '/webhooks/setup.md',
+          '/webhooks/signature.md',
+          '/webhooks/events.md',
+          '/webhooks/payload.md',
+        ],
+      },
+      {
+        text: '更多',
+        children: [
+          '/examples.md',
+          '/why-twt-chat.md',
+          '/changelog.md',
+        ],
+      },
     ],
-    sidebarDepth: 0,
+    sidebarDepth: 1,
     editLink: false,
     lastUpdated: true,
     lastUpdatedText: '最后更新',

@@ -1,5 +1,7 @@
 # 批量解散群聊
 
+> **POST** `https://apichat.twt.com/openapi/zxlt/js_zxlt_ql_batch` -- 需要签名鉴权
+
 一次解散多个群聊。
 
 ## 请求
@@ -28,17 +30,14 @@ POST https://apichat.twt.com/openapi/zxlt/js_zxlt_ql_batch
 ### 请求示例
 
 ```bash
-curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/js_zxlt_ql_batch' \
---header 'x-chat-signature: 7ac03ccc306902234f3b40cbe797fcb0f' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "appid": "string",
-    "timestamp": 1769072367,
-    "ranstr": "string",
-    "chat_ids": [
-        0
-    ]
+curl -X POST 'https://apichat.twt.com/openapi/zxlt/js_zxlt_ql_batch' \
+-H 'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70' \
+-H 'Content-Type: application/json' \
+-d '{
+    "appid": "1b621280becdb0fa3d3e041ff69e1e1f",
+    "timestamp": 1712899200,
+    "ranstr": "4ad0faec14a58112",
+    "chat_ids": [1841, 1842, 1843]
 }'
 ```
 
@@ -52,10 +51,22 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/js_zxlt_ql_
 | `msg` | string | 是 | 失败时的错误信息 |
 | `data` | string | 是 | 返回数据 |
 
+成功响应：
+
 ```json
 {
   "code": 1,
   "msg": "ok",
+  "data": ""
+}
+```
+
+失败响应：
+
+```json
+{
+  "code": -1,
+  "msg": "chat_ids 不能为空",
   "data": ""
 }
 ```

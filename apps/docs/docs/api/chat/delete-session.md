@@ -1,5 +1,7 @@
 # 删除单聊
 
+> **POST** `https://apichat.twt.com/openapi/zxlt/del_zxlt_dl` -- 需要签名鉴权
+
 删除一个单聊会话。
 
 ## 请求
@@ -35,18 +37,17 @@ POST https://apichat.twt.com/openapi/zxlt/del_zxlt_dl
 ### 请求示例
 
 ```bash
-curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/del_zxlt_dl' \
---header 'x-chat-signature: 7ac03ccc306902234f3b40cbe797fcb0f' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "appid": "string",
-    "timestamp": 0,
-    "ranstr": "string",
+curl -X POST 'https://apichat.twt.com/openapi/zxlt/del_zxlt_dl' \
+-H 'x-chat-signature: 4ecdcaf813c422d34413671b2ed68e0a6e69ea8496d34ab40bd33cef26571e70' \
+-H 'Content-Type: application/json' \
+-d '{
+    "appid": "1b621280becdb0fa3d3e041ff69e1e1f",
+    "timestamp": 1712899200,
+    "ranstr": "4ad0faec14a58112",
     "u_info": [
         {
-            "kefu_id": 0,
-            "sbs": "string"
+            "kefu_id": 10078,
+            "sbs": "user_1001"
         }
     ]
 }'
@@ -62,10 +63,22 @@ curl --location --request POST 'https://apichat.twt.com/openapi/zxlt/del_zxlt_dl
 | `msg` | string | 是 | 失败时的错误信息 |
 | `data` | string | 是 | 返回数据 |
 
+成功响应：
+
 ```json
 {
   "code": 1,
   "msg": "ok",
+  "data": ""
+}
+```
+
+失败响应：
+
+```json
+{
+  "code": -1,
+  "msg": "会话不存在",
   "data": ""
 }
 ```
