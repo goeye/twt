@@ -2,14 +2,37 @@
   display: none;
 }
 
-.header-anchor {
+[vp-content] a.header-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.35rem;
   opacity: 0;
-  transition: opacity 0.2s;
+  color: transparent !important;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+[vp-content] a.header-anchor::before {
+  content: none !important;
+  display: none !important;
+}
+
+[vp-content] a.header-anchor::after {
+  content: '#';
+  display: inline-block;
+  color: var(--vp-c-accent);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
 }
 
 h1:hover .header-anchor,
 h2:hover .header-anchor,
 h3:hover .header-anchor,
-h4:hover .header-anchor {
+h4:hover .header-anchor,
+h5:hover .header-anchor,
+h6:hover .header-anchor,
+.header-anchor:focus-visible {
   opacity: 1;
 }
