@@ -6,13 +6,19 @@
 
         <aside class="visitor-drawer" @click.stop>
           <header class="visitor-drawer__header">
-            <h2 class="visitor-drawer__title">访客详情</h2>
+            <div class="visitor-drawer__header-left">
+              <button v-if="view !== 'main'" type="button" class="visitor-drawer__back" aria-label="返回" @click="goBack">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <h2 class="visitor-drawer__title">{{ viewTitle }}</h2>
+            </div>
             <button type="button" class="visitor-drawer__close" aria-label="关闭" @click="$emit('close')">
               <span>&times;</span>
             </button>
           </header>
 
-          <div class="visitor-drawer__content agent-scroll">
+          <!-- 主视图 -->
+          <div v-if="view === 'main'" class="visitor-drawer__content agent-scroll">
             <!-- 基础信息 -->
             <section class="vd-section">
               <button type="button" class="vd-section__header" @click="toggleSection('basic')">
@@ -89,7 +95,7 @@
                   </div>
                   <div class="vd-field">
                     <dt>会话总数</dt>
-                    <dd>{{ visitor.sessionCount }}</dd>
+                    <dd><button type="button" class="vd-session-count-link" @click="view = 'sessions'">{{ visitor.sessionCount.split(' ')[0] }}</button> 个会话</dd>
                   </div>
                 </dl>
               </div>
@@ -163,6 +169,71 @@
               </div>
             </section>
           </div>
+
+          <!-- 会话列表视图 -->
+          <div v-else-if="view === 'sessions'" class="visitor-drawer__content agent-scroll">
+            <div
+              v-for="item in mockSessions"
+              :key="item.id"
+              class="vd-session-card"
+              @click="openSessionDetail(item)"
+            >
+              <div class="vd-session-card__top">
+                <span class="vd-session-card__title">{{ item.title }}</span>
+                <span class="vd-session-card__badge" :class="`vd-session-card__badge--${item.statusType}`">{{ item.status }}</span>
+              </div>
+              <div class="vd-session-card__meta">
+                <template v-if="item.agentName">
+                  <span class="vd-session-card__agent-avatar">{{ item.agentName[0] }}</span>
+                  <span class="vd-session-card__agent">{{ item.agentName }}</span>
+                </template>
+                <span class="vd-session-card__visitor">访客：{{ visitor.name || visitor.remark || '–' }}</span>
+              </div>
+              <div v-if="item.tags.length" class="vd-session-card__tags">
+                <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="vd-session-card__tag">{{ tag }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 会话详情视图 -->
+          <template v-else-if="view === 'detail' && activeSession">
+            <div class="visitor-drawer__content agent-scroll vd-detail-messages">
+              <div
+                v-for="msg in activeSession.messages"
+                :key="msg.id"
+                class="vd-msg"
+                :class="`vd-msg--${msg.role}`"
+              >
+                <template v-if="msg.role === 'system'">
+                  <div class="vd-msg__system">{{ msg.content }}</div>
+                </template>
+                <template v-else>
+                  <span class="vd-msg__avatar" :style="{ background: msg.avatarColor }">{{ msg.avatarText }}</span>
+                  <div class="vd-msg__body">
+                    <div class="vd-msg__meta"><span>{{ msg.sender }}</span><span>{{ msg.time }}</span></div>
+                    <div class="vd-msg__bubble">{{ msg.content }}</div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <footer class="vd-detail-footer">
+              <template v-if="activeSession.statusType === 'queueing'">
+                <div class="vd-detail-footer__dual">
+                  <button type="button" class="vd-detail-footer__btn vd-detail-footer__btn--assign">分配会话</button>
+                  <button type="button" class="vd-detail-footer__btn vd-detail-footer__btn--primary">领取会话</button>
+                </div>
+              </template>
+              <template v-else-if="activeSession.statusType === 'pending'">
+                <div class="vd-detail-footer__dual">
+                  <button type="button" class="vd-detail-footer__btn vd-detail-footer__btn--assign">分配会话</button>
+                  <button type="button" class="vd-detail-footer__btn vd-detail-footer__btn--primary">进入会话</button>
+                </div>
+              </template>
+              <template v-else>
+                <button type="button" class="vd-detail-footer__btn vd-detail-footer__btn--full">进入会话</button>
+              </template>
+            </footer>
+          </template>
         </aside>
       </div>
     </transition>
@@ -170,7 +241,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export interface VisitorDrawerData {
   name: string;
@@ -187,7 +258,17 @@ export interface VisitorDrawerData {
   customerId?: string;
 }
 
-defineProps<{
+interface SessionItem {
+  id: number;
+  title: string;
+  status: string;
+  statusType: string;
+  agentName?: string;
+  tags: string[];
+  messages: { id: string; role: "agent" | "customer" | "system"; sender: string; content: string; time: string; avatarText?: string; avatarColor?: string }[];
+}
+
+const props = defineProps<{
   open: boolean;
   visitor: VisitorDrawerData | null;
 }>();
@@ -197,18 +278,87 @@ defineEmits<{
 }>();
 
 const channelLabel: Record<string, string> = { web: "Web", widget: "网页插件", email: "Email" };
-
 const collapsedSections = ref<string[]>([]);
+const view = ref<"main" | "sessions" | "detail">("main");
+const activeSession = ref<SessionItem | null>(null);
+
+const viewTitle = computed(() => {
+  if (view.value === "sessions") return "历史会话";
+  if (view.value === "detail") return activeSession.value?.title ?? "会话详情";
+  return "访客详情";
+});
+
+const goBack = () => {
+  if (view.value === "detail") { view.value = "sessions"; return; }
+  view.value = "main";
+};
+
+const openSessionDetail = (item: SessionItem) => {
+  activeSession.value = item;
+  view.value = "detail";
+};
+
+watch(() => props.open, (v) => { if (!v) { view.value = "main"; activeSession.value = null; } });
 
 const isSectionCollapsed = (key: string) => collapsedSections.value.includes(key);
-
 const toggleSection = (key: string) => {
-  if (isSectionCollapsed(key)) {
-    collapsedSections.value = collapsedSections.value.filter((item) => item !== key);
-    return;
-  }
+  if (isSectionCollapsed(key)) { collapsedSections.value = collapsedSections.value.filter((i) => i !== key); return; }
   collapsedSections.value = [...collapsedSections.value, key];
 };
+
+const mockSessions: SessionItem[] = [
+  {
+    id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", tags: ["支付", "紧急"],
+    messages: [
+      { id: "s1m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s1m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s1m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" },
+      { id: "s1m4", role: "customer", sender: "访客", content: "微信支付", time: "14:04", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s1m5", role: "agent", sender: "张三", content: "已为您处理，请重试", time: "14:10", avatarText: "张", avatarColor: "#2f6bff" },
+      { id: "s1m6", role: "system", sender: "", content: "会话已关闭", time: "" },
+    ]
+  },
+  {
+    id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", tags: ["产品"],
+    messages: [
+      { id: "s2m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s2m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s2m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" },
+    ]
+  },
+  {
+    id: 3, title: "退款申请", status: "排队中", statusType: "queueing", tags: ["退款"],
+    messages: [
+      { id: "s3m1", role: "system", sender: "", content: "会话开始，等待分配", time: "" },
+      { id: "s3m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" },
+    ]
+  },
+  {
+    id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", tags: [],
+    messages: [
+      { id: "s4m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s4m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" },
+    ]
+  },
+  {
+    id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", tags: [],
+    messages: [
+      { id: "s5m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s5m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s5m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" },
+      { id: "s5m4", role: "system", sender: "", content: "会话已关闭", time: "" },
+    ]
+  },
+  {
+    id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", tags: ["技术"],
+    messages: [
+      { id: "s6m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s6m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s6m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" },
+      { id: "s6m4", role: "system", sender: "", content: "会话已关闭", time: "" },
+    ]
+  },
+];
 </script>
 
 <style scoped>
@@ -488,5 +638,243 @@ const toggleSection = (key: string) => {
     padding: 16px 14px 14px;
     width: 100vw;
   }
+}
+
+/* Header back button */
+.visitor-drawer__header-left {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.visitor-drawer__back {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #222;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.visitor-drawer__back:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+/* Session count link */
+.vd-session-count-link {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #222;
+  color: #222;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 0;
+}
+
+.vd-session-count-link:hover {
+  color: var(--agent-color-brand-primary);
+  border-bottom-color: var(--agent-color-brand-primary);
+}
+
+/* Session list cards */
+.vd-session-card {
+  background: #fff;
+  border: 1px solid #e7ebf0;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+}
+
+.vd-session-card:hover {
+  border-color: #c5d0e0;
+}
+
+.vd-session-card__top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vd-session-card__title {
+  color: #222;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vd-session-card__badge {
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 7px;
+}
+
+.vd-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
+.vd-session-card__badge--active { background: #e6f4ea; color: #2e7d32; }
+.vd-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
+.vd-session-card__badge--pending { background: #fff3e0; color: #e65100; }
+.vd-session-card__badge--replied { background: #e6f4ea; color: #2e7d32; }
+
+.vd-session-card__meta {
+  align-items: center;
+  color: #7e8999;
+  display: flex;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.vd-session-card__agent-avatar {
+  align-items: center;
+  background: #2f6bff;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.vd-session-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vd-session-card__tag {
+  background: rgba(47, 107, 255, 0.08);
+  border: 1px solid rgba(47, 107, 255, 0.18);
+  border-radius: 10px;
+  color: #2f6bff;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+/* Detail messages */
+.vd-detail-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 8px;
+}
+
+.vd-msg {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+}
+
+.vd-msg--agent {
+  flex-direction: row-reverse;
+}
+
+.vd-msg--system {
+  justify-content: center;
+}
+
+.vd-msg__system {
+  color: #93a0b2;
+  font-size: 12px;
+  text-align: center;
+}
+
+.vd-msg__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.vd-msg__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: calc(100% - 46px);
+}
+
+.vd-msg--agent .vd-msg__body {
+  align-items: flex-end;
+}
+
+.vd-msg__meta {
+  color: #93a0b2;
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+}
+
+.vd-msg__bubble {
+  background: #f0f2f5;
+  border-radius: 12px;
+  color: #222;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.vd-msg--agent .vd-msg__bubble {
+  background: rgba(47, 107, 255, 0.1);
+}
+
+/* Detail footer */
+.vd-detail-footer {
+  padding-top: 8px;
+}
+
+.vd-detail-footer__dual {
+  display: flex;
+  gap: 10px;
+}
+
+.vd-detail-footer__btn {
+  border-radius: 22px;
+  cursor: pointer;
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  height: 48px;
+}
+
+.vd-detail-footer__btn--primary {
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-brand-primary);
+  color: #fff;
+}
+
+.vd-detail-footer__btn--assign {
+  background: #f5f6f8;
+  border: 1px solid #e7ebf0;
+  color: var(--agent-color-brand-primary);
+}
+
+.vd-detail-footer__btn--full {
+  background: #f5f6f8;
+  border: 1px solid #e7ebf0;
+  color: var(--agent-color-brand-primary);
+  width: 100%;
 }
 </style>

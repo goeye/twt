@@ -502,6 +502,83 @@
       </section>
 
       <aside :key="currentDetailRenderKey" class="detail-pane">
+        <!-- 历史会话列表视图（覆盖整个面板） -->
+        <template v-if="detailHistoryView === 'sessions'">
+          <header class="detail-pane__topbar detail-pane__topbar--history">
+            <button type="button" class="detail-history-back" @click="detailHistoryView = 'main'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="detail-history-title">历史会话</span>
+          </header>
+          <div class="detail-pane__content agent-scroll">
+            <div
+              v-for="item in detailMockSessions"
+              :key="item.id"
+              class="detail-session-card"
+              @click="detailActiveSession = item; detailHistoryView = 'detail'"
+            >
+              <div class="detail-session-card__top">
+                <span class="detail-session-card__title">{{ item.title }}</span>
+                <span class="detail-session-card__badge" :class="`detail-session-card__badge--${item.statusType}`">{{ item.status }}</span>
+              </div>
+              <div class="detail-session-card__meta">
+                <template v-if="item.agentName">
+                  <span class="detail-session-card__avatar">{{ item.agentName[0] }}</span>
+                  <span>{{ item.agentName }}</span>
+                </template>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 历史会话详情视图（覆盖整个面板） -->
+        <template v-else-if="detailHistoryView === 'detail' && detailActiveSession">
+          <header class="detail-pane__topbar detail-pane__topbar--history">
+            <button type="button" class="detail-history-back" @click="detailHistoryView = 'sessions'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="detail-history-title">{{ detailActiveSession.title }}</span>
+          </header>
+          <div class="detail-pane__content agent-scroll detail-history-messages">
+            <div
+              v-for="msg in detailActiveSession.messages"
+              :key="msg.id"
+              class="detail-msg"
+              :class="`detail-msg--${msg.role}`"
+            >
+              <template v-if="msg.role === 'system'">
+                <div class="detail-msg__system">{{ msg.content }}</div>
+              </template>
+              <template v-else>
+                <span class="detail-msg__avatar" :style="{ background: msg.avatarColor }">{{ msg.avatarText }}</span>
+                <div class="detail-msg__body">
+                  <div class="detail-msg__meta"><span>{{ msg.sender }}</span><span>{{ msg.time }}</span></div>
+                  <div class="detail-msg__bubble">{{ msg.content }}</div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div class="detail-history-footer">
+            <template v-if="detailActiveSession.statusType === 'queueing'">
+              <div class="detail-history-footer__dual">
+                <button type="button" class="detail-history-footer__btn detail-history-footer__btn--secondary">分配会话</button>
+                <button type="button" class="detail-history-footer__btn detail-history-footer__btn--primary">领取会话</button>
+              </div>
+            </template>
+            <template v-else-if="detailActiveSession.statusType === 'pending'">
+              <div class="detail-history-footer__dual">
+                <button type="button" class="detail-history-footer__btn detail-history-footer__btn--secondary">分配会话</button>
+                <button type="button" class="detail-history-footer__btn detail-history-footer__btn--primary">进入会话</button>
+              </div>
+            </template>
+            <template v-else>
+              <button type="button" class="detail-history-footer__btn detail-history-footer__btn--full">进入会话</button>
+            </template>
+          </div>
+        </template>
+
+        <!-- 主视图 -->
+        <template v-else>
         <header class="detail-pane__topbar">
           <div class="detail-pane__tabs">
             <button
@@ -518,6 +595,8 @@
           <button type="button" class="detail-pane__dock-btn" aria-label="面板操作" />
         </header>
         <div class="detail-pane__content agent-scroll">
+          <!-- 主视图 -->
+          <template v-if="detailHistoryView === 'main'">
           <section v-for="section in activeInfoSections" :key="section.key" class="detail-section">
             <button type="button" class="detail-section__header" @click="toggleDetailSection(section.key)">
               <span class="detail-section__title">{{ section.title }}</span>
@@ -528,7 +607,10 @@
               <dl v-if="section.type === 'fields'" class="detail-section__fields">
                 <div v-for="field in section.fields" :key="field.key" class="detail-section__field">
                   <dt>{{ field.label }}</dt>
-                  <dd>{{ field.value }}</dd>
+                  <dd v-if="field.key === 'visitor-stat'">
+                    <button type="button" class="detail-session-count-link" @click="detailHistoryView = 'sessions'">{{ field.value.split(' ')[0] }}</button> 个会话
+                  </dd>
+                  <dd v-else>{{ field.value }}</dd>
                 </div>
               </dl>
 
@@ -560,7 +642,9 @@
               </ul>
             </div>
           </section>
+          </template>
         </div>
+        </template>
       </aside>
     </section>
 
@@ -2501,6 +2585,16 @@ const quickReplyCategories = ref<QuickReplyCategory[]>([
 ]);
 const activeDetailTab = ref<DetailTabKey>("visitor");
 const collapsedDetailSections = ref<string[]>([]);
+const detailHistoryView = ref<"main" | "sessions" | "detail">("main");
+const detailActiveSession = ref<{ id: number; title: string; status: string; statusType: string; agentName?: string; messages: { id: string; role: string; sender: string; content: string; time: string; avatarText?: string; avatarColor?: string }[] } | null>(null);
+const detailMockSessions = [
+  { id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" }] },
+  { id: 3, title: "退款申请", status: "排队中", statusType: "queueing", messages: [{ id: "m1", role: "system", sender: "", content: "等待分配", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+];
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
@@ -5738,6 +5832,215 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   font-size: var(--agent-font-size-sm);
   font-variant-numeric: tabular-nums;
+}
+
+/* 会话总数可点击链接 */
+.detail-session-count-link {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 0;
+}
+
+.detail-session-count-link:hover {
+  color: var(--agent-color-brand-primary);
+}
+
+/* 历史会话面板 */
+.detail-history-header {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.detail-history-back {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+
+.detail-history-back:hover { background: rgba(17,17,17,0.06); }
+
+.detail-history-title {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detail-session-card {
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+}
+
+.detail-session-card:hover { border-color: #c5d0e0; }
+
+.detail-session-card__top {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.detail-session-card__title {
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-session-card__badge {
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.detail-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
+.detail-session-card__badge--replied { background: #e6f4ea; color: #2e7d32; }
+.detail-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
+.detail-session-card__badge--pending { background: #fff3e0; color: #e65100; }
+
+.detail-session-card__meta {
+  align-items: center;
+  color: var(--agent-color-text-tertiary);
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+}
+
+.detail-session-card__avatar {
+  align-items: center;
+  background: #2f6bff;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  height: 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+/* 历史会话消息 */
+.detail-history-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.detail-msg {
+  align-items: flex-start;
+  display: flex;
+  gap: 7px;
+}
+
+.detail-msg--agent { flex-direction: row-reverse; }
+.detail-msg--system { justify-content: center; }
+
+.detail-msg__system {
+  color: var(--agent-color-text-tertiary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.detail-msg__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.detail-msg__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: calc(100% - 38px);
+}
+
+.detail-msg--agent .detail-msg__body { align-items: flex-end; }
+
+.detail-msg__meta {
+  color: var(--agent-color-text-tertiary);
+  display: flex;
+  font-size: 11px;
+  gap: 5px;
+}
+
+.detail-msg__bubble {
+  background: var(--agent-color-bg-muted);
+  border-radius: 10px;
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 7px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detail-msg--agent .detail-msg__bubble { background: var(--agent-color-brand-soft); }
+
+/* 历史会话底部操作 */
+.detail-history-footer { padding-top: 4px; }
+
+.detail-history-footer__dual {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-history-footer__btn {
+  border-radius: 20px;
+  cursor: pointer;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  height: 44px;
+}
+
+.detail-history-footer__btn--primary {
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-brand-primary);
+  color: #fff;
+}
+
+.detail-history-footer__btn--secondary {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  color: var(--agent-color-brand-primary);
+}
+
+.detail-history-footer__btn--full {
+  background: var(--agent-color-bg-muted);
+  border: 1px solid var(--agent-color-border-default);
+  color: var(--agent-color-brand-primary);
+  width: 100%;
 }
 
 .detail-section__add-tag {
