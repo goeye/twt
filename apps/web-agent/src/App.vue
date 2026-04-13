@@ -1302,8 +1302,8 @@ const aiNavGroups = [
     key: "knowledge",
     title: "知识库",
     items: [
-      { key: "doc-knowledge", label: "文档知识", leadingEmoji: "📖" },
-      { key: "faq", label: "常见问题", leadingEmoji: "👩‍💻" }
+      { key: "faq", label: "常见问题", leadingEmoji: "👩‍💻" },
+      { key: "doc-knowledge", label: "文档知识", leadingEmoji: "📖" }
     ]
   },
   {
