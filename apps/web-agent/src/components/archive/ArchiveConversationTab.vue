@@ -60,14 +60,34 @@
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
         </label>
 
-        <label class="archive-field">
-          <select v-model="draftFilters.autopilot" class="archive-field__control archive-field__control--select">
-            <option value="all">Autopilot 参与</option>
-            <option value="yes">是</option>
-            <option value="no">否</option>
-          </select>
+        <div class="archive-field archive-field--multiselect" v-click-outside="() => serviceAgentDropdownOpen = false">
+          <button type="button" class="archive-field__control archive-field__control--select archive-field__multiselect-trigger" @click="serviceAgentDropdownOpen = !serviceAgentDropdownOpen">
+            <span v-if="draftFilters.serviceAgents.length === 0" class="archive-field__placeholder">服务客服</span>
+            <template v-else>
+              <span v-for="agent in draftFilters.serviceAgents.slice(0, 2)" :key="agent" class="archive-field__agent-tag">
+                <span class="archive-field__multiselect-avatar" :style="{ background: getArchiveAgentProfile(agent).avatarColor }">
+                  <img v-if="getArchiveAgentProfile(agent).avatarUrl" :src="getArchiveAgentProfile(agent).avatarUrl" class="archive-multiselect-dropdown__avatar-img" />
+                  <span v-else>{{ getArchiveAgentProfile(agent).avatarText }}</span>
+                </span>
+                <span>{{ agent }}</span>
+              </span>
+              <em v-if="draftFilters.serviceAgents.length > 2" class="archive-field__extra-count">+{{ draftFilters.serviceAgents.length - 2 }}</em>
+            </template>
+          </button>
           <AgentIcon class="archive-field__suffix" name="chevron-down" :size="14" />
-        </label>
+          <div v-if="serviceAgentDropdownOpen" class="archive-multiselect-dropdown">
+            <label v-for="agent in serviceAgentOptions" :key="agent" class="archive-multiselect-dropdown__item">
+              <span class="archive-multiselect-dropdown__left">
+                <span class="archive-multiselect-dropdown__avatar" :style="{ background: getArchiveAgentProfile(agent).avatarColor }">
+                  <img v-if="getArchiveAgentProfile(agent).avatarUrl" :src="getArchiveAgentProfile(agent).avatarUrl" class="archive-multiselect-dropdown__avatar-img" />
+                  <span v-else>{{ getArchiveAgentProfile(agent).avatarText }}</span>
+                </span>
+                <span class="archive-multiselect-dropdown__name">{{ agent }}</span>
+              </span>
+              <input type="checkbox" class="archive-multiselect-dropdown__checkbox" :value="agent" v-model="draftFilters.serviceAgents" />
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="archive-filters__row archive-filters__row--secondary">
@@ -362,7 +382,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, type Directive } from "vue";
+
+const vClickOutside: Directive = {
+  mounted(el, binding) {
+    el._clickOutsideHandler = (e: MouseEvent) => {
+      if (!el.contains(e.target as Node)) binding.value(e);
+    };
+    document.addEventListener("mousedown", el._clickOutsideHandler);
+  },
+  unmounted(el) {
+    document.removeEventListener("mousedown", el._clickOutsideHandler);
+  }
+};
 import { AgentIcon } from "@twt/ui-agent";
 import ArchiveAssignModal from "./ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
@@ -442,7 +474,7 @@ interface FilterState {
   keyword: string;
   tag: string;
   owner: string;
-  autopilot: "all" | "yes" | "no";
+  serviceAgents: string[];
   status: "all" | ConversationStatus;
   rating: "all" | ConversationRating;
   channelType: "all" | "web" | "widget" | "email";
@@ -546,7 +578,7 @@ const createDefaultFilters = (): FilterState => ({
   keyword: "",
   tag: "all",
   owner: "all",
-  autopilot: "all",
+  serviceAgents: [],
   status: "all",
   rating: "all",
   channelType: "all",
@@ -982,6 +1014,7 @@ const buildRemainingStatuses = () => {
 
 const draftFilters = reactive<FilterState>(createDefaultFilters());
 const appliedFilters = ref<FilterState>(createDefaultFilters());
+const serviceAgentDropdownOpen = ref(false);
 const sortKey = ref<SortKey>("startedAt");
 const sortOrder = ref<SortOrder>("desc");
 const openActionMenuId = ref<string | null>(null);
@@ -1054,7 +1087,11 @@ const allRows = ref<ConversationRecord[]>([
 
 const tagOptions = computed(() => [...new Set(allRows.value.map((row) => row.tag).filter((value) => value !== "–"))]);
 const ownerOptions = computed(() => [...new Set(allRows.value.map((row) => row.owner).filter((value) => value !== "–"))]);
-
+const serviceAgentOptions = computed(() => {
+  const names = new Set<string>();
+  allRows.value.forEach((row) => row.staffAgents.forEach((a) => names.add(a.name)));
+  return archiveAgentPool.filter((a) => names.has(a.name)).map((a) => a.name);
+});
 const summaryStats = computed(() => {
   const uniqueVisitors = new Set(allRows.value.map((row) => row.visitorName)).size;
   return [
@@ -1098,11 +1135,9 @@ const visibleRows = computed(() => {
     if (filters.owner !== "all" && row.owner !== filters.owner) {
       return false;
     }
-    if (filters.autopilot === "yes" && !row.aiAgentHandled) {
-      return false;
-    }
-    if (filters.autopilot === "no" && row.aiAgentHandled) {
-      return false;
+    if (filters.serviceAgents.length > 0) {
+      const agentNames = row.staffAgents.map((a) => a.name);
+      if (!filters.serviceAgents.some((name) => agentNames.includes(name))) return false;
     }
     if (filters.status !== "all" && row.status !== filters.status) {
       return false;
@@ -1460,7 +1495,7 @@ const closeStaffPanel = () => {
 };
 
 const applyFilters = () => {
-  appliedFilters.value = { ...draftFilters };
+  appliedFilters.value = { ...draftFilters, serviceAgents: [...draftFilters.serviceAgents] };
   openActionMenuId.value = null;
 };
 
@@ -1999,6 +2034,119 @@ onMounted(() => {
 
 .archive-field__control--select {
   padding-right: 40px;
+}
+
+.archive-field--multiselect {
+  position: relative;
+}
+
+.archive-field__multiselect-trigger {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.archive-field__agent-tag {
+  align-items: center;
+  background: var(--agent-color-bg-hover, rgba(47, 107, 255, 0.08));
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-text-primary);
+  display: inline-flex;
+  font-size: 12px;
+  gap: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.archive-field__placeholder {
+  color: var(--agent-color-text-secondary);
+}
+
+.archive-field__extra-count {
+  font-style: normal;
+  color: var(--agent-color-brand-primary);
+}
+
+.archive-multiselect-dropdown {
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  left: 0;
+  min-width: 160px;
+  padding: 4px 0;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: var(--agent-z-dropdown);
+}
+
+.archive-multiselect-dropdown__item {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  gap: 12px;
+}
+
+.archive-multiselect-dropdown__item:hover {
+  background: var(--agent-color-bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.archive-multiselect-dropdown__name {
+  font-size: 14px;
+  color: var(--agent-color-text-primary);
+}
+
+.archive-multiselect-dropdown__left {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.archive-field__multiselect-avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.archive-multiselect-dropdown__avatar {
+  align-items: center;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  font-size: 11px;
+  font-weight: 600;
+  height: 24px;
+  justify-content: center;
+  overflow: hidden;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.archive-multiselect-dropdown__avatar-img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.archive-multiselect-dropdown__checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--agent-color-brand-primary);
+  cursor: pointer;
 }
 
 .archive-field--search .archive-field__control {
