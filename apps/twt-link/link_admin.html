@@ -871,7 +871,7 @@
                 <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
                     管理员
                 </div>
-                <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px;">在该范围内选择的用户，将作为客服管理后台的超级管理员</div>
+                <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px;">选中的用户将成为客服管理后台的超级管理员</div>
                 
                 <div id="adminSetLink" style="display: flex; align-items: flex-start;">
                     <span style="color: var(--primary); font-size: 14px; cursor: pointer; font-weight: 500;" onclick="openMixedSelectModal('admin')">设置</span>
@@ -2179,7 +2179,7 @@
             }
             
             const listContainer = document.getElementById('mixedLeftList');
-            let html = `
+            let html = mixedModalContext === 'admin' ? '' : `
                 <div style="display:flex; align-items:center; gap: 12px; padding: 12px 0;">
                     <input type="checkbox" onchange="toggleMixedSelectAll(this)" style="width: 16px; height: 16px; accent-color: var(--primary);">
                     <span style="font-size: 15px; color: #111;">全选</span>
@@ -2266,6 +2266,22 @@
             const count = cb.getAttribute('data-count');
             
             if (cb.checked) {
+                if (mixedModalContext === 'admin') {
+                    tempMixedSelected = [];
+                    document.querySelectorAll('.modal-mixed-cb').forEach(box => {
+                        if (box !== cb) box.checked = false;
+                        const row = box.closest('div[style*="justify-content: space-between"]');
+                        if (row) {
+                            const subBtn = row.querySelector('.dept-sub-btn');
+                            if (subBtn) {
+                                subBtn.style.opacity = '1';
+                                subBtn.style.cursor = 'pointer';
+                                subBtn.style.pointerEvents = 'auto';
+                            }
+                        }
+                    });
+                }
+                
                 if (!tempMixedSelected.some(item => item.id === id)) {
                     tempMixedSelected.push({ type, name, id, count });
                 }
@@ -2310,7 +2326,8 @@
                 el.innerHTML = iconHtml + displayName + closeIcon;
                 container.appendChild(el);
             });
-            document.getElementById('mixedSelectedCountLabel').innerText = `已选择（ ${count}/5000 ）`;
+            const maxCount = mixedModalContext === 'admin' ? 1 : 5000;
+            document.getElementById('mixedSelectedCountLabel').innerText = `已选择（ ${count}/${maxCount} ）`;
             
             const confirmBtn = document.getElementById('mixedConfirmBtn');
             if (confirmBtn) {

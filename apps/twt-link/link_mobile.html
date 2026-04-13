@@ -62,6 +62,8 @@
         .avatar-wrap { position: relative; margin-right: 14px; width: 50px; height: 50px; flex-shrink: 0; }
         .avatar { width: 100%; height: 100%; border-radius: 8px; background-color: #f5f5f5; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .avatar.group-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 2px; background: #EEF2F6; }
+        .avatar.group-3 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 2px; background: #EEF2F6; }
+        .avatar.group-3 .grid-item:first-child { grid-column: span 2; justify-self: center; width: calc(50% - 1px); }
         .avatar.group-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; background: #EEF2F6; }
         .avatar.group-9 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1px; padding: 1px; background: #EEF2F6; }
         .avatar .grid-item { width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 2px;}
@@ -85,7 +87,7 @@
         .chat-page.show { transform: translateX(0); }
         .chat-header { padding: 56px 20px 16px; background: #fff; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .chat-header i { font-size: 24px; color: var(--text-main); cursor: pointer; }
-        .chat-header-title { font-size: 18px; font-weight: 600; flex: 1; text-align: center; }
+        .chat-header-title { font-size: 16px; font-weight: 600; flex: 1; text-align: center; }
         .msg-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
         .msg-row { display: flex; gap: 12px; margin-bottom: 20px; }
         .msg-row.self { flex-direction: row-reverse; }
@@ -1287,6 +1289,7 @@
                 <div class="chat-header-title" id="chatPageTitle">聊天详情</div>
                 <div style="display: flex; gap: 16px; align-items: center;">
                     <i class="ri-inbox-archive-line" id="mobilePendingToggleIcon" onclick="toggleMobilePendingState(this)" style="cursor: pointer; color: var(--text-main); font-size: 24px;"></i>
+                    <i class="ri-add-circle-line" style="cursor: pointer; font-size: 22px; color: #1D2129;" onclick="openCreateGroupChatPage()"></i>
                     <i class="ri-more-fill" onclick="document.getElementById('sessionInfoPage').classList.add('show')" style="cursor: pointer;"></i>
                 </div>
             </div>
@@ -1520,10 +1523,10 @@
         </script>
 
         <!-- 客户信息页 (客服-消息专用) -->
-        <div class="chat-page" id="customerInfoPage" style="background: #fff; z-index: 1002; overflow: hidden; display: flex; flex-direction: column;">
+        <div class="chat-page" id="customerInfoPage" style="background: #fff; z-index: 1003; overflow: hidden; display: flex; flex-direction: column;">
             <div class="chat-header" style="background: #fff; border-bottom: 1px solid #F2F3F5;">
                 <i class="ri-arrow-left-s-line" onclick="document.getElementById('customerInfoPage').classList.remove('show')"></i>
-                <div class="chat-header-title">客户信息</div>
+                <div class="chat-header-title">访客信息</div>
                 <div style="width: 24px;"></div>
             </div>
             
@@ -1555,7 +1558,7 @@
                 <!-- 客户信息 -->
                 <div style="padding: 16px;">
                     <div style="font-size: 16px; font-weight: 600; color: #1D2129; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="ri-user-star-fill" style="color: #1D2129;"></i> 客户信息</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="ri-user-star-fill" style="color: #1D2129;"></i> 访客信息</span>
                         <i class="ri-arrow-up-s-line" style="color: #86909C;"></i>
                     </div>
                     <div style="display: flex; margin-bottom: 16px;">
@@ -1621,10 +1624,35 @@
                 </div>
             </div>
 
-            <!-- 底部悬浮按钮 -->
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px; background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); padding-bottom: max(12px, env(safe-area-inset-bottom));">
-                <div style="background: var(--primary); color: #fff; border-radius: 22px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; cursor: pointer;" onclick="document.getElementById('customerInfoPage').classList.remove('show'); showToast('群聊已发起');">
-                    发起群聊
+
+        </div>
+
+        <!-- 客服信息页 -->
+        <div class="chat-page" id="agentInfoPage" style="background: #fff; z-index: 1003; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="chat-header" style="background: #fff; border-bottom: 1px solid #F2F3F5;">
+                <i class="ri-arrow-left-s-line" onclick="document.getElementById('agentInfoPage').classList.remove('show')"></i>
+                <div class="chat-header-title">访客信息</div>
+                <div style="width: 24px;"></div>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 80px;">
+                <!-- 基础信息 -->
+                <div style="padding: 16px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1D2129; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="ri-contacts-book-2-fill" style="color: #1D2129;"></i> 基础信息</span>
+                    </div>
+                    <div style="display: flex; margin-bottom: 16px;">
+                        <span style="color: #86909C; width: 80px; font-size: 14px;">姓名</span>
+                        <span style="color: #1D2129; font-size: 14px; flex: 1;" id="agentInfoNameField">王三</span>
+                    </div>
+                    <div style="display: flex; margin-bottom: 16px;">
+                        <span style="color: #86909C; width: 80px; font-size: 14px;">昵称</span>
+                        <span style="color: #1D2129; font-size: 14px; flex: 1;" id="agentInfoNicknameField">王三</span>
+                    </div>
+                    <div style="display: flex; margin-bottom: 16px;">
+                        <span style="color: #86909C; width: 80px; font-size: 14px;">工号</span>
+                        <span style="color: #1D2129; font-size: 14px; flex: 1;" id="agentInfoIdField">JM0001</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1646,7 +1674,7 @@
                     </div>
                     
                     <div style="font-size: 14px; font-weight: 600; color: #1D2129; word-break: break-all; display: flex; align-items: center; flex: 1;">
-                        <span id="groupSettingsTitleText" style="flex: 1; margin-right: 8px;">[客服咨询]问题处理群聊</span>
+                        <span id="groupSettingsTitleText" style="flex: 1; margin-right: 8px;">客户服务群</span>
                         <i class="ri-edit-line" style="color: #86909C; font-size: 18px; cursor: pointer; flex-shrink: 0; padding: 4px;" onclick="openInputModal('修改群名称', document.getElementById('groupSettingsTitleText').innerText, function(val) { if(val) document.getElementById('groupSettingsTitleText').innerText = val; })"></i>
                     </div>
                 </div>
@@ -1659,7 +1687,7 @@
                     <div style="padding: 16px 0 8px;">
                         <div style="display: grid; grid-template-columns: repeat(5, 1fr); row-gap: 16px;">
                     <!-- 王三 (群主) -->
-                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;" onclick="openAgentInfoPage('王三', 'JM0001')">
                         <div style="position: relative; width: 44px; height: 44px; background: #E8F3FF; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; font-weight: 500; margin-bottom: 4px;">
                             王
                             <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) scale(0.9); background: #fff; padding: 2px 4px; border-radius: 8px; font-size: 10px; font-weight: 400; color: var(--primary); white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.08); z-index: 2;">群主</div>
@@ -1667,21 +1695,21 @@
                         <div style="font-size: 13px; color: #1D2129; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44px;">王三</div>
                     </div>
                     <!-- 访客0... -->
-                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;" onclick="openCustomerInfoPage('访客00001')">
                         <div style="width: 44px; height: 44px; background: #E8F3FF; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; font-weight: 500; margin-bottom: 4px;">
                             ?
                         </div>
                         <div style="font-size: 13px; color: #1D2129; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44px;">访客0...</div>
                     </div>
                     <!-- 客户0... -->
-                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;" onclick="openCustomerInfoPage('客户00007')">
                         <div style="width: 44px; height: 44px; background: #E8F3FF; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; font-weight: 500; margin-bottom: 4px;">
                             客
                         </div>
                         <div style="font-size: 13px; color: #1D2129; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44px;">客户0...</div>
                     </div>
                     <!-- 添加 -->
-                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                    <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;" onclick="openAddMemberPage()">
                         <div style="width: 44px; height: 44px; background: #F2F3F5; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: #86909C; font-size: 20px; font-weight: 300; margin-bottom: 4px;">
                             <i class="ri-add-line"></i>
                         </div>
@@ -1700,7 +1728,7 @@
 
                 <!-- 解散群聊 Button -->
                 <div style="background: #fff; border-radius: 16px; overflow: hidden;">
-                    <div style="display: flex; justify-content: center; align-items: center; padding: 16px 20px; cursor: pointer;" onclick="document.getElementById('groupSettingsPage').classList.remove('show'); showToast('群聊已解散');">
+                    <div style="display: flex; justify-content: center; align-items: center; padding: 16px 20px; cursor: pointer;" onclick="openDismissGroupModal()">
                         <div style="font-size: 16px; color: #F53F3F; font-weight: 500;">解散群聊</div>
                     </div>
                 </div>
@@ -1774,27 +1802,311 @@
             </div>
         </div>
 
-        <!-- 发起群聊底部抽屉 -->
-        <div class="sheet-mask" id="sheetMask" onclick="toggleSheet()"></div>
-        <div class="bottom-sheet" id="bottomSheet">
-            <div class="sheet-header">
-                <span class="sheet-close" onclick="toggleSheet()">取消</span>
-                发起群聊
-                <span style="position:absolute; right:20px; top:20px; color:var(--primary); font-size:14px; cursor:pointer;" onclick="createMobileGroup()">确定</span>
-            </div>
-            <div style="padding: 16px; flex: 1; overflow-y:auto;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:12px;">
-                    <div style="display:flex; align-items:center;"><div class="avatar" style="width:36px;height:36px;font-size:14px;background:#FA8C16">李</div><span style="font-size:15px;">李建国</span></div>
-                    <input type="checkbox" id="mCheckLi" checked style="width:20px;height:20px;accent-color:var(--primary);">
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center;"><div class="avatar" style="width:36px;height:36px;font-size:14px;background:#52C41A">张</div><span style="font-size:15px;">张伟</span></div>
-                    <input type="checkbox" id="mCheckZhang" style="width:20px;height:20px;accent-color:var(--primary);">
+        <!-- 解散群聊确认弹窗 -->
+        <div class="m-modal-mask" id="mDismissGroupModalMask" onclick="closeDismissGroupModal()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; align-items: center; justify-content: center;">
+            <div class="m-modal-box" onclick="event.stopPropagation()" style="background: #fff; width: 320px; border-radius: 12px; padding: 24px 24px 24px; box-sizing: border-box; display: flex; flex-direction: column;">
+                <div style="font-size: 18px; font-weight: 600; color: #1D2129; margin-bottom: 12px; text-align: left;">解散群聊</div>
+                <div style="font-size: 15px; color: #4E5969; margin-bottom: 24px; line-height: 1.5; text-align: left;">解散群聊后不可恢复，确认解散？</div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button style="width: 80px; height: 36px; border-radius: 18px; background: #fff; color: #1D2129; font-size: 14px; font-weight: 500; border: 1px solid #E5E6EB; cursor: pointer;" onclick="closeDismissGroupModal()">取消</button>
+                    <button style="width: 100px; height: 36px; border-radius: 18px; background: #F53F3F; color: #fff; font-size: 14px; font-weight: 500; border: none; cursor: pointer;" onclick="confirmDismissGroupModal()">确认解散</button>
                 </div>
             </div>
         </div>
 
-        <!-- 移动端全局搜索页面 -->
+
+
+        <!-- 发起群聊 -->
+        <div class="chat-page" id="createGroupChatPage" style="background: #fff; z-index: 1004; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="chat-header" style="background: #fff; border-bottom: none; display: flex; align-items: center; justify-content: space-between; padding: 56px 16px 12px;">
+                <i class="ri-arrow-left-s-line" style="font-size: 24px; cursor: pointer; color: #1D2129;" onclick="document.getElementById('createGroupChatPage').classList.remove('show')"></i>
+                <div style="font-size: 16px; font-weight: 500; color: #1D2129;">发起群聊</div>
+                <div style="width: 24px;"></div>
+            </div>
+            
+            <div style="padding: 12px 16px; background: #fff;">
+                <div style="background: #F2F3F5; height: 36px; border-radius: 18px; display: flex; align-items: center; padding: 0 16px; font-size: 14px; color: #86909C;">
+                    <i class="ri-search-line" style="font-size: 16px;"></i>
+                    <input type="text" placeholder="搜索" style="border: none; background: transparent; outline: none; margin-left: 8px; flex: 1; font-size: 14px; color: #1D2129;">
+                </div>
+            </div>
+
+            <div style="display: flex; background: #fff; border-bottom: 1px solid #F2F3F5; padding: 0 16px; gap: 24px;">
+                <div class="cgc-tab" onclick="switchCgcTab('visitor', this)" style="padding: 12px 0; font-size: 15px; color: var(--primary); font-weight: 500; position: relative; cursor: pointer; flex: 1; text-align: center;">访客<div class="cgc-line" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--primary);"></div></div>
+                <div class="cgc-tab" onclick="switchCgcTab('customer', this)" style="padding: 12px 0; font-size: 15px; color: #1D2129; position: relative; cursor: pointer; flex: 1; text-align: center;">客户</div>
+                <div class="cgc-tab" onclick="switchCgcTab('agent', this)" style="padding: 12px 0; font-size: 15px; color: #1D2129; position: relative; cursor: pointer; flex: 1; text-align: center;">客服</div>
+                <div class="cgc-tab" onclick="switchCgcTab('manual', this)" style="padding: 12px 0; font-size: 15px; color: #1D2129; position: relative; cursor: pointer; flex: 1; text-align: center;">手动输入</div>
+            </div>
+            
+            <div id="cgcListContainer" style="flex: 1; overflow-y: auto; padding: 0 16px;"></div>
+            
+            <div id="cgcFooter" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #F2F3F5; background: #fff; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: relative; z-index: 2002;">
+                <div style="display: flex; align-items: center; font-size: 14px; color: #1D2129; flex: 1; padding: 4px 0;">
+                    已选择(<span id="cgcCount">0</span>): 
+                    <div id="cgcSelectedAvatars" style="display: flex; gap: 4px; margin-left: 8px;"></div>
+                </div>
+                <button id="cgcConfirmBtn" style="background: var(--primary); color: #fff; border: none; border-radius: 16px; padding: 8px 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;" onclick="submitCreateGroupChat()">确定</button>
+            </div>
+
+            <div id="cgcManualOverlay" class="global-modal-mask" style="z-index: 2005;" onclick="closeCgcManualSheet()">
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: #fff; border-radius: 20px 20px 0 0; padding: 24px 20px; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-sizing: border-box; display: flex; flex-direction: column; z-index: 2006; padding-bottom: max(24px, env(safe-area-inset-bottom)); transform: translateY(100%);" id="cgcManualSheet" onclick="event.stopPropagation()">
+                    <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 24px; flex-shrink: 0; position: relative;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #F2F3F5; display: flex; justify-content: center; align-items: center; cursor: pointer; position: absolute; left: 0;" onclick="closeCgcManualSheet()">
+                            <i class="ri-close-line" style="font-size: 20px; color: #4E5969;"></i>
+                        </div>
+                        <div style="font-size: 16px; font-weight: 500; color: #1D2129;">手动输入</div>
+                    </div>
+                    <div style="font-size: 13px; color: #4E5969; background: #fff; padding: 0 0 12px; display: flex; align-items: flex-start;">
+                        <i class="ri-question-fill" style="margin-right: 6px; color: #86909C; font-size: 15px; margin-top: 1px;"></i>
+                        <span style="flex: 1; line-height: 1.5;">输入客户标识可直接发起聊天，未检索到的客户标识将由系统自动创建为新客户</span>
+                    </div>
+                    <textarea placeholder="请输入客户标识，一行一个，最多支持99个，超出部分将自动忽略。" style="width: 100%; height: 380px; border: 1px solid #E5E6EB; border-radius: 4px; padding: 12px; box-sizing: border-box; font-size: 14px; color: #1D2129; outline: none; resize: none; margin-bottom: 24px;"></textarea>
+                    
+                    <button style="background: #E5E6EB; color: #fff; border: none; border-radius: 20px; padding: 12px 0; font-size: 15px; font-weight: 500; width: 100%; cursor: not-allowed;">开始识别</button>
+                </div>
+            </div>
+            
+            <script>
+                let cgcSelectedMap = { '王三书': '三书' };
+                
+                function openCreateGroupChatPage() {
+                    document.getElementById('createGroupChatPage').classList.add('show');
+                    const visTab = document.querySelectorAll('.cgc-tab')[0];
+                    switchCgcTab('visitor', visTab);
+                }
+
+                function renderCgcList(type) {
+                    const container = document.getElementById('cgcListContainer');
+                    container.innerHTML = '';
+                    
+                    let char = '?';
+                    if(type === 'customer') char = '客';
+                    else if(type === 'agent') char = '服';
+
+                    const items = [
+                        { name: '王三', disabled: true, checked: true, short: '三' },
+                        { name: '王三书', disabled: false, checked: true, short: '三书' },
+                        { name: 'wangsan', disabled: false, checked: false, short: 'wan' }
+                    ];
+
+                    let html = '';
+                    items.forEach((item, index) => {
+                        const isChecked = cgcSelectedMap[item.name] || (item.checked && type==='visitor'); // mockup initially has 王三书 selected
+                        // force 王三 disabled check
+                        const actualCheck = item.disabled ? item.checked : !!cgcSelectedMap[item.name];
+                        const iconClass = actualCheck ? 'ri-checkbox-circle-fill' : 'ri-checkbox-blank-circle-line';
+                        const iconColor = item.disabled ? '#C9CDD4' : (actualCheck ? 'var(--primary)' : '#C9CDD4');
+                        const cursor = item.disabled ? 'not-allowed' : 'pointer';
+                        const onclick = item.disabled ? '' : `onclick="toggleCgcSelect(this, '${item.short}')"`;
+                        
+                        html += `
+                            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #F2F3F5; cursor: ${cursor};" ${onclick}>
+                                <i class="cgc-radio ${iconClass}" style="color: ${iconColor}; font-size: 20px; margin-right: 12px; ${item.disabled?'opacity:0.6;':''}"></i>
+                                <div class="cgc-ava" style="width: 40px; height: 40px; background: #E8F3FF; border-radius: 6px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; margin-right: 12px;">${char}</div>
+                                <div class="cgc-name" style="flex: 1; font-size: 16px; color: #1D2129;">${item.name}</div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    updateCgcFooter();
+                }
+
+                function toggleCgcSelect(el, short) {
+                    const icon = el.querySelector('.cgc-radio');
+                    const name = el.querySelector('.cgc-name').innerText;
+                    
+                    if(icon.classList.contains('ri-checkbox-blank-circle-line')) {
+                        icon.classList.replace('ri-checkbox-blank-circle-line', 'ri-checkbox-circle-fill');
+                        icon.style.color = 'var(--primary)';
+                        cgcSelectedMap[name] = short;
+                    } else {
+                        icon.classList.replace('ri-checkbox-circle-fill', 'ri-checkbox-blank-circle-line');
+                        icon.style.color = '#C9CDD4';
+                        delete cgcSelectedMap[name];
+                    }
+                    updateCgcFooter();
+                }
+
+                function updateCgcFooter() {
+                    const keys = Object.keys(cgcSelectedMap);
+                    document.getElementById('cgcCount').innerText = keys.length;
+                    const avatarsHtml = keys.map(k => `<div style="width: 24px; height: 24px; background: #E8F3FF; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 10px;">${cgcSelectedMap[k]}</div>`).join('');
+                    document.getElementById('cgcSelectedAvatars').innerHTML = avatarsHtml;
+                    
+                    const btn = document.getElementById('cgcConfirmBtn');
+                    if(keys.length > 0) {
+                        btn.style.background = 'var(--primary)';
+                        btn.style.cursor = 'pointer';
+                    } else {
+                        btn.style.background = '#C9CDD4';
+                        btn.style.cursor = 'not-allowed';
+                    }
+                }
+
+                function switchCgcTab(type, el) {
+                    if(type === 'manual') {
+                        document.getElementById('cgcManualOverlay').classList.add('show');
+                        setTimeout(() => {
+                            document.getElementById('cgcManualSheet').style.transform = 'translateY(0)';
+                        }, 10);
+                        return;
+                    }
+                    document.querySelectorAll('.cgc-tab').forEach(t => {
+                        t.style.color = '#1D2129';
+                        t.style.fontWeight = 'normal';
+                        const line = t.querySelector('.cgc-line');
+                        if(line) line.remove();
+                    });
+                    el.style.color = 'var(--primary)';
+                    el.style.fontWeight = '500';
+                    el.insertAdjacentHTML('beforeend', '<div class="cgc-line" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--primary);"></div>');
+                    
+                    renderCgcList(type);
+                }
+
+                function closeCgcManualSheet() {
+                    document.getElementById('cgcManualSheet').style.transform = 'translateY(100%)';
+                    setTimeout(() => {
+                        document.getElementById('cgcManualOverlay').classList.remove('show');
+                    }, 300);
+                }
+
+                function submitCreateGroupChat() {
+                    if(Object.keys(cgcSelectedMap).length === 0) return;
+                    document.getElementById('createGroupChatPage').classList.remove('show');
+                    showToast('群聊发起成功');
+                }
+            </script>
+        </div>
+
+        <!-- 添加成员 -->
+        <div class="chat-page" id="addMemberPage" style="background: #fff; z-index: 1004; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="chat-header" style="background: #fff; border-bottom: none; display: flex; align-items: center; justify-content: space-between; padding: 56px 16px 12px;">
+                <i class="ri-arrow-left-s-line" style="font-size: 24px; cursor: pointer; color: #1D2129;" onclick="document.getElementById('addMemberPage').classList.remove('show')"></i>
+                <div style="font-size: 16px; font-weight: 500; color: #1D2129;">添加成员</div>
+                <div style="width: 24px;"></div>
+            </div>
+            
+            <div style="padding: 12px 16px; background: #fff;">
+                <div style="background: #F2F3F5; height: 36px; border-radius: 18px; display: flex; align-items: center; padding: 0 16px; font-size: 14px; color: #86909C;">
+                    <i class="ri-search-line" style="font-size: 16px;"></i>
+                    <input type="text" placeholder="搜索" style="border: none; background: transparent; outline: none; margin-left: 8px; flex: 1; font-size: 14px; color: #1D2129;">
+                </div>
+            </div>
+
+            <div style="display: flex; background: #fff; border-bottom: 1px solid #F2F3F5; padding: 0 16px; gap: 24px;">
+                <div class="am-tab" onclick="switchAmTab('visitor', this)" style="padding: 12px 0; font-size: 15px; color: var(--primary); font-weight: 500; position: relative; cursor: pointer; flex: 1; text-align: center;">访客<div class="am-line" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--primary);"></div></div>
+                <div class="am-tab" onclick="switchAmTab('customer', this)" style="padding: 12px 0; font-size: 15px; color: #1D2129; position: relative; cursor: pointer; flex: 1; text-align: center;">客户</div>
+                <div class="am-tab" onclick="switchAmTab('agent', this)" style="padding: 12px 0; font-size: 15px; color: #1D2129; position: relative; cursor: pointer; flex: 1; text-align: center;">客服</div>
+            </div>
+            
+            <div id="amListContainer" style="flex: 1; overflow-y: auto; padding: 0 16px;"></div>
+            
+            <div id="amFooter" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #F2F3F5; background: #fff; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: relative; z-index: 2002;">
+                <div style="display: flex; align-items: center; font-size: 14px; color: #1D2129; flex: 1; padding: 4px 0;">
+                    已选择(<span id="amCount">0</span>): 
+                    <div id="amSelectedAvatars" style="display: flex; gap: 4px; margin-left: 8px;"></div>
+                </div>
+                <button id="amConfirmBtn" style="background: var(--primary); color: #fff; border: none; border-radius: 16px; padding: 8px 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;" onclick="submitAddMember()">确定</button>
+            <script>
+                let amSelectedMap = { '王三书': '三书' };
+                
+                function openAddMemberPage() {
+                    document.getElementById('addMemberPage').classList.add('show');
+                    const visTab = document.querySelectorAll('.am-tab')[0];
+                    switchAmTab('visitor', visTab);
+                }
+
+                function renderAmList(type) {
+                    const container = document.getElementById('amListContainer');
+                    container.innerHTML = '';
+                    
+                    let char = '?';
+                    if(type === 'customer') char = '客';
+                    else if(type === 'agent') char = '服';
+
+                    const items = [
+                        { name: '王三', disabled: true, checked: true, short: '三' },
+                        { name: '王三书', disabled: false, checked: true, short: '三书' },
+                        { name: 'wangsan', disabled: false, checked: false, short: 'wan' }
+                    ];
+
+                    let html = '';
+                    items.forEach((item, index) => {
+                        const isChecked = amSelectedMap[item.name] || (item.checked && type==='visitor'); // mockup initially has 王三书 selected
+                        // force 王三 disabled check
+                        const actualCheck = item.disabled ? item.checked : !!amSelectedMap[item.name];
+                        const iconClass = actualCheck ? 'ri-checkbox-circle-fill' : 'ri-checkbox-blank-circle-line';
+                        const iconColor = item.disabled ? '#C9CDD4' : (actualCheck ? 'var(--primary)' : '#C9CDD4');
+                        const cursor = item.disabled ? 'not-allowed' : 'pointer';
+                        const onclick = item.disabled ? '' : `onclick="toggleAmSelect(this, '${item.short}')"`;
+                        
+                        html += `
+                            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #F2F3F5; cursor: ${cursor};" ${onclick}>
+                                <i class="am-radio ${iconClass}" style="color: ${iconColor}; font-size: 20px; margin-right: 12px; ${item.disabled?'opacity:0.6;':''}"></i>
+                                <div class="am-ava" style="width: 40px; height: 40px; background: #E8F3FF; border-radius: 6px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; margin-right: 12px;">${char}</div>
+                                <div class="am-name" style="flex: 1; font-size: 16px; color: #1D2129;">${item.name}</div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    updateAmFooter();
+                }
+
+                function toggleAmSelect(el, short) {
+                    const icon = el.querySelector('.am-radio');
+                    const name = el.querySelector('.am-name').innerText;
+                    
+                    if(icon.classList.contains('ri-checkbox-blank-circle-line')) {
+                        icon.classList.replace('ri-checkbox-blank-circle-line', 'ri-checkbox-circle-fill');
+                        icon.style.color = 'var(--primary)';
+                        amSelectedMap[name] = short;
+                    } else {
+                        icon.classList.replace('ri-checkbox-circle-fill', 'ri-checkbox-blank-circle-line');
+                        icon.style.color = '#C9CDD4';
+                        delete amSelectedMap[name];
+                    }
+                    updateAmFooter();
+                }
+
+                function updateAmFooter() {
+                    const keys = Object.keys(amSelectedMap);
+                    document.getElementById('amCount').innerText = keys.length;
+                    const avatarsHtml = keys.map(k => `<div style="width: 24px; height: 24px; background: #E8F3FF; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 10px;">${amSelectedMap[k]}</div>`).join('');
+                    document.getElementById('amSelectedAvatars').innerHTML = avatarsHtml;
+                    
+                    const btn = document.getElementById('amConfirmBtn');
+                    if(keys.length > 0) {
+                        btn.style.background = 'var(--primary)';
+                        btn.style.cursor = 'pointer';
+                    } else {
+                        btn.style.background = '#C9CDD4';
+                        btn.style.cursor = 'not-allowed';
+                    }
+                }
+
+                function switchAmTab(type, el) {
+                    document.querySelectorAll('.am-tab').forEach(t => {
+                        t.style.color = '#1D2129';
+                        t.style.fontWeight = 'normal';
+                        const line = t.querySelector('.am-line');
+                        if(line) line.remove();
+                    });
+                    el.style.color = 'var(--primary)';
+                    el.style.fontWeight = '500';
+                    el.insertAdjacentHTML('beforeend', '<div class="am-line" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--primary);"></div>');
+                    
+                    renderAmList(type);
+                }
+
+                function submitAddMember() {
+                    if(Object.keys(amSelectedMap).length === 0) return;
+                    document.getElementById('addMemberPage').classList.remove('show');
+                    showToast('添加成员成功');
+                }
+
+            </script>
+        </div>
         <div class="calendar-page" id="mobileSearchPage" style="z-index: 600; background: #fff;">
             <!-- 头部 -->
             <div style="padding: 56px 16px 12px; display: flex; align-items: center; gap: 12px; background: #fff;">
@@ -2536,13 +2848,9 @@
         }
 
         const mobileChats = [
-            { id: 3, type: 'queue', unread: 1, name: '排队中 · 2', msg: '[2条]访客00005: 你好', time: '08:59', layout: 'queue', muted: false },
-            { id: 4, type: 'private', unread: 1, name: '访客00001', msg: '访客00001: 你好', time: '09:00', layout: 'cs', isVisitor: true, muted: false },
-            { id: 5, type: 'private', unread: 1, name: '访客00003', msg: '访客00003: 请问发货了吗?', time: '09:00', layout: 'cs', isVisitor: true, muted: false, pending: true },
-            { id: 6, type: 'private', unread: 0, name: '访客00004', msg: '王三: 好的，明白了', time: '09:00', layout: 'cs', isVisitor: true, muted: false },
-            { id: 7, type: 'private', unread: 0, name: '客户00006', msg: '客户00006: 谢谢', time: '09:00', layout: 'cs', isVisitor: false, muted: false },
-            { id: 8, type: 'private', unread: 0, name: '客户00007', msg: '王三: 再见', time: '09:00', layout: 'cs', isVisitor: false, muted: false },
-            { id: 9, type: 'group', unread: 0, name: '[客服咨询]问...', msg: '王三: @张四 你好', time: '09:00', layout: 'cs-group', avatars: ['王', '李', '张'], muted: false }
+            { id: 10, type: 'queue', unread: 5, name: '在线会话', msg: '[5条]访客00008: 您好，在吗？', time: '09:05', layout: 'queue', muted: false },
+            { id: 8, type: 'private', unread: 0, name: '客户00007', msg: '王三: 你好', time: '09:00', layout: 'cs', isVisitor: false, muted: false },
+            { id: 9, type: 'group', unread: 0, name: '客户服务群', msg: '王三: @张四 你好', time: '09:00', layout: 'cs-group', avatars: ['王', '李', '张'], muted: false }
         ];
 
         function renderMobileChatList(filter = '全部') {
@@ -2577,8 +2885,8 @@
                     const onlineDot = `<div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff; z-index: 2;"></div>`;
                     avatarInner = `<div class="avatar" style="background:#DCE6FE;color:var(--primary);font-size:16px;font-weight:500;position:relative;overflow:visible;">${char}${onlineDot}</div>`;
                 } else if (chat.layout === 'cs-group') {
-                    let grids = chat.avatars.slice(0,4).map(u => `<div class="grid-item" style="background:#DCE6FE; color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px;">${u}</div>`).join('');
-                    avatarInner = `<div class="avatar group-4" style="background:#EEE; padding:2px;">${grids}</div>`;
+                    let grids = chat.avatars.slice(0,3).map(u => `<div class="grid-item" style="background:#DCE6FE; color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px;">${u}</div>`).join('');
+                    avatarInner = `<div class="avatar group-3" style="background:#EEE; padding:2px;">${grids}</div>`;
                 } else {
                     avatarInner = `<div class="avatar ${chat.layout}">`;
                     chat.avatars.forEach(u => {
@@ -4525,6 +4833,28 @@
             closeInputModal();
         }
 
+        function openDismissGroupModal() {
+            document.getElementById('mDismissGroupModalMask').style.display = 'flex';
+        }
+        
+        function closeDismissGroupModal() {
+            document.getElementById('mDismissGroupModalMask').style.display = 'none';
+        }
+        
+        function confirmDismissGroupModal() {
+            closeDismissGroupModal();
+            document.getElementById('groupSettingsPage').classList.remove('show');
+            document.getElementById('chatPage').classList.remove('show');
+            showToast('群聊已解散');
+            
+            const index = mobileChats.findIndex(c => c.name === activeChatName);
+            if (index !== -1) {
+                mobileChats.splice(index, 1);
+            }
+            const currentFilter = document.getElementById('filterTriggerText') ? document.getElementById('filterTriggerText').innerText : '全部';
+            renderMobileChatList(currentFilter);
+        }
+
         function editCustomerName() {
             const currentName = document.getElementById('cdName').innerText;
             openInputModal('修改客户昵称', currentName, (newName) => {
@@ -4559,6 +4889,18 @@
             });
         }
         
+        function openAgentInfoPage(name, employeeId) {
+            document.getElementById('agentInfoNameField').innerText = name;
+            document.getElementById('agentInfoNicknameField').innerText = name;
+            document.getElementById('agentInfoIdField').innerText = employeeId;
+            document.getElementById('agentInfoPage').classList.add('show');
+        }
+
+        function openCustomerInfoPage(name) {
+            const nameField = document.getElementById('customerInfoNameField');
+            if (nameField) nameField.innerText = name;
+            document.getElementById('customerInfoPage').classList.add('show');
+        }
         function editCustomerNote() {
             const currentNote = document.getElementById('cdNote').innerText;
             openInputModal('修改客户备注', currentNote === '--' ? '' : currentNote, (newNote) => {
@@ -4650,26 +4992,26 @@
         }
 
         function openChat(name, isGroup, isQueueItem = false) {
-            if (name === '排队中 · 2' || name.includes('排队中')) {
-                renderQueueList && renderQueueList('all');
-                document.getElementById('queuePage').classList.add('show');
+            if (name.includes('排队中') || name.includes('在线会话')) {
+                window.location.href = `link_mobile_queue.html?title=${encodeURIComponent(name)}`;
                 return;
             }
             
             const targetChat = mobileChats.find(c => c.name === name);
             if (targetChat && targetChat.type === 'group') {
                 isGroup = true;
-            } else if (name.includes('[客服咨询]') || name.includes('群聊')) {
+            } else if (name.includes('客户服务群') || name.includes('群聊')) {
                 isGroup = true;
             }
             
             activeChatName = name;
-            document.getElementById('chatPageTitle').innerText = name + (isGroup ? ' (群聊)' : '');
+            document.getElementById('chatPageTitle').innerText = name;
             document.getElementById('chatPage').classList.add('show');
             
             const acceptEl = document.getElementById('mobileQueueAcceptIcon');
             const iconEl = document.getElementById('mobilePendingToggleIcon');
             const moreBtnEl = document.querySelector('#chatPage .chat-header .ri-more-fill');
+            const addBtnEl = document.querySelector('#chatPage .chat-header .ri-add-circle-line');
             const chatInputArea = document.getElementById('chatInputArea');
             
             if (acceptEl) {
@@ -4679,6 +5021,14 @@
                 } else {
                     acceptEl.style.display = 'none';
                     if (chatInputArea) chatInputArea.style.display = '';
+                }
+            }
+            
+            if (addBtnEl) {
+                if (isQueueItem || isGroup) {
+                    addBtnEl.style.display = 'none';
+                } else {
+                    addBtnEl.style.display = '';
                 }
             }
             
@@ -4776,12 +5126,12 @@
                     <div class="msg-row self">
                         ${myAvatar}
                         <div class="msg-info">
-                            <div class="msg-bubble">再见</div>
+                            <div class="msg-bubble">你好</div>
                             <div class="msg-sub-text">已读</div>
                         </div>
                     </div>
                 `;
-            } else if (name === '[客服咨询]问...') {
+            } else if (name === '客户服务群') {
                 html = `
                     <div style="text-align: center; color: var(--text-muted); font-size: 12px; margin: 20px 0;">09:00</div>
                     <div class="msg-row self">

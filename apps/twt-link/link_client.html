@@ -3044,17 +3044,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="chat-item" onclick="selectChat(this, '[客服咨询]问题处理群聊', 3, 'group', true)"
+                        <div class="chat-item" onclick="selectChat(this, '客户服务群', 3, 'group', true)"
                             data-type="group" data-unread="false">
                             <div class="chat-avatar group-avatar" style="grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr);">
-                                <div class="grid-item" style="grid-column: span 2; background:#E8F3FF; color:#1677FF; font-size:13px;">王</div>
+                                <div class="grid-item" style="grid-column: span 2; justify-self: center; width: calc(50% - 1px); background:#E8F3FF; color:#1677FF; font-size:13px;">王</div>
                                 <div class="grid-item" style="background:#DCE6FE; color:#1677FF; font-size:11px;">?</div>
                                 <div class="grid-item" style="background:#E8F3FF; color:#1677FF; font-size:11px;">客</div>
                             </div>
                             <div style="flex:1; overflow:hidden;">
                                 <div
                                     style="display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:14px;">
-                                    <div style="display:flex; align-items:center;"><span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px; flex-shrink:0;"><i class="ri-customer-service-2-fill" style="font-size:11px;"></i><span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;"><i class="ri-message-3-fill" style="font-size:12px; color:#1677FF; transform: scale(0.55);"></i></span></span><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100px;">[客服咨询]问题处理群聊</span></div> <span
+                                    <div style="display:flex; align-items:center;"><span style="position:relative; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; background:#1677FF; color:#fff; border-radius:50%; margin-right:6px; flex-shrink:0;"><i class="ri-customer-service-2-fill" style="font-size:11px;"></i><span style="position:absolute; right:-2px; bottom:-2px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; width:8px; height:8px; z-index: 2;"><i class="ri-message-3-fill" style="font-size:12px; color:#1677FF; transform: scale(0.55);"></i></span></span><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100px;">客户服务群</span></div> <span
                                         style="font-size:12px; color:var(--text-tertiary); font-weight:400;">09:00</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-top:4px;">
@@ -3460,7 +3460,7 @@
                 <!-- 右侧客户信息面板 -->
                 <div class="customer-info-panel" id="customerInfoPanel" style="display: none; width: 320px; border-left: 1px solid var(--border-color); background: #fff; flex-direction: column; flex-shrink: 0; overflow-y: auto;">
                     <div style="position: sticky; top: 0; z-index: 10; background: #fff; display: flex; gap: 16px; padding: 0 16px; height: 64px; align-items: center; box-sizing: border-box; flex-shrink: 0; border-bottom: 1px solid var(--border-color);" id="rightPanelTabs">
-                        <div id="customerInfoTabBtn" onclick="switchRightTab('customer', this)" style="font-weight: 600; font-size: 14px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); cursor: pointer; transition: all 0.2s; padding: 20px 0; flex-shrink: 0; white-space: nowrap;">客户信息</div>
+                        <div id="customerInfoTabBtn" onclick="switchRightTab('customer', this)" style="font-weight: 600; font-size: 14px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); cursor: pointer; transition: all 0.2s; padding: 20px 0; flex-shrink: 0; white-space: nowrap;">访客信息</div>
                         <div id="sessionInfoTabBtn" onclick="switchRightTab('session', this)" style="font-weight: 500; font-size: 14px; color: var(--text-color); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; padding: 20px 0; flex-shrink: 0; white-space: nowrap;">会话信息</div>
                         <div style="flex: 1;"></div>
                         <div class="td-tooltip tooltip-align-right" data-tooltip="收起详情" onclick="toggleCustomerInfoPanel()" style="width: 16px; height: 16px; border: 1.5px solid #111; border-radius: 4px; position: relative; cursor: pointer; display: flex; color: #111; box-sizing: border-box; flex-shrink: 0;">
@@ -3500,7 +3500,7 @@
                     <div id="tabContentCustomer" style="padding: 16px 20px;">
                         <!-- 基础信息 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-contacts-book-2-fill"></i> 基础信息
                                 </div>
@@ -3548,9 +3548,9 @@
 
                         <!-- 客户信息 -->
                         <div style="margin-bottom: 24px; display: none;" id="exclusiveClientInfoBox">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
-                                    <i class="ri-user-fill"></i> 客户信息
+                                    <i class="ri-user-fill"></i> 访客信息
                                 </div>
                                 <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
                             </div>
@@ -3564,7 +3564,7 @@
 
                         <!-- 附加信息 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-pie-chart-2-fill"></i> 附加信息
                                 </div>
@@ -3583,7 +3583,7 @@
 
                         <!-- 访问轨迹 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-map-pin-2-fill"></i> 访问轨迹
                                 </div>
@@ -3609,7 +3609,7 @@
 
                         <!-- 设备信息 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-computer-fill"></i> 设备信息
                                 </div>
@@ -3628,7 +3628,7 @@
                     <div id="tabContentSession" style="padding: 16px 20px; display: none;">
                         <!-- 基础信息 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-user-3-fill"></i> 基础信息
                                 </div>
@@ -3643,7 +3643,7 @@
 
                         <!-- 服务客服 -->
                         <div style="margin-bottom: 24px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('i:last-child').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
                                     <i class="ri-customer-service-2-fill"></i> 服务客服
                                 </div>
@@ -5662,7 +5662,7 @@
             const html44 = generateGroupAvatarHtml(globalGroupMembers, 44);
             const sidebarItems = document.querySelectorAll('.chat-item[data-type="group"]');
             sidebarItems.forEach(item => {
-                if (item.innerText.includes('问题处理群聊')) {
+                if (item.innerText.includes('客户服务群')) {
                     const avatarContainer = item.querySelector('.chat-avatar');
                     if (avatarContainer) {
                         avatarContainer.outerHTML = html44;
@@ -6073,10 +6073,20 @@
             renderCGModal();
         }
 
-        function renderSessionCSRListContainer(chatName) {
+        function renderSessionCSRListContainer(chatName, status = null) {
             const listContainer = document.getElementById('sessionCSRListContainer');
             if (!listContainer) return;
             
+            if (status === '排队中') {
+                listContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: #86909c; padding: 32px 0;">
+                        <i class="ri-customer-service-2-fill" style="font-size: 48px; color: #E5E6EB; margin-bottom: 8px;"></i>
+                        <div style="font-size: 13px; color: #C9CDD4;">暂无服务客服</div>
+                    </div>
+                `;
+                return;
+            }
+
             listContainer.innerHTML = '';
             const csrIds = chatSessionCSRMap[chatName] || ['cs_1'];
             
@@ -6089,11 +6099,9 @@
                     : '';
                 
                 const row = document.createElement('div');
-                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; position: relative; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; cursor: ${index === 0 ? 'default' : 'pointer'}; transition: background 0.2s;`;
-                row.onmouseover = () => { if(index !== 0) { row.style.background = '#F2F3F5'; row.querySelector('.remove-csr-btn').style.display = 'block'; } };
-                row.onmouseout = () => { if(index !== 0) { row.style.background = 'transparent'; row.querySelector('.remove-csr-btn').style.display = 'none'; } };
+                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; position: relative; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; cursor: default;`;
                 
-                const removeBtnHtml = index === 0 ? '' : `<i class="ri-close-line remove-csr-btn" style="display: none; color: #86909c; font-size: 16px; position: absolute; right: 8px; padding: 4px;" onclick="promptRemoveCSR(event, '${chatName}', '${id}')"></i>`;
+                const removeBtnHtml = '';
                 
                 row.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
@@ -7493,7 +7501,7 @@
                     <div style="margin-bottom: 24px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <i class="ri-user-fill"></i> 客户信息
+                                <i class="ri-user-fill"></i> 访客信息
                             </div>
                             <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 18px;"></i>
                         </div>
@@ -7571,6 +7579,7 @@
                     </div>
                 </div>`;
             } else {
+                title = '访客信息';
                 panelContent = `
                 <div style="flex: 1; padding: 24px 20px; overflow-y: auto;">
                     <div style="margin-bottom: 24px;">
@@ -7580,6 +7589,10 @@
                         <div style="display: flex; flex-direction: column; gap: 16px; font-size: 14px;">
                             <div style="display: flex;">
                                 <div style="width: 80px; color: #4e5969;">姓名</div>
+                                <div style="color: #111; flex: 1;">${name}</div>
+                            </div>
+                            <div style="display: flex;">
+                                <div style="width: 80px; color: #4e5969;">昵称</div>
                                 <div style="color: #111; flex: 1;">${name}</div>
                             </div>
                             <div style="display: flex;">
@@ -7596,7 +7609,7 @@
             <div style="position: sticky; top: 0; z-index: 10; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 60px;">
                 <div style="display: flex; align-items: center;">
                     <i class="ri-arrow-left-s-line" style="font-size: 24px; cursor: pointer; color: #111; margin-right: 8px; font-weight: 500;" onclick="closeMemberInfo()"></i>
-                    <div style="font-size: 15px; font-weight: 600; color: #111;">${title}</div>
+                    <div style="font-size: 15px; font-weight: 600; color: #111;">${title === '客户信息' ? '访客信息' : title}</div>
                 </div>
                 <div class="td-tooltip tooltip-align-right" data-tooltip="收起详情" onclick="toggleCustomerInfoPanel()" style="width: 16px; height: 16px; border: 1.5px solid #111; border-radius: 4px; position: relative; cursor: pointer; display: flex; color: #111; box-sizing: border-box; flex-shrink: 0;">
                     <div style="width: 6.5px; height: 100%; border-right: 1.5px solid currentColor; box-sizing: border-box;"></div>
@@ -7891,7 +7904,7 @@
                                 if (!window.chatSessionCSRMap) window.chatSessionCSRMap = {};
                                 if (!window.chatSessionCSRMap[actualVisitorName]) window.chatSessionCSRMap[actualVisitorName] = ['cs_1'];
                                 window.csAlreadyInSession = window.chatSessionCSRMap[actualVisitorName];
-                                window.renderSessionCSRListContainer(actualVisitorName);
+                                window.renderSessionCSRListContainer(actualVisitorName, serviceStatus);
                             }
                         }
                     }
@@ -8039,7 +8052,7 @@
             let senderAvatarHtml = `<div class="chat-avatar" style="width: 32px; height: 32px; background:#DCE6FE; color:var(--primary-color); border-radius:8px; font-size:12px; font-weight:500;">?</div>`;
             let senderName = name;
             
-            if (name === '[客服咨询]问题处理群聊') {
+            if (name === '客户服务群') {
                 senderName = '访客00001';
                 senderAvatarHtml = `<div class="chat-avatar" style="width: 32px; height: 32px; background:#DCE6FE; color:var(--primary-color); border-radius:8px; font-size:14px; font-weight:500;">?</div>`;
             } else if (el) {
@@ -8117,7 +8130,7 @@
         <div class="msg-read-status read">已读</div>
     </div>
 </div>`;
-            } else if (name === '[客服咨询]问题处理群聊') {
+            } else if (name === '客户服务群') {
 
                 messageArea.innerHTML = `
 <div class="msg-row self" style="margin-top: 20px;">
@@ -10783,7 +10796,7 @@
                             // 默认保底逻辑：由于 mock 的列表数据只有那几个，如果不匹配，则按类型默认选中相关人员
                             if (!targetItem) {
                                 if (e.data.chatType === '群聊') {
-                                    targetItem = Array.from(chatList.querySelectorAll('.chat-item')).find(el => el.innerText.includes('[客服咨询]'));
+                                    targetItem = Array.from(chatList.querySelectorAll('.chat-item')).find(el => el.innerText.includes('客户服务群'));
                                 } else {
                                     targetItem = Array.from(chatList.querySelectorAll('.chat-item')).find(el => !el.innerText.includes('排队中') && el.innerText.includes('客户00006'));
                                 }
