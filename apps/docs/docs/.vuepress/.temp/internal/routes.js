@@ -12,13 +12,13 @@ export const routes = Object.fromEntries([
   ["/chat-page/direct-link.html", { loader: () => import(/* webpackChunkName: "chat-page_direct-link.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/direct-link.html.js"), meta: {"title":"直接链接"} }],
   ["/chat-page/parameters.html", { loader: () => import(/* webpackChunkName: "chat-page_parameters.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/parameters.html.js"), meta: {"title":"URL 参数说明"} }],
   ["/chat-page/self-hosted.html", { loader: () => import(/* webpackChunkName: "chat-page_self-hosted.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/self-hosted.html.js"), meta: {"title":"自托管部署"} }],
-  ["/guide/", { loader: () => import(/* webpackChunkName: "guide_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/index.html.js"), meta: {"title":"概述"} }],
-  ["/guide/quickstart.html", { loader: () => import(/* webpackChunkName: "guide_quickstart.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/quickstart.html.js"), meta: {"title":"3 分钟接入"} }],
   ["/webhooks/", { loader: () => import(/* webpackChunkName: "webhooks_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/index.html.js"), meta: {"title":"Webhooks"} }],
   ["/webhooks/events.html", { loader: () => import(/* webpackChunkName: "webhooks_events.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/events.html.js"), meta: {"title":"事件类型"} }],
   ["/webhooks/payload.html", { loader: () => import(/* webpackChunkName: "webhooks_payload.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/payload.html.js"), meta: {"title":"请求体结构"} }],
   ["/webhooks/setup.html", { loader: () => import(/* webpackChunkName: "webhooks_setup.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/setup.html.js"), meta: {"title":"配置指南"} }],
   ["/webhooks/signature.html", { loader: () => import(/* webpackChunkName: "webhooks_signature.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/signature.html.js"), meta: {"title":"签名校验"} }],
+  ["/guide/", { loader: () => import(/* webpackChunkName: "guide_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/index.html.js"), meta: {"title":"概述"} }],
+  ["/guide/quickstart.html", { loader: () => import(/* webpackChunkName: "guide_quickstart.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/guide/quickstart.html.js"), meta: {"title":"3 分钟接入"} }],
   ["/widget/", { loader: () => import(/* webpackChunkName: "widget_index.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/widget/index.html.js"), meta: {"title":"网站小部件"} }],
   ["/widget/configuration.html", { loader: () => import(/* webpackChunkName: "widget_configuration.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/widget/configuration.html.js"), meta: {"title":"配置项参考"} }],
   ["/widget/installation.html", { loader: () => import(/* webpackChunkName: "widget_installation.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/widget/installation.html.js"), meta: {"title":"基础安装"} }],
@@ -32,20 +32,3 @@ export const routes = Object.fromEntries([
   ["/api/chat/dissolve-group.html", { loader: () => import(/* webpackChunkName: "api_chat_dissolve-group.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/api/chat/dissolve-group.html.js"), meta: {"title":"解散群聊"} }],
   ["/404.html", { loader: () => import(/* webpackChunkName: "404.html" */"/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/404.html.js"), meta: {"title":""} }],
 ]);
-
-if (import.meta.webpackHot) {
-  import.meta.webpackHot.accept()
-  if (__VUE_HMR_RUNTIME__.updateRoutes) {
-    __VUE_HMR_RUNTIME__.updateRoutes(routes)
-  }
-  if (__VUE_HMR_RUNTIME__.updateRedirects) {
-    __VUE_HMR_RUNTIME__.updateRedirects(redirects)
-  }
-}
-
-if (import.meta.hot) {
-  import.meta.hot.accept(({ routes, redirects }) => {
-    __VUE_HMR_RUNTIME__.updateRoutes(routes)
-    __VUE_HMR_RUNTIME__.updateRedirects(redirects)
-  })
-}
