@@ -13,15 +13,36 @@
             </div>
           </RouterLink>
           <div class="nav-menu">
-            <a href="#">产品</a>
-            <a href="#">了解TWT</a>
-            <a href="#">平台资讯</a>
-            <a href="#">推广联盟</a>
-            <a href="#">联系我们</a>
+            <a href="#">{{ t.navProduct }}</a>
+            <a href="#">{{ t.navAbout }}</a>
+            <a href="#">{{ t.navNews }}</a>
+            <a href="#">{{ t.navAffiliate }}</a>
+            <a href="#">{{ t.navContact }}</a>
           </div>
           <div class="nav-actions">
-            <button class="lang-btn">🌐</button>
-            <n-button quaternary class="login-btn">登录/注册</n-button>
+            <div class="lang-dropdown">
+              <button type="button" class="lang-btn" :aria-label="t.switchLang">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </button>
+              <div class="lang-menu">
+                <div class="lang-menu__inner">
+                <button
+                  v-for="opt in localeOptions"
+                  :key="opt.value"
+                  type="button"
+                  class="lang-option"
+                  :class="{ 'lang-option--active': locale === opt.value }"
+                  @click="setLocale(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                </div>
+              </div>
+            </div>
+            <n-button quaternary class="login-btn">{{ t.login }}</n-button>
           </div>
         </div>
       </div>
@@ -35,15 +56,15 @@
             <span class="product-name">Chat</span>
           </div>
           <div class="product-links">
-            <a href="#">下载</a>
-            <a href="#">功能介绍</a>
-            <a href="#">版本价格</a>
+            <a href="#">{{ t.download }}</a>
+            <a href="#">{{ t.features }}</a>
+            <a href="#">{{ t.pricing }}</a>
             <div class="help-dropdown">
-              <a href="#" class="help-trigger">帮助与支持 <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+              <a href="#" class="help-trigger">{{ t.helpSupport }} <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
               <div class="help-menu">
-                <a href="/updates" target="_blank">产品动态</a>
-                <a href="#">常见问题</a>
-                <a href="#">使用教程</a>
+                <a href="/updates" target="_blank">{{ t.productUpdates }}</a>
+                <a href="#">{{ t.faq }}</a>
+                <a href="#">{{ t.tutorials }}</a>
               </div>
             </div>
           </div>
@@ -55,16 +76,44 @@
 
 <script setup lang="ts">
 import { NButton } from 'naive-ui';
+import { useLocale, useT, type Locale } from '../../composables/useLocale';
 
-defineProps<{
-  showProductNav?: boolean;
-}>();
+defineProps<{ showProductNav?: boolean }>();
+
+const { locale, setLocale } = useLocale();
+
+const localeOptions: { label: string; value: Locale }[] = [
+  { label: 'English', value: 'en' },
+  { label: '简体中文', value: 'zh-CN' },
+  { label: '繁體中文', value: 'zh-TW' },
+];
+
+const t = useT({
+  'zh-CN': {
+    navProduct: '产品', navAbout: '了解TWT', navNews: '平台资讯', navAffiliate: '推广联盟', navContact: '联系我们',
+    login: '登录/注册', switchLang: '切换语言',
+    download: '下载', features: '功能介绍', pricing: '版本价格', helpSupport: '帮助与支持',
+    productUpdates: '产品动态', faq: '常见问题', tutorials: '使用教程',
+  },
+  'zh-TW': {
+    navProduct: '產品', navAbout: '了解TWT', navNews: '平台資訊', navAffiliate: '推廣聯盟', navContact: '聯繫我們',
+    login: '登入/註冊', switchLang: '切換語言',
+    download: '下載', features: '功能介紹', pricing: '版本價格', helpSupport: '幫助與支援',
+    productUpdates: '產品動態', faq: '常見問題', tutorials: '使用教程',
+  },
+  'en': {
+    navProduct: 'Product', navAbout: 'About TWT', navNews: 'News', navAffiliate: 'Affiliate', navContact: 'Contact',
+    login: 'Login / Sign up', switchLang: 'Switch language',
+    download: 'Download', features: 'Features', pricing: 'Pricing', helpSupport: 'Help & Support',
+    productUpdates: 'Updates', faq: 'FAQ', tutorials: 'Tutorials',
+  },
+});
 </script>
 
 <style scoped>
 .marketing-header {
   position: relative;
-  z-index: 100;
+  z-index: 1000;
   background: #fff;
 }
 
@@ -145,22 +194,73 @@ defineProps<{
   margin-left: auto;
 }
 
+.lang-dropdown {
+  position: relative;
+}
+
 .lang-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: transparent;
+  background: var(--links-color-bg-page);
   cursor: pointer;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 50%;
+  color: var(--links-color-text-primary);
   transition: background var(--links-motion-fast);
 }
 
 .lang-btn:hover {
+  background: #e8eaf0;
+}
+
+.lang-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 200;
+  min-width: 148px;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.lang-menu__inner {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.lang-dropdown:hover .lang-menu,
+.lang-dropdown:focus-within .lang-menu {
+  display: flex;
+}
+
+.lang-option {
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--links-color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--links-motion-fast), color var(--links-motion-fast);
+}
+
+.lang-option:hover {
   background: var(--links-color-bg-page);
+  color: var(--links-color-primary);
+}
+
+.lang-option--active {
+  font-weight: 600;
+  color: var(--links-color-primary);
 }
 
 .login-btn {

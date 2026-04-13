@@ -11,7 +11,9 @@ import SiteHeader from "./components/layout/SiteHeader.vue";
 import SiteFooter from "./components/layout/SiteFooter.vue";
 import VersionUpdateModal from "./components/VersionUpdateModal.vue";
 import { useVersionCheck } from "./composables/useVersionCheck";
+import { provideLocale } from "./composables/useLocale";
 
 const route = useRoute();
 const { versionState, doRefresh } = useVersionCheck();
+provideLocale();
 </script>

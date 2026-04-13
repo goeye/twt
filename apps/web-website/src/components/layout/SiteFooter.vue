@@ -3,7 +3,7 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-col">
-          <h4>产品</h4>
+          <h4>{{ t.product }}</h4>
           <RouterLink to="/">Chat</RouterLink>
           <a href="#">Community</a>
           <span class="disabled">Link</span>
@@ -12,27 +12,27 @@
         </div>
 
         <div class="footer-col">
-          <h4>探索Chat</h4>
-          <a href="#">功能介绍</a>
-          <a href="#">版本价格</a>
-          <a href="#">下载中心</a>
-          <RouterLink to="/updates">更新日志</RouterLink>
-          <RouterLink to="/help-center">帮助中心</RouterLink>
+          <h4>{{ t.exploreChat }}</h4>
+          <a href="#">{{ t.features }}</a>
+          <a href="#">{{ t.pricing }}</a>
+          <a href="#">{{ t.downloadCenter }}</a>
+          <RouterLink to="/updates">{{ t.changelog }}</RouterLink>
+          <RouterLink to="/help-center">{{ t.helpCenter }}</RouterLink>
         </div>
 
         <div class="footer-col">
-          <h4>关于我们</h4>
-          <a href="#">了解{{ tenant.name }}</a>
-          <a href="#">平台资讯</a>
-          <a href="#">推广联盟</a>
-          <a href="#">联系我们</a>
-          <a href="#">合作伙伴</a>
+          <h4>{{ t.aboutUs }}</h4>
+          <a href="#">{{ t.about }}{{ tenant.name }}</a>
+          <a href="#">{{ t.news }}</a>
+          <a href="#">{{ t.affiliate }}</a>
+          <a href="#">{{ t.contact }}</a>
+          <a href="#">{{ t.partner }}</a>
         </div>
 
         <div class="footer-col">
-          <h4>法律事务</h4>
-          <a href="#">服务条款</a>
-          <a href="#">隐私协议</a>
+          <h4>{{ t.legal }}</h4>
+          <a href="#">{{ t.terms }}</a>
+          <a href="#">{{ t.privacy }}</a>
         </div>
 
         <div class="footer-col footer-brand">
@@ -91,8 +91,30 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import { useTenant } from '@twt/branding';
+import { useT } from '../../composables/useLocale';
 
 const tenant = useTenant();
+
+const t = useT({
+  'zh-CN': {
+    product: '产品', exploreChat: '探索Chat', aboutUs: '关于我们', legal: '法律事务',
+    features: '功能介绍', pricing: '版本价格', downloadCenter: '下载中心', changelog: '更新日志', helpCenter: '帮助中心',
+    about: '了解', news: '平台资讯', affiliate: '推广联盟', contact: '联系我们', partner: '合作伙伴',
+    terms: '服务条款', privacy: '隐私协议',
+  },
+  'zh-TW': {
+    product: '產品', exploreChat: '探索Chat', aboutUs: '關於我們', legal: '法律事務',
+    features: '功能介紹', pricing: '版本價格', downloadCenter: '下載中心', changelog: '更新日誌', helpCenter: '幫助中心',
+    about: '了解', news: '平台資訊', affiliate: '推廣聯盟', contact: '聯繫我們', partner: '合作夥伴',
+    terms: '服務條款', privacy: '隱私協議',
+  },
+  'en': {
+    product: 'Product', exploreChat: 'Explore Chat', aboutUs: 'About Us', legal: 'Legal',
+    features: 'Features', pricing: 'Pricing', downloadCenter: 'Downloads', changelog: 'Changelog', helpCenter: 'Help Center',
+    about: 'About', news: 'News', affiliate: 'Affiliate', contact: 'Contact', partner: 'Partners',
+    terms: 'Terms of Service', privacy: 'Privacy Policy',
+  },
+});
 </script>
 
 <style scoped>

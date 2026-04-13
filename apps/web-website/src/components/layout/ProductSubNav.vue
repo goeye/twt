@@ -24,28 +24,28 @@
 
         <div class="product-subnav__actions">
           <div class="product-subnav__links">
-            <a href="#" class="product-subnav__nav-link">下载</a>
-            <a href="#" class="product-subnav__nav-link">功能介绍</a>
-            <a href="#" class="product-subnav__nav-link">版本价格</a>
+            <a href="#" class="product-subnav__nav-link">{{ t.download }}</a>
+            <a href="#" class="product-subnav__nav-link">{{ t.features }}</a>
+            <a href="#" class="product-subnav__nav-link">{{ t.pricing }}</a>
 
             <div class="product-subnav__dropdown">
               <button
                 type="button"
                 class="product-subnav__dropdown-trigger"
               >
-                支持与帮助
+                {{ t.helpSupport }}
                 <svg class="product-subnav__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
               <div class="product-subnav__menu">
-                <RouterLink to="/updates">产品动态</RouterLink>
-                <RouterLink to="/help-center">帮助中心</RouterLink>
-                <RouterLink to="/developer-docs">开发文档</RouterLink>
+                <RouterLink to="/updates">{{ t.productUpdates }}</RouterLink>
+                <RouterLink to="/help-center">{{ t.helpCenter }}</RouterLink>
+                <RouterLink to="/developer-docs">{{ t.devDocs }}</RouterLink>
               </div>
             </div>
           </div>
-          <a v-if="isPinned && showCta" href="#" class="product-subnav__cta">立即使用</a>
+          <a v-if="isPinned && showCta" href="#" class="product-subnav__cta">{{ t.cta }}</a>
         </div>
       </div>
     </div>
@@ -55,6 +55,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useT } from '../../composables/useLocale';
 
 withDefaults(defineProps<{
   activeKey?: 'help-center' | 'developer-docs';
@@ -62,6 +63,12 @@ withDefaults(defineProps<{
 }>(), {
   activeKey: undefined,
   showCta: true
+});
+
+const t = useT({
+  'zh-CN': { download: '下载', features: '功能介绍', pricing: '版本价格', helpSupport: '支持与帮助', productUpdates: '产品动态', helpCenter: '帮助中心', devDocs: '开发文档', cta: '立即使用' },
+  'zh-TW': { download: '下載', features: '功能介紹', pricing: '版本價格', helpSupport: '支援與幫助', productUpdates: '產品動態', helpCenter: '幫助中心', devDocs: '開發文件', cta: '立即使用' },
+  'en': { download: 'Download', features: 'Features', pricing: 'Pricing', helpSupport: 'Help & Support', productUpdates: 'Updates', helpCenter: 'Help Center', devDocs: 'Developer Docs', cta: 'Get Started' },
 });
 
 const isPinned = ref(false);
