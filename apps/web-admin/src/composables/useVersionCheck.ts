@@ -55,7 +55,7 @@ export function useVersionCheck() {
   startPolling();
 
   function doRefresh(): void {
-    window.location.reload();
+    window.location.href = window.location.href.split('?')[0] + '?_r=' + Date.now();
   }
 
   function dismissUpdate(): void {

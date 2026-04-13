@@ -30,7 +30,11 @@ fi
 
 # 执行同步
 echo "同步 $1/ 到远程..."
-rsync -av --password-file=./chanpin6 "$1/dist/" "rsync://chanpin6@121.40.183.14:8730/project/$1/"
+if [ -d "$1/dist" ]; then
+    rsync -av --password-file=./chanpin6 "$1/dist/" "rsync://chanpin6@121.40.183.14:8730/project/$1/"
+else
+    rsync -av --password-file=./chanpin6 --exclude='node_modules' --exclude='*.py' --exclude='*.js' --exclude='package*.json' --exclude='.DS_Store' "$1/" "rsync://chanpin6@121.40.183.14:8730/project/$1/"
+fi
 BASE64_PROJECT=`echo $1|base64`
 Projecthook
 echo "https://pm.pro.jishu666.com/$1/index.html"
