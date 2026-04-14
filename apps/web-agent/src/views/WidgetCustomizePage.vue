@@ -789,50 +789,50 @@
               </label>
               <div class="wc-modal__radio-group">
                 <label class="wc-modal__radio">
-                  <input v-model="quickAccessForm.actionType" type="radio" value="link" />
+                  <input v-model="quickAccessForm.actionType" type="radio" name="qa-action" value="link" />
                   <span>打开链接</span>
                 </label>
                 <label class="wc-modal__radio">
-                  <input v-model="quickAccessForm.actionType" type="radio" value="copy" />
+                  <input v-model="quickAccessForm.actionType" type="radio" name="qa-action" value="copy" />
                   <span>复制文本</span>
                 </label>
                 <label class="wc-modal__radio">
-                  <input v-model="quickAccessForm.actionType" type="radio" value="message" />
+                  <input v-model="quickAccessForm.actionType" type="radio" name="qa-action" value="message" />
                   <span>发送消息</span>
                 </label>
               </div>
             </div>
-            <div v-if="quickAccessForm.actionType === 'link'" class="wc-modal__field">
+            <div :key="`qa-field-${quickAccessForm.actionType}`" class="wc-modal__field">
               <input
+                v-if="quickAccessForm.actionType === 'link'"
                 v-model="quickAccessForm.content"
                 class="wc-modal__input"
                 placeholder="请输入链接地址"
               />
-            </div>
-            <div v-if="quickAccessForm.actionType === 'copy'" class="wc-modal__field">
               <input
+                v-else-if="quickAccessForm.actionType === 'copy'"
                 v-model="quickAccessForm.content"
                 class="wc-modal__input"
                 placeholder="请输入需要复制的文本"
               />
-            </div>
-            <div v-if="quickAccessForm.actionType === 'message'" class="wc-modal__field">
-              <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
-                <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
-              </div>
-              <select
-                v-else
-                v-model="quickAccessForm.faqId"
-                class="wc-modal__input"
-              >
-                <option value="" disabled>请选择常见问题</option>
-                <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">
-                  {{ faq.title }}
-                </option>
-              </select>
-              <p v-if="quickAccessForm.faqId && !isFaqValid" class="wc-modal__error-hint">
-                所选常见问题已被删除，请重新选择
-              </p>
+              <template v-else>
+                <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
+                  <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+                </div>
+                <select
+                  v-else
+                  v-model="quickAccessForm.faqId"
+                  class="wc-modal__input"
+                >
+                  <option value="" disabled>请选择常见问题</option>
+                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">
+                    {{ faq.title }}
+                  </option>
+                </select>
+                <p v-if="quickAccessForm.faqId && !isFaqValid" class="wc-modal__error-hint">
+                  所选常见问题已被删除，请重新选择
+                </p>
+              </template>
             </div>
           </div>
           <div class="wc-modal__footer">
@@ -861,40 +861,48 @@
               <label class="wc-modal__label">按钮动作</label>
               <div class="wc-modal__radio-group">
                 <label class="wc-modal__radio">
-                  <input v-model="welcomeBtnForm.actionType" type="radio" value="link" />
+                  <input v-model="welcomeBtnForm.actionType" type="radio" name="wb-action" value="link" />
                   <span>打开链接</span>
                 </label>
                 <label class="wc-modal__radio">
-                  <input v-model="welcomeBtnForm.actionType" type="radio" value="copy" />
+                  <input v-model="welcomeBtnForm.actionType" type="radio" name="wb-action" value="copy" />
                   <span>复制文本</span>
                 </label>
                 <label class="wc-modal__radio">
-                  <input v-model="welcomeBtnForm.actionType" type="radio" value="message" />
+                  <input v-model="welcomeBtnForm.actionType" type="radio" name="wb-action" value="message" />
                   <span>发送消息</span>
                 </label>
               </div>
             </div>
-            <div v-if="welcomeBtnForm.actionType === 'link'" class="wc-modal__field">
-              <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入链接地址" />
-            </div>
-            <div v-if="welcomeBtnForm.actionType === 'copy'" class="wc-modal__field">
-              <input v-model="welcomeBtnForm.content" class="wc-modal__input" placeholder="请输入需要复制的文本" />
-            </div>
-            <div v-if="welcomeBtnForm.actionType === 'message'" class="wc-modal__field">
-              <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
-                <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
-              </div>
-              <select
-                v-else
-                v-model="welcomeBtnForm.faqId"
+            <div :key="`wb-field-${welcomeBtnForm.actionType}`" class="wc-modal__field">
+              <input
+                v-if="welcomeBtnForm.actionType === 'link'"
+                v-model="welcomeBtnForm.content"
                 class="wc-modal__input"
-              >
-                <option value="" disabled>请选择常见问题</option>
-                <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
-              </select>
-              <p v-if="welcomeBtnForm.faqId && !isWelcomeBtnFaqValid" class="wc-modal__error-hint">
-                所选常见问题已被删除，请重新选择
-              </p>
+                placeholder="请输入链接地址"
+              />
+              <input
+                v-else-if="welcomeBtnForm.actionType === 'copy'"
+                v-model="welcomeBtnForm.content"
+                class="wc-modal__input"
+                placeholder="请输入需要复制的文本"
+              />
+              <template v-else>
+                <div v-if="faqOptions.length === 0" class="wc-modal__empty-banner">
+                  <p class="wc-modal__empty-text">当前未添加常见问题  <a class="wc-modal__empty-link" @click="navigateToFaq">去添加</a></p>
+                </div>
+                <select
+                  v-else
+                  v-model="welcomeBtnForm.faqId"
+                  class="wc-modal__input"
+                >
+                  <option value="" disabled>请选择常见问题</option>
+                  <option v-for="faq in faqOptions" :key="faq.id" :value="faq.id">{{ faq.title }}</option>
+                </select>
+                <p v-if="welcomeBtnForm.faqId && !isWelcomeBtnFaqValid" class="wc-modal__error-hint">
+                  所选常见问题已被删除，请重新选择
+                </p>
+              </template>
             </div>
           </div>
           <div class="wc-modal__footer">
@@ -933,7 +941,7 @@ import {
 } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
-import { getFaqOptions, saveQuickAccessEntries } from "../lib/faqData";
+import { getFaqOptions, isFaqExists, saveQuickAccessEntries } from "../lib/faqData";
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
 
@@ -972,12 +980,16 @@ const emit = defineEmits<{
 
 const emitToast = (msg: string) => emit("toast", msg);
 
-const autoSave = () => {
+const syncQuickAccessEntries = () => {
   saveQuickAccessEntries(
     settings.quickAccessItems
-      .filter(i => i.actionType === 'message' && i.faqId)
+      .filter(i => i.actionType === "message" && i.faqId)
       .map(i => ({ id: i.id, label: i.label, faqId: i.faqId! }))
   );
+};
+
+const autoSave = () => {
+  syncQuickAccessEntries();
   emitToast("保存成功");
 };
 
@@ -1077,12 +1089,25 @@ const welcomeBtnForm = reactive({
 
 const welcomePreviewButtons = computed(() => welcomeButtons[globalLang.value]);
 
+const syncWelcomeBtnActionType = (actionType: "link" | "copy" | "message") => {
+  if (actionType === "message") {
+    welcomeBtnForm.content = "";
+    if (welcomeBtnForm.faqId && !isFaqExists(welcomeBtnForm.faqId)) {
+      welcomeBtnForm.faqId = "";
+    }
+    return;
+  }
+
+  welcomeBtnForm.faqId = "";
+};
+
 const openWelcomeBtnModal = () => {
   welcomeBtnEditId.value = null;
   welcomeBtnForm.label = "";
   welcomeBtnForm.actionType = "link";
   welcomeBtnForm.content = "";
   welcomeBtnForm.faqId = "";
+  syncWelcomeBtnActionType(welcomeBtnForm.actionType);
   welcomeBtnModalOpen.value = true;
 };
 
@@ -1095,8 +1120,9 @@ const editWelcomeBtn = (btn: WelcomeButton) => {
   welcomeBtnEditId.value = btn.id;
   welcomeBtnForm.label = btn.label;
   welcomeBtnForm.actionType = btn.actionType;
-  welcomeBtnForm.content = btn.content;
+  welcomeBtnForm.content = btn.actionType === "message" ? "" : btn.content;
   welcomeBtnForm.faqId = btn.faqId || "";
+  syncWelcomeBtnActionType(welcomeBtnForm.actionType);
   welcomeBtnModalOpen.value = true;
 };
 
@@ -1127,11 +1153,14 @@ const confirmWelcomeBtn = () => {
   }
 
   const lang = globalLang.value;
+  const buttonContent = welcomeBtnForm.actionType === "message"
+    ? faqOptions.value.find(faq => faq.id === welcomeBtnForm.faqId)?.title || ""
+    : welcomeBtnForm.content.trim();
   const btnData: WelcomeButton = {
     id: welcomeBtnEditId.value || `wb-${welcomeBtnCounter++}`,
     label: welcomeBtnForm.label,
     actionType: welcomeBtnForm.actionType,
-    content: welcomeBtnForm.content,
+    content: buttonContent,
     faqId: welcomeBtnForm.faqId
   };
 
@@ -1488,6 +1517,18 @@ const filteredTitleOptions = computed(() => {
   return titleOptions.filter(option => option.toLowerCase().includes(keyword));
 });
 
+const syncQuickAccessActionType = (actionType: "link" | "copy" | "message") => {
+  if (actionType === "message") {
+    quickAccessForm.content = "";
+    if (quickAccessForm.faqId && !isFaqExists(quickAccessForm.faqId)) {
+      quickAccessForm.faqId = "";
+    }
+    return;
+  }
+
+  quickAccessForm.faqId = "";
+};
+
 const openTitleDropdown = () => {
   titleDropdownOpen.value = true;
 };
@@ -1503,6 +1544,7 @@ const openQuickAccessModal = () => {
   quickAccessForm.actionType = "link";
   quickAccessForm.content = "";
   quickAccessForm.faqId = "";
+  syncQuickAccessActionType(quickAccessForm.actionType);
   quickAccessModalOpen.value = true;
 };
 
@@ -1521,8 +1563,9 @@ const editQuickAccess = (item: QuickAccessItem) => {
   quickAccessForm.title = item.label;
   quickAccessForm.icon = item.icon || "";
   quickAccessForm.actionType = item.actionType || "link";
-  quickAccessForm.content = item.url;
+  quickAccessForm.content = item.actionType === "message" ? "" : item.url;
   quickAccessForm.faqId = item.faqId || "";
+  syncQuickAccessActionType(quickAccessForm.actionType);
   quickAccessModalOpen.value = true;
 };
 
@@ -1619,6 +1662,7 @@ const confirmQuickAccess = () => {
       faqId: quickAccessForm.faqId
     });
   }
+  syncQuickAccessEntries();
   closeQuickAccessModal();
   emitToast("保存成功");
 };
@@ -1708,6 +1752,20 @@ watch(
     if (!enabled) {
       deleteSessionPreviewEndChecked.value = false;
     }
+  }
+);
+
+watch(
+  () => quickAccessForm.actionType,
+  (actionType) => {
+    syncQuickAccessActionType(actionType);
+  }
+);
+
+watch(
+  () => welcomeBtnForm.actionType,
+  (actionType) => {
+    syncWelcomeBtnActionType(actionType);
   }
 );
 

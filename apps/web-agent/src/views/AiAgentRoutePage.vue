@@ -491,15 +491,52 @@
     />
 
     <teleport to="body">
+      <div v-if="showFaqAddModal" class="faq-confirm-overlay" @click.self="closeFaqAddModal">
+        <div class="faq-add-modal">
+          <button type="button" class="faq-add-modal__close" @click="closeFaqAddModal">&times;</button>
+          <h3 class="faq-add-modal__title">添加问题</h3>
+
+          <div class="faq-add-modal__field">
+            <label class="faq-add-modal__label"><span class="faq-add-modal__required">*</span> 提问</label>
+            <input v-model="faqAddQuestion" class="agent-input faq-add-modal__input" placeholder="请输入" />
+          </div>
+
+          <div class="faq-add-modal__field">
+            <label class="faq-add-modal__label">相似问题</label>
+            <div class="faq-add-modal__similar-row">
+              <input v-model="faqAddSimilarInput" class="agent-input faq-add-modal__input" placeholder="添加相似问题" @keydown.enter.prevent="addSimilarQuestion" />
+              <button type="button" class="agent-btn faq-add-modal__similar-btn" @click="addSimilarQuestion">+ 添加</button>
+            </div>
+            <div v-if="faqAddSimilarList.length > 0" class="faq-add-modal__similar-list">
+              <div v-for="(item, idx) in faqAddSimilarList" :key="idx" class="faq-add-modal__similar-item">
+                <span class="faq-add-modal__similar-text">{{ item }}</span>
+                <button type="button" class="faq-add-modal__similar-del" @click="faqAddSimilarList.splice(idx, 1)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-add-modal__field">
+            <label class="faq-add-modal__label"><span class="faq-add-modal__required">*</span> 回答</label>
+            <textarea v-model="faqAddAnswer" class="agent-input faq-add-modal__textarea" placeholder="请输入" rows="5" />
+          </div>
+
+          <button
+            type="button"
+            class="agent-btn agent-btn--primary faq-add-modal__save"
+            :disabled="!faqAddQuestion.trim() || !faqAddAnswer.trim()"
+            @click="saveFaqAdd"
+          >保存</button>
+        </div>
+      </div>
+
       <div v-if="faqDeleteConfirm" class="faq-confirm-overlay" @click.self="faqDeleteConfirm = null">
         <div class="faq-confirm-modal">
           <h3 class="faq-confirm-modal__title">删除常见问题</h3>
           <p class="faq-confirm-modal__body">
-            该常见问题已关联以下快捷入口，删除后这些快捷入口也将同步删除：
+            该常见问题已关联 {{ faqDeleteConfirm.linkedNames.length }} 个快捷入口，删除后将同步删除所有关联内容，是否确认删除？
           </p>
-          <ul class="faq-confirm-modal__list">
-            <li v-for="name in faqDeleteConfirm.linkedNames" :key="name">{{ name }}</li>
-          </ul>
           <div class="faq-confirm-modal__footer">
             <button class="agent-btn" @click="faqDeleteConfirm = null">取消</button>
             <button class="agent-btn agent-btn--danger" @click="doDeleteFaq(faqDeleteConfirm!.item.id)">确认删除</button>
@@ -513,6 +550,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { CopilotPromoBanner, CopilotSettingItem } from "@twt/ui-agent";
+import { getWidgetQuickAccessItems, useTenant } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 import {
@@ -603,10 +641,33 @@ const filteredDocList = computed(() => {
 
 const showFaqBanner = ref(true);
 const faqSearchQuery = ref("");
+const showFaqAddModal = ref(false);
+const faqAddQuestion = ref("");
+const faqAddAnswer = ref("");
+const faqAddSimilarInput = ref("");
+const faqAddSimilarList = ref<string[]>([]);
 
 const faqList = ref<FaqItem[]>(loadFaqList());
 
 const faqDeleteConfirm = ref<{ item: FaqItem; linkedNames: string[] } | null>(null);
+const tenant = useTenant();
+
+const getLinkedQuickAccessNames = (faqId: number): string[] => {
+  const localEntries = getQuickAccessByFaqId(faqId);
+  const tenantEntries = getWidgetQuickAccessItems(tenant)
+    .filter((item) => item.actionType === "message" && item.faqId === String(faqId))
+    .map((item) => ({ id: item.id, label: item.label, faqId: String(faqId) }));
+  const seen = new Set<string>();
+
+  return [...localEntries, ...tenantEntries]
+    .filter((entry) => {
+      const key = `${entry.id}:${entry.faqId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((entry) => entry.label);
+};
 
 const filteredFaqList = computed(() => {
   const query = faqSearchQuery.value.trim().toLowerCase();
@@ -630,7 +691,41 @@ const guardedDocAdd = () => {
 };
 const guardedFaqAdd = () => {
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
-  emitToast('功能开发中');
+  faqAddQuestion.value = "";
+  faqAddAnswer.value = "";
+  faqAddSimilarInput.value = "";
+  faqAddSimilarList.value = [];
+  showFaqAddModal.value = true;
+};
+
+const closeFaqAddModal = () => {
+  showFaqAddModal.value = false;
+};
+
+const addSimilarQuestion = () => {
+  const val = faqAddSimilarInput.value.trim();
+  if (!val) return;
+  faqAddSimilarList.value.push(val);
+  faqAddSimilarInput.value = "";
+};
+
+const saveFaqAdd = () => {
+  if (!faqAddQuestion.value.trim() || !faqAddAnswer.value.trim()) return;
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const updatedAt = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const newItem: FaqItem = {
+    id: Date.now(),
+    question: faqAddQuestion.value.trim(),
+    answer: faqAddAnswer.value.trim(),
+    updatedAt,
+    statusType: "pending",
+    statusLabel: "训练中"
+  };
+  faqList.value = [newItem, ...faqList.value];
+  saveFaqList(faqList.value);
+  showFaqAddModal.value = false;
+  emitToast("添加成功");
 };
 
 const closeKnowledgeActionMenus = () => {
@@ -665,9 +760,9 @@ const handleFaqAction = (action: "edit" | "delete", item: FaqItem) => {
   closeKnowledgeActionMenus();
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
   if (action === "delete") {
-    const linked = getQuickAccessByFaqId(item.id);
-    if (linked.length > 0) {
-      faqDeleteConfirm.value = { item, linkedNames: linked.map(e => e.label) };
+    const linkedNames = getLinkedQuickAccessNames(item.id);
+    if (linkedNames.length > 0) {
+      faqDeleteConfirm.value = { item, linkedNames };
       return;
     }
     doDeleteFaq(item.id);
@@ -1838,6 +1933,135 @@ onMounted(() => {
   .agent-config-header__actions {
     width: 100%;
   }
+}
+
+.faq-add-modal {
+  background: #fff;
+  border-radius: var(--agent-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-20);
+  max-width: 460px;
+  padding: var(--agent-space-24);
+  position: relative;
+  width: 90%;
+}
+
+.faq-add-modal__close {
+  background: none;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+.faq-add-modal__close:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.faq-add-modal__title {
+  font-size: 18px;
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0;
+}
+
+.faq-add-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+}
+
+.faq-add-modal__label {
+  align-items: center;
+  color: var(--agent-color-text-primary);
+  display: flex;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+  gap: 4px;
+}
+
+.faq-add-modal__required {
+  color: #e53e3e;
+}
+
+.faq-add-modal__input {
+  width: 100%;
+}
+
+.faq-add-modal__textarea {
+  min-height: 100px;
+  resize: vertical;
+  width: 100%;
+}
+
+.faq-add-modal__similar-row {
+  display: flex;
+  gap: var(--agent-space-8);
+}
+
+.faq-add-modal__similar-row .agent-input {
+  flex: 1;
+}
+
+.faq-add-modal__similar-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.faq-add-modal__similar-list {
+  background: var(--agent-color-bg-muted);
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--agent-space-8);
+  min-height: 60px;
+  padding: var(--agent-space-12);
+}
+
+.faq-add-modal__similar-item {
+  align-items: center;
+  background: #fff;
+  border-radius: var(--agent-radius-md);
+  display: flex;
+  gap: var(--agent-space-8);
+  padding: 8px 12px;
+}
+
+.faq-add-modal__similar-text {
+  flex: 1;
+  font-size: var(--agent-font-size-sm);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.faq-add-modal__similar-del {
+  background: none;
+  border: 0;
+  color: var(--agent-color-text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.faq-add-modal__similar-del:hover {
+  color: var(--agent-color-text-primary);
+}
+
+.faq-add-modal__save {
+  width: 100%;
+}
+
+.faq-add-modal__save:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .faq-confirm-overlay {
