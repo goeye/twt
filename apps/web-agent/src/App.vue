@@ -509,6 +509,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <span class="detail-history-title">历史会话</span>
+            <a href="/visitors" class="detail-history-archive-link">查看完整档案</a>
           </header>
           <div class="detail-pane__content agent-scroll">
             <div
@@ -525,9 +526,7 @@
                 <template v-if="item.agentName">
                   <span class="detail-session-card__avatar">{{ item.agentName[0] }}</span>
                   <span>{{ item.agentName }}</span>
-                  <span class="detail-session-card__sep">·</span>
                 </template>
-                <span class="detail-session-card__visitor">访客: Tom</span>
               </div>
               <div v-if="item.tags && item.tags.length" class="detail-session-card__tags">
                 <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="detail-session-card__tag">{{ tag }}</span>
@@ -5884,6 +5883,16 @@ onBeforeUnmount(() => {
 }
 
 .detail-pane__topbar--history { justify-content: flex-start; }
+
+.detail-history-archive-link {
+  color: var(--agent-color-brand-primary, #2F6BFF);
+  font-size: 12px;
+  margin-left: auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.detail-history-archive-link:hover { text-decoration: underline; }
 
 .detail-session-card {
   background: var(--agent-color-bg-panel);

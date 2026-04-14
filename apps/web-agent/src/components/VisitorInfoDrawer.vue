@@ -12,9 +12,12 @@
               </button>
               <h2 class="visitor-drawer__title">{{ viewTitle }}</h2>
             </div>
-            <button type="button" class="visitor-drawer__close" aria-label="关闭" @click="$emit('close')">
-              <span>&times;</span>
-            </button>
+            <div class="visitor-drawer__header-right">
+              <a v-if="view === 'sessions'" href="/visitors" class="visitor-drawer__archive-link">查看完整档案</a>
+              <button type="button" class="visitor-drawer__close" aria-label="关闭" @click="$emit('close')">
+                <span>&times;</span>
+              </button>
+            </div>
           </header>
 
           <!-- 主视图 -->
@@ -193,7 +196,6 @@
                   <span class="vd-session-card__agent-avatar">{{ item.agentName[0] }}</span>
                   <span class="vd-session-card__agent">{{ item.agentName }}</span>
                 </template>
-                <span class="vd-session-card__visitor">{{ visitor.name || visitor.remark || '–' }}</span>
               </div>
               <div v-if="item.tags.length" class="vd-session-card__tags">
                 <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="vd-session-card__tag">{{ tag }}</span>
@@ -432,6 +434,23 @@ const mockSessions: SessionItem[] = [
 
 .visitor-drawer__close:hover {
   background: rgba(17, 17, 17, 0.06);
+}
+
+.visitor-drawer__header-right {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.visitor-drawer__archive-link {
+  color: var(--agent-color-brand-primary, #2F6BFF);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.visitor-drawer__archive-link:hover {
+  text-decoration: underline;
 }
 
 .visitor-drawer__content {
