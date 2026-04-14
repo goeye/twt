@@ -108,14 +108,11 @@
                   </span>
                   <span class="wc-quick-tag__label">添加</span>
                 </button>
-                <div v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag" :class="{ 'wc-quick-tag--invalid': item.actionType === 'message' && item.faqId && !isFaqExists(item.faqId) }">
+                <div v-for="item in settings.quickAccessItems" :key="item.id" class="wc-quick-tag">
                   <span class="wc-quick-tag__icon" aria-hidden="true">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M4 8l8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
                   </span>
                   <span class="wc-quick-tag__label">{{ item.label }}</span>
-                  <span v-if="item.actionType === 'message' && item.faqId && !isFaqExists(item.faqId)" class="wc-quick-tag__warn" title="关联的常见问题已被删除，请重新配置" aria-label="警告">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 20h20L12 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
-                  </span>
                   <span class="wc-quick-tag__edit" aria-hidden="true" @click="editQuickAccess(item)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
                   </span>
@@ -936,7 +933,7 @@ import {
 } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
-import { getFaqOptions, isFaqExists } from "../lib/faqData";
+import { getFaqOptions, saveQuickAccessEntries } from "../lib/faqData";
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
 
@@ -976,6 +973,11 @@ const emit = defineEmits<{
 const emitToast = (msg: string) => emit("toast", msg);
 
 const autoSave = () => {
+  saveQuickAccessEntries(
+    settings.quickAccessItems
+      .filter(i => i.actionType === 'message' && i.faqId)
+      .map(i => ({ id: i.id, label: i.label, faqId: i.faqId! }))
+  );
   emitToast("保存成功");
 };
 
@@ -1313,10 +1315,7 @@ const settings = reactive({
   positionOffsetX: 20,
   positionOffsetY: 20,
   hideBrandLogo: false,
-  quickAccessItems: [
-    ...getWidgetQuickAccessItems(tenant),
-    { id: 'qa-mock-invalid', label: '常见问题示例', url: '', actionType: 'message' as const, faqId: '99999' }
-  ] as QuickAccessItem[],
+  quickAccessItems: getWidgetQuickAccessItems(tenant) as QuickAccessItem[],
   enableSessionForm: true,
   formTitle: {
     en: "Welcome! Please fill in the information.",
@@ -2344,40 +2343,6 @@ watch(previewMode, (mode) => {
 
 .wc-quick-tag__remove:hover {
   background: #9ca3af;
-}
-
-.wc-quick-tag--invalid {
-  border-color: var(--agent-color-status-warning, #f59e0b);
-}
-
-.wc-quick-tag__warn {
-  align-items: center;
-  color: var(--agent-color-status-warning, #f59e0b);
-  cursor: default;
-  display: inline-flex;
-  position: relative;
-}
-
-.wc-quick-tag__warn::after {
-  background: #1f2937;
-  border-radius: 4px;
-  bottom: calc(100% + 6px);
-  color: #fff;
-  content: "关联的常见问题已被删除，请重新配置";
-  font-size: 11px;
-  left: 50%;
-  opacity: 0;
-  padding: 4px 8px;
-  pointer-events: none;
-  position: absolute;
-  transform: translateX(-50%);
-  transition: opacity 0.15s;
-  white-space: nowrap;
-  z-index: var(--agent-z-dropdown, 100);
-}
-
-.wc-quick-tag__warn:hover::after {
-  opacity: 1;
 }
 
 /* Reply section */

@@ -489,6 +489,24 @@
       @close="cropModalOpen = false"
       @confirm="handleCroppedImage"
     />
+
+    <teleport to="body">
+      <div v-if="faqDeleteConfirm" class="faq-confirm-overlay" @click.self="faqDeleteConfirm = null">
+        <div class="faq-confirm-modal">
+          <h3 class="faq-confirm-modal__title">删除常见问题</h3>
+          <p class="faq-confirm-modal__body">
+            该常见问题已关联以下快捷入口，删除后这些快捷入口也将同步删除：
+          </p>
+          <ul class="faq-confirm-modal__list">
+            <li v-for="name in faqDeleteConfirm.linkedNames" :key="name">{{ name }}</li>
+          </ul>
+          <div class="faq-confirm-modal__footer">
+            <button class="agent-btn" @click="faqDeleteConfirm = null">取消</button>
+            <button class="agent-btn agent-btn--danger" @click="doDeleteFaq(faqDeleteConfirm!.item.id)">确认删除</button>
+          </div>
+        </div>
+      </div>
+    </teleport>
   </section>
 </template>
 
@@ -502,7 +520,7 @@ import {
   loadStoredAiAgentSettings,
   persistStoredAiAgentSettings
 } from "../lib/aiAgentSettings";
-import { type FaqItem, loadFaqList, saveFaqList } from "../lib/faqData";
+import { type FaqItem, loadFaqList, saveFaqList, getQuickAccessByFaqId, saveQuickAccessEntries } from "../lib/faqData";
 import AiAgentDeployFlow from "../components/ai-agent/AiAgentDeployFlow.vue";
 import AiAgentImageCropModal from "../components/ai-agent/AiAgentImageCropModal.vue";
 
@@ -588,6 +606,8 @@ const faqSearchQuery = ref("");
 
 const faqList = ref<FaqItem[]>(loadFaqList());
 
+const faqDeleteConfirm = ref<{ item: FaqItem; linkedNames: string[] } | null>(null);
+
 const filteredFaqList = computed(() => {
   const query = faqSearchQuery.value.trim().toLowerCase();
   if (!query) return faqList.value;
@@ -645,12 +665,24 @@ const handleFaqAction = (action: "edit" | "delete", item: FaqItem) => {
   closeKnowledgeActionMenus();
   if (!guardFeature(FEATURES.FAQ_KNOWLEDGE)) return;
   if (action === "delete") {
-    faqList.value = faqList.value.filter((faq) => faq.id !== item.id);
-    saveFaqList(faqList.value);
-    emitToast("删除成功");
+    const linked = getQuickAccessByFaqId(item.id);
+    if (linked.length > 0) {
+      faqDeleteConfirm.value = { item, linkedNames: linked.map(e => e.label) };
+      return;
+    }
+    doDeleteFaq(item.id);
     return;
   }
   emitToast("编辑功能开发中");
+};
+
+const doDeleteFaq = (id: number) => {
+  faqList.value = faqList.value.filter((faq) => faq.id !== id);
+  saveFaqList(faqList.value);
+  const allEntries: { id: string; label: string; faqId: string }[] = JSON.parse(localStorage.getItem("twt_quick_access_items") || "[]");
+  saveQuickAccessEntries(allEntries.filter(e => e.faqId !== String(id)));
+  faqDeleteConfirm.value = null;
+  emitToast("删除成功");
 };
 
 /** Copilot 设置项 key → 功能 key 映射 */
@@ -1806,5 +1838,51 @@ onMounted(() => {
   .agent-config-header__actions {
     width: 100%;
   }
+}
+
+.faq-confirm-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: var(--agent-z-modal, 200);
+}
+
+.faq-confirm-modal {
+  background: #fff;
+  border-radius: var(--agent-radius-lg);
+  max-width: 400px;
+  padding: var(--agent-space-24);
+  width: 90%;
+}
+
+.faq-confirm-modal__title {
+  font-size: var(--agent-font-size-md);
+  font-weight: var(--agent-font-weight-semibold);
+  margin: 0 0 var(--agent-space-12);
+}
+
+.faq-confirm-modal__body {
+  color: var(--agent-color-text-secondary);
+  font-size: var(--agent-font-size-sm);
+  margin: 0 0 var(--agent-space-8);
+}
+
+.faq-confirm-modal__list {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  margin: 0 0 var(--agent-space-20);
+  padding-left: var(--agent-space-16);
+}
+
+.faq-confirm-modal__footer {
+  display: flex;
+  gap: var(--agent-space-8);
+  justify-content: flex-end;
 }
 </style>
