@@ -509,7 +509,12 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <span class="detail-history-title">历史会话</span>
-            <a href="/visitors" class="detail-history-archive-link">查看完整详情</a>
+            <RouterLink
+              :to="{ path: '/files', query: { tab: 'all-conversations' } }"
+              class="detail-history-archive-link"
+            >
+              查看完整详情
+            </RouterLink>
           </header>
           <div class="detail-pane__content agent-scroll">
             <div
@@ -3419,6 +3424,15 @@ const resolveScopedKey = <T extends string>(current: string, validKeys: readonly
   validKeys.includes(current as T) ? (current as T) : fallback
 );
 
+const getSingleQueryValue = (value: unknown) => (
+  Array.isArray(value) ? value[0] : value
+);
+
+const resolveFilesRouteTab = (fallback: FilesNavKey) => {
+  const routeTab = getSingleQueryValue(route.query.tab);
+  return validFilesNavKeys.includes(routeTab as FilesNavKey) ? routeTab as FilesNavKey : fallback;
+};
+
 const getDefaultSettingsKey = () => validSettingsNavKeys.value[0] ?? defaultSettingsNavKey;
 
 const syncRouteScopedState = (
@@ -3437,9 +3451,10 @@ const syncRouteScopedState = (
   }
 
   if (routeName === "files") {
-    activeFilesNavKey.value = options.forceDefault
+    const fallbackKey = options.forceDefault
       ? defaultFilesNavKey
       : resolveScopedKey(activeFilesNavKey.value, validFilesNavKeys, defaultFilesNavKey);
+    activeFilesNavKey.value = resolveFilesRouteTab(fallbackKey);
     return;
   }
 
@@ -3561,9 +3576,29 @@ const handleQueueSelect = (key: string) => {
 };
 
 const handleFilesNavSelect = (key: string) => {
-  if (validFilesNavKeys.includes(key as FilesNavKey)) {
-    activeFilesNavKey.value = key as FilesNavKey;
+  if (!validFilesNavKeys.includes(key as FilesNavKey)) {
+    return;
   }
+
+  const nextKey = key as FilesNavKey;
+  activeFilesNavKey.value = nextKey;
+
+  if (!isFilesRoute.value) {
+    return;
+  }
+
+  const currentTab = getSingleQueryValue(route.query.tab);
+  if (currentTab === nextKey) {
+    return;
+  }
+
+  router.replace({
+    path: "/files",
+    query: {
+      ...route.query,
+      tab: nextKey
+    }
+  });
 };
 
 const handleVisitorsNavSelect = (key: string) => {
@@ -4254,6 +4289,15 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => route.query.tab,
+  () => {
+    if (isFilesRoute.value) {
+      syncRouteScopedState("files");
+    }
+  }
 );
 
 watch(
