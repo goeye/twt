@@ -62,9 +62,9 @@
             <div class="help-dropdown">
               <a href="#" class="help-trigger">{{ t.helpSupport }} <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
               <div class="help-menu">
-                <a href="/updates" target="_blank">{{ t.productUpdates }}</a>
                 <a href="#">{{ t.faq }}</a>
                 <a href="#">{{ t.tutorials }}</a>
+                <a href="/updates" target="_blank">{{ t.productUpdates }}</a>
               </div>
             </div>
           </div>

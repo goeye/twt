@@ -13,7 +13,7 @@
    - 第一行：简洁概括本次改动（不超过 50 个字）
    - 空一行
    - 后续行：用 `- ` 列出每个文件的主要改动点
-   - 最后加上 `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`
+   - 最后加上 `Co-Authored-By: Claude Opus 4.6`
 7. 执行 `git commit`（用 HEREDOC 传递 message）
 8. 执行 `git push` 推送到远程
 9. 用简洁的中文告知用户提交结果

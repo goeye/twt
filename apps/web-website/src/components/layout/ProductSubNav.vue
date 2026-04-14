@@ -39,9 +39,9 @@
                 </svg>
               </button>
               <div class="product-subnav__menu">
-                <RouterLink to="/updates">{{ t.productUpdates }}</RouterLink>
                 <RouterLink to="/help-center">{{ t.helpCenter }}</RouterLink>
                 <RouterLink to="/developer-docs">{{ t.devDocs }}</RouterLink>
+                <RouterLink to="/updates">{{ t.productUpdates }}</RouterLink>
               </div>
             </div>
           </div>
