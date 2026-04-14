@@ -18,7 +18,8 @@
           </header>
 
           <!-- 主视图 -->
-          <div v-if="view === 'main'" class="visitor-drawer__content agent-scroll">
+          <template v-if="view === 'main'">
+            <div class="visitor-drawer__content agent-scroll">
             <!-- 基础信息 -->
             <section class="vd-section">
               <button type="button" class="vd-section__header" @click="toggleSection('basic')">
@@ -169,6 +170,11 @@
               </div>
             </section>
           </div>
+          <footer class="vd-main-footer">
+            <button type="button" class="vd-main-footer__btn vd-main-footer__btn--secondary">发起聊天</button>
+            <button type="button" class="vd-main-footer__btn vd-main-footer__btn--primary">创建会话</button>
+          </footer>
+          </template>
 
           <!-- 会话列表视图 -->
           <div v-else-if="view === 'sessions'" class="visitor-drawer__content agent-scroll">
@@ -187,7 +193,7 @@
                   <span class="vd-session-card__agent-avatar">{{ item.agentName[0] }}</span>
                   <span class="vd-session-card__agent">{{ item.agentName }}</span>
                 </template>
-                <span class="vd-session-card__visitor">访客：{{ visitor.name || visitor.remark || '–' }}</span>
+                <span class="vd-session-card__visitor">{{ visitor.name || visitor.remark || '–' }}</span>
               </div>
               <div v-if="item.tags.length" class="vd-session-card__tags">
                 <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="vd-session-card__tag">{{ tag }}</span>
@@ -415,6 +421,7 @@ const mockSessions: SessionItem[] = [
   color: #111111;
   cursor: pointer;
   display: inline-flex;
+  flex-shrink: 0;
   font-size: 22px;
   font-weight: 500;
   height: 30px;
@@ -751,6 +758,10 @@ const mockSessions: SessionItem[] = [
   width: 20px;
 }
 
+.vd-session-card__meta-sep {
+  color: #c5cdd8;
+}
+
 .vd-session-card__tags {
   display: flex;
   flex-wrap: wrap;
@@ -876,5 +887,32 @@ const mockSessions: SessionItem[] = [
   border: 1px solid #e7ebf0;
   color: var(--agent-color-brand-primary);
   width: 100%;
+}
+
+.vd-main-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0 4px;
+}
+
+.vd-main-footer__btn {
+  border-radius: 22px;
+  cursor: pointer;
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  height: 36px;
+}
+
+.vd-main-footer__btn--secondary {
+  background: #f5f6f8;
+  border: 1px solid #e7ebf0;
+  color: var(--agent-color-text-primary);
+}
+
+.vd-main-footer__btn--primary {
+  background: var(--agent-color-brand-primary);
+  border: 1px solid var(--agent-color-brand-primary);
+  color: #fff;
 }
 </style>
