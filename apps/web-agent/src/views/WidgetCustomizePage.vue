@@ -933,7 +933,7 @@ import {
 } from "@twt/branding";
 import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
-import { getFaqOptions, isFaqExists } from "../lib/faqData";
+import { getFaqOptions, saveQuickAccessEntries } from "../lib/faqData";
 
 type LangKey = "en" | "zh-cn" | "zh-tw";
 
@@ -973,6 +973,11 @@ const emit = defineEmits<{
 const emitToast = (msg: string) => emit("toast", msg);
 
 const autoSave = () => {
+  saveQuickAccessEntries(
+    settings.quickAccessItems
+      .filter(i => i.actionType === 'message' && i.faqId)
+      .map(i => ({ id: i.id, label: i.label, faqId: i.faqId! }))
+  );
   emitToast("保存成功");
 };
 

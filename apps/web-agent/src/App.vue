@@ -509,6 +509,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <span class="detail-history-title">历史会话</span>
+            <a href="/visitors" class="detail-history-archive-link">查看完整详情</a>
           </header>
           <div class="detail-pane__content agent-scroll">
             <div
@@ -527,6 +528,9 @@
                   <span>{{ item.agentName }}</span>
                 </template>
               </div>
+              <div v-if="item.tags && item.tags.length" class="detail-session-card__tags">
+                <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="detail-session-card__tag">{{ tag }}</span>
+              </div>
             </div>
           </div>
         </template>
@@ -541,7 +545,7 @@
           </header>
           <div class="detail-pane__content agent-scroll detail-history-messages">
             <div
-              v-for="msg in detailActiveSession.messages"
+              v-for="msg in detailActiveSession.messages.filter(m => !(m.role === 'system' && m.content === '会话已关闭'))"
               :key="msg.id"
               class="detail-msg"
               :class="`detail-msg--${msg.role}`"
@@ -2588,12 +2592,12 @@ const collapsedDetailSections = ref<string[]>([]);
 const detailHistoryView = ref<"main" | "sessions" | "detail">("main");
 const detailActiveSession = ref<{ id: number; title: string; status: string; statusType: string; agentName?: string; messages: { id: string; role: string; sender: string; content: string; time: string; avatarText?: string; avatarColor?: string }[] } | null>(null);
 const detailMockSessions = [
-  { id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
-  { id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" }] },
-  { id: 3, title: "退款申请", status: "排队中", statusType: "queueing", messages: [{ id: "m1", role: "system", sender: "", content: "等待分配", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" }] },
-  { id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" }] },
-  { id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
-  { id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", tags: ["支付", "紧急"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", tags: ["产品"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" }] },
+  { id: 3, title: "退款申请", status: "排队中", statusType: "queueing", tags: ["退款"], messages: [{ id: "m1", role: "system", sender: "", content: "等待分配", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", tags: ["技术"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
 ];
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
@@ -5878,6 +5882,18 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
+.detail-pane__topbar--history { justify-content: flex-start; }
+
+.detail-history-archive-link {
+  color: var(--agent-color-brand-primary, #2F6BFF);
+  font-size: 12px;
+  margin-left: auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.detail-history-archive-link:hover { text-decoration: underline; }
+
 .detail-session-card {
   background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
@@ -5941,6 +5957,39 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 18px;
 }
+
+.detail-session-card__sep { color: #c5cdd8; }
+
+.detail-session-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.detail-session-card__tag {
+  background: transparent;
+  border: 1px solid #c5cdd8;
+  border-radius: 999px;
+  color: var(--agent-color-text-tertiary);
+  font-size: 11px;
+  padding: 1px 8px;
+}
+
+.detail-history-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  margin-left: auto;
+  width: 26px;
+}
+
+.detail-history-close:hover { background: rgba(17,17,17,0.06); }
 
 /* 历史会话消息 */
 .detail-history-messages {
@@ -6008,7 +6057,7 @@ onBeforeUnmount(() => {
 .detail-msg--agent .detail-msg__bubble { background: var(--agent-color-brand-soft); }
 
 /* 历史会话底部操作 */
-.detail-history-footer { padding-top: 4px; }
+.detail-history-footer { padding: 8px 12px 12px; }
 
 .detail-history-footer__dual {
   display: flex;
