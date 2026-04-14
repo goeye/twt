@@ -509,7 +509,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <span class="detail-history-title">历史会话</span>
-            <a href="/visitors" class="detail-history-archive-link">查看完整档案</a>
+            <a href="/visitors" class="detail-history-archive-link">查看完整详情</a>
           </header>
           <div class="detail-pane__content agent-scroll">
             <div

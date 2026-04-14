@@ -13,7 +13,7 @@
               <h2 class="visitor-drawer__title">{{ viewTitle }}</h2>
             </div>
             <div class="visitor-drawer__header-right">
-              <a v-if="view === 'sessions'" href="/visitors" class="visitor-drawer__archive-link">查看完整档案</a>
+              <a v-if="view === 'sessions'" href="/visitors" class="visitor-drawer__archive-link">查看完整详情</a>
               <button type="button" class="visitor-drawer__close" aria-label="关闭" @click="$emit('close')">
                 <span>&times;</span>
               </button>
