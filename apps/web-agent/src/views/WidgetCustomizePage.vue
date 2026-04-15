@@ -124,22 +124,12 @@
           </div>
         </article>
 
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'display' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('display')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">官方标识</h3>
-              <p class="wc-card__desc">控制聊天小部件底部 Powered by Chat 标识的展示</p>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'display'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">隐藏官方标识</span>
-              </div>
-              <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
-            </div>
+        <article class="wc-flat-card">
+          <div class="wc-flat-card__text">
+            <h3 class="wc-card__title">隐藏官方标识</h3>
+            <p class="wc-card__desc">控制聊天小部件底部 Powered by Chat 标识的展示</p>
           </div>
+          <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
         </article>
 
       </div>
@@ -153,7 +143,6 @@
               <p class="wc-card__desc">{{ block.desc }}</p>
             </div>
             <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop @update:model-value="autoSave" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body">
               <div class="wc-rich-editor">
@@ -203,7 +192,6 @@
               <p class="wc-card__desc">会话评价作为快捷入口始终可见，评价需会话已创建且非排队中</p>
             </div>
             <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
               <div class="wc-rich-editor">
@@ -229,7 +217,6 @@
               <p class="wc-card__desc">在访客开始会话之前收集必要的信息，帮助客服更好地提供服务</p>
             </div>
             <AgentSwitch v-model="settings.enableSessionForm" @click.stop @update:model-value="autoSave" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
@@ -380,40 +367,20 @@
           </div>
         </article>
 
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'queueReminder' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('queueReminder')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">排队提醒</h3>
-              <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'queueReminder'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">显示排队信息</span>
-              </div>
-              <AgentSwitch v-model="settings.showQueuePosition" @update:model-value="autoSave" />
-            </div>
+        <article class="wc-flat-card">
+          <div class="wc-flat-card__text">
+            <h3 class="wc-card__title">排队提醒</h3>
+            <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
           </div>
+          <AgentSwitch :model-value="settings.showQueuePosition" @update:model-value="(v) => { settings.showQueuePosition = v; if (v) previewMode.value = 'chat'; autoSave(); }" />
         </article>
 
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'proactiveInvite' }">
-          <button type="button" class="wc-accordion__trigger" @click="toggleSection('proactiveInvite')">
-            <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">主动会话提醒</h3>
-              <p class="wc-card__desc">客服主动创建会话时，在聊天图标上方展示消息气泡</p>
-            </div>
-            <span class="wc-accordion__chevron" />
-          </button>
-          <div v-if="openSection === 'proactiveInvite'" class="wc-accordion__body">
-            <div class="wc-switch-row">
-              <div class="wc-switch-row__text">
-                <span class="wc-switch-label">开启主动会话提醒</span>
-              </div>
-              <AgentSwitch v-model="settings.enableProactiveInvite" @update:model-value="autoSave" />
-            </div>
+        <article class="wc-flat-card">
+          <div class="wc-flat-card__text">
+            <h3 class="wc-card__title">主动会话提醒</h3>
+            <p class="wc-card__desc">客服主动创建会话时，在聊天图标上方展示消息气泡</p>
           </div>
+          <AgentSwitch :model-value="settings.enableProactiveInvite" @update:model-value="(v) => { settings.enableProactiveInvite = v; if (v) previewMode.value = 'minimized'; autoSave(); }" />
         </article>
 
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorInactive' }">
@@ -422,7 +389,6 @@
               <h3 class="wc-card__title">访客不活跃</h3>
             </div>
             <AgentSwitch v-model="settings.enableVisitorInactive" @click.stop @update:model-value="autoSave" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'visitorInactive' && settings.enableVisitorInactive" class="wc-accordion__body">
             <div class="wc-visitor-inactive-row">
@@ -431,15 +397,6 @@
                 <TimeDurationInput v-model="settings.visitorInactiveSeconds" @update:model-value="autoSave" />
                 <span>未回复客服消息时，会话会自动关闭</span>
               </div>
-            </div>
-            <div class="wc-inactive-pending-panel">
-              <label class="wc-session-feature-limit">
-                <input v-model="settings.visitorInactiveIncludePending" type="checkbox" class="wc-session-feature-limit__checkbox" @change="autoSave" />
-                <div class="wc-session-feature-limit__text">
-                  <span class="wc-session-feature-limit__title">包含待处理会话</span>
-                  <span class="wc-session-feature-limit__desc">开启后，待处理状态的会话也会因访客不活跃而自动关闭</span>
-                </div>
-              </label>
             </div>
           </div>
         </article>
@@ -698,8 +655,15 @@
         <div v-else class="wc-widget-fab" :style="widgetPositionStyle" @click="restoreWidget">
           <div v-if="settings.enableProactiveInvite" class="wc-invite-bubble-wrap" @click.stop>
             <button type="button" class="wc-invite-bubble__close">&times;</button>
-            <div class="wc-invite-bubble">
-              <p class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
+            <div class="wc-invite-bubble" :class="{ 'wc-invite-bubble--agent': settings.sessionTitleMode === 'agent' }">
+              <template v-if="settings.sessionTitleMode === 'agent'">
+                <img :src="DEFAULT_AVATAR" class="wc-invite-bubble__avatar" alt="" />
+                <div class="wc-invite-bubble__agent-body">
+                  <span class="wc-invite-bubble__agent-name">客服</span>
+                  <p class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
+                </div>
+              </template>
+              <p v-else class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
             </div>
           </div>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1909,6 +1873,20 @@ watch(previewMode, (mode) => {
 }
 
 /* ── Accordion ── */
+.wc-flat-card {
+  align-items: center;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 14px;
+  display: flex;
+  gap: var(--agent-space-12);
+  padding: var(--agent-space-16) var(--agent-space-20);
+}
+
+.wc-flat-card__text {
+  flex: 1;
+}
+
 .wc-accordion {
   background: var(--agent-color-bg-panel);
   border: 1px solid var(--agent-color-border-default);
@@ -4203,6 +4181,28 @@ watch(previewMode, (mode) => {
   align-items: center;
   justify-content: center;
   padding: 0;
+}
+.wc-invite-bubble--agent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.wc-invite-bubble__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.wc-invite-bubble__agent-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wc-invite-bubble__agent-name {
+  font-size: 12px;
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 .wc-invite-bubble__text {
   font-size: 14px;
