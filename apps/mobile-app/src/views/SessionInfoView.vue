@@ -174,10 +174,20 @@
 
         <div class="section-label-row">
           <p class="section-label">服务客服</p>
-          <button class="section-action" @click="handleAddAgent">+ 添加</button>
+          <button v-if="!isReadonly" class="section-action" @click="handleAddAgent">+ 添加</button>
         </div>
         <div class="card">
-          <template v-for="(agent, idx) in serviceAgents" :key="agent.name">
+          <template v-if="isAutopilot">            <div class="agent-row">
+              <div class="agent-avatar-color" style="background: #105eff">
+                <span class="agent-avatar-char">A</span>
+              </div>
+              <div class="agent-info">
+                <span class="agent-name">Autopilot</span>
+                <span class="agent-badge">会话负责人</span>
+              </div>
+            </div>
+          </template>
+          <template v-else v-for="(agent, idx) in serviceAgents" :key="agent.name">
             <div class="card-divider" v-if="idx > 0" />
             <div class="agent-row">
               <img v-if="agent.avatar" :src="agent.avatar" class="agent-avatar" />
@@ -190,8 +200,8 @@
               </div>
             </div>
           </template>
-          <div class="card-divider" />
-          <button class="transfer-btn" @click="handleTransfer">
+          <div class="card-divider" v-if="!isReadonly" />
+          <button v-if="!isReadonly" class="transfer-btn" @click="handleTransfer">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M6 2L10 6L6 10" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M10 6H2" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" />
@@ -216,6 +226,8 @@ import { useRouter, useRoute } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 const activeTab = ref<"visitor" | "session">((route.query.tab as string) === "session" ? "session" : "visitor");
+const isAutopilot = route.query.autopilot === '1';
+const isReadonly = isAutopilot || route.query.readonly === '1';
 
 interface ServiceAgent {
   name: string;
@@ -305,12 +317,12 @@ function showToast(text: string) {
 
 function handleAddAgent() {
   const id = route.params.id || '1';
-  router.push(`/session/${id}/add-agent`);
+  router.push(`/session/${id}/add-agent?from=session`);
 }
 
 function handleTransfer() {
   const id = route.params.id || '1';
-  router.push(`/session/${id}/transfer`);
+  router.push(`/session/${id}/transfer?from=session`);
 }
 
 function handleAddTags() {

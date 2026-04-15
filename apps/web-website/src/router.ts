@@ -55,6 +55,12 @@ const router = createRouter({
       name: "email-preview-autopilot",
       component: () => import("./views/EmailPreviewAutopilotPage.vue"),
     },
+    {
+      path: "/link",
+      name: "link",
+      component: () => import("./views/LinkPage.vue"),
+      meta: { marketing: true },
+    },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
   scrollBehavior(_to, _from, savedPosition) {

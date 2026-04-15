@@ -113,7 +113,7 @@
               </svg>
               <span>会话信息</span>
             </button>
-            <button class="action-sheet-item" @click="handleTogglePending">
+            <button v-if="sessionStatus !== 'closed'" class="action-sheet-item" @click="handleTogglePending">
               <svg class="action-sheet-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <circle cx="9" cy="9" r="7" stroke="#222" stroke-width="1.4" />
                 <path d="M9 5V9L11.5 11.5" stroke="#222" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
@@ -360,7 +360,9 @@ function handleTogglePending() {
 function handleGoInfo(tab: string) {
   showActionSheet.value = false;
   const id = route.params.id || '1';
-  router.push({ path: `/session/${id}/info`, query: { tab } });
+  const query: Record<string, string> = { tab };
+  if (isAutopilotSession.value || sessionStatus.value === 'closed') query.readonly = '1';
+  router.push({ path: `/session/${id}/info`, query });
 }
 
 function handleJoinSession() {

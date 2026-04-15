@@ -2,7 +2,7 @@
   <div class="transfer-page">
     <!-- 导航栏 -->
     <div class="nav-bar">
-      <button class="nav-back" @click="router.back()">
+      <button class="nav-back" @click="goBack()">
         <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
           <path d="M9 1L1 9L9 17" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
@@ -103,6 +103,11 @@ const filteredAgents = computed(() => {
   if (!kw) return sortedAgents.value;
   return sortedAgents.value.filter(a => a.name.toLowerCase().includes(kw));
 });
+
+function goBack() {
+  const id = route.params.id || "1";
+  router.replace({ path: `/session/${id}/info`, query: { tab: "session" } });
+}
 
 function handleConfirmTransfer() {
   if (!transferTarget.value) return;

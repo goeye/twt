@@ -157,13 +157,11 @@ function handleBack() {
 function handleViewParticipants() {
   showActionSheet.value = false;
   showToast('查看参与人');
-  // TODO: 跳转到参与人列表页面
 }
 
 function handleViewTags() {
   showActionSheet.value = false;
   showToast('查看标签');
-  // TODO: 跳转到标签页面
 }
 </script>
 
