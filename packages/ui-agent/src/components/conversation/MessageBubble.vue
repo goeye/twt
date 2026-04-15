@@ -141,8 +141,7 @@
               {{ translation.result }}
             </div>
             <div v-else-if="translation.status === 'failed'" class="message__translation-error">
-              <span>翻译失败</span>
-              <button type="button" class="message__translation-retry" @click="$emit('retry-translation')">点击重试</button>
+              <button type="button" class="message__translation-retry" @click="$emit('retry-translation')">重试</button>
             </div>
           </div>
         </div>
@@ -912,7 +911,7 @@ const parsedEmail = computed(() => {
   cursor: pointer;
   font-size: var(--agent-font-size-sm);
   padding: 0;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .message__bubble--note {

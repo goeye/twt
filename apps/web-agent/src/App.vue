@@ -1270,7 +1270,7 @@ const navRoutePathMap: Record<string, string> = {
 };
 
 const defaultQueueKey = "pending-reply";
-const defaultAiNavKey: AiAgentNavKey = "copilot-settings";
+const defaultAiNavKey: AiAgentNavKey = "faq";
 const defaultSettingsNavKey: SettingsNavKey = "install";
 const defaultCampaignNavKey: CampaignNavKey = "campaign-chatting";
 const defaultReportNavKey: ReportNavKey = "data-overview";
@@ -2489,6 +2489,7 @@ watch(() => route.name, (newRouteName) => {
   if (newRouteName && typeof newRouteName === "string") {
     syncRouteScopedState(newRouteName, { forceDefault: true });
   }
+  detailHistoryView.value = "main";
 }, { immediate: false });
 
 const activeMainNav = computed(() => {
@@ -3167,6 +3168,7 @@ watch(activeSessionId, () => {
   if (searchMatchIds.value.length > 0) {
     scrollToMessage(searchMatchIds.value[0]);
   }
+  detailHistoryView.value = "main";
 });
 
 

@@ -878,7 +878,7 @@ const resolvedActiveKey = computed<AiAgentNavKey>(() => {
   if (props.activeKey === "doc-knowledge" || props.activeKey === "faq" || props.activeKey === "ai-agent-config") {
     return props.activeKey;
   }
-  return "copilot-settings";
+  return "faq";
 });
 
 const activeSectionLabel = computed(() => {
