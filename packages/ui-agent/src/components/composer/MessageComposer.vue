@@ -6,20 +6,20 @@
       <!-- 边写边译区域 -->
       <div v-if="liveTranslate && !noteMode" class="composer__live-translate">
         <div class="composer__live-lang-wrap" ref="liveLangWrapRef">
-          <button class="composer__live-lang" type="button" @click="toggleLangPanel">{{ currentLang.code }}</button>
-          <div v-if="langPanelOpen" class="composer__lang-panel" ref="langPanelRef">
+          <button class="composer__live-lang" type="button" @click="toggleLiveLangPanel">{{ currentLiveLang.code }}</button>
+          <div v-if="liveLangPanelOpen" class="composer__lang-panel" ref="langPanelRef">
             <div class="composer__lang-hint">将输入内容翻译为</div>
             <button
               v-for="lang in LANGUAGES"
               :key="lang.code"
               class="composer__lang-item"
-              :class="{ 'composer__lang-item--active': translateLang === lang.code }"
+              :class="{ 'composer__lang-item--active': liveTranslateLang === lang.code }"
               type="button"
-              @click="selectLang(lang.code)"
+              @click="selectLang('live', lang.code)"
             >
               <span class="composer__lang-code">{{ lang.code }}</span>
               <span>{{ lang.name }}</span>
-              <svg v-if="translateLang === lang.code" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg v-if="liveTranslateLang === lang.code" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
           </div>
         </div>
@@ -75,18 +75,50 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </button>
           <div v-if="translatePanelOpen" class="composer__translate-panel" ref="translatePanelRef">
-            <div class="composer__translate-row">
-              <span class="composer__translate-label">边写边译</span>
-              <button class="composer__toggle" :class="{ 'composer__toggle--on': liveTranslate }" type="button" @click="liveTranslate = !liveTranslate" />
+            <div class="composer__translate-group">
+              <div class="composer__translate-row">
+                <span class="composer__translate-label">边写边译</span>
+                <button class="composer__toggle" :class="{ 'composer__toggle--on': liveTranslate }" type="button" @click="liveTranslate = !liveTranslate" />
+              </div>
+              <div
+                v-if="liveTranslate"
+                class="composer__translate-row composer__translate-row--lang"
+                @click="togglePanelLangMenu('live')"
+              >
+                <span class="composer__translate-label">翻译为</span>
+                <span class="composer__translate-lang-val">{{ currentLiveLang.name }} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+              </div>
             </div>
-            <div class="composer__translate-row">
-              <span class="composer__translate-label">聊天翻译</span>
-              <button class="composer__toggle" :class="{ 'composer__toggle--on': chatTranslate }" type="button" @click="chatTranslate = !chatTranslate" />
+            <div class="composer__translate-divider" />
+            <div class="composer__translate-group">
+              <div class="composer__translate-row">
+                <span class="composer__translate-label">聊天翻译</span>
+                <button class="composer__toggle" :class="{ 'composer__toggle--on': chatTranslate }" type="button" @click="chatTranslate = !chatTranslate" />
+              </div>
+              <div
+                v-if="chatTranslate"
+                class="composer__translate-row composer__translate-row--lang"
+                @click="togglePanelLangMenu('chat')"
+              >
+                <span class="composer__translate-label">翻译为</span>
+                <span class="composer__translate-lang-val">{{ currentChatLang.name }} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+              </div>
             </div>
-            <div v-if="chatTranslate" class="composer__translate-row composer__translate-row--lang" @click="openLangPanel">
-              <span class="composer__translate-label">翻译为</span>
-              <span class="composer__translate-lang-val">{{ currentLang.name }} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-            </div>
+          </div>
+          <div v-if="panelLangMenu" class="composer__translate-flyout">
+            <button
+              v-for="lang in LANGUAGES"
+              :key="`${panelLangMenu}-${lang.code}`"
+              class="composer__translate-flyout-item"
+              :class="{
+                'composer__translate-flyout-item--active':
+                  panelLangMenu === 'live' ? liveTranslateLang === lang.code : chatTranslateLang === lang.code
+              }"
+              type="button"
+              @click.stop="selectLang(panelLangMenu, lang.code)"
+            >
+              {{ lang.name }}
+            </button>
           </div>
         </div>
         <button v-if="!noteMode" class="tool-icon" type="button" data-tooltip="远程协助" @click="$emit('cobrowse')">
@@ -128,6 +160,15 @@ import QuickReplyPanel from "./QuickReplyPanel.vue";
 import CopilotPanel from "./CopilotPanel.vue";
 import type { QuickReplyItem, QuickReplyCategory } from "../../types";
 
+type TranslationFeature = "live" | "chat";
+
+interface ComposerTranslationSettings {
+  liveTranslate: boolean;
+  liveTranslateLang: string;
+  chatTranslate: boolean;
+  chatTranslateLang: string;
+}
+
 const props = withDefaults(defineProps<{
   modelValue: string;
   placeholder?: string;
@@ -165,14 +206,16 @@ const LANGUAGES = [
   { code: 'de', name: '德语' },
   { code: 'pt', name: '葡萄牙语' },
   { code: 'ru', name: '俄语' },
-  { code: 'zh', name: '简体中文' },
-  { code: 'zh-Hant', name: '繁体中文' },
+  { code: 'zh-CN', name: '简体中文' },
+  { code: 'zh-TW', name: '繁体中文' },
 ];
 const translatePanelOpen = ref(false);
-const langPanelOpen = ref(false);
+const panelLangMenu = ref<TranslationFeature | null>(null);
+const liveLangPanelOpen = ref(false);
 const liveTranslate = ref(false);
-const chatTranslate = ref(false);
-const translateLang = ref('en');
+const chatTranslate = ref(true);
+const liveTranslateLang = ref('en');
+const chatTranslateLang = ref('zh-CN');
 const liveTranslatedText = ref('');
 const translateBtnRef = ref<HTMLElement | null>(null);
 const translatePanelRef = ref<HTMLElement | null>(null);
@@ -194,25 +237,85 @@ function handleCopilotSend(text: string) {
   copilotOpen.value = false;
 }
 
-const currentLang = computed(() => LANGUAGES.find(l => l.code === translateLang.value) || LANGUAGES[0]);
+const currentLiveLang = computed(() => LANGUAGES.find(l => l.code === liveTranslateLang.value) || LANGUAGES[0]);
+const currentChatLang = computed(() => LANGUAGES.find(l => l.code === chatTranslateLang.value) || LANGUAGES[0]);
+
+function getTranslationStorageKey(sessionId: string) {
+  return `composer-translation:${sessionId}`;
+}
+
+function loadTranslationSettings(sessionId?: string): ComposerTranslationSettings {
+  const defaults: ComposerTranslationSettings = {
+    liveTranslate: false,
+    liveTranslateLang: "en",
+    chatTranslate: true,
+    chatTranslateLang: "zh-CN",
+  };
+
+  if (!sessionId) return defaults;
+
+  try {
+    const raw = localStorage.getItem(getTranslationStorageKey(sessionId));
+    if (!raw) return defaults;
+
+    const parsed = JSON.parse(raw) as Partial<ComposerTranslationSettings>;
+    return {
+      liveTranslate: parsed.liveTranslate ?? defaults.liveTranslate,
+      liveTranslateLang: parsed.liveTranslateLang ?? defaults.liveTranslateLang,
+      chatTranslate: parsed.chatTranslate ?? defaults.chatTranslate,
+      chatTranslateLang: parsed.chatTranslateLang ?? defaults.chatTranslateLang,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
+function applyTranslationSettings(settings: ComposerTranslationSettings) {
+  liveTranslate.value = settings.liveTranslate;
+  liveTranslateLang.value = settings.liveTranslateLang;
+  chatTranslate.value = settings.chatTranslate;
+  chatTranslateLang.value = settings.chatTranslateLang;
+}
+
+function saveTranslationSettings(sessionId?: string) {
+  if (!sessionId) return;
+
+  try {
+    const payload: ComposerTranslationSettings = {
+      liveTranslate: liveTranslate.value,
+      liveTranslateLang: liveTranslateLang.value,
+      chatTranslate: chatTranslate.value,
+      chatTranslateLang: chatTranslateLang.value,
+    };
+    localStorage.setItem(getTranslationStorageKey(sessionId), JSON.stringify(payload));
+  } catch {
+    // 静默失败
+  }
+}
 
 function toggleTranslatePanel() {
   translatePanelOpen.value = !translatePanelOpen.value;
-  if (!translatePanelOpen.value) langPanelOpen.value = false;
+  if (!translatePanelOpen.value) panelLangMenu.value = null;
 }
 
-function openLangPanel() {
-  langPanelOpen.value = true;
-  translatePanelOpen.value = false;
+function togglePanelLangMenu(feature: TranslationFeature) {
+  liveLangPanelOpen.value = false;
+  panelLangMenu.value = panelLangMenu.value === feature ? null : feature;
 }
 
-function toggleLangPanel() {
-  langPanelOpen.value = !langPanelOpen.value;
+function toggleLiveLangPanel() {
+  panelLangMenu.value = null;
+  liveLangPanelOpen.value = !liveLangPanelOpen.value;
 }
 
-function selectLang(code: string) {
-  translateLang.value = code;
-  langPanelOpen.value = false;
+function selectLang(feature: TranslationFeature, code: string) {
+  if (feature === "live") {
+    liveTranslateLang.value = code;
+  } else {
+    chatTranslateLang.value = code;
+  }
+  panelLangMenu.value = null;
+  liveLangPanelOpen.value = false;
 }
 
 function sendLiveTranslation() {
@@ -232,7 +335,7 @@ watch(() => props.modelValue, (val) => {
   liveTranslatedText.value = val;
 });
 
-watch(translateLang, () => {
+watch(liveTranslateLang, () => {
   if (liveTranslate.value && props.modelValue.trim()) {
     liveTranslatedText.value = props.modelValue;
   }
@@ -284,27 +387,32 @@ function clearAttachments() {
   attachments.splice(0, attachments.length);
 }
 
-function storageKey(id: string) {
+function modeStorageKey(id: string) {
   return `composer-mode:${id}`;
 }
 
 const noteMode = ref(
-  props.sessionId ? localStorage.getItem(storageKey(props.sessionId)) === "note" : false
+  props.sessionId ? localStorage.getItem(modeStorageKey(props.sessionId)) === "note" : false
 );
 
 watch(() => props.sessionId, (id) => {
-  noteMode.value = id ? localStorage.getItem(storageKey(id)) === "note" : false;
-});
+  noteMode.value = id ? localStorage.getItem(modeStorageKey(id)) === "note" : false;
+  applyTranslationSettings(loadTranslationSettings(id));
+}, { immediate: true });
 
 watch(noteMode, (val) => {
   emit("mode-change", val ? "note" : "reply");
   if (props.sessionId) {
     if (val) {
-      localStorage.setItem(storageKey(props.sessionId), "note");
+      localStorage.setItem(modeStorageKey(props.sessionId), "note");
     } else {
-      localStorage.removeItem(storageKey(props.sessionId));
+      localStorage.removeItem(modeStorageKey(props.sessionId));
     }
   }
+});
+
+watch([liveTranslate, liveTranslateLang, chatTranslate, chatTranslateLang, () => props.sessionId], ([, , , , sessionId]) => {
+  saveTranslationSettings(sessionId);
 });
 
 function setMode(isNote: boolean) {
@@ -322,12 +430,13 @@ function handleClickOutside(e: MouseEvent) {
     translatePanelRef.value && !translatePanelRef.value.contains(e.target as Node)
   ) {
     translatePanelOpen.value = false;
+    panelLangMenu.value = null;
   }
   if (
-    langPanelOpen.value &&
+    liveLangPanelOpen.value &&
     liveLangWrapRef.value && !liveLangWrapRef.value.contains(e.target as Node)
   ) {
-    langPanelOpen.value = false;
+    liveLangPanelOpen.value = false;
   }
   if (copilotOpen.value && copilotBtnRef.value && !copilotBtnRef.value.contains(e.target as Node)) {
     copilotOpen.value = false;
@@ -640,6 +749,19 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   padding: 10px 16px;
 }
 
+.composer__translate-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.composer__translate-divider {
+  background: var(--agent-color-border-default);
+  height: 1px;
+  margin: 4px 12px;
+}
+
 .composer__translate-row--lang {
   cursor: pointer;
 }
@@ -659,6 +781,42 @@ function handleQuickReplySelect(item: QuickReplyItem) {
   display: inline-flex;
   font-size: var(--agent-font-size-sm);
   gap: 2px;
+}
+
+.composer__translate-flyout {
+  background: #fff;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: var(--agent-radius-lg);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  max-height: 320px;
+  min-width: 180px;
+  overflow-y: auto;
+  padding: 8px 0;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: calc(100% + 12px);
+  z-index: calc(var(--agent-z-dropdown) + 1);
+}
+
+.composer__translate-flyout-item {
+  background: transparent;
+  border: 0;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: block;
+  font-size: var(--agent-font-size-sm);
+  padding: 12px 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.composer__translate-flyout-item:hover {
+  background: var(--agent-color-bg-muted);
+}
+
+.composer__translate-flyout-item--active {
+  color: var(--agent-color-brand-primary);
+  font-weight: var(--agent-font-weight-medium);
 }
 
 /* Toggle 开关 */

@@ -944,7 +944,7 @@ const {
 
 const { versionState, doRefresh, dismissUpdate } = useVersionCheck();
 
-const { getSessionSwitch, setSessionSwitch, autoTranslateMessages, retryTranslation } = useTranslation();
+const { getSessionSwitch, setSessionSwitch, getSessionTargetLang, autoTranslateMessages, retryTranslation } = useTranslation();
 
 const permSwitcherOpen = ref(false);
 
@@ -2510,6 +2510,7 @@ watch(activeSessionId, async (newSessionId) => {
 
   const switchEnabled = getSessionSwitch(newSessionId);
   if (!switchEnabled) return;
+  const targetLang = getSessionTargetLang(newSessionId);
 
   const messages = messageMap.value[newSessionId] || [];
   if (messages.length === 0) return;
@@ -2517,7 +2518,7 @@ watch(activeSessionId, async (newSessionId) => {
   await autoTranslateMessages(
     newSessionId,
     messages,
-    'zh-CN',
+    targetLang,
     (messageId, translation) => {
       const sessionMessages = messageMap.value[newSessionId];
       if (!sessionMessages) return;
@@ -2533,11 +2534,12 @@ watch(activeSessionId, async (newSessionId) => {
 // 重试翻译
 async function handleRetryTranslation(messageId: string, content: string) {
   if (!activeSessionId.value) return;
+  const targetLang = getSessionTargetLang(activeSessionId.value);
 
   await retryTranslation(
     messageId,
     content,
-    'zh-CN',
+    targetLang,
     (translation) => {
       const sessionMessages = messageMap.value[activeSessionId.value];
       if (!sessionMessages) return;

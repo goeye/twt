@@ -1,0 +1,4 @@
+interface:
+  display_name: "PI Engine"
+  short_description: "Turn Requirement Specs into runnable frontend demos"
+  default_prompt: "Use $pi-engine to convert a Requirement Spec into a runnable frontend prototype with complete states and core interactions."
