@@ -31,7 +31,38 @@
 <span class="line"><span class="token punctuation">}</span><span class="token punctuation">)</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="动态设置语言" tabindex="-1">动态设置语言 <a class="header-anchor" href="#动态设置语言">#</a></h2>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="语言配置" tabindex="-1">语言配置 <a class="header-anchor" href="#语言配置">#</a></h2>
+<p>TWT Chat 小部件的界面语言通过 <code v-pre>window.__twt__config.lang</code> 指定，<strong>不自动检测浏览器语言</strong>。</p>
+<p>支持的语言代码：</p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>语言</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code v-pre>zh-cn</code></td>
+<td>简体中文（默认）</td>
+</tr>
+<tr>
+<td><code v-pre>zh-tw</code></td>
+<td>繁体中文</td>
+</tr>
+<tr>
+<td><code v-pre>en</code></td>
+<td>英文</td>
+</tr>
+</tbody>
+</table>
+<p>在安装代码的 <code v-pre>window.__twt__config</code> 中设置 <code v-pre>lang</code> 字段（见<a href="./installation">基础安装</a>）。</p>
+<p>如需根据用户偏好自动选择语言，在页面初始化时自行映射后写入 <code v-pre>lang</code>：</p>
+<div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js" data-title="js"><pre v-pre><code><span class="line"><span class="token keyword">const</span> langMap <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token string-property property">'zh-CN'</span><span class="token operator">:</span> <span class="token string">'zh-cn'</span><span class="token punctuation">,</span> <span class="token string-property property">'zh-TW'</span><span class="token operator">:</span> <span class="token string">'zh-tw'</span> <span class="token punctuation">}</span></span>
+<span class="line"><span class="token keyword">const</span> lang <span class="token operator">=</span> langMap<span class="token punctuation">[</span>navigator<span class="token punctuation">.</span>language<span class="token punctuation">]</span> <span class="token operator">??</span> <span class="token string">'en'</span></span>
+<span class="line">window<span class="token punctuation">.</span>__twt__config <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token literal-property property">appid</span><span class="token operator">:</span> <span class="token string">'YOUR_APPID'</span><span class="token punctuation">,</span> lang <span class="token punctuation">}</span></span>
+<span class="line"></span></code></pre>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="动态设置语言" tabindex="-1">动态设置语言 <a class="header-anchor" href="#动态设置语言">#</a></h2>
 <p>在运行时切换聊天组件的界面语言，无需重新加载页面。</p>
 <p>支持的语言代码：<code v-pre>zh-cn</code>（简体中文）、<code v-pre>zh-tw</code>（繁体中文）、<code v-pre>en</code>（英文）。</p>
 <div class="language-html line-numbers-mode" data-highlighter="prismjs" data-ext="html" data-title="html"><pre v-pre><code><span class="line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"></span>

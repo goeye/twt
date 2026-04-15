@@ -2,36 +2,26 @@
 
 通过 REST API 与 TWT Chat 平台进行深度集成，管理会话、发送消息、同步客户数据。
 
-## 基本信息
+## 能做什么
 
-| 项目 | 说明 |
-| --- | --- |
-| Base URL | `https://apichat.twt.com` |
-| 协议 | HTTPS |
-| 数据格式 | JSON |
-| 字符编码 | UTF-8 |
+- 服务端创建单聊或群聊会话，支持批量操作
+- 删除/解散会话，清理历史数据
+- 通过 HMAC-SHA256 签名鉴权，保障接口安全
 
-## 鉴权方式
+## 怎么做
 
-所有 API 请求需通过 HMAC-SHA256 签名鉴权，详见 [鉴权与签名](./authentication)。
+1. [鉴权与签名](./authentication) — 生成请求签名，所有接口必读
+2. 在线聊天接口 — [创建单聊](/api/chat/create-session)、[批量创建](/api/chat/create-session-batch)、[创建群聊](/api/chat/create-group)、[删除/解散](/api/chat/delete-session)
+3. [错误码参考](./error-codes) — 统一错误响应格式
 
-## API 模块
+**Base URL：** `https://apichat.twt.com`，HTTPS，JSON 格式。
 
-### 在线聊天
+## 能获得什么
 
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| [创建单聊](/api/chat/create-session) | POST | 创建单个聊天会话 |
-| [创建单聊-批量](/api/chat/create-session-batch) | POST | 批量创建单聊会话 |
-| [创建群聊-批量](/api/chat/create-group) | POST | 批量创建群聊会话 |
-| [删除单聊](/api/chat/delete-session) | POST | 删除单个聊天会话 |
-| [解散群聊](/api/chat/dissolve-group) | POST | 解散单个群聊 |
-| [批量解散群聊](/api/chat/dissolve-group-batch) | POST | 批量解散群聊 |
+- 将 TWT Chat 嵌入业务系统工作流，自动化会话管理
+- 服务端主动发起会话，无需等待访客触发
+- 与 CRM、工单系统深度集成
 
-## 错误处理
-
-所有 API 遵循统一的错误响应格式，详见 [错误码参考](./error-codes)。
-
-::: tip 开始使用
-还没有账号？[免费注册 TWT Chat](https://twt.com) 获取 API Key，3 分钟完成接入。
+::: tip 还没有账号？
+[免费注册 TWT Chat](https://twt.com) 获取 API Key，3 分钟完成接入。
 :::

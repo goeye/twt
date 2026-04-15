@@ -1,41 +1,26 @@
-<template><div><h1 id="概述" tabindex="-1">概述 <a class="header-anchor" href="#概述">#</a></h1>
-<p>TWT Chat 是一款在线客服 SaaS 平台，提供多种接入方式帮助你快速为网站和应用添加实时聊天能力。</p>
-<h2 id="接入方式" tabindex="-1">接入方式 <a class="header-anchor" href="#接入方式">#</a></h2>
-<table>
-<thead>
-<tr>
-<th>方式</th>
-<th>适用场景</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="/widget/" target="_blank" rel="noopener noreferrer">网站小部件</a></td>
-<td>自有网站</td>
-<td>在网页中嵌入聊天浮窗，访客无需离开页面即可发起咨询</td>
-</tr>
-<tr>
-<td><a href="/chat-page/" target="_blank" rel="noopener noreferrer">聊天页面</a></td>
-<td>邮件、App、社交媒体</td>
-<td>通过链接或自托管 HTML 打开独立聊天窗口</td>
-</tr>
-<tr>
-<td><a href="/webhooks/" target="_blank" rel="noopener noreferrer">Webhooks</a></td>
-<td>业务系统集成</td>
-<td>实时接收平台事件（如未回复消息），触发自动化流程</td>
-</tr>
-<tr>
-<td><a href="/api/" target="_blank" rel="noopener noreferrer">开放 API</a></td>
-<td>深度集成</td>
-<td>通过 REST API 创建会话、发送消息、管理客户数据</td>
-</tr>
-</tbody>
-</table>
+<template><div><h1 id="快速开始" tabindex="-1">快速开始 <a class="header-anchor" href="#快速开始">#</a></h1>
+<h2 id="能做什么" tabindex="-1">能做什么 <a class="header-anchor" href="#能做什么">#</a></h2>
+<ul>
+<li>在任意网页嵌入聊天浮窗，访客无需离开页面即可咨询</li>
+<li>将已登录用户的身份信息同步到客服工作台</li>
+<li>支持简体中文、繁体中文、英文三种界面语言</li>
+</ul>
+<h2 id="怎么做" tabindex="-1">怎么做 <a class="header-anchor" href="#怎么做">#</a></h2>
+<ol>
+<li>登录 TWT Chat 后台，进入 <strong>设置 &gt; 网站代码</strong>，复制安装代码</li>
+<li>将代码粘贴到网站每个页面的 <code v-pre>&lt;/body&gt;</code> 标签之前</li>
+<li>刷新页面，右下角出现聊天图标即接入成功</li>
+</ol>
+<p>详细步骤见 <a href="./quickstart">3 分钟接入</a>。</p>
+<h2 id="能获得什么" tabindex="-1">能获得什么 <a class="header-anchor" href="#能获得什么">#</a></h2>
+<ul>
+<li>网站上线聊天浮窗，访客可实时发起咨询</li>
+<li>客服在工作台中统一处理所有对话</li>
+<li>后续可通过 <a href="/widget/javascript-api" target="_blank" rel="noopener noreferrer">JavaScript API</a>、<a href="/api/" target="_blank" rel="noopener noreferrer">开放 API</a>、<a href="/webhooks/" target="_blank" rel="noopener noreferrer">Webhooks</a> 进行深度集成</li>
+</ul>
 <h2 id="前置条件" tabindex="-1">前置条件 <a class="header-anchor" href="#前置条件">#</a></h2>
 <ul>
-<li>已注册 TWT Chat 账号</li>
-<li>已在后台创建应用并获取 <code v-pre>appid</code></li>
+<li>已注册 TWT Chat 账号并获取 <code v-pre>appid</code></li>
 </ul>
 </div></template>
 

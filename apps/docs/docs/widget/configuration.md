@@ -41,6 +41,28 @@ window.addEventListener('__twt__custom_event', (e) => {
 </script>
 ```
 
+## 语言配置
+
+TWT Chat 小部件的界面语言通过 `window.__twt__config.lang` 指定，**不自动检测浏览器语言**。
+
+支持的语言代码：
+
+| 代码 | 语言 |
+| --- | --- |
+| `zh-cn` | 简体中文（默认） |
+| `zh-tw` | 繁体中文 |
+| `en` | 英文 |
+
+在安装代码的 `window.__twt__config` 中设置 `lang` 字段（见[基础安装](./installation)）。
+
+如需根据用户偏好自动选择语言，在页面初始化时自行映射后写入 `lang`：
+
+```js
+const langMap = { 'zh-CN': 'zh-cn', 'zh-TW': 'zh-tw' }
+const lang = langMap[navigator.language] ?? 'en'
+window.__twt__config = { appid: 'YOUR_APPID', lang }
+```
+
 ## 动态设置语言
 
 在运行时切换聊天组件的界面语言，无需重新加载页面。

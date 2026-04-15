@@ -1,6 +1,7 @@
 <template><div><h1 id="url-参数说明" tabindex="-1">URL 参数说明 <a class="header-anchor" href="#url-参数说明">#</a></h1>
 <p>通过 URL 参数可以自定义聊天页面的语言，以及将你系统中的客户信息同步到 TWT Chat。</p>
 <h2 id="语言参数" tabindex="-1">语言参数 <a class="header-anchor" href="#语言参数">#</a></h2>
+<p>聊天页面的界面语言通过 <code v-pre>?lang=</code> 参数指定，<strong>不自动检测浏览器语言</strong>，未传时默认显示简体中文（<code v-pre>zh-cn</code>）。</p>
 <p>在链接末尾追加 <code v-pre>?lang=</code> 参数切换界面语言：</p>
 <div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text" data-title="text"><pre v-pre><code><span class="line">https://visitorchat.twt.com/direct/{你的APPID}?lang=en</span>
 <span class="line"></span></code></pre>

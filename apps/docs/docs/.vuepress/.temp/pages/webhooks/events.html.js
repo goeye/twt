@@ -1,3 +1,16 @@
 import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/webhooks/events.html.vue"
 const data = JSON.parse("{\"path\":\"/webhooks/events.html\",\"title\":\"事件类型\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"UNREPLIED - 访客消息未回复\",\"slug\":\"unreplied-访客消息未回复\",\"link\":\"#unreplied-访客消息未回复\",\"children\":[{\"level\":3,\"title\":\"content 字段说明\",\"slug\":\"content-字段说明\",\"link\":\"#content-字段说明\",\"children\":[]},{\"level\":3,\"title\":\"完整示例\",\"slug\":\"完整示例\",\"link\":\"#完整示例\",\"children\":[]},{\"level\":3,\"title\":\"应用场景\",\"slug\":\"应用场景\",\"link\":\"#应用场景\",\"children\":[]}]}],\"git\":{\"updatedTime\":1776000882000},\"filePathRelative\":\"webhooks/events.md\"}")
 export { comp, data }
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept()
+  if (__VUE_HMR_RUNTIME__.updatePageData) {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  }
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(({ data }) => {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  })
+}

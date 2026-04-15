@@ -14,24 +14,30 @@ export default defineUserConfig({
     siteTitle: false,
     navbar: [
       { text: '快速开始', link: '/guide/quickstart' },
-      { text: '接口', link: '/api/' },
+      { text: '网站小部件', link: '/widget/' },
+      { text: '聊天页面', link: '/chat-page/' },
+      { text: '开放 API', link: '/api/' },
+      { text: 'Webhooks', link: '/webhooks/' },
       { text: 'TWT.com', link: 'https://twt.com' },
     ],
     sidebar: [
       {
         text: '快速开始',
         children: [
+          '/guide/README.md',
           '/guide/quickstart.md',
         ],
       },
       {
         text: '网站小部件',
         collapsible: true,
-        collapsed: true,
+        collapsed: false,
         children: [
+          '/widget/README.md',
           '/widget/installation.md',
           '/widget/configuration.md',
           '/widget/javascript-api.md',
+          '/widget/examples.md',
         ],
       },
       {
@@ -39,6 +45,7 @@ export default defineUserConfig({
         collapsible: true,
         collapsed: true,
         children: [
+          '/chat-page/README.md',
           '/chat-page/direct-link.md',
           '/chat-page/self-hosted.md',
           '/chat-page/parameters.md',
@@ -49,6 +56,7 @@ export default defineUserConfig({
         collapsible: true,
         collapsed: true,
         children: [
+          '/api/README.md',
           '/api/authentication.md',
           {
             text: '在线聊天',
@@ -71,13 +79,13 @@ export default defineUserConfig({
         collapsible: true,
         collapsed: true,
         children: [
+          '/webhooks/README.md',
           '/webhooks/setup.md',
           '/webhooks/signature.md',
           '/webhooks/events.md',
           '/webhooks/payload.md',
         ],
       },
-      '/examples.md',
     ],
     sidebarDepth: 0,
     editLink: false,

@@ -142,7 +142,7 @@
               <h3 class="wc-card__title">{{ block.title }}</h3>
               <p class="wc-card__desc">{{ block.desc }}</p>
             </div>
-            <AgentSwitch v-model="autoReplyToggles[block.key]" @click.stop @update:model-value="autoSave" />
+            <AgentSwitch :model-value="autoReplyToggles[block.key]" @click.stop @update:model-value="(enabled) => handleAutoReplyToggle(block.key, enabled)" />
           </button>
           <div v-if="openSection === block.key && autoReplyToggles[block.key]" class="wc-accordion__body">
               <div class="wc-rich-editor">
@@ -191,7 +191,7 @@
               <h3 class="wc-card__title">会话评价</h3>
               <p class="wc-card__desc">会话评价作为快捷入口始终可见，评价需会话已创建且非排队中</p>
             </div>
-            <AgentSwitch v-model="feedbackEnabled" @click.stop @update:model-value="autoSave" />
+            <AgentSwitch :model-value="feedbackEnabled" @click.stop @update:model-value="handleVisitorFeedbackToggle" />
           </button>
           <div v-if="openSection === 'visitorFeedback' && feedbackEnabled" class="wc-accordion__body">
               <div class="wc-rich-editor">
@@ -216,7 +216,7 @@
               <h3 class="wc-card__title">会话前表单</h3>
               <p class="wc-card__desc">在访客开始会话之前收集必要的信息，帮助客服更好地提供服务</p>
             </div>
-            <AgentSwitch v-model="settings.enableSessionForm" @click.stop @update:model-value="autoSave" />
+            <AgentSwitch :model-value="settings.enableSessionForm" @click.stop @update:model-value="handleSessionFormToggle" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
@@ -372,7 +372,7 @@
             <h3 class="wc-card__title">排队提醒</h3>
             <p class="wc-card__desc">访客进入排队时，消息顶部显示当前排队信息</p>
           </div>
-          <AgentSwitch :model-value="settings.showQueuePosition" @update:model-value="(v) => { settings.showQueuePosition = v; if (v) previewMode.value = 'chat'; autoSave(); }" />
+          <AgentSwitch :model-value="settings.showQueuePosition" @update:model-value="handleQueueReminderToggle" />
         </article>
 
         <article class="wc-flat-card">
@@ -380,7 +380,7 @@
             <h3 class="wc-card__title">主动会话提醒</h3>
             <p class="wc-card__desc">客服主动创建会话时，在聊天图标上方展示消息气泡</p>
           </div>
-          <AgentSwitch :model-value="settings.enableProactiveInvite" @update:model-value="(v) => { settings.enableProactiveInvite = v; if (v) previewMode.value = 'minimized'; autoSave(); }" />
+          <AgentSwitch :model-value="settings.enableProactiveInvite" @update:model-value="handleProactiveInviteToggle" />
         </article>
 
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'visitorInactive' }">
@@ -388,7 +388,7 @@
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">访客不活跃</h3>
             </div>
-            <AgentSwitch v-model="settings.enableVisitorInactive" @click.stop @update:model-value="autoSave" />
+            <AgentSwitch :model-value="settings.enableVisitorInactive" @click.stop @update:model-value="handleVisitorInactiveToggle" />
           </button>
           <div v-if="openSection === 'visitorInactive' && settings.enableVisitorInactive" class="wc-accordion__body">
             <div class="wc-visitor-inactive-row">
@@ -659,11 +659,11 @@
               <template v-if="settings.sessionTitleMode === 'agent'">
                 <img :src="DEFAULT_AVATAR" class="wc-invite-bubble__avatar" alt="" />
                 <div class="wc-invite-bubble__agent-body">
-                  <span class="wc-invite-bubble__agent-name">客服</span>
-                  <p class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
+                  <span class="wc-invite-bubble__agent-name">{{ proactiveInviteAgentName }}</span>
+                  <p class="wc-invite-bubble__text">{{ proactiveInviteMessage }}</p>
                 </div>
               </template>
-              <p v-else class="wc-invite-bubble__text">您好，有什么可以帮您？</p>
+              <p v-else class="wc-invite-bubble__text">{{ proactiveInviteMessage }}</p>
             </div>
           </div>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -961,12 +961,14 @@ const { guardFeature } = usePlan();
 
 const toggleHideBrandLogo = (val: boolean) => {
   if (val && !guardFeature(FEATURES.HIDE_BRANDING)) return;
+  collapseOtherExpandedSetting();
   settings.hideBrandLogo = val;
   autoSave();
 };
 
 const toggleHideContactUs = (val: boolean) => {
   if (val && !guardFeature(FEATURES.HIDE_CONTACT)) return;
+  collapseOtherExpandedSetting();
   settings.hideContactUs = val;
   autoSave();
 };
@@ -998,6 +1000,54 @@ const globalLang = ref<LangKey>("en");
 const previewMode = ref<PreviewMode>("sessionList");
 const previewModeBeforeMinimize = ref<PreviewMode>("sessionList");
 const openSection = ref<SectionKey>("brand");
+
+const collapseOtherExpandedSetting = (currentSection: SectionKey = null) => {
+  if (openSection.value && openSection.value !== currentSection) {
+    openSection.value = null;
+  }
+};
+
+const handleQueueReminderToggle = (enabled: boolean) => {
+  collapseOtherExpandedSetting();
+  settings.showQueuePosition = enabled;
+  if (enabled) {
+    previewMode.value = "chat";
+  }
+  autoSave();
+};
+
+const handleProactiveInviteToggle = (enabled: boolean) => {
+  collapseOtherExpandedSetting();
+  settings.enableProactiveInvite = enabled;
+  if (enabled) {
+    previewMode.value = "minimized";
+  }
+  autoSave();
+};
+
+const handleAutoReplyToggle = (key: AutoReplyKey, enabled: boolean) => {
+  collapseOtherExpandedSetting(key);
+  autoReplyToggles[key] = enabled;
+  autoSave();
+};
+
+const handleVisitorFeedbackToggle = (enabled: boolean) => {
+  collapseOtherExpandedSetting("visitorFeedback");
+  feedbackEnabled.value = enabled;
+  autoSave();
+};
+
+const handleSessionFormToggle = (enabled: boolean) => {
+  collapseOtherExpandedSetting("sessionForm");
+  settings.enableSessionForm = enabled;
+  autoSave();
+};
+
+const handleVisitorInactiveToggle = (enabled: boolean) => {
+  collapseOtherExpandedSetting("visitorInactive");
+  settings.enableVisitorInactive = enabled;
+  autoSave();
+};
 
 const autoReplyToggles = reactive<Record<AutoReplyKey, boolean>>({
   welcome: true, end: true, sessionOffline: true, chatOffline: true
@@ -1299,6 +1349,16 @@ const chatPreviewHeaderTitle = computed(() => {
   return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New conversation" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
 });
 
+const proactiveInviteAgentName = "Sarah";
+
+const proactiveInviteTexts: Record<LangKey, string> = {
+  en: "Hello, how can I help you?",
+  "zh-cn": "您好，有什么可以帮您？",
+  "zh-tw": "您好，有什麼可以幫您？"
+};
+
+const proactiveInviteMessage = computed(() => proactiveInviteTexts[globalLang.value]);
+
 const tenant = useTenant();
 
 const settings = reactive({
@@ -1350,8 +1410,8 @@ const aiGeneratedTitles: Record<LangKey, string> = {
 // 展示客服信息的标题（多语言）
 const agentSessionTitles: Record<LangKey, string> = {
   en: "Chat with Agent Sarah",
-  "zh-cn": "与客服小雨的会话",
-  "zh-tw": "與客服小雨的會話"
+  "zh-cn": "与 Sarah 的会话",
+  "zh-tw": "與 Sarah 的會話"
 };
 
 // 会话列表消息（多语言）
