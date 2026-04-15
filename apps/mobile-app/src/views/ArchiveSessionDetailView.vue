@@ -13,7 +13,7 @@
         </div>
         <span class="nav-title">{{ session.title }}</span>
       </div>
-      <button class="nav-more" @click="showActionSheet = true">
+      <button class="nav-more" @click="router.push(`/archive/session/${route.params.id}/info`)">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <circle cx="4" cy="10" r="1.5" fill="#222" />
           <circle cx="10" cy="10" r="1.5" fill="#222" />

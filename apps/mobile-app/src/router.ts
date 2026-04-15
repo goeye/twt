@@ -70,6 +70,12 @@ const router = createRouter({
       meta: { hideTabBar: true }
     },
     {
+      path: "/archive/session/:id/info",
+      name: "ArchiveSessionInfo",
+      component: () => import("./views/ArchiveSessionInfoView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
       path: "/archive/filters",
       name: "ArchiveFilters",
       component: () => import("./views/ArchiveFiltersView.vue"),

@@ -85,13 +85,6 @@
       <div v-if="showActionSheet" class="action-sheet-overlay" @click.self="showActionSheet = false">
         <div class="action-sheet">
           <div class="action-sheet-menu">
-            <button class="action-sheet-item" @click="handleEditTitle">
-              <svg class="action-sheet-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M12.75 2.25L15.75 5.25L6.75 14.25H3.75V11.25L12.75 2.25Z" stroke="#222" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="M10.5 4.5L13.5 7.5" stroke="#222" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <span>修改会话标题</span>
-            </button>
             <button class="action-sheet-item" @click="handleGoInfo('visitor')">
               <svg class="action-sheet-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <circle cx="9" cy="5.5" r="3" stroke="#222" stroke-width="1.4" />

@@ -174,7 +174,7 @@
 
         <div class="section-label-row">
           <p class="section-label">服务客服</p>
-          <button v-if="!isReadonly" class="section-action" @click="handleAddAgent">+ 添加</button>
+          <button v-if="!isReadonly" class="section-action" @click="handleTransfer">转移会话</button>
         </div>
         <div class="card">
           <template v-if="isAutopilot">            <div class="agent-row">
@@ -201,13 +201,11 @@
             </div>
           </template>
           <div class="card-divider" v-if="!isReadonly" />
-          <button v-if="!isReadonly" class="transfer-btn" @click="handleTransfer">
+          <button v-if="!isReadonly" class="transfer-btn" @click="handleAddAgent">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M6 2L10 6L6 10" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M10 6H2" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" />
-              <path d="M14 2V14" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" />
+              <path d="M8 1V11M3 6H13" stroke="#105eff" stroke-width="1.4" stroke-linecap="round" />
             </svg>
-            <span>转移会话</span>
+            <span>添加客服</span>
           </button>
         </div>
       </div>
