@@ -3,7 +3,8 @@
     class="agent-shell agent-reset"
     :class="{
       'agent-shell--with-detail': showDetail,
-      'agent-shell--without-subnav': hideSubnav
+      'agent-shell--without-subnav': hideSubnav,
+      'agent-shell--fixed-rail': fixedNavRail
     }"
   >
     <aside class="agent-shell__rail">
@@ -25,16 +26,22 @@
 defineProps<{
   showDetail?: boolean;
   hideSubnav?: boolean;
+  fixedNavRail?: boolean;
 }>();
 </script>
 
 <style scoped>
 .agent-shell {
+  --agent-shell-nav-rail-fixed-width: 200px;
   background: var(--agent-color-bg-page);
   display: grid;
   grid-template-columns: var(--agent-layout-nav-rail-width) var(--agent-layout-sub-nav-width) minmax(560px, 1fr);
   height: 100vh;
   width: 100%;
+}
+
+.agent-shell--fixed-rail {
+  grid-template-columns: var(--agent-shell-nav-rail-fixed-width) var(--agent-layout-sub-nav-width) minmax(560px, 1fr);
 }
 
 .agent-shell--with-detail {
@@ -43,12 +50,26 @@ defineProps<{
     );
 }
 
+.agent-shell--fixed-rail.agent-shell--with-detail {
+  grid-template-columns: var(--agent-shell-nav-rail-fixed-width) var(--agent-layout-sub-nav-width) minmax(560px, 1fr) var(
+      --agent-layout-detail-pane-width
+    );
+}
+
 .agent-shell--without-subnav {
   grid-template-columns: var(--agent-layout-nav-rail-width) minmax(560px, 1fr);
 }
 
+.agent-shell--fixed-rail.agent-shell--without-subnav {
+  grid-template-columns: var(--agent-shell-nav-rail-fixed-width) minmax(560px, 1fr);
+}
+
 .agent-shell--without-subnav.agent-shell--with-detail {
   grid-template-columns: var(--agent-layout-nav-rail-width) minmax(560px, 1fr) var(--agent-layout-detail-pane-width);
+}
+
+.agent-shell--fixed-rail.agent-shell--without-subnav.agent-shell--with-detail {
+  grid-template-columns: var(--agent-shell-nav-rail-fixed-width) minmax(560px, 1fr) var(--agent-layout-detail-pane-width);
 }
 
 .agent-shell__rail,
@@ -94,16 +115,32 @@ defineProps<{
     grid-template-columns: var(--agent-layout-nav-rail-width) var(--agent-layout-sub-nav-width) minmax(420px, 1fr);
   }
 
+  .agent-shell--fixed-rail {
+    grid-template-columns: var(--agent-shell-nav-rail-fixed-width) var(--agent-layout-sub-nav-width) minmax(420px, 1fr);
+  }
+
   .agent-shell--with-detail {
     grid-template-columns: var(--agent-layout-nav-rail-width) var(--agent-layout-sub-nav-width) minmax(420px, 1fr);
+  }
+
+  .agent-shell--fixed-rail.agent-shell--with-detail {
+    grid-template-columns: var(--agent-shell-nav-rail-fixed-width) var(--agent-layout-sub-nav-width) minmax(420px, 1fr);
   }
 
   .agent-shell--without-subnav {
     grid-template-columns: var(--agent-layout-nav-rail-width) minmax(420px, 1fr);
   }
 
+  .agent-shell--fixed-rail.agent-shell--without-subnav {
+    grid-template-columns: var(--agent-shell-nav-rail-fixed-width) minmax(420px, 1fr);
+  }
+
   .agent-shell--without-subnav.agent-shell--with-detail {
     grid-template-columns: var(--agent-layout-nav-rail-width) minmax(420px, 1fr);
+  }
+
+  .agent-shell--fixed-rail.agent-shell--without-subnav.agent-shell--with-detail {
+    grid-template-columns: var(--agent-shell-nav-rail-fixed-width) minmax(420px, 1fr);
   }
 }
 </style>

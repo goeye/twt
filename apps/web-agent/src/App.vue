@@ -1,7 +1,7 @@
 <template>
-  <AgentAppShell :key="currentShellRenderKey" :hide-subnav="isHomeRoute">
+  <AgentAppShell :key="currentShellRenderKey" :hide-subnav="isHomeRoute" :fixed-nav-rail="primaryNavPinned">
     <template #nav-rail>
-      <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" @select="handleMainNavSelect">
+      <PrimaryNavRail :active-key="activeMainNav" :items="mainNavItems" :pinned="primaryNavPinned" @select="handleMainNavSelect">
         <template #brand="{ expanded }">
           <div v-if="expanded" class="brand-expanded-wrap" @mouseenter="openProjectSwitcherHover" @mouseleave="closeProjectSwitcherHover">
             <div class="brand-expanded">
@@ -172,6 +172,18 @@
                     <span>语言</span>
                     <AgentIcon name="chevron-right" :size="14" class="profile-card-panel__action-arrow" />
                   </button>
+                  <div class="profile-card-panel__subsetting">
+                    <span class="profile-card-panel__subsetting-label">固定菜单</span>
+                    <button
+                      type="button"
+                      class="profile-card-panel__switch"
+                      :class="{ 'profile-card-panel__switch--on': primaryNavPinned }"
+                      :aria-label="primaryNavPinned ? '取消固定一级菜单' : '固定一级菜单'"
+                      @click="togglePrimaryNavPinned"
+                    >
+                      <span class="profile-card-panel__switch-thumb"></span>
+                    </button>
+                  </div>
                 </div>
                 <div class="profile-card-panel__section">
                   <button type="button" class="profile-card-panel__action profile-card-panel__action--danger" @click="handleProfileAction('logout')">退出</button>
@@ -256,12 +268,13 @@
       </section>
     </template>
 
-    <section v-if="isConversationRoute" :key="currentContentRenderKey" class="session-page agent-panel">
+    <section v-if="isConversationRoute" :key="currentContentRenderKey" class="session-page agent-panel" :class="{ 'session-page--detail-collapsed': !detailPaneOpen }">
       <aside class="inbox-pane">
         <header class="inbox-pane__header">
           <div class="inbox-pane__title-row">
             <button type="button" class="inbox-pane__back" aria-label="返回">‹</button>
             <h1 class="inbox-pane__title">{{ activeQueueEmoji }} {{ activeQueueLabel }}</h1>
+            <span v-if="showOnlineSessionScopeBadge" class="inbox-pane__scope-badge">{{ onlineSessionScopeLabel }}</span>
           </div>
 
           <div class="inbox-pane__search-row">
@@ -388,6 +401,8 @@
           :show-collaborate-actions="!isAiSession"
           :show-pending-action="!isAiSession"
           :show-close-action="!isAiSession"
+          :show-detail-toggle="!detailPaneOpen"
+          :detail-open="detailPaneOpen"
           :mode="chatHeaderMode"
           @close="handleOpenCloseSession"
           @invite="handleOpenInvite"
@@ -395,6 +410,7 @@
           @remove-pending="handleRemovePending"
           @close-email="handleOpenCloseEmailSession"
           @transfer="handleOpenTransfer"
+          @toggle-detail="toggleDetailPane"
           @update:title="updateSessionTitle"
           @start-group-chat="showTopToast('发起群聊功能开发中')"
           @add-member="showTopToast('添加成员功能开发中')"
@@ -501,7 +517,7 @@
         </template>
       </section>
 
-      <aside :key="currentDetailRenderKey" class="detail-pane">
+      <aside v-if="detailPaneOpen" :key="currentDetailRenderKey" class="detail-pane">
         <!-- 历史会话列表视图（覆盖整个面板） -->
         <template v-if="detailHistoryView === 'sessions'">
           <header class="detail-pane__topbar detail-pane__topbar--history">
@@ -601,7 +617,16 @@
               {{ tab.label }}
             </button>
           </div>
-          <button type="button" class="detail-pane__dock-btn" aria-label="面板操作" />
+          <div class="detail-pane__dock-btn-wrap">
+            <button
+              type="button"
+              class="detail-pane__dock-btn"
+              aria-label="隐藏详情"
+              title="隐藏详情"
+              @click="detailPaneOpen = false"
+            />
+            <span class="detail-pane__dock-tooltip">隐藏详情</span>
+          </div>
         </header>
         <div class="detail-pane__content agent-scroll">
           <!-- 主视图 -->
@@ -927,6 +952,9 @@ import {
   type QuickReplyCategory
 } from "@twt/ui-agent";
 
+const PRIMARY_NAV_PINNED_STORAGE_KEY = "web-agent-primary-nav-pinned";
+const DETAIL_PANE_OPEN_STORAGE_KEY = "web-agent-detail-pane-open";
+
 const { upgradeModalState, closeUpgradeModal, currentPlan, effectiveLevel, setPlanLevel, setExpired, canUse } = usePlan();
 
 const {
@@ -934,6 +962,7 @@ const {
   permissions: currentPermissions,
   currentMockRole,
   currentMockRoleLabel,
+  hasPermission,
   canShowNavItem,
   canShowSettingsGroup,
   canAccessRoute,
@@ -1052,6 +1081,64 @@ const handleProfileAction = (action: "account" | "password" | "notification" | "
   showTopToast(actionTextMap[action]);
 };
 
+const getStoredPrimaryNavPinned = () => {
+  if (typeof window === "undefined") return;
+  try {
+    return window.localStorage.getItem(PRIMARY_NAV_PINNED_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const getStoredDetailPaneOpen = () => {
+  if (typeof window === "undefined") return true;
+  try {
+    const storedValue = window.localStorage.getItem(DETAIL_PANE_OPEN_STORAGE_KEY);
+    if (storedValue === null) return true;
+    return storedValue === "1";
+  } catch {
+    return true;
+  }
+};
+
+const primaryNavPinned = ref(Boolean(getStoredPrimaryNavPinned()));
+const detailPaneOpen = ref(getStoredDetailPaneOpen());
+
+const persistPrimaryNavPinned = () => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PRIMARY_NAV_PINNED_STORAGE_KEY, primaryNavPinned.value ? "1" : "0");
+  } catch {
+    // ignore storage errors for prototype UI
+  }
+};
+
+const persistDetailPaneOpen = (isOpen: boolean) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DETAIL_PANE_OPEN_STORAGE_KEY, isOpen ? "1" : "0");
+  } catch {
+    // ignore storage errors for prototype UI
+  }
+};
+
+const togglePrimaryNavPinned = () => {
+  primaryNavPinned.value = !primaryNavPinned.value;
+  if (primaryNavPinned.value) {
+    detailPaneOpen.value = false;
+  }
+  persistPrimaryNavPinned();
+  showTopToast("操作成功");
+};
+
+watch(detailPaneOpen, (isOpen) => {
+  persistDetailPaneOpen(isOpen);
+});
+
+const toggleDetailPane = () => {
+  detailPaneOpen.value = !detailPaneOpen.value;
+};
+
 const planSwitcherLabel = computed(() => {
   if (currentPlan.isExpired) return '过期';
   return currentPlan.level === 'pro' ? 'PRO' : 'FREE';
@@ -1144,6 +1231,9 @@ const agentPool: AgentEntry[] = [
 ];
 
 const currentAgentName = "客服主管";
+const hasOnlineConversationAccess = computed(() => hasPermission("conversation-online"));
+const canViewAllOnlineSessions = computed(() => hasPermission("conversation-online-scope-all"));
+const canViewPersonalOnlineSessions = computed(() => hasPermission("conversation-online-scope-personal"));
 
 const translationLanguages = [
   { label: "英语", value: "en" },
@@ -1284,22 +1374,17 @@ const validReportNavKeys: ReportNavKey[] = ["data-overview", "ai-agent-report", 
 const validFilesNavKeys: FilesNavKey[] = ["all-conversations", "all-chats"];
 const validVisitorsNavKeys: VisitorsNavKey[] = ["online-visitors", "all-visitors"];
 const validCustomerNavKeys: CustomerNavKey[] = ["online-customer", "all-customer"];
+const onlineSessionQueueKeys = ["pending-reply", "queueing", "processing", "resolved"] as const;
 
 const settingsNavGroupsBase = [
   {
     key: "channel-group",
-    title: "渠道",
+    title: "安装",
     leadingEmoji: "⚙️",
     items: [
-      {
-        key: "live-chat",
-        label: "网页",
-        children: [
-          { key: "website-code", label: "网站代码" },
-          { key: "install", label: "聊天页面" },
-          { key: "customize", label: "自定义" }
-        ]
-      },
+      { key: "website-code", label: "网站代码" },
+      { key: "install", label: "聊天页面" },
+      { key: "customize", label: "自定义" },
       { key: "email", label: "Email" },
       { key: "telegram", label: "Telegram" }
     ]
@@ -1375,10 +1460,17 @@ const campaignNavGroups = [
   }
 ];
 
-const filesNavItems = [
+const filesNavItemsBase = [
   { key: "all-conversations", label: "会话记录", icon: "book" },
   { key: "all-chats", label: "聊天记录", icon: "conversation" }
 ];
+
+const filesNavItems = computed(() => filesNavItemsBase.filter((item) => {
+  if (item.key === "all-conversations") {
+    return hasPermission("archive-conversation");
+  }
+  return hasPermission("archive-chat");
+}));
 
 const visitorsNavItems = [
   { key: "online-visitors", label: "在线访客", icon: "visitors" },
@@ -1942,7 +2034,39 @@ const allSessions = ref<ConversationSession[]>([
   }
 ]);
 
-const displaySessions = computed(() => allSessions.value.filter((s) => !isNoReplySession(s)));
+const displaySessions = computed(() => allSessions.value.filter((session) => {
+  if (isNoReplySession(session)) {
+    return false;
+  }
+
+  if (!onlineSessionQueueKeys.includes(session.queueKey as typeof onlineSessionQueueKeys[number])) {
+    return true;
+  }
+
+  if (!hasOnlineConversationAccess.value) {
+    return false;
+  }
+
+  if (canViewAllOnlineSessions.value) {
+    return true;
+  }
+
+  if (!canViewPersonalOnlineSessions.value) {
+    return false;
+  }
+
+  if (session.queueKey === "queueing") {
+    return true;
+  }
+
+  return session.assignee === currentAgentName || session.assistants.includes(currentAgentName);
+}));
+
+const DEMO_MESSAGE_IMAGE_URL = "https://placehold.co/1200x800/e8f1ff/2f6bff?text=Membership+Benefits+Screenshot";
+const DEMO_MESSAGE_VIDEO_URL = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+const DEMO_MESSAGE_VIDEO_POSTER_URL = "https://placehold.co/1200x800/111827/f8fafc?text=VIP+Tutorial+Video";
+const DEMO_MESSAGE_BROKEN_VIDEO_URL = "https://example.invalid/media-preview-failed.mp4";
+const DEMO_MESSAGE_BROKEN_VIDEO_POSTER_URL = "https://placehold.co/1200x800/1e293b/f8fafc?text=Video+Preview+Failed";
 
 const messageMap = ref<Record<string, MessageItem[]>>({
   "s-6001": [
@@ -2010,18 +2134,42 @@ const messageMap = ref<Record<string, MessageItem[]>>({
       time: "10:42"
     },
     {
+      id: "m-108a",
+      role: "customer",
+      sender: "微微",
+      content: `<img src="${DEMO_MESSAGE_IMAGE_URL}" alt="会员权益页面截图" style="max-width:100%;border-radius:8px;border:1px solid #dbe5f6;" />`,
+      time: "10:43",
+      contentType: "html"
+    },
+    {
+      id: "m-108b",
+      role: "agent",
+      sender: "客服主管",
+      content: `<video src="${DEMO_MESSAGE_VIDEO_URL}" poster="${DEMO_MESSAGE_VIDEO_POSTER_URL}" title="铂金会员入口操作演示" preload="metadata" playsinline style="width:100%;max-width:320px;border-radius:8px;"></video>`,
+      time: "10:44",
+      contentType: "html"
+    },
+    {
+      id: "m-108c",
+      role: "agent",
+      sender: "客服主管",
+      content: `<video src="${DEMO_MESSAGE_BROKEN_VIDEO_URL}" poster="${DEMO_MESSAGE_BROKEN_VIDEO_POSTER_URL}" title="预览失败视频示例" preload="metadata" playsinline style="width:100%;max-width:320px;border-radius:8px;"></video>`,
+      time: "10:45",
+      contentType: "html"
+    },
+    {
       id: "m-109",
       role: "system",
       sender: "系统",
       content: "访客提交了评价：满意",
-      time: "10:43"
+      time: "10:46"
     },
     {
       id: "m-110",
       role: "agent",
       sender: "客服主管",
       content: "客户情绪较敏感，后续跟进时注意措辞，避免提及物流延误细节。",
-      time: "10:44",
+      time: "10:47",
       isNote: true
     }
   ],
@@ -2780,6 +2928,19 @@ const queueGroups = computed(() =>
   }))
 );
 
+const availableFilesNavKeys = computed<FilesNavKey[]>(() => (
+  filesNavItems.value
+    .map((item) => item.key)
+    .filter((key): key is FilesNavKey => validFilesNavKeys.includes(key as FilesNavKey))
+));
+
+watch(availableFilesNavKeys, (keys) => {
+  if (keys.length === 0) return;
+  if (!keys.includes(activeFilesNavKey.value)) {
+    activeFilesNavKey.value = keys[0];
+  }
+}, { immediate: true });
+
 const validQueueKeys = queueGroupSeed.flatMap((group) => group.items.map((item) => item.key));
 
 const canCollaborate = computed(() => activeSession.value?.queueKey !== "queueing" || activeSession.value?.claimed === true);
@@ -2900,6 +3061,13 @@ const isQueueingSessionClaimed = computed(() => isQueueingSession.value && activ
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
+const onlineSessionScopeLabel = computed(() => (
+  canViewAllOnlineSessions.value ? "全员数据" : "个人数据"
+));
+const showOnlineSessionScopeBadge = computed(() => (
+  hasOnlineConversationAccess.value &&
+  ["pending-reply", "queueing", "processing", "resolved", "all-online"].includes(activeQueueKey.value)
+));
 
 const currentSubnavRenderKey = computed(() => `subnav-${currentRouteName.value}`);
 const currentShellRenderKey = computed(() => `shell-${currentRouteName.value}`);
@@ -2931,10 +3099,8 @@ const currentModuleLabel = computed(() => {
   return item?.label ?? "模块";
 });
 
-// 从 seed 派生，避免与 queueGroupSeed 漂移；新增队列类型时自动包含
-const onlineQueueKeys = queueGroupSeed.find(g => g.key === "online-session")!.items.filter(i => i.key !== "all-online").map(i => i.key);
 const queueSessionList = computed(() => activeQueueKey.value === "all-online"
-  ? displaySessions.value.filter((s) => onlineQueueKeys.includes(s.queueKey))
+  ? displaySessions.value.filter((s) => onlineSessionQueueKeys.includes(s.queueKey as typeof onlineSessionQueueKeys[number]))
   : displaySessions.value.filter((s) => s.queueKey === activeQueueKey.value));
 
 watch(activeQueueKey, () => { sessionFilterType.value = "all"; searchFieldType.value = "all"; searchKeyword.value = ""; appliedSearchKeyword.value = ""; });
@@ -3437,6 +3603,8 @@ const resolveFilesRouteTab = (fallback: FilesNavKey) => {
   return validFilesNavKeys.includes(routeTab as FilesNavKey) ? routeTab as FilesNavKey : fallback;
 };
 
+const getDefaultFilesKey = () => availableFilesNavKeys.value[0] ?? defaultFilesNavKey;
+
 const getDefaultSettingsKey = () => validSettingsNavKeys.value[0] ?? defaultSettingsNavKey;
 
 const syncRouteScopedState = (
@@ -3455,10 +3623,12 @@ const syncRouteScopedState = (
   }
 
   if (routeName === "files") {
+    const visibleKeys = availableFilesNavKeys.value.length > 0 ? availableFilesNavKeys.value : validFilesNavKeys;
     const fallbackKey = options.forceDefault
-      ? defaultFilesNavKey
-      : resolveScopedKey(activeFilesNavKey.value, validFilesNavKeys, defaultFilesNavKey);
-    activeFilesNavKey.value = resolveFilesRouteTab(fallbackKey);
+      ? getDefaultFilesKey()
+      : resolveScopedKey(activeFilesNavKey.value, visibleKeys, getDefaultFilesKey());
+    const resolvedKey = resolveFilesRouteTab(fallbackKey);
+    activeFilesNavKey.value = visibleKeys.includes(resolvedKey) ? resolvedKey : getDefaultFilesKey();
     return;
   }
 
@@ -3580,7 +3750,7 @@ const handleQueueSelect = (key: string) => {
 };
 
 const handleFilesNavSelect = (key: string) => {
-  if (!validFilesNavKeys.includes(key as FilesNavKey)) {
+  if (!availableFilesNavKeys.value.includes(key as FilesNavKey)) {
     return;
   }
 
@@ -4051,9 +4221,10 @@ const handleSend = (isNote: boolean = false, attachments: { name: string; size: 
   let contentType: 'text' | 'html' = 'text';
   if (attachments.length > 0) {
     const attHtml = attachments.map(a => {
-      const ext = (a.name.split('.').pop() || '').toUpperCase();
       const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(a.name);
+      const isVideo = /\.(mp4|mov|webm|ogg|m4v)$/i.test(a.name);
       if (isImage) return `<img src="${a.objectUrl}" alt="${a.name}" style="max-width:100%;border-radius:8px;" />`;
+      if (isVideo) return `<video src="${a.objectUrl}" title="${a.name}" preload="metadata" playsinline style="width:100%;max-width:320px;border-radius:8px;"></video>`;
       return `<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:#f5f7fa;border:1px solid #e5e6eb;border-radius:8px;font-size:13px;">📎 ${a.name}</div>`;
     }).join('');
     content = text ? `<p>${text}</p>${attHtml}` : attHtml;
@@ -4839,11 +5010,11 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
-  height: 32px;
+  height: 22px;
   justify-content: flex-start;
-  padding: 4px;
+  padding: 2px;
   transition: background var(--agent-motion-fast);
-  width: 58px;
+  width: 38px;
 }
 
 .profile-card-panel__switch--on {
@@ -4854,14 +5025,14 @@ onBeforeUnmount(() => {
   background: var(--agent-color-bg-panel);
   border-radius: 50%;
   display: block;
-  height: 24px;
+  height: 18px;
   transform: translateX(0);
   transition: transform var(--agent-motion-fast);
-  width: 24px;
+  width: 18px;
 }
 
 .profile-card-panel__switch--on .profile-card-panel__switch-thumb {
-  transform: translateX(26px);
+  transform: translateX(16px);
 }
 
 .profile-card-panel__action {
@@ -4895,6 +5066,21 @@ onBeforeUnmount(() => {
 
 .profile-card-panel__action--danger {
   color: var(--agent-color-text-primary);
+}
+
+.profile-card-panel__subsetting {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  padding: 4px 0 1px;
+}
+
+.profile-card-panel__subsetting-label {
+  color: var(--agent-color-text-primary);
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-regular);
+  line-height: 1.4;
 }
 
 /* 版本切换器 */
@@ -5146,6 +5332,10 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.session-page--detail-collapsed {
+  grid-template-columns: minmax(320px, var(--agent-layout-inbox-pane-width)) minmax(520px, 1fr);
+}
+
 .inbox-pane {
   display: flex;
   flex-direction: column;
@@ -5188,6 +5378,18 @@ onBeforeUnmount(() => {
   font-weight: var(--agent-font-weight-semibold);
   line-height: 1.2;
   margin: 0;
+}
+
+.inbox-pane__scope-badge {
+  align-items: center;
+  background: var(--agent-color-brand-soft);
+  border-radius: 999px;
+  color: var(--agent-color-brand-primary);
+  display: inline-flex;
+  font-size: var(--agent-font-size-xs);
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
+  padding: 6px 10px;
 }
 
 .inbox-pane__search-row {
@@ -5755,6 +5957,13 @@ onBeforeUnmount(() => {
   width: 18px;
 }
 
+.detail-pane__dock-btn-wrap {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  position: relative;
+}
+
 .detail-pane__dock-btn::before {
   border: 1px solid var(--agent-color-text-secondary);
   content: "";
@@ -5763,6 +5972,28 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 4px;
   width: 8px;
+}
+
+.detail-pane__dock-tooltip {
+  background: var(--agent-color-text-primary);
+  border-radius: var(--agent-radius-sm);
+  color: var(--agent-color-bg-panel);
+  font-size: 12px;
+  left: 50%;
+  line-height: 1;
+  opacity: 0;
+  padding: 6px 8px;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  transition: opacity var(--agent-motion-fast) ease;
+  white-space: nowrap;
+  z-index: var(--agent-z-dropdown);
+}
+
+.detail-pane__dock-btn-wrap:hover .detail-pane__dock-tooltip {
+  opacity: 1;
 }
 
 .detail-pane__content {
@@ -6417,11 +6648,19 @@ onBeforeUnmount(() => {
   .session-page {
     grid-template-columns: minmax(300px, 340px) minmax(460px, 1fr) minmax(260px, 300px);
   }
+
+  .session-page--detail-collapsed {
+    grid-template-columns: minmax(300px, 340px) minmax(460px, 1fr);
+  }
 }
 
 @media (max-width: 1440px) {
   .session-page {
     grid-template-columns: minmax(280px, 320px) minmax(380px, 1fr) minmax(240px, 280px);
+  }
+
+  .session-page--detail-collapsed {
+    grid-template-columns: minmax(280px, 320px) minmax(380px, 1fr);
   }
 
   .inbox-pane__title {
@@ -6434,6 +6673,10 @@ onBeforeUnmount(() => {
     grid-template-columns: minmax(260px, 300px) minmax(340px, 1fr) minmax(220px, 260px);
   }
 
+  .session-page--detail-collapsed {
+    grid-template-columns: minmax(260px, 300px) minmax(340px, 1fr);
+  }
+
   .inbox-pane__title {
     font-size: 18px;
   }
@@ -6442,6 +6685,10 @@ onBeforeUnmount(() => {
 @media (max-width: 1100px) {
   .session-page {
     grid-template-columns: minmax(228px, 260px) minmax(300px, 1fr) minmax(200px, 228px);
+  }
+
+  .session-page--detail-collapsed {
+    grid-template-columns: minmax(228px, 260px) minmax(300px, 1fr);
   }
 
   .detail-pane__content {
@@ -6461,6 +6708,10 @@ onBeforeUnmount(() => {
 @media (max-width: 980px) {
   .session-page {
     grid-template-columns: minmax(210px, 236px) minmax(280px, 1fr) minmax(180px, 210px);
+  }
+
+  .session-page--detail-collapsed {
+    grid-template-columns: minmax(210px, 236px) minmax(280px, 1fr);
   }
 
   .inbox-pane__header,

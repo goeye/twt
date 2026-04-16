@@ -2,10 +2,9 @@
   <section class="files-page__card agent-panel">
     <header class="files-page__header">
       <h1 class="files-page__title">会话记录</h1>
-      <label class="archive-admin-toggle">
-        <input type="checkbox" v-model="isAdmin" class="archive-admin-toggle__checkbox" />
-        <span class="archive-admin-toggle__label">管理员视角</span>
-      </label>
+      <span class="archive-scope-badge" :class="{ 'archive-scope-badge--all': canViewAllArchiveConversationData }">
+        {{ archiveConversationScopeLabel }}
+      </span>
     </header>
 
     <section class="files-page__summary summary-banner">
@@ -298,23 +297,23 @@
                 <div v-if="openActionMenuId === row.id" class="archive-action-menu" @click.stop>
                   <template v-if="row.channelType === 'email'">
                     <template v-if="row.status === 'queueing'">
-                      <button type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
-                      <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                      <button v-if="canClaimArchiveConversation" type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
+                      <button v-if="canAssignArchiveConversation" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     </template>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else-if="row.status === 'queueing'">
-                    <button type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
-                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                    <button v-if="canClaimArchiveConversation" type="button" class="archive-action-menu__item" @click="confirmClaimSession(row)">领取会话</button>
+                    <button v-if="canAssignArchiveConversation" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else-if="row.owner === aiAgentArchiveName">
-                    <button type="button" class="archive-action-menu__item" @click="handleTakeoverAutopilot(row)">接管会话</button>
-                    <button type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
+                    <button v-if="canClaimArchiveConversation" type="button" class="archive-action-menu__item" @click="handleTakeoverAutopilot(row)">接管会话</button>
+                    <button v-if="canAssignArchiveConversation" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                   <template v-else>
-                    <button type="button" class="archive-action-menu__item" @click="handleTakeoverOrAssign(row)">分配会话</button>
+                    <button v-if="canAssignArchiveConversation" type="button" class="archive-action-menu__item" @click="assignConversation(row)">分配会话</button>
                     <button type="button" class="archive-action-menu__item" @click="openConversation(row)">查看会话</button>
                   </template>
                 </div>
@@ -348,8 +347,8 @@
     :assign-label="getDrawerAssignLabel(previewConversation)"
     :variant="getDrawerVariant(previewConversation)"
     :editable="false"
-    :show-autopilot-actions="previewConversation?.owner === aiAgentArchiveName"
-    :show-queueing-actions="previewConversation?.status === 'queueing'"
+    :show-autopilot-actions="Boolean(previewConversation?.owner === aiAgentArchiveName && canClaimArchiveConversation && canAssignArchiveConversation)"
+    :show-queueing-actions="Boolean(previewConversation?.status === 'queueing' && canClaimArchiveConversation && canAssignArchiveConversation)"
     @assign="previewConversation && handleDrawerAssign(previewConversation)"
     @takeover="previewConversation && handleDrawerTakeover(previewConversation)"
     @close="closeConversationDrawer"
@@ -396,6 +395,7 @@ const vClickOutside: Directive = {
   }
 };
 import { AgentIcon } from "@twt/ui-agent";
+import { usePermission } from "../../composables/usePermission";
 import ArchiveAssignModal from "./ArchiveAssignModal.vue";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
 import ArchiveMessageListDrawer from "./ArchiveMessageListDrawer.vue";
@@ -489,6 +489,8 @@ const emit = defineEmits<{
   (e: "toast", message: string): void;
   (e: "navigate-to-session", sessionInfo: { id: string; queueKey: string }): void;
 }>();
+
+const { hasPermission } = usePermission();
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -1056,9 +1058,16 @@ const openVisitorDrawer = (row: ConversationRecord) => {
   visitorDrawerOpen.value = true;
 };
 
-// Admin mode
-const isAdmin = ref(true);
 const currentArchiveAgentName = "客服主管";
+
+const hasArchiveConversationAccess = computed(() => hasPermission("archive-conversation"));
+const canViewPersonalArchiveConversationData = computed(() => hasPermission("archive-conversation-scope-personal"));
+const canViewAllArchiveConversationData = computed(() => hasPermission("archive-conversation-scope-all"));
+const canClaimArchiveConversation = computed(() => hasPermission("archive-conversation-claim"));
+const canAssignArchiveConversation = computed(() => hasPermission("archive-conversation-assign"));
+const archiveConversationScopeLabel = computed(() => (
+  canViewAllArchiveConversationData.value ? "全员数据" : "个人数据"
+));
 
 // Confirm dialog
 const confirmDialogOpen = ref(false);
@@ -1081,26 +1090,49 @@ const allRows = ref<ConversationRecord[]>([
   )
 ]);
 
+const scopedConversationRows = computed(() => {
+  if (!hasArchiveConversationAccess.value) {
+    return [];
+  }
+
+  if (canViewAllArchiveConversationData.value) {
+    return allRows.value;
+  }
+
+  if (!canViewPersonalArchiveConversationData.value) {
+    return [];
+  }
+
+  return allRows.value.filter((row) => {
+    const isOwnedByCurrentAgent = row.owner === currentArchiveAgentName;
+    const isServedByCurrentAgent = row.staffAgents.some((agent) => agent.name === currentArchiveAgentName);
+    const isUnassignedQueue = row.owner === "–";
+    const isAutopilotConversation = row.owner === aiAgentArchiveName && (canClaimArchiveConversation.value || canAssignArchiveConversation.value);
+
+    return isOwnedByCurrentAgent || isServedByCurrentAgent || isUnassignedQueue || isAutopilotConversation;
+  });
+});
+
 /* ------------------------------------------------------------------ */
 /*  Computed                                                           */
 /* ------------------------------------------------------------------ */
 
-const tagOptions = computed(() => [...new Set(allRows.value.map((row) => row.tag).filter((value) => value !== "–"))]);
-const ownerOptions = computed(() => [...new Set(allRows.value.map((row) => row.owner).filter((value) => value !== "–"))]);
+const tagOptions = computed(() => [...new Set(scopedConversationRows.value.map((row) => row.tag).filter((value) => value !== "–"))]);
+const ownerOptions = computed(() => [...new Set(scopedConversationRows.value.map((row) => row.owner).filter((value) => value !== "–"))]);
 const serviceAgentOptions = computed(() => {
   const names = new Set<string>();
-  allRows.value.forEach((row) => row.staffAgents.forEach((a) => names.add(a.name)));
+  scopedConversationRows.value.forEach((row) => row.staffAgents.forEach((a) => names.add(a.name)));
   return archiveAgentPool.filter((a) => names.has(a.name)).map((a) => a.name);
 });
 const summaryStats = computed(() => {
-  const uniqueVisitors = new Set(allRows.value.map((row) => row.visitorName)).size;
+  const uniqueVisitors = new Set(scopedConversationRows.value.map((row) => row.visitorName)).size;
   return [
-    { key: "total", label: "总会话数", value: allRows.value.length },
-    { key: "pending-reply", label: "待回复", value: allRows.value.filter((row) => row.status === "pending-reply").length },
-    { key: "queueing", label: "排队中", value: allRows.value.filter((row) => row.status === "queueing").length },
-    { key: "processing", label: "待处理", value: allRows.value.filter((row) => row.status === "processing").length },
-    { key: "replied", label: "已回复", value: allRows.value.filter((row) => row.status === "replied").length },
-    { key: "closed", label: "已关闭", value: allRows.value.filter((row) => row.status === "closed").length },
+    { key: "total", label: "总会话数", value: scopedConversationRows.value.length },
+    { key: "pending-reply", label: "待回复", value: scopedConversationRows.value.filter((row) => row.status === "pending-reply").length },
+    { key: "queueing", label: "排队中", value: scopedConversationRows.value.filter((row) => row.status === "queueing").length },
+    { key: "processing", label: "待处理", value: scopedConversationRows.value.filter((row) => row.status === "processing").length },
+    { key: "replied", label: "已回复", value: scopedConversationRows.value.filter((row) => row.status === "replied").length },
+    { key: "closed", label: "已关闭", value: scopedConversationRows.value.filter((row) => row.status === "closed").length },
     { key: "visitor", label: "访客数量", value: uniqueVisitors }
   ];
 });
@@ -1109,7 +1141,7 @@ const visibleRows = computed(() => {
   const filters = appliedFilters.value;
   const keyword = filters.keyword.trim().toLowerCase();
 
-  const rows = allRows.value.filter((row) => {
+  const rows = scopedConversationRows.value.filter((row) => {
     if (keyword) {
       if (filters.searchField === "conversationRecord") {
         const texts = getRowMessageTexts(row);
@@ -1656,27 +1688,6 @@ const handleTakeoverAutopilot = (row: ConversationRecord) => {
 };
 
 // "接管会话" / "分配会话" with role-based logic
-const handleTakeoverOrAssign = (row: ConversationRecord) => {
-  closeActionMenu();
-  if (row.owner === aiAgentArchiveName) {
-    // 接管会话
-    if (isAdmin.value) {
-      // Admin: open assign modal to choose agent
-      pendingAssignConversationId.value = row.id;
-      assignKeyword.value = "";
-      assignModalOpen.value = true;
-    } else {
-      // Non-admin: confirm takeover to self
-      openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
-        assignToSelf(row);
-      });
-    }
-  } else {
-    // 分配会话
-    assignConversation(row);
-  }
-};
-
 const closeConversationDrawer = () => {
   previewConversationId.value = null;
 };
@@ -1696,12 +1707,21 @@ const handleDrawerTakeover = (row: ConversationRecord) => {
 
 const getDrawerAssignLabel = (row: ConversationRecord | null): string => {
   if (!row) return "分配会话";
-  if (row.status === "queueing") return "领取会话";
+  if (row.status === "queueing") {
+    if (canClaimArchiveConversation.value && !canAssignArchiveConversation.value) return "领取会话";
+    if (!canClaimArchiveConversation.value && canAssignArchiveConversation.value) return "分配会话";
+    return "领取会话";
+  }
+  if (row.owner === aiAgentArchiveName) {
+    if (canClaimArchiveConversation.value && !canAssignArchiveConversation.value) return "接管会话";
+    if (!canClaimArchiveConversation.value && canAssignArchiveConversation.value) return "分配会话";
+    return "分配会话";
+  }
   if (row.channelType === "email") {
     const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
     return isServiceAgent ? "进入会话" : "加入会话";
   }
-  return row.owner === aiAgentArchiveName ? "分配会话" : "分配会话";
+  return canAssignArchiveConversation.value ? "分配会话" : "查看会话";
 };
 
 const getDrawerVariant = (row: ConversationRecord | null): "default" | "join" => {
@@ -1732,13 +1752,42 @@ const formatEmailMessage = (message: { content?: string; images?: any[]; attachm
 
 const handleDrawerAssign = (row: ConversationRecord) => {
   if (row.status === "queueing") {
-    // 排队中会话：显示领取确认弹窗
     closeConversationDrawer();
+
+    if (canClaimArchiveConversation.value && !canAssignArchiveConversation.value) {
+      openConfirmDialog("确认领取", "确认领取该会话吗？", () => {
+        assignToSelf(row);
+        emit("navigate-to-session", { id: row.id, queueKey: row.status });
+      });
+      return;
+    }
+
+    if (!canClaimArchiveConversation.value && canAssignArchiveConversation.value) {
+      assignConversation(row);
+      return;
+    }
+
     openConfirmDialog("确认领取", "确认领取该会话吗？", () => {
       assignToSelf(row);
       emit("navigate-to-session", { id: row.id, queueKey: row.status });
     });
     return;
+  }
+  if (row.owner === aiAgentArchiveName) {
+    closeConversationDrawer();
+
+    if (canClaimArchiveConversation.value && !canAssignArchiveConversation.value) {
+      openConfirmDialog("确认接管", "确认接管该会话吗？", () => {
+        assignToSelf(row);
+        emit("navigate-to-session", { id: row.id, queueKey: row.status });
+      });
+      return;
+    }
+
+    if (!canClaimArchiveConversation.value && canAssignArchiveConversation.value) {
+      assignConversation(row);
+      return;
+    }
   }
   if (row.channelType === "email" && row.status !== "queueing") {
     const isServiceAgent = row.staffAgents.some(a => a.name === currentArchiveAgentName);
@@ -2767,25 +2816,21 @@ onMounted(() => {
   width: 100%;
 }
 
-/* Admin toggle */
-.archive-admin-toggle {
+/* Scope badge */
+.archive-scope-badge {
   align-items: center;
-  cursor: pointer;
   display: inline-flex;
+  background: var(--agent-color-brand-soft);
+  border-radius: 999px;
+  color: var(--agent-color-brand-primary);
   font-size: 13px;
-  gap: 6px;
-  user-select: none;
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
+  padding: 8px 12px;
 }
 
-.archive-admin-toggle__checkbox {
-  accent-color: var(--agent-color-brand-primary);
-  cursor: pointer;
-  height: 16px;
-  width: 16px;
-}
-
-.archive-admin-toggle__label {
-  color: var(--agent-color-text-secondary);
+.archive-scope-badge--all {
+  background: rgba(47, 107, 255, 0.12);
 }
 
 /* Confirm dialog */

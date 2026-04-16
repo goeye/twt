@@ -50,43 +50,82 @@
             class="perm-group"
             :class="{ 'perm-group--alt': gIdx % 2 === 1 }"
           >
-            <div class="perm-section-header">
-              <span class="perm-section-header__title">{{ group.label }}</span>
-              <span v-if="group.tooltip" class="perm-section-header__tooltip-wrap">
-                <span class="perm-section-header__tooltip-trigger">?</span>
-                <span class="perm-section-header__tooltip-content">{{ group.tooltip }}</span>
-              </span>
-            </div>
             <div
-              v-for="child in group.children"
-              :key="child.key"
-              class="perm-child-row"
+              v-if="isInlinePermissionGroup(group)"
+              class="perm-inline-row"
             >
-              <label class="perm-check perm-child-row__item">
-                <input
-                  type="checkbox"
-                  :checked="checkedPerms.has(child.key)"
-                  :disabled="!editable"
-                  @change="toggleItemWithFeatures(child)"
-                />
-                <span class="perm-child-row__name">{{ child.label }}</span>
-              </label>
-              <div class="perm-child-row__perms">
+              <div class="perm-inline-row__title">
+                <span class="perm-section-header__title">{{ group.label }}</span>
+                <span v-if="group.tooltip" class="perm-section-header__tooltip-wrap">
+                  <span class="perm-section-header__tooltip-trigger">?</span>
+                  <span class="perm-section-header__tooltip-content">{{ group.tooltip }}</span>
+                </span>
+              </div>
+              <div class="perm-inline-row__perms">
                 <label
-                  v-for="feat in (child.features || [])"
+                  v-for="(feat, featIdx) in getInlinePermissionGroupFeatures(group)"
                   :key="feat.key"
                   class="perm-check"
+                  :style="getFeatureGridStyle(feat, featIdx)"
                 >
                   <input
                     type="checkbox"
                     :checked="checkedPerms.has(feat.key)"
-                    :disabled="!editable"
-                    @change="toggleFeature(feat.key, child.key)"
+                    :disabled="!editable || feat.disabledInRoleEditor"
+                    @change="toggleFeature(feat.key, getInlinePermissionGroupKey(group))"
                   />
-                  <span class="perm-check__label">{{ feat.label }}</span>
+                  <span
+                    class="perm-check__label"
+                    :class="{ 'perm-check__label--muted': isViewAssociateFeature(feat) }"
+                  >{{ feat.label }}</span>
                 </label>
               </div>
             </div>
+            <template v-else>
+              <div class="perm-section-header">
+                <span class="perm-section-header__title">{{ group.label }}</span>
+                <span v-if="group.tooltip" class="perm-section-header__tooltip-wrap">
+                  <span class="perm-section-header__tooltip-trigger">?</span>
+                  <span class="perm-section-header__tooltip-content">{{ group.tooltip }}</span>
+                </span>
+              </div>
+              <div
+                v-for="child in group.children"
+                :key="child.key"
+                class="perm-child-row"
+                :class="{ 'perm-child-row--item-hidden': child.hiddenInRoleEditor }"
+              >
+                <label v-if="!child.hiddenInRoleEditor" class="perm-check perm-child-row__item">
+                  <input
+                    type="checkbox"
+                    :checked="checkedPerms.has(child.key)"
+                    :disabled="!editable"
+                    @change="toggleItemWithFeatures(child)"
+                  />
+                  <span class="perm-child-row__name">{{ child.label }}</span>
+                </label>
+                <div v-else class="perm-child-row__item perm-child-row__item--placeholder" aria-hidden="true" />
+                <div class="perm-child-row__perms">
+                  <label
+                    v-for="(feat, featIdx) in getOrderedFeatures(child)"
+                    :key="feat.key"
+                    class="perm-check"
+                    :style="getFeatureGridStyle(feat, featIdx)"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="checkedPerms.has(feat.key)"
+                      :disabled="!editable || feat.disabledInRoleEditor"
+                      @change="toggleFeature(feat.key, child.key)"
+                    />
+                    <span
+                      class="perm-check__label"
+                      :class="{ 'perm-check__label--muted': isViewAssociateFeature(feat) }"
+                    >{{ feat.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </template>
           </div>
         </template>
       </div>
@@ -121,7 +160,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { PERMISSION_TREE, type PermItem } from "../lib/permission";
+import { PERMISSION_TREE, getScopedToggleableKeys, type PermFeature, type PermItem } from "../lib/permission";
 
 type DetailMode = "view" | "create" | "edit";
 
@@ -160,35 +199,126 @@ const headerTitle = computed(() => {
 const roleName = ref(props.initialName);
 const permissionTree = PERMISSION_TREE;
 
-// Collect all toggleable perm keys (exclude locked)
-const getAllKeys = (): string[] => {
-  const keys: string[] = [];
+const findPermItem = (itemKey: string): PermItem | undefined => {
   for (const group of permissionTree) {
-    if (group.locked) continue;
-    if (group.children) {
-      for (const child of group.children) {
-        keys.push(child.key);
-        if (child.features) {
-          for (const feat of child.features) {
-            keys.push(feat.key);
+    const item = group.children?.find((child) => child.key === itemKey);
+    if (item) {
+      return item;
+    }
+  }
+  return undefined;
+};
+
+const getInlinePermissionGroupChild = (group: typeof PERMISSION_TREE[number]): PermItem | undefined => {
+  if (!group.children || group.children.length !== 1) {
+    return undefined;
+  }
+
+  const [child] = group.children;
+  return child.hiddenInRoleEditor ? child : undefined;
+};
+
+const isInlinePermissionGroup = (group: typeof PERMISSION_TREE[number]): boolean =>
+  Boolean(getInlinePermissionGroupChild(group));
+
+const getInlinePermissionGroupFeatures = (group: typeof PERMISSION_TREE[number]): PermFeature[] => {
+  const child = getInlinePermissionGroupChild(group);
+  return child ? getOrderedFeatures(child) : [];
+};
+
+const getInlinePermissionGroupKey = (group: typeof PERMISSION_TREE[number]): string => {
+  const child = getInlinePermissionGroupChild(group);
+  return child?.key ?? "";
+};
+
+const getImplicitRoleEditorPermissionKeys = (): string[] => {
+  const keys: string[] = [];
+
+  for (const group of permissionTree) {
+    for (const item of group.children ?? []) {
+      if (!item.hiddenInRoleEditor) {
+        continue;
+      }
+
+      keys.push(item.key);
+
+      const handledExclusiveGroups = new Set<string>();
+
+      for (const feature of item.features ?? []) {
+        if (feature.exclusiveGroup) {
+          if (handledExclusiveGroups.has(feature.exclusiveGroup)) {
+            continue;
+          }
+
+          handledExclusiveGroups.add(feature.exclusiveGroup);
+
+          const preferred =
+            item.features?.find(
+              (candidate) =>
+                candidate.exclusiveGroup === feature.exclusiveGroup && candidate.autoSelect !== false
+            ) ??
+            item.features?.find((candidate) => candidate.exclusiveGroup === feature.exclusiveGroup);
+
+          if (preferred) {
+            keys.push(preferred.key);
+          }
+          continue;
+        }
+
+        if (feature.autoSelect !== false) {
+          keys.push(feature.key);
+        }
+      }
+    }
+  }
+
+  return Array.from(new Set(keys));
+};
+
+const normalizePermissionKeys = (keys: string[]): Set<string> => {
+  const next = new Set(
+    [...keys, ...getImplicitRoleEditorPermissionKeys()].map((key) => (
+      key === "conversation-online-view-associate" ? "conversation-online-manage" : key
+    ))
+  );
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (const group of permissionTree) {
+      for (const item of group.children ?? []) {
+        const selectedFeatures = (item.features ?? []).filter((feature) => next.has(feature.key));
+        if (selectedFeatures.length > 0 && !next.has(item.key)) {
+          next.add(item.key);
+          changed = true;
+        }
+
+        for (const feature of selectedFeatures) {
+          for (const requiredKey of feature.requires ?? []) {
+            if (!next.has(requiredKey)) {
+              next.add(requiredKey);
+              changed = true;
+            }
           }
         }
       }
     }
   }
-  return keys;
+
+  return next;
 };
 
 // Initialize checked permissions
 const initPerms = (): Set<string> => {
   if (props.initialPerms.length > 0) {
-    return new Set(props.initialPerms);
+    return normalizePermissionKeys(props.initialPerms);
   }
   if (props.mode === "create") {
-    return new Set();
+    return normalizePermissionKeys([]);
   }
   if (props.isSystemRole && props.initialName === "超级管理员") {
-    return new Set(getAllKeys());
+    return normalizePermissionKeys(getScopedToggleableKeys("all"));
   }
   return new Set();
 };
@@ -206,26 +336,197 @@ const isDirty = computed(() => {
   return false;
 });
 
+const getDefaultFeatureKeys = (item: PermItem): string[] => {
+  if (!item.features || item.features.length === 0) {
+    return [];
+  }
+
+  const defaults: string[] = [];
+  const handledExclusiveGroups = new Set<string>();
+
+  for (const feature of item.features) {
+    if (feature.exclusiveGroup) {
+      if (handledExclusiveGroups.has(feature.exclusiveGroup)) {
+        continue;
+      }
+
+      handledExclusiveGroups.add(feature.exclusiveGroup);
+
+      const preferred =
+        item.features.find(
+          (candidate) =>
+            candidate.exclusiveGroup === feature.exclusiveGroup && candidate.autoSelect !== false
+        ) ??
+        item.features.find((candidate) => candidate.exclusiveGroup === feature.exclusiveGroup);
+
+      if (preferred) {
+        defaults.push(preferred.key);
+      }
+      continue;
+    }
+
+    if (feature.autoSelect !== false) {
+      defaults.push(feature.key);
+    }
+  }
+
+  return defaults;
+};
+
+const getOrderedFeatures = (item: PermItem): PermFeature[] => {
+  if (!item.features) {
+    return [];
+  }
+
+  return item.features.filter((feature) => !feature.hiddenInRoleEditor).sort((left, right) => {
+    const leftIsScope = Boolean(left.scopeLevel);
+    const rightIsScope = Boolean(right.scopeLevel);
+
+    if (leftIsScope === rightIsScope) {
+      return 0;
+    }
+
+    return leftIsScope ? 1 : -1;
+  });
+};
+
+const getFeatureMeta = (item: PermItem | undefined, featKey: string): PermFeature | undefined =>
+  item?.features?.find((feature) => feature.key === featKey);
+
+const getFeatureGridStyle = (_feature: PermFeature, featureIndex: number): { gridColumn: string } => ({
+  gridColumn: String(featureIndex + 1),
+});
+
+const isViewAssociateFeature = (feature: PermFeature): boolean =>
+  feature.key.includes("view-associate");
+
+const shouldPreserveItemSelectionOnFeatureToggle = (
+  itemKey: string,
+  feature: PermFeature
+): boolean =>
+  isViewAssociateFeature(feature) &&
+  (itemKey === "archive-conversation" || itemKey === "archive-chat");
+
+const collectRequiredFeatureKeys = (
+  item: PermItem | undefined,
+  featKey: string,
+  visited = new Set<string>()
+): string[] => {
+  if (!item || visited.has(featKey)) {
+    return [];
+  }
+
+  visited.add(featKey);
+  const feature = getFeatureMeta(item, featKey);
+  if (!feature?.requires?.length) {
+    return [];
+  }
+
+  const requiredKeys: string[] = [];
+
+  for (const requiredKey of feature.requires) {
+    requiredKeys.push(requiredKey);
+    requiredKeys.push(...collectRequiredFeatureKeys(item, requiredKey, visited));
+  }
+
+  return Array.from(new Set(requiredKeys));
+};
+
+const collectDependentFeatureKeys = (
+  item: PermItem | undefined,
+  featKey: string,
+  visited = new Set<string>()
+): string[] => {
+  if (!item || visited.has(featKey)) {
+    return [];
+  }
+
+  visited.add(featKey);
+
+  const dependents = (item.features ?? [])
+    .filter((feature) => feature.requires?.includes(featKey))
+    .map((feature) => feature.key);
+
+  const nested = dependents.flatMap((dependentKey) =>
+    collectDependentFeatureKeys(item, dependentKey, visited)
+  );
+
+  return Array.from(new Set([...dependents, ...nested]));
+};
+
 const toggleFeature = (featKey: string, itemKey: string) => {
+  const item = findPermItem(itemKey);
+  const feature = getFeatureMeta(item, featKey);
+  if (!item || !feature) {
+    return;
+  }
+
   const next = new Set(checkedPerms.value);
+  const shouldPreserveItemSelection = shouldPreserveItemSelectionOnFeatureToggle(itemKey, feature);
+  const itemWasSelected = next.has(itemKey);
   if (next.has(featKey)) {
+    if (feature.exclusiveGroup) {
+      const siblings = item.features?.filter(
+        (candidate) => candidate.exclusiveGroup === feature.exclusiveGroup
+      ) ?? [];
+      const hasOtherSelected = siblings.some(
+        (candidate) => candidate.key !== featKey && next.has(candidate.key)
+      );
+
+      if (!hasOtherSelected) {
+        const hiddenFallback = siblings.find(
+          (candidate) => candidate.key !== featKey && candidate.hiddenInRoleEditor
+        );
+
+        if (!hiddenFallback) {
+          return;
+        }
+
+        for (const requiredKey of collectRequiredFeatureKeys(item, hiddenFallback.key)) {
+          next.add(requiredKey);
+        }
+        next.add(hiddenFallback.key);
+      }
+    }
+
+    for (const dependentKey of collectDependentFeatureKeys(item, featKey)) {
+      next.delete(dependentKey);
+    }
+
     next.delete(featKey);
-    // Auto-uncheck parent item when unchecking the last sub-feature
-    const group = permissionTree.find(g => g.children?.some(c => c.key === itemKey));
-    const item = group?.children?.find(c => c.key === itemKey);
     if (item?.features) {
-      const hasAnyFeature = item.features.some(f => f.key !== featKey && next.has(f.key));
+      const hasAnyFeature = item.features.some((candidate) => next.has(candidate.key));
       if (!hasAnyFeature) {
         next.delete(itemKey);
       }
     }
   } else {
+    if (feature.exclusiveGroup) {
+      for (const candidate of item.features ?? []) {
+        if (candidate.exclusiveGroup === feature.exclusiveGroup) {
+          next.delete(candidate.key);
+        }
+      }
+    }
+
+    for (const requiredKey of collectRequiredFeatureKeys(item, featKey)) {
+      next.add(requiredKey);
+    }
+
     next.add(featKey);
-    // Auto-check parent item when checking a feature
     if (!next.has(itemKey)) {
       next.add(itemKey);
     }
   }
+
+  if (shouldPreserveItemSelection) {
+    if (itemWasSelected) {
+      next.add(itemKey);
+    } else {
+      next.delete(itemKey);
+    }
+  }
+
   checkedPerms.value = next;
 };
 
@@ -239,9 +540,8 @@ const toggleItemWithFeatures = (child: PermItem) => {
     }
   } else {
     next.add(child.key);
-    // Auto-check all sub-features when checking parent
-    if (child.features) {
-      for (const f of child.features) next.add(f.key);
+    for (const featureKey of getDefaultFeatureKeys(child)) {
+      next.add(featureKey);
     }
   }
   checkedPerms.value = next;
@@ -290,6 +590,8 @@ const handleSave = () => {
 
 <style scoped>
 .role-detail-page {
+  --perm-label-column-width: 148px;
+  --perm-row-gap: 16px;
   align-items: stretch;
   gap: 0;
   overflow: hidden;
@@ -413,8 +715,9 @@ const handleSave = () => {
 /* Locked row (首页 / 会话) */
 .perm-locked-row {
   align-items: center;
-  display: flex;
-  gap: 24px;
+  column-gap: var(--perm-row-gap);
+  display: grid;
+  grid-template-columns: var(--perm-label-column-width) minmax(0, 1fr);
   min-height: 44px;
   padding: 10px 16px;
 }
@@ -423,7 +726,8 @@ const handleSave = () => {
   color: #252525;
   font-size: 14px;
   font-weight: 600;
-  min-width: 80px;
+  flex: 0 0 var(--perm-label-column-width);
+  min-width: var(--perm-label-column-width);
 }
 
 /* Section header */
@@ -439,6 +743,32 @@ const handleSave = () => {
   color: #252525;
   font-size: 14px;
   font-weight: 600;
+}
+
+.perm-inline-row {
+  align-items: center;
+  border-bottom: 1px solid #edf1f5;
+  column-gap: var(--perm-row-gap);
+  display: grid;
+  grid-template-columns: var(--perm-label-column-width) minmax(0, 1fr);
+  min-height: 44px;
+  padding: 12px 16px 12px 16px;
+}
+
+.perm-inline-row__title {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.perm-inline-row__perms {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(4, 112px);
+  justify-content: start;
+  row-gap: 12px;
 }
 
 /* Tooltip */
@@ -495,20 +825,29 @@ const handleSave = () => {
 
 /* Child row */
 .perm-child-row {
-  align-items: center;
+  align-items: start;
   border-bottom: 1px solid #edf1f5;
-  display: flex;
-  gap: 16px;
+  column-gap: var(--perm-row-gap);
+  display: grid;
+  grid-template-columns: var(--perm-label-column-width) minmax(0, 1fr);
   min-height: 44px;
-  padding: 8px 16px 8px 24px;
+  padding: 12px 16px;
 }
 
 .perm-child-row:last-child {
   border-bottom: 0;
 }
 
+.perm-child-row--item-hidden {
+  align-items: center;
+}
+
 .perm-child-row__item {
-  min-width: 140px;
+  min-width: 0;
+}
+
+.perm-child-row__item--placeholder {
+  pointer-events: none;
 }
 
 .perm-child-row__name {
@@ -519,8 +858,11 @@ const handleSave = () => {
 
 .perm-child-row__perms {
   align-items: center;
-  display: flex;
+  display: grid;
   gap: 24px;
+  grid-template-columns: repeat(4, 112px);
+  justify-content: start;
+  row-gap: 12px;
 }
 
 /* Checkbox */
@@ -550,6 +892,29 @@ const handleSave = () => {
   color: #4b5563;
   font-size: 13px;
   white-space: nowrap;
+}
+
+.perm-check__label--muted {
+  color: #8b97a9;
+}
+
+@media (max-width: 1080px) {
+  .perm-inline-row {
+    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .perm-locked-row,
+  .perm-child-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .perm-inline-row__perms,
+  .perm-child-row__perms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 }
 
 .role-detail-page__footer {

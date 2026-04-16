@@ -72,50 +72,6 @@
         </div>
       </article>
 
-
-      <article class="settings-card agent-panel">
-        <div class="settings-card__title-row">
-          <div>
-            <h2 class="settings-card__title agent-settings-feature-title">聊天页面文案</h2>
-            <p class="settings-card__description agent-settings-feature-description">
-              设置聊天页面左侧的品牌介绍文案，关闭后聊天窗口将居中显示
-            </p>
-          </div>
-          <AgentSwitch v-model="showChatPageHero" @update:model-value="emitToast('保存成功')" />
-        </div>
-
-        <template v-if="showChatPageHero">
-          <div class="chat-hero-lang-row">
-            <label class="chat-hero-label">语言</label>
-            <select v-model="chatPageLang" class="agent-input chat-hero-select">
-              <option value="zh-cn">简体中文</option>
-              <option value="zh-tw">繁体中文</option>
-              <option value="en">English</option>
-            </select>
-          </div>
-
-          <div class="chat-hero-field-row">
-            <label class="chat-hero-label">文案标题</label>
-            <input
-              v-model="chatPageHeroTitle[chatPageLang]"
-              class="agent-input chat-hero-input"
-              placeholder="输入文案标题..."
-              @blur="emitToast('保存成功')"
-            />
-          </div>
-
-          <div class="chat-hero-field-row">
-            <label class="chat-hero-label">文案描述</label>
-            <textarea
-              v-model="chatPageHeroDesc[chatPageLang]"
-              class="agent-input chat-hero-textarea"
-              rows="4"
-              placeholder="输入文案描述..."
-              @blur="emitToast('保存成功')"
-            />
-          </div>
-        </template>
-      </article>
     </section>
 
     <SettingsAgentDetailPage
@@ -582,22 +538,6 @@ const handleSecretAction = () => {
 };
 const htmlDeploymentFileName = "twt-chat.html";
 
-/* Chat Page Hero Settings */
-type LangKey = "en" | "zh-cn" | "zh-tw";
-
-const chatPageLang = ref<LangKey>("zh-cn");
-const showChatPageHero = ref(true);
-const chatPageHeroTitle = reactive<Record<LangKey, string>>({
-  en: "Hello!",
-  "zh-cn": "你好!",
-  "zh-tw": "你好!"
-});
-const chatPageHeroDesc = reactive<Record<LangKey, string>>({
-  en: "Welcome to our chat page.\nNeed help? We'll assist you in real-time.",
-  "zh-cn": "欢迎来到我们的聊天页面。\n需要帮助？我们会为你实时解答与跟进。",
-  "zh-tw": "歡迎來到我們的聊天頁面。\n需要幫助？我們會為你即時解答與跟進。"
-});
-
 /* Agent detail page */
 interface AgentDetailData {
   id: string;
@@ -643,8 +583,9 @@ const handleViewRole = (roleId: string) => {
     roleDetailName.value = "客服";
     roleDetailIsSystem.value = true;
     roleDetailPerms.value = [
-      "archive-conversation", "archive-conversation-manage",
-      "archive-chat", "archive-chat-manage",
+      "conversation-online", "conversation-online-manage", "conversation-online-scope-personal",
+      "archive-conversation", "archive-conversation-view-associate", "archive-conversation-scope-personal", "archive-conversation-claim",
+      "archive-chat", "archive-chat-view-associate", "archive-chat-manage", "archive-chat-scope-personal",
       "visitor-online", "visitor-online-manage",
       "visitor-all", "visitor-all-manage",
       "customer-online", "customer-online-manage",
@@ -661,7 +602,9 @@ const handleViewRole = (roleId: string) => {
     roleDetailName.value = roleId === "role-senior" ? "高级客服" : "主管";
     roleDetailIsSystem.value = false;
     roleDetailPerms.value = [
-      "archive-conversation", "archive-conversation-manage",
+      "conversation-online", "conversation-online-manage", "conversation-online-scope-all",
+      "archive-conversation", "archive-conversation-view-associate", "archive-conversation-scope-all", "archive-conversation-claim", "archive-conversation-assign",
+      "archive-chat", "archive-chat-view-associate", "archive-chat-manage", "archive-chat-scope-all",
       "visitor-online", "visitor-online-manage",
       "report-manual", "report-manual-view",
       "report-evaluation", "report-evaluation-view",
@@ -1299,37 +1242,6 @@ const toggleUnrepliedEvent = () => {
   font-size: var(--agent-font-size-sm);
   line-height: 1.55;
   margin: 0;
-}
-
-/* Chat Page Hero Settings */
-.chat-hero-lang-row,
-.chat-hero-field-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.chat-hero-label {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: 500;
-}
-
-.chat-hero-select,
-.chat-hero-input {
-  border-radius: var(--agent-radius-md);
-  font-size: var(--agent-font-size-md);
-  padding: 10px 12px;
-}
-
-.chat-hero-textarea {
-  border-radius: var(--agent-radius-md);
-  font-family: inherit;
-  font-size: var(--agent-font-size-md);
-  line-height: 1.5;
-  padding: 10px 12px;
-  resize: vertical;
 }
 
 .settings-team-page {

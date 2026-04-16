@@ -1,5 +1,5 @@
 <template>
-  <section class="widget-customize">
+  <section class="widget-customize" @click="closeAddFieldMenu">
     <!-- Left: Settings Panel -->
     <div class="wc-settings agent-scroll">
       <header class="wc-settings__header">
@@ -124,12 +124,75 @@
           </div>
         </article>
 
-        <article class="wc-flat-card">
-          <div class="wc-flat-card__text">
-            <h3 class="wc-card__title">隐藏官方标识</h3>
-            <p class="wc-card__desc">控制聊天小部件底部 Powered by Chat 标识的展示</p>
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'chatPageHero' }">
+          <div class="wc-accordion__trigger wc-accordion__trigger--chat-page" @click="toggleSection('chatPageHero')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">聊天页面欢迎语</h3>
+              <p class="wc-card__desc">设置聊天页面左侧的品牌介绍内容，关闭后聊天窗口将居中显示</p>
+            </div>
+            <AgentSwitch v-model="showChatPageHero" @click.stop @update:model-value="autoSave" />
+            <span class="wc-accordion__chevron" />
           </div>
-          <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
+          <div v-if="openSection === 'chatPageHero' && showChatPageHero" class="wc-accordion__body">
+            <div class="wc-form-title-row">
+              <div class="wc-logo-wrap" @click="triggerChatPageHeroImageUpload">
+                <img :src="currentChatPageHeroImage" class="wc-logo-wrap__img" alt="聊天页面图片" />
+                <div class="wc-logo-wrap__overlay">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  </svg>
+                  <span>替换</span>
+                </div>
+                <input
+                  ref="chatPageHeroImageInputRef"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  class="wc-logo-wrap__file"
+                  @change="handleChatPageHeroImageChange"
+                />
+              </div>
+            </div>
+
+            <div class="wc-form-title-row">
+              <label class="wc-label">文案标题</label>
+              <input
+                v-model="chatPageHeroTitle[globalLang]"
+                class="agent-input wc-input"
+                placeholder="输入文案标题..."
+                @blur="autoSave"
+              />
+            </div>
+
+            <div class="wc-form-title-row">
+              <label class="wc-label">文案描述</label>
+              <div class="wc-rich-editor">
+                <textarea
+                  v-model="chatPageHeroDesc[globalLang]"
+                  class="wc-rich-editor__textarea wc-chat-page-hero__textarea"
+                  rows="4"
+                  placeholder="输入文案描述..."
+                  @blur="autoSave"
+                />
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'display' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('display')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">官方标识</h3>
+              <p class="wc-card__desc">控制聊天小部件底部 Powered by Chat 标识的展示</p>
+            </div>
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'display'" class="wc-accordion__body">
+            <div class="wc-switch-row">
+              <div class="wc-switch-row__text">
+                <span class="wc-switch-label">隐藏官方标识</span>
+              </div>
+              <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
+            </div>
         </article>
 
       </div>
@@ -201,8 +264,8 @@
                   rows="3"
                   placeholder="请输入评价标题..."
                   @blur="autoSave"
-                />
-              </div>
+              />
+            </div>
           </div>
         </article>
 
@@ -210,7 +273,7 @@
 
       <!-- Form Tab -->
       <div v-else-if="activeTab === 'form'" class="wc-tab-content">
-        <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'sessionForm' }">
+        <article class="wc-accordion wc-accordion--form" :class="{ 'wc-accordion--open': openSection === 'sessionForm' }">
           <button type="button" class="wc-accordion__trigger" @click="toggleSection('sessionForm')">
             <div class="wc-accordion__trigger-text">
               <h3 class="wc-card__title">会话前表单</h3>
@@ -221,45 +284,204 @@
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
               <label class="wc-label">表单标题</label>
-              <input v-model="settings.formTitle[globalLang]" class="agent-input wc-input" placeholder="Welcome! Please fill in the information..." @blur="autoSave" />
+              <input v-model="settings.formTitle[globalLang]" class="agent-input wc-input" placeholder="欢迎！请填写以下信息。" @blur="autoSave" />
             </div>
             <div class="wc-form-fields-section">
               <label class="wc-label">表单字段</label>
               <div class="wc-form-fields">
                 <div v-for="(field, idx) in settings.formFields" :key="field.id" class="wc-form-field-row">
-                  <span class="wc-drag-handle">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <circle cx="8" cy="5" r="1.5" fill="currentColor" /><circle cx="16" cy="5" r="1.5" fill="currentColor" />
-                      <circle cx="8" cy="12" r="1.5" fill="currentColor" /><circle cx="16" cy="12" r="1.5" fill="currentColor" />
-                      <circle cx="8" cy="19" r="1.5" fill="currentColor" /><circle cx="16" cy="19" r="1.5" fill="currentColor" />
-                    </svg>
-                  </span>
-                  <span class="wc-form-field-label">{{ field.label[globalLang] }}</span>
-                  <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." @blur="autoSave" />
-                  <label class="wc-checkbox-label">
-                    <input type="checkbox" v-model="field.required" class="wc-checkbox" @change="autoSave" />
-                    必填
-                  </label>
-                  <div class="wc-form-field-delete-wrap">
-                    <button type="button" class="wc-form-field-delete" @click="toggleDeleteConfirm(idx)">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <div class="wc-form-field-row__main">
+                    <span class="wc-drag-handle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <circle cx="8" cy="5" r="1.5" fill="currentColor" /><circle cx="16" cy="5" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="12" r="1.5" fill="currentColor" /><circle cx="16" cy="12" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="19" r="1.5" fill="currentColor" /><circle cx="16" cy="19" r="1.5" fill="currentColor" />
                       </svg>
-                    </button>
-                    <div v-if="deleteConfirmIdx === idx" class="wc-popconfirm">
-                      <p class="wc-popconfirm__text">确定删除该字段吗？</p>
-                      <div class="wc-popconfirm__actions">
-                        <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--cancel" @click="deleteConfirmIdx = null">取消</button>
-                        <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--confirm" @click="confirmRemoveFormField(idx)">确定</button>
+                    </span>
+                    <span class="wc-form-field-label">{{ field.label[globalLang] }}</span>
+                    <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." @blur="autoSave" />
+                    <label class="wc-checkbox-label">
+                      <input type="checkbox" v-model="field.required" class="wc-checkbox" @change="autoSave" />
+                      必填
+                    </label>
+                    <div class="wc-form-field-delete-wrap">
+                      <button type="button" class="wc-form-field-delete" @click="toggleDeleteConfirm('session', idx)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <div v-if="isDeleteConfirmOpen('session', idx)" class="wc-popconfirm">
+                        <p class="wc-popconfirm__text">确定删除该字段吗？</p>
+                        <div class="wc-popconfirm__actions">
+                          <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--cancel" @click="deleteConfirmKey = null">取消</button>
+                          <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--confirm" @click="confirmRemoveFormField('session', idx)">确定</button>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <div v-if="field.type === 'select'" class="wc-form-select-panel">
+                    <div v-for="(option, optionIdx) in field.options || []" :key="option.id" class="wc-form-select-option-row">
+                      <span class="wc-form-select-option-row__line" aria-hidden="true" />
+                      <span class="wc-form-select-option-row__label">选项</span>
+                      <input
+                        v-model="option.value[globalLang]"
+                        class="agent-input wc-input wc-form-select-option-input"
+                        placeholder="请输入选项"
+                        @blur="autoSave"
+                      />
+                      <button
+                        type="button"
+                        class="wc-form-field-delete wc-form-select-option-delete"
+                        :disabled="(field.options?.length || 0) <= 1"
+                        @click="removeSelectOption('session', idx, optionIdx)"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                    </div>
+                    <button type="button" class="wc-add-option-btn" @click="addSelectOption('session', idx)">
+                      <span class="wc-add-option-btn__icon" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
+                      </span>
+                      <span>添加选项</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button type="button" class="wc-add-field-btn" @click="addFormField">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-                添加字段
-              </button>
+              <div class="wc-add-field-wrap" @click.stop>
+                <button
+                  type="button"
+                  class="wc-add-field-btn"
+                  :class="{ 'wc-add-field-btn--active': activeAddFieldMenu === 'session' }"
+                  @click.stop="toggleAddFieldMenu('session')"
+                >
+                  <span class="wc-add-field-btn__icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg>
+                  </span>
+                  <span>添加字段</span>
+                </button>
+                <div v-if="activeAddFieldMenu === 'session'" class="wc-add-field-menu">
+                  <button
+                    v-for="option in formFieldOptions"
+                    :key="`session-${option.type}`"
+                    type="button"
+                    class="wc-add-field-menu__item"
+                    :class="{ 'wc-add-field-menu__item--disabled': isFormFieldOptionDisabled('session', option.type) }"
+                    :disabled="isFormFieldOptionDisabled('session', option.type)"
+                    @click.stop="addFormField('session', option.type)"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="wc-accordion wc-accordion--form" :class="{ 'wc-accordion--open': openSection === 'offlineForm' }">
+          <button type="button" class="wc-accordion__trigger" @click="toggleSection('offlineForm')">
+            <div class="wc-accordion__trigger-text">
+              <h3 class="wc-card__title">全员离线表单</h3>
+              <p class="wc-card__desc">当全部客服不在线时，访客可填写表单留下联系方式和问题</p>
+            </div>
+            <AgentSwitch v-model="settings.enableOfflineForm" @click.stop @update:model-value="autoSave" />
+            <span class="wc-accordion__chevron" />
+          </button>
+          <div v-if="openSection === 'offlineForm' && settings.enableOfflineForm" class="wc-accordion__body">
+            <div class="wc-form-title-row">
+              <label class="wc-label">表单标题</label>
+              <input v-model="settings.offlineFormTitle[globalLang]" class="agent-input wc-input" placeholder="当前客服均不在线，请留下您的联系方式和问题。" @blur="autoSave" />
+            </div>
+            <div class="wc-form-fields-section">
+              <label class="wc-label">表单字段</label>
+              <div class="wc-form-fields">
+                <div v-for="(field, idx) in settings.offlineFormFields" :key="field.id" class="wc-form-field-row">
+                  <div class="wc-form-field-row__main">
+                    <span class="wc-drag-handle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <circle cx="8" cy="5" r="1.5" fill="currentColor" /><circle cx="16" cy="5" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="12" r="1.5" fill="currentColor" /><circle cx="16" cy="12" r="1.5" fill="currentColor" />
+                        <circle cx="8" cy="19" r="1.5" fill="currentColor" /><circle cx="16" cy="19" r="1.5" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <span class="wc-form-field-label">{{ field.label[globalLang] }}</span>
+                    <input v-model="field.placeholder[globalLang]" class="agent-input wc-input wc-form-field-placeholder" placeholder="占位符文字..." @blur="autoSave" />
+                    <label class="wc-checkbox-label">
+                      <input type="checkbox" v-model="field.required" class="wc-checkbox" @change="autoSave" />
+                      必填
+                    </label>
+                    <div class="wc-form-field-delete-wrap">
+                      <button type="button" class="wc-form-field-delete" @click="toggleDeleteConfirm('offline', idx)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <div v-if="isDeleteConfirmOpen('offline', idx)" class="wc-popconfirm">
+                        <p class="wc-popconfirm__text">确定删除该字段吗？</p>
+                        <div class="wc-popconfirm__actions">
+                          <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--cancel" @click="deleteConfirmKey = null">取消</button>
+                          <button type="button" class="wc-popconfirm__btn wc-popconfirm__btn--confirm" @click="confirmRemoveFormField('offline', idx)">确定</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="field.type === 'select'" class="wc-form-select-panel">
+                    <div v-for="(option, optionIdx) in field.options || []" :key="option.id" class="wc-form-select-option-row">
+                      <span class="wc-form-select-option-row__line" aria-hidden="true" />
+                      <span class="wc-form-select-option-row__label">选项</span>
+                      <input
+                        v-model="option.value[globalLang]"
+                        class="agent-input wc-input wc-form-select-option-input"
+                        placeholder="请输入选项"
+                        @blur="autoSave"
+                      />
+                      <button
+                        type="button"
+                        class="wc-form-field-delete wc-form-select-option-delete"
+                        :disabled="(field.options?.length || 0) <= 1"
+                        @click="removeSelectOption('offline', idx, optionIdx)"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                    </div>
+                    <button type="button" class="wc-add-option-btn" @click="addSelectOption('offline', idx)">
+                      <span class="wc-add-option-btn__icon" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
+                      </span>
+                      <span>添加选项</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="wc-add-field-wrap" @click.stop>
+                <button
+                  type="button"
+                  class="wc-add-field-btn"
+                  :class="{ 'wc-add-field-btn--active': activeAddFieldMenu === 'offline' }"
+                  @click.stop="toggleAddFieldMenu('offline')"
+                >
+                  <span class="wc-add-field-btn__icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg>
+                  </span>
+                  <span>添加字段</span>
+                </button>
+                <div v-if="activeAddFieldMenu === 'offline'" class="wc-add-field-menu">
+                  <button
+                    v-for="option in formFieldOptions"
+                    :key="`offline-${option.type}`"
+                    type="button"
+                    class="wc-add-field-menu__item"
+                    :class="{ 'wc-add-field-menu__item--disabled': isFormFieldOptionDisabled('offline', option.type) }"
+                    :disabled="isFormFieldOptionDisabled('offline', option.type)"
+                    @click.stop="addFormField('offline', option.type)"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -441,16 +663,18 @@
     <!-- Right: Preview Panel -->
     <div class="wc-preview">
       <header class="wc-preview__header">
+        <span class="wc-preview__title">预览</span>
         <select v-model="previewMode" class="agent-input wc-preview-select">
           <option value="sessionList">首页</option>
           <option value="chat">消息</option>
           <option value="form">表单</option>
+          <option value="chatPage">聊天页面</option>
           <option value="minimized">最小化</option>
         </select>
       </header>
 
-      <div class="wc-preview__canvas">
-        <div class="wc-preview__page-mock">
+      <div class="wc-preview__canvas" :class="{ 'wc-preview__canvas--chat-page': previewMode === 'chatPage' }">
+        <div v-if="previewMode !== 'chatPage'" class="wc-preview__page-mock">
           <div class="wc-mock-bar wc-mock-bar--long" />
           <div class="wc-mock-bar wc-mock-bar--medium" />
           <div class="wc-mock-bar wc-mock-bar--short" />
@@ -501,23 +725,23 @@
               </div>
             </div>
           </div>
-          <div v-if="settings.enableStartSession" class="wc-widget__new-session-btn">新的会话</div>
+          <div v-if="settings.enableStartSession" class="wc-widget__new-session-btn">{{ currentWidgetLocaleText.newConversation }}</div>
           <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
           <div v-if="deleteSessionPreviewModalOpen" class="wc-widget__dialog-mask" @click="closeDeleteSessionPreview">
             <div class="wc-widget__dialog" @click.stop>
               <div class="wc-widget__dialog-head">
-                <h4 class="wc-widget__dialog-title">删除会话</h4>
+                <h4 class="wc-widget__dialog-title">{{ currentWidgetLocaleText.deleteSession }}</h4>
                 <button type="button" class="wc-widget__dialog-close" aria-label="关闭删除会话弹窗" @click="closeDeleteSessionPreview">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
                 </button>
               </div>
               <label v-if="settings.enableEndSession" class="wc-widget__dialog-option">
                 <input v-model="deleteSessionPreviewEndChecked" type="checkbox" class="wc-widget__dialog-checkbox" />
-                <span>同时结束会话</span>
+                <span>{{ currentWidgetLocaleText.endSessionTogether }}</span>
               </label>
               <div class="wc-widget__dialog-actions">
-                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--ghost" @click="closeDeleteSessionPreview">取消</button>
-                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--primary" @click="confirmDeleteSessionPreview">确认</button>
+                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--ghost" @click="closeDeleteSessionPreview">{{ currentWidgetLocaleText.cancel }}</button>
+                <button type="button" class="wc-widget__dialog-btn wc-widget__dialog-btn--primary" @click="confirmDeleteSessionPreview">{{ currentWidgetLocaleText.confirm }}</button>
               </div>
             </div>
           </div>
@@ -577,7 +801,7 @@
                 <span class="wc-widget__action-pill-icon wc-widget__action-pill-icon--image" aria-hidden="true">
                   <img :src="feedbackQuickAccessIcon" alt="" />
                 </span>
-                <span class="wc-widget__action-pill-label">会话评价</span>
+                <span class="wc-widget__action-pill-label">{{ currentWidgetLocaleText.feedbackEntry }}</span>
               </div>
               <div v-for="item in (openSection === 'visitorFeedback' ? [] : previewQuickAccessItems)" :key="item.id" class="wc-widget__action-pill">
                 <span
@@ -625,30 +849,83 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
               </span>
               <div class="wc-widget__chat-avatar">?</div>
-              <span class="wc-widget__chat-title">新的会话</span>
+              <span class="wc-widget__chat-title">{{ currentWidgetLocaleText.newConversation }}</span>
             </div>
             <button type="button" class="wc-widget__close-btn" aria-label="最小化" @click="minimizeWidget">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
             </button>
           </div>
           <div class="wc-widget__messages">
-            <div class="wc-widget__msg wc-widget__msg--agent">
+            <div v-if="isOfflineFormPreview && previewOfflineFormMessage" class="wc-widget__msg wc-widget__msg--agent">
               <span class="wc-widget__msg-time">10:32</span>
-              <div class="wc-widget__form-card">
-                <p class="wc-widget__form-card-title">{{ settings.formTitle[globalLang] || '请留下您的联系方式，以便我们与您联系：' }}</p>
+              <div class="wc-widget__msg-bubble">
+                {{ previewOfflineFormMessage }}
+              </div>
+            </div>
+            <div class="wc-widget__msg wc-widget__msg--agent">
+              <span class="wc-widget__msg-time">{{ isOfflineFormPreview ? '10:33' : '10:32' }}</span>
+              <div v-if="previewFormEnabled" class="wc-widget__form-card">
+                <div v-if="isOfflineFormPreview" class="wc-widget__form-scene-chip">{{ currentWidgetLocaleText.offlineChip }}</div>
+                <p class="wc-widget__form-card-title">{{ previewFormTitle }}</p>
                 <div class="wc-widget__form-card-fields">
-                  <div v-for="field in settings.formFields" :key="field.id" class="wc-widget__form-card-field">
+                  <div v-for="field in previewFormFields" :key="field.id" class="wc-widget__form-card-field">
                     <label class="wc-widget__form-card-label">
                       <span v-if="field.required" class="wc-widget__form-card-required">*</span>{{ field.label[globalLang] }}
                     </label>
                     <div class="wc-widget__form-card-input">{{ field.placeholder[globalLang] }}</div>
                   </div>
                 </div>
-                <div class="wc-widget__form-card-submit">提交</div>
+                <div class="wc-widget__form-card-submit">{{ currentWidgetLocaleText.submit }}</div>
+              </div>
+              <div v-else class="wc-widget__form-empty">
+                <strong class="wc-widget__form-empty-title">{{ previewFormEmptyTitle }}</strong>
+                <p class="wc-widget__form-empty-text">{{ previewFormEmptyText }}</p>
               </div>
             </div>
           </div>
           <div v-if="!settings.hideBrandLogo" class="wc-widget__footer">Powered by <strong>Chat</strong></div>
+        </div>
+
+        <div v-else-if="previewMode === 'chatPage'" class="wc-chat-page-preview" :class="{ 'wc-chat-page-preview--hero-hidden': !showChatPageHero }">
+          <div v-if="showChatPageHero" class="wc-chat-page-preview__hero">
+            <img :src="currentChatPageHeroImage" class="wc-chat-page-preview__hero-image" alt="聊天页面图片" />
+            <h2 class="wc-chat-page-preview__hero-title">{{ chatPageHeroTitle[globalLang] }}</h2>
+            <p class="wc-chat-page-preview__hero-desc">{{ chatPageHeroDesc[globalLang] }}</p>
+          </div>
+
+          <div class="wc-chat-page-preview__panel-wrap">
+            <section class="wc-chat-page-preview__panel">
+              <header class="wc-chat-page-preview__panel-head">
+                <div class="wc-chat-page-preview__brand">
+                  <img :src="settings.brandLogoUrl" class="wc-chat-page-preview__brand-logo" alt="" />
+                  <span class="wc-chat-page-preview__brand-name">{{ settings.brandName || tenant.name }}</span>
+                </div>
+                <button type="button" class="wc-chat-page-preview__panel-menu" aria-label="更多">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="6" cy="12" r="1.8" fill="currentColor" />
+                    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+                    <circle cx="18" cy="12" r="1.8" fill="currentColor" />
+                  </svg>
+                </button>
+              </header>
+
+              <div class="wc-chat-page-preview__session-list">
+                <article v-for="item in chatPagePreviewItems" :key="item.id" class="wc-chat-page-preview__session-item">
+                  <div class="wc-chat-page-preview__session-avatar">?</div>
+                  <div class="wc-chat-page-preview__session-body">
+                    <div class="wc-chat-page-preview__session-top">
+                      <span class="wc-chat-page-preview__session-title">{{ item.title }}</span>
+                      <span class="wc-chat-page-preview__session-time">{{ item.time }}</span>
+                    </div>
+                    <p class="wc-chat-page-preview__session-desc">{{ item.desc }}</p>
+                  </div>
+                </article>
+              </div>
+
+              <button type="button" class="wc-chat-page-preview__cta">{{ currentWidgetLocaleText.newConversation }}</button>
+              <div v-if="!settings.hideBrandLogo" class="wc-chat-page-preview__footer">Powered by <strong>Chat</strong></div>
+            </section>
+          </div>
         </div>
 
         <!-- Minimized Preview -->
@@ -890,6 +1167,18 @@
           </div>
         </div>
       </div>
+      <div v-if="chatPageHeroCropModalOpen" class="wc-crop-overlay" @click.self="chatPageHeroCropModalOpen = false">
+        <div class="wc-crop-modal">
+          <h3 class="wc-crop-modal__title">裁剪图片</h3>
+          <div class="wc-crop-modal__canvas">
+            <img v-if="chatPageHeroCropImageSrc" ref="chatPageHeroCropImgEl" :src="chatPageHeroCropImageSrc" class="wc-crop-modal__img" alt="裁剪预览" />
+          </div>
+          <div class="wc-crop-modal__actions">
+            <button type="button" class="agent-btn agent-btn--ghost" @click="chatPageHeroCropModalOpen = false">取消</button>
+            <button type="button" class="agent-btn agent-btn--primary" @click="applyChatPageHeroImageCrop">确认</button>
+          </div>
+        </div>
+      </div>
     </teleport>
   </section>
 </template>
@@ -907,7 +1196,7 @@ import { FEATURES } from "../lib/plan";
 import { usePlan } from "../composables/usePlan";
 import { getFaqOptions, isFaqExists, saveQuickAccessEntries } from "../lib/faqData";
 
-type LangKey = "en" | "zh-cn" | "zh-tw";
+type LangKey = "en" | "zh-cn" | "zh-tw" | "ja" | "ko" | "de" | "fr" | "ru" | "pt";
 
 interface FormField {
   id: string;
@@ -915,6 +1204,10 @@ interface FormField {
   label: Record<LangKey, string>;
   placeholder: Record<LangKey, string>;
   required: boolean;
+  options?: Array<{
+    id: string;
+    value: Record<LangKey, string>;
+  }>;
 }
 
 interface PreviewSessionItem {
@@ -928,16 +1221,18 @@ interface PreviewSessionItem {
 }
 
 type TabKey = "appearance" | "content" | "form" | "general";
-type PreviewMode = "sessionList" | "chat" | "form" | "minimized";
+type PreviewMode = "sessionList" | "chat" | "form" | "chatPage" | "minimized";
+type FormScenario = "session" | "offline";
+type FormFieldType = FormField["type"];
 type SectionKey = "brand" | "position" | "display" | "quickAccess"
+  | "chatPageHero"
   | "welcome" | "end" | "sessionOffline" | "chatOffline"
   | "visitorFeedback"
-  | "sessionForm" | "msgStatus" | "sessionFeatures"
+  | "sessionForm" | "offlineForm" | "msgStatus" | "sessionFeatures"
   | "agentInfoDisplay" | "queueReminder" | "visitorInactive" | "proactiveInvite" | null;
 
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='184' height='184' viewBox='0 0 184 184'%3E%3Ccircle cx='92' cy='92' r='90' fill='%23C9CED8' stroke='%23F5F7FA' stroke-width='4'/%3E%3Ccircle cx='92' cy='68' r='30' fill='%23EEF1F5'/%3E%3Cpath d='M28 156c10-28 34-46 64-46s54 18 64 46' fill='%23EEF1F5'/%3E%3C/svg%3E";
 const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20fill%3D%27%232563EB%27%2F%3E%3Cpath%20d%3D%27M24%2018h14c6%200%2010%204%2010%2010v8c0%206-4%2010-10%2010h-6l-8%206v-6h-2c-6%200-10-4-10-10V28c0-6%204-10%2010-10z%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M24%2028h0.01M32%2028h0.01M40%2028h0.01%27%20stroke%3D%27white%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27%2F%3E%3Cpath%20d%3D%27M16%2017l2.5%202.5L22%2016%27%20stroke%3D%27white%27%20stroke-width%3D%273%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E";
-
 const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
@@ -980,10 +1275,16 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "general", label: "常规" }
 ];
 
-const contentLangTabs = [
-  { key: "en", label: "English" },
+const contentLangTabs: { key: LangKey; label: string }[] = [
   { key: "zh-cn", label: "简体中文" },
-  { key: "zh-tw", label: "繁体中文" }
+  { key: "en", label: "English" },
+  { key: "zh-tw", label: "繁体中文" },
+  { key: "ja", label: "日语" },
+  { key: "ko", label: "韩语" },
+  { key: "de", label: "德语" },
+  { key: "fr", label: "法语" },
+  { key: "ru", label: "俄语" },
+  { key: "pt", label: "葡萄牙语" }
 ];
 
 type AutoReplyKey = "welcome" | "end" | "sessionOffline" | "chatOffline";
@@ -996,10 +1297,55 @@ const autoReplyBlocks: { key: AutoReplyKey; title: string; desc: string; placeho
 ];
 
 const activeTab = ref<TabKey>("appearance");
-const globalLang = ref<LangKey>("en");
+const globalLang = ref<LangKey>("zh-cn");
 const previewMode = ref<PreviewMode>("sessionList");
 const previewModeBeforeMinimize = ref<PreviewMode>("sessionList");
+const formPreviewScenario = ref<FormScenario>("session");
+const activeAddFieldMenu = ref<FormScenario | null>(null);
 const openSection = ref<SectionKey>("brand");
+const showChatPageHero = ref(true);
+const chatPageHeroTitle = reactive<Record<LangKey, string>>({
+  en: "Hello!",
+  "zh-cn": "你好！",
+  "zh-tw": "你好！",
+  ja: "こんにちは！",
+  ko: "안녕하세요!",
+  de: "Hallo!",
+  fr: "Bonjour !",
+  ru: "Здравствуйте!",
+  pt: "Ola!"
+});
+const chatPageHeroDesc = reactive<Record<LangKey, string>>({
+  en: "Welcome to our chat page.\nNeed help? We'll assist you in real time.",
+  "zh-cn": "欢迎来到我们的聊天页面。\n需要帮助？我们会为你实时解答与跟进。",
+  "zh-tw": "歡迎來到我們的聊天頁面。\n需要幫助？我們會為你即時解答與跟進。",
+  ja: "チャットページへようこそ。\nお困りのことがあれば、リアルタイムでサポートします。",
+  ko: "채팅 페이지에 오신 것을 환영합니다.\n도움이 필요하시면 실시간으로 안내해 드리겠습니다.",
+  de: "Willkommen auf unserer Chat-Seite.\nWenn Sie Hilfe brauchen, unterstuetzen wir Sie in Echtzeit.",
+  fr: "Bienvenue sur notre page de chat.\nBesoin d'aide ? Nous vous accompagnerons en temps reel.",
+  ru: "Добро пожаловать на нашу страницу чата.\nЕсли вам нужна помощь, мы ответим и поможем в реальном времени.",
+  pt: "Bem-vindo a nossa pagina de chat.\nSe precisar de ajuda, vamos acompanhar voce em tempo real."
+});
+const chatPageHeroImage = reactive<Record<LangKey, string>>({
+  en: "",
+  "zh-cn": "",
+  "zh-tw": "",
+  ja: "",
+  ko: "",
+  de: "",
+  fr: "",
+  ru: "",
+  pt: ""
+});
+const currentChatPageHeroImage = computed(() => chatPageHeroImage[globalLang.value] || settings.brandLogoUrl);
+
+const formFieldOptions: { type: FormFieldType; label: string }[] = [
+  { type: "name", label: "姓名" },
+  { type: "phone", label: "电话" },
+  { type: "email", label: "邮箱" },
+  { type: "text", label: "输入框" },
+  { type: "select", label: "下拉选择" }
+];
 
 const collapseOtherExpandedSetting = (currentSection: SectionKey = null) => {
   if (openSection.value && openSection.value !== currentSection) {
@@ -1054,25 +1400,71 @@ const autoReplyToggles = reactive<Record<AutoReplyKey, boolean>>({
 });
 
 const autoReplyTexts = reactive<Record<AutoReplyKey, Record<LangKey, string>>>({
-  welcome: { en: "Hello, is there anything I can help you with?", "zh-cn": "你好！有什么可以帮您的吗？", "zh-tw": "你好！有什麼可以幫您的嗎？" },
-  end: { en: "Thank you for your inquiry. Have a great day!", "zh-cn": "感谢您的咨询，祝您生活愉快！", "zh-tw": "感謝您的諮詢，祝您生活愉快！" },
-  sessionOffline: { en: "Our agents are currently offline. We will reply as soon as we are back.", "zh-cn": "当前客服不在线，我们会在上线后第一时间回复您。", "zh-tw": "當前客服不在線，我們會在上線後第一時間回覆您。" },
-  chatOffline: { en: "The agent is currently offline. Please try again later or leave your contact info.", "zh-cn": "客服暂时不在线，请稍后再试或留下您的联系方式。", "zh-tw": "客服暫時不在線，請稍後再試或留下您的聯繫方式。" }
+  welcome: {
+    en: "Hello! How can I help you?",
+    "zh-cn": "你好！有什么可以帮您的吗？",
+    "zh-tw": "你好！有什麼可以幫您的嗎？",
+    ja: "こんにちは。どのようなご用件でしょうか？",
+    ko: "안녕하세요. 무엇을 도와드릴까요?",
+    de: "Hallo! Wie kann ich Ihnen helfen?",
+    fr: "Bonjour ! Que puis-je faire pour vous aider ?",
+    ru: "Здравствуйте! Чем я могу вам помочь?",
+    pt: "Ola! Como posso ajudar voce?"
+  },
+  end: {
+    en: "Thank you for your inquiry. Have a great day!",
+    "zh-cn": "感谢您的咨询，祝您生活愉快！",
+    "zh-tw": "感謝您的諮詢，祝您生活愉快！",
+    ja: "お問い合わせありがとうございます。良い一日をお過ごしください。",
+    ko: "문의해 주셔서 감사합니다. 좋은 하루 보내세요!",
+    de: "Vielen Dank fuer Ihre Anfrage. Ich wuensche Ihnen einen schoenen Tag!",
+    fr: "Merci pour votre demande. Excellente journee !",
+    ru: "Спасибо за ваше обращение. Хорошего дня!",
+    pt: "Obrigado pelo seu contato. Tenha um otimo dia!"
+  },
+  sessionOffline: {
+    en: "Our agents are currently offline. We will reply as soon as we are back.",
+    "zh-cn": "当前客服不在线，我们会在上线后第一时间回复您。",
+    "zh-tw": "當前客服不在線，我們會在上線後第一時間回覆您。",
+    ja: "現在、担当者は全員オフラインです。オンラインになり次第、できるだけ早く返信いたします。",
+    ko: "현재 모든 상담원이 오프라인입니다. 온라인이 되는 즉시 최대한 빨리 답변드리겠습니다.",
+    de: "Unsere Mitarbeiter sind derzeit offline. Wir antworten Ihnen, sobald wir wieder online sind.",
+    fr: "Nos agents sont actuellement hors ligne. Nous vous repondrons des leur retour en ligne.",
+    ru: "Сейчас все операторы офлайн. Мы ответим вам, как только снова будем онлайн.",
+    pt: "No momento, nossos atendentes estao offline. Responderemos assim que estivermos online novamente."
+  },
+  chatOffline: {
+    en: "The agent is currently offline. Please try again later or leave your contact info.",
+    "zh-cn": "客服暂时不在线，请稍后再试或留下您的联系方式。",
+    "zh-tw": "客服暫時不在線，請稍後再試或留下您的聯繫方式。",
+    ja: "担当者は現在オフラインです。しばらくしてから再度お試しいただくか、連絡先を残してください。",
+    ko: "상담원이 현재 오프라인입니다. 잠시 후 다시 시도하시거나 연락처를 남겨 주세요.",
+    de: "Der Mitarbeiter ist derzeit offline. Bitte versuchen Sie es spaeter erneut oder hinterlassen Sie Ihre Kontaktdaten.",
+    fr: "L'agent est actuellement hors ligne. Veuillez reessayer plus tard ou laisser vos coordonnees.",
+    ru: "Оператор сейчас офлайн. Попробуйте позже или оставьте свои контакты.",
+    pt: "O atendente esta offline no momento. Tente novamente mais tarde ou deixe suas informacoes de contato."
+  }
 });
 
 const feedbackEnabled = ref(true);
 const feedbackPreviewOpen = ref(false);
 const feedbackTitles = reactive<Record<LangKey, string>>({
-  en: "Please evaluate our service",
+  en: "Please rate our service",
   "zh-cn": "请对我们的服务进行评价",
-  "zh-tw": "請對我們的服務進行評價"
+  "zh-tw": "請對我們的服務進行評價",
+  ja: "当社のサービスをご評価ください",
+  ko: "서비스를 평가해 주세요",
+  de: "Bitte bewerten Sie unseren Service",
+  fr: "Merci d'evaluer notre service",
+  ru: "Пожалуйста, оцените наш сервис",
+  pt: "Avalie nosso atendimento"
 });
 
 const autoReplyImages = reactive<Record<AutoReplyKey, Record<LangKey, string[]>>>({
-  welcome: { en: [], "zh-cn": [], "zh-tw": [] },
-  end: { en: [], "zh-cn": [], "zh-tw": [] },
-  sessionOffline: { en: [], "zh-cn": [], "zh-tw": [] },
-  chatOffline: { en: [], "zh-cn": [], "zh-tw": [] }
+  welcome: { en: [], "zh-cn": [], "zh-tw": [], ja: [], ko: [], de: [], fr: [], ru: [], pt: [] },
+  end: { en: [], "zh-cn": [], "zh-tw": [], ja: [], ko: [], de: [], fr: [], ru: [], pt: [] },
+  sessionOffline: { en: [], "zh-cn": [], "zh-tw": [], ja: [], ko: [], de: [], fr: [], ru: [], pt: [] },
+  chatOffline: { en: [], "zh-cn": [], "zh-tw": [], ja: [], ko: [], de: [], fr: [], ru: [], pt: [] }
 });
 
 // Welcome Buttons
@@ -1087,7 +1479,13 @@ interface WelcomeButton {
 const welcomeButtons = reactive<Record<LangKey, WelcomeButton[]>>({
   en: [],
   "zh-cn": [],
-  "zh-tw": []
+  "zh-tw": [],
+  ja: [],
+  ko: [],
+  de: [],
+  fr: [],
+  ru: [],
+  pt: []
 });
 
 let welcomeBtnCounter = 1;
@@ -1242,6 +1640,7 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   brand: "sessionList",
   position: "minimized",
   display: "sessionList",
+  chatPageHero: "chatPage",
   quickAccess: "chat",
   welcome: "chat",
   end: "chat",
@@ -1249,6 +1648,7 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   chatOffline: "chat",
   visitorFeedback: "chat",
   sessionForm: "form",
+  offlineForm: "form",
   msgStatus: "chat",
   sessionFeatures: "sessionList",
   agentInfoDisplay: "sessionList",
@@ -1257,9 +1657,20 @@ const sectionToPreview: Partial<Record<NonNullable<SectionKey>, PreviewMode | nu
   proactiveInvite: "minimized"
 };
 
+const syncFormPreviewScenario = (section: SectionKey) => {
+  if (section === "sessionForm") {
+    formPreviewScenario.value = "session";
+  }
+  if (section === "offlineForm") {
+    formPreviewScenario.value = "offline";
+  }
+};
+
 const toggleSection = (key: SectionKey) => {
+  closeAddFieldMenu();
   openSection.value = openSection.value === key ? null : key;
   if (openSection.value) {
+    syncFormPreviewScenario(openSection.value);
     const target = sectionToPreview[openSection.value];
     if (target !== undefined && target !== null) {
       previewMode.value = target;
@@ -1275,9 +1686,11 @@ const defaultSections: Record<TabKey, SectionKey> = {
 };
 
 const applyTabSwitch = (key: TabKey) => {
+  closeAddFieldMenu();
   activeTab.value = key;
   openSection.value = defaultSections[key];
   if (openSection.value) {
+    syncFormPreviewScenario(openSection.value);
     const target = sectionToPreview[openSection.value];
     if (target !== undefined && target !== null) {
       previewMode.value = target;
@@ -1333,9 +1746,205 @@ const showChatPreviewTextBubble = computed(() => {
   return chatPreviewAgentMsg.value.trim().length > 0;
 });
 
+interface WidgetLocaleText {
+  chatTitle: string;
+  newConversation: string;
+  visitorMessage: string;
+  submit: string;
+  offlineChip: string;
+  feedbackEntry: string;
+  sessionFormEmptyTitle: string;
+  sessionFormEmptyText: string;
+  offlineFormEmptyTitle: string;
+  offlineFormEmptyText: string;
+  proactiveInvite: string;
+  deleteSession: string;
+  endSessionTogether: string;
+  cancel: string;
+  confirm: string;
+}
+
+const widgetLocaleTexts: Record<LangKey, WidgetLocaleText> = {
+  en: {
+    chatTitle: "Chat",
+    newConversation: "New conversation",
+    visitorMessage: "Hello, I would like to check the delivery status of my order.",
+    submit: "Submit",
+    offlineChip: "All agents offline",
+    feedbackEntry: "Session feedback",
+    sessionFormEmptyTitle: "Pre-chat form is disabled",
+    sessionFormEmptyText: "When enabled, visitors will complete the form before starting a new conversation so agents can understand their request faster.",
+    offlineFormEmptyTitle: "Offline form is disabled",
+    offlineFormEmptyText: "When enabled, visitors can leave their contact information and question while all agents are offline, and we will follow up once someone is back online.",
+    proactiveInvite: "Hello, how can I help you?",
+    deleteSession: "Delete conversation",
+    endSessionTogether: "End conversation as well",
+    cancel: "Cancel",
+    confirm: "Confirm"
+  },
+  "zh-cn": {
+    chatTitle: "聊天",
+    newConversation: "新的会话",
+    visitorMessage: "您好，我想确认一下订单物流进度。",
+    submit: "提交",
+    offlineChip: "客服全员离线",
+    feedbackEntry: "会话评价",
+    sessionFormEmptyTitle: "会话前表单未开启",
+    sessionFormEmptyText: "开启后，访客发起新会话前会先填写表单，帮助客服更快了解诉求。",
+    offlineFormEmptyTitle: "全员离线表单未开启",
+    offlineFormEmptyText: "开启后，当全部客服离线时，访客可先留下联系方式与问题，我们会在客服上线后继续跟进。",
+    proactiveInvite: "您好，有什么可以帮您？",
+    deleteSession: "删除会话",
+    endSessionTogether: "同时结束会话",
+    cancel: "取消",
+    confirm: "确认"
+  },
+  "zh-tw": {
+    chatTitle: "聊天",
+    newConversation: "新的會話",
+    visitorMessage: "您好，我想確認一下訂單物流進度。",
+    submit: "提交",
+    offlineChip: "客服全員離線",
+    feedbackEntry: "會話評價",
+    sessionFormEmptyTitle: "會話前表單未開啟",
+    sessionFormEmptyText: "開啟後，訪客發起新會話前會先填寫表單，幫助客服更快了解訴求。",
+    offlineFormEmptyTitle: "全員離線表單未開啟",
+    offlineFormEmptyText: "開啟後，當全部客服離線時，訪客可先留下聯繫方式與問題，我們會在客服上線後繼續跟進。",
+    proactiveInvite: "您好，有什麼可以幫您？",
+    deleteSession: "刪除會話",
+    endSessionTogether: "同時結束會話",
+    cancel: "取消",
+    confirm: "確認"
+  },
+  ja: {
+    chatTitle: "チャット",
+    newConversation: "新しい会話",
+    visitorMessage: "こんにちは。注文の配送状況を確認したいです。",
+    submit: "送信",
+    offlineChip: "担当者全員オフライン",
+    feedbackEntry: "会話評価",
+    sessionFormEmptyTitle: "事前フォームは無効です",
+    sessionFormEmptyText: "有効にすると、訪問者は新しい会話を始める前にフォームへ入力し、担当者が要望をより早く把握できます。",
+    offlineFormEmptyTitle: "オフラインフォームは無効です",
+    offlineFormEmptyText: "有効にすると、全担当者がオフラインの間も訪問者は連絡先と質問を残せるため、担当者がオンライン復帰後に追って対応できます。",
+    proactiveInvite: "こんにちは。何かお手伝いできますか？",
+    deleteSession: "会話を削除",
+    endSessionTogether: "同時に会話を終了",
+    cancel: "キャンセル",
+    confirm: "確認"
+  },
+  ko: {
+    chatTitle: "채팅",
+    newConversation: "새 대화",
+    visitorMessage: "안녕하세요. 주문 배송 진행 상황을 확인하고 싶습니다.",
+    submit: "제출",
+    offlineChip: "전체 상담원 오프라인",
+    feedbackEntry: "대화 평가",
+    sessionFormEmptyTitle: "사전 상담 폼이 비활성화됨",
+    sessionFormEmptyText: "활성화하면 방문자는 새 대화를 시작하기 전에 폼을 먼저 작성하여 상담원이 요청 사항을 더 빨리 파악할 수 있습니다.",
+    offlineFormEmptyTitle: "오프라인 폼이 비활성화됨",
+    offlineFormEmptyText: "활성화하면 모든 상담원이 오프라인일 때에도 방문자가 연락처와 문의 내용을 남길 수 있고, 상담원이 온라인이 되면 후속 대응할 수 있습니다.",
+    proactiveInvite: "안녕하세요. 무엇을 도와드릴까요?",
+    deleteSession: "대화 삭제",
+    endSessionTogether: "대화도 함께 종료",
+    cancel: "취소",
+    confirm: "확인"
+  },
+  de: {
+    chatTitle: "Chat",
+    newConversation: "Neue Unterhaltung",
+    visitorMessage: "Hallo, ich moechte den Lieferstatus meiner Bestellung pruefen.",
+    submit: "Senden",
+    offlineChip: "Alle Mitarbeiter offline",
+    feedbackEntry: "Chatbewertung",
+    sessionFormEmptyTitle: "Vorgespraechsformular deaktiviert",
+    sessionFormEmptyText: "Wenn aktiviert, fuellen Besucher vor dem Start einer neuen Unterhaltung zuerst das Formular aus, damit Mitarbeiter ihr Anliegen schneller verstehen.",
+    offlineFormEmptyTitle: "Offline-Formular deaktiviert",
+    offlineFormEmptyText: "Wenn aktiviert, koennen Besucher ihre Kontaktdaten und Fragen hinterlassen, waehrend alle Mitarbeiter offline sind. Wir verfolgen das Anliegen weiter, sobald jemand wieder online ist.",
+    proactiveInvite: "Hallo, wie kann ich Ihnen helfen?",
+    deleteSession: "Unterhaltung loeschen",
+    endSessionTogether: "Unterhaltung ebenfalls beenden",
+    cancel: "Abbrechen",
+    confirm: "Bestaetigen"
+  },
+  fr: {
+    chatTitle: "Chat",
+    newConversation: "Nouvelle conversation",
+    visitorMessage: "Bonjour, je voudrais verifier l'avancement de la livraison de ma commande.",
+    submit: "Envoyer",
+    offlineChip: "Tous les agents hors ligne",
+    feedbackEntry: "Evaluation de la conversation",
+    sessionFormEmptyTitle: "Le formulaire avant chat est desactive",
+    sessionFormEmptyText: "Une fois active, les visiteurs remplissent d'abord le formulaire avant d'ouvrir une nouvelle conversation, ce qui aide les agents a comprendre plus vite leur demande.",
+    offlineFormEmptyTitle: "Le formulaire hors ligne est desactive",
+    offlineFormEmptyText: "Une fois active, lorsque tous les agents sont hors ligne, les visiteurs peuvent laisser leurs coordonnees et leur question. Nous reprendrons le suivi des qu'un agent sera en ligne.",
+    proactiveInvite: "Bonjour, comment puis-je vous aider ?",
+    deleteSession: "Supprimer la conversation",
+    endSessionTogether: "Terminer aussi la conversation",
+    cancel: "Annuler",
+    confirm: "Confirmer"
+  },
+  ru: {
+    chatTitle: "Чат",
+    newConversation: "Новый диалог",
+    visitorMessage: "Здравствуйте, я хотел(а) бы уточнить статус доставки моего заказа.",
+    submit: "Отправить",
+    offlineChip: "Все операторы офлайн",
+    feedbackEntry: "Оценка диалога",
+    sessionFormEmptyTitle: "Форма перед чатом отключена",
+    sessionFormEmptyText: "Если включить, перед началом нового диалога посетитель сначала заполнит форму, и оператор быстрее поймет его запрос.",
+    offlineFormEmptyTitle: "Офлайн-форма отключена",
+    offlineFormEmptyText: "Если включить, пока все операторы офлайн, посетитель сможет оставить контакты и вопрос, а мы продолжим работу с ним, как только кто-то снова выйдет в онлайн.",
+    proactiveInvite: "Здравствуйте! Чем я могу вам помочь?",
+    deleteSession: "Удалить диалог",
+    endSessionTogether: "Одновременно завершить диалог",
+    cancel: "Отмена",
+    confirm: "Подтвердить"
+  },
+  pt: {
+    chatTitle: "Chat",
+    newConversation: "Nova conversa",
+    visitorMessage: "Ola, gostaria de verificar o andamento da entrega do meu pedido.",
+    submit: "Enviar",
+    offlineChip: "Todos os atendentes offline",
+    feedbackEntry: "Avaliacao da conversa",
+    sessionFormEmptyTitle: "Formulario antes do chat desativado",
+    sessionFormEmptyText: "Quando ativado, os visitantes preenchem o formulario antes de iniciar uma nova conversa, ajudando o atendente a entender a solicitacao mais rapidamente.",
+    offlineFormEmptyTitle: "Formulario offline desativado",
+    offlineFormEmptyText: "Quando ativado, enquanto todos os atendentes estiverem offline, os visitantes poderao deixar contato e pergunta, e faremos o acompanhamento assim que alguem voltar a ficar online.",
+    proactiveInvite: "Ola! Como posso ajudar voce?",
+    deleteSession: "Excluir conversa",
+    endSessionTogether: "Encerrar a conversa tambem",
+    cancel: "Cancelar",
+    confirm: "Confirmar"
+  }
+};
+
+const currentWidgetLocaleText = computed(() => widgetLocaleTexts[globalLang.value]);
+
+const chatPagePreviewDescriptions: Record<LangKey, [string, string]> = {
+  en: ["Phone 3123 · Email: 112@11.co...", "Need help with this order"],
+  "zh-cn": ["电话 3123 · 131231邮箱: 112@11.co...", "比这个"],
+  "zh-tw": ["電話 3123 · 131231郵箱: 112@11.co...", "比這個"],
+  ja: ["電話 3123 ・ メール: 112@11.co...", "こちらについて"],
+  ko: ["전화 3123 · 이메일: 112@11.co...", "이 내용입니다"],
+  de: ["Telefon 3123 · E-Mail: 112@11.co...", "Zu diesem Fall"],
+  fr: ["Telephone 3123 · E-mail : 112@11.co...", "A propos de ceci"],
+  ru: ["Телефон 3123 · Почта: 112@11.co...", "По этому вопросу"],
+  pt: ["Telefone 3123 · E-mail: 112@11.co...", "Sobre este caso"]
+};
+
+const chatPagePreviewItems = computed(() => {
+  const [firstDesc, secondDesc] = chatPagePreviewDescriptions[globalLang.value];
+  return [
+    { id: "cp-1", title: currentWidgetLocaleText.value.newConversation, desc: firstDesc, time: "16:43" },
+    { id: "cp-2", title: currentWidgetLocaleText.value.newConversation, desc: secondDesc, time: "04/15 22:19" }
+  ];
+});
+
 const chatPreviewMessageText = computed(() => {
   if (isMsgStatusPreview.value) {
-    return "您好，我想确认一下订单物流进度。";
+    return currentWidgetLocaleText.value.visitorMessage;
   }
   return chatPreviewAgentMsg.value;
 });
@@ -1346,7 +1955,7 @@ const showChatPreviewAgentAvatar = computed(() => {
 
 const chatPreviewHeaderTitle = computed(() => {
   if (settings.sessionTitleMode === "agent") return agentSessionTitles[globalLang.value];
-  return showChatPreviewAgentAvatar.value ? (globalLang.value === "en" ? "Chat" : globalLang.value === "zh-tw" ? "聊天" : "聊天") : (globalLang.value === "en" ? "New conversation" : globalLang.value === "zh-tw" ? "新的會話" : "新的会话");
+  return showChatPreviewAgentAvatar.value ? currentWidgetLocaleText.value.chatTitle : currentWidgetLocaleText.value.newConversation;
 });
 
 const proactiveInviteAgentName = "Sarah";
@@ -1371,14 +1980,150 @@ const settings = reactive({
   quickAccessItems: getWidgetQuickAccessItems(tenant) as QuickAccessItem[],
   enableSessionForm: true,
   formTitle: {
-    en: "Welcome! Please fill in the information.",
+    en: "Welcome! Please fill in the following information.",
     "zh-cn": "欢迎！请填写以下信息。",
-    "zh-tw": "歡迎！請填寫以下資訊。"
+    "zh-tw": "歡迎！請填寫以下資訊。",
+    ja: "ようこそ。以下の情報をご入力ください。",
+    ko: "환영합니다. 아래 정보를 입력해 주세요.",
+    de: "Willkommen! Bitte fuellen Sie die folgenden Informationen aus.",
+    fr: "Bienvenue ! Veuillez renseigner les informations suivantes.",
+    ru: "Добро пожаловать! Пожалуйста, заполните следующую информацию.",
+    pt: "Bem-vindo! Preencha as informacoes abaixo."
   } as Record<LangKey, string>,
   formFields: [
-    { id: "f-1", type: "name", label: { en: "Name", "zh-cn": "姓名", "zh-tw": "姓名" }, placeholder: { en: "Enter your name", "zh-cn": "请输入姓名", "zh-tw": "請輸入姓名" }, required: true },
-    { id: "f-2", type: "email", label: { en: "Email", "zh-cn": "邮箱", "zh-tw": "郵箱" }, placeholder: { en: "Enter your email", "zh-cn": "请输入邮箱", "zh-tw": "請輸入郵箱" }, required: true },
-    { id: "f-3", type: "phone", label: { en: "Phone", "zh-cn": "电话", "zh-tw": "電話" }, placeholder: { en: "Enter your phone", "zh-cn": "请输入电话", "zh-tw": "請輸入電話" }, required: false }
+    {
+      id: "f-1",
+      type: "name",
+      label: { en: "Name", "zh-cn": "姓名", "zh-tw": "姓名", ja: "お名前", ko: "이름", de: "Name", fr: "Nom", ru: "Имя", pt: "Nome" },
+      placeholder: {
+        en: "Please enter your name",
+        "zh-cn": "请输入姓名",
+        "zh-tw": "請輸入姓名",
+        ja: "お名前を入力してください",
+        ko: "이름을 입력해 주세요",
+        de: "Bitte geben Sie Ihren Namen ein",
+        fr: "Veuillez saisir votre nom",
+        ru: "Введите ваше имя",
+        pt: "Digite seu nome"
+      },
+      required: true
+    },
+    {
+      id: "f-2",
+      type: "email",
+      label: { en: "Email", "zh-cn": "邮箱", "zh-tw": "郵箱", ja: "メールアドレス", ko: "이메일", de: "E-Mail", fr: "E-mail", ru: "Эл. почта", pt: "E-mail" },
+      placeholder: {
+        en: "Please enter your email",
+        "zh-cn": "请输入邮箱",
+        "zh-tw": "請輸入郵箱",
+        ja: "メールアドレスを入力してください",
+        ko: "이메일을 입력해 주세요",
+        de: "Bitte geben Sie Ihre E-Mail ein",
+        fr: "Veuillez saisir votre e-mail",
+        ru: "Введите ваш e-mail",
+        pt: "Digite seu e-mail"
+      },
+      required: true
+    },
+    {
+      id: "f-3",
+      type: "phone",
+      label: { en: "Phone", "zh-cn": "电话", "zh-tw": "電話", ja: "電話番号", ko: "전화번호", de: "Telefon", fr: "Telephone", ru: "Телефон", pt: "Telefone" },
+      placeholder: {
+        en: "Please enter your phone number",
+        "zh-cn": "请输入电话",
+        "zh-tw": "請輸入電話",
+        ja: "電話番号を入力してください",
+        ko: "전화번호를 입력해 주세요",
+        de: "Bitte geben Sie Ihre Telefonnummer ein",
+        fr: "Veuillez saisir votre numero de telephone",
+        ru: "Введите ваш номер телефона",
+        pt: "Digite seu telefone"
+      },
+      required: false
+    }
+  ] as FormField[],
+  enableOfflineForm: true,
+  offlineFormTitle: {
+    en: "Our agents are currently offline. Please leave your contact information and question, and we will get back to you as soon as possible.",
+    "zh-cn": "当前客服均不在线，请留下您的联系方式和问题，我们会尽快联系您。",
+    "zh-tw": "當前客服均不在線，請留下您的聯繫方式和問題，我們會儘快聯繫您。",
+    ja: "現在、すべての担当者がオフラインです。ご連絡先とご質問を残してください。できるだけ早くご連絡いたします。",
+    ko: "현재 모든 상담원이 오프라인입니다. 연락처와 문의 내용을 남겨 주시면 최대한 빨리 연락드리겠습니다.",
+    de: "Derzeit sind alle Servicemitarbeiter offline. Bitte hinterlassen Sie Ihre Kontaktdaten und Ihr Anliegen, wir melden uns so schnell wie moeglich.",
+    fr: "Tous nos agents sont actuellement hors ligne. Veuillez laisser vos coordonnees et votre question, nous vous contacterons des que possible.",
+    ru: "Сейчас все операторы офлайн. Оставьте свои контакты и вопрос, и мы свяжемся с вами как можно скорее.",
+    pt: "No momento, todos os atendentes estao offline. Deixe seu contato e sua duvida, e entraremos em contato o mais rapido possivel."
+  } as Record<LangKey, string>,
+  offlineFormFields: [
+    {
+      id: "of-1",
+      type: "name",
+      label: { en: "Name", "zh-cn": "姓名", "zh-tw": "姓名", ja: "お名前", ko: "이름", de: "Name", fr: "Nom", ru: "Имя", pt: "Nome" },
+      placeholder: {
+        en: "Please enter your name",
+        "zh-cn": "请输入姓名",
+        "zh-tw": "請輸入姓名",
+        ja: "お名前を入力してください",
+        ko: "이름을 입력해 주세요",
+        de: "Bitte geben Sie Ihren Namen ein",
+        fr: "Veuillez saisir votre nom",
+        ru: "Введите ваше имя",
+        pt: "Digite seu nome"
+      },
+      required: true
+    },
+    {
+      id: "of-2",
+      type: "phone",
+      label: { en: "Phone", "zh-cn": "电话", "zh-tw": "電話", ja: "電話番号", ko: "전화번호", de: "Telefon", fr: "Telephone", ru: "Телефон", pt: "Telefone" },
+      placeholder: {
+        en: "Please enter your phone number",
+        "zh-cn": "请输入电话",
+        "zh-tw": "請輸入電話",
+        ja: "電話番号を入力してください",
+        ko: "전화번호를 입력해 주세요",
+        de: "Bitte geben Sie Ihre Telefonnummer ein",
+        fr: "Veuillez saisir votre numero de telephone",
+        ru: "Введите ваш номер телефона",
+        pt: "Digite seu telefone"
+      },
+      required: true
+    },
+    {
+      id: "of-3",
+      type: "email",
+      label: { en: "Email", "zh-cn": "邮箱", "zh-tw": "郵箱", ja: "メールアドレス", ko: "이메일", de: "E-Mail", fr: "E-mail", ru: "Эл. почта", pt: "E-mail" },
+      placeholder: {
+        en: "Please enter your email",
+        "zh-cn": "请输入邮箱",
+        "zh-tw": "請輸入郵箱",
+        ja: "メールアドレスを入力してください",
+        ko: "이메일을 입력해 주세요",
+        de: "Bitte geben Sie Ihre E-Mail ein",
+        fr: "Veuillez saisir votre e-mail",
+        ru: "Введите ваш e-mail",
+        pt: "Digite seu e-mail"
+      },
+      required: false
+    },
+    {
+      id: "of-4",
+      type: "text",
+      label: { en: "Question", "zh-cn": "问题", "zh-tw": "問題", ja: "ご質問", ko: "문의 내용", de: "Frage", fr: "Question", ru: "Вопрос", pt: "Pergunta" },
+      placeholder: {
+        en: "Please describe your question",
+        "zh-cn": "请描述您的问题",
+        "zh-tw": "請描述您的問題",
+        ja: "ご質問内容を入力してください",
+        ko: "문의 내용을 입력해 주세요",
+        de: "Bitte beschreiben Sie Ihr Anliegen",
+        fr: "Veuillez decrire votre question",
+        ru: "Опишите ваш вопрос",
+        pt: "Descreva sua duvida"
+      },
+      required: true
+    }
   ] as FormField[],
   enableReadReceipt: true,
   showAgentOnlineStatus: true,
@@ -1400,32 +2145,93 @@ const showChatPreviewOnlineStatus = computed(() => {
   return isMsgStatusPreview.value && settings.showAgentOnlineStatus;
 });
 
+const previewFormEnabled = computed(() => {
+  return formPreviewScenario.value === "offline" ? settings.enableOfflineForm : settings.enableSessionForm;
+});
+
+const previewFormFields = computed(() => {
+  return formPreviewScenario.value === "offline" ? settings.offlineFormFields : settings.formFields;
+});
+
+const previewFormTitle = computed(() => {
+  const lang = globalLang.value;
+  if (formPreviewScenario.value === "offline") {
+    return settings.offlineFormTitle[lang] || settings.offlineFormTitle["zh-cn"];
+  }
+  return settings.formTitle[lang] || settings.formTitle["zh-cn"];
+});
+
+const isOfflineFormPreview = computed(() => formPreviewScenario.value === "offline");
+
+const previewOfflineFormMessage = computed(() => {
+  if (!isOfflineFormPreview.value) {
+    return "";
+  }
+  return autoReplyTexts.sessionOffline[globalLang.value];
+});
+
+const previewFormEmptyTitle = computed(() => {
+  return formPreviewScenario.value === "offline"
+    ? currentWidgetLocaleText.value.offlineFormEmptyTitle
+    : currentWidgetLocaleText.value.sessionFormEmptyTitle;
+});
+
+const previewFormEmptyText = computed(() => {
+  return formPreviewScenario.value === "offline"
+    ? currentWidgetLocaleText.value.offlineFormEmptyText
+    : currentWidgetLocaleText.value.sessionFormEmptyText;
+});
+
 // AI生成的会话标题（多语言）
 const aiGeneratedTitles: Record<LangKey, string> = {
   en: "Order Status Inquiry",
   "zh-cn": "订单状态咨询",
-  "zh-tw": "訂單狀態諮詢"
+  "zh-tw": "訂單狀態諮詢",
+  ja: "注文状況に関するお問い合わせ",
+  ko: "주문 상태 문의",
+  de: "Anfrage zum Bestellstatus",
+  fr: "Demande sur le statut de la commande",
+  ru: "Запрос о статусе заказа",
+  pt: "Consulta sobre o status do pedido"
 };
 
 // 展示客服信息的标题（多语言）
 const agentSessionTitles: Record<LangKey, string> = {
   en: "Chat with Agent Sarah",
   "zh-cn": "与 Sarah 的会话",
-  "zh-tw": "與 Sarah 的會話"
+  "zh-tw": "與 Sarah 的會話",
+  ja: "担当者 Sarah との会話",
+  ko: "상담원 Sarah와의 대화",
+  de: "Chat mit Agentin Sarah",
+  fr: "Conversation avec l'agent Sarah",
+  ru: "Диалог с оператором Sarah",
+  pt: "Conversa com a atendente Sarah"
 };
 
 // 会话列表消息（多语言）
 const sessionListMessages: Record<LangKey, string> = {
-  en: "Can you help me check the order status?",
+  en: "Hello, how can I help you?",
   "zh-cn": "您好，请问有什么可以帮助您的吗？",
-  "zh-tw": "您好，請問有什麼可以幫助您的嗎？"
+  "zh-tw": "您好，請問有什麼可以幫助您的嗎？",
+  ja: "こんにちは。どのようなご用件でしょうか？",
+  ko: "안녕하세요. 무엇을 도와드릴까요?",
+  de: "Hallo, wie kann ich Ihnen helfen?",
+  fr: "Bonjour, que puis-je faire pour vous aider ?",
+  ru: "Здравствуйте! Чем я могу вам помочь?",
+  pt: "Ola! Como posso ajudar voce?"
 };
 
 // 排队信息文本（多语言）
 const queueTexts: Record<LangKey, { prefix: string; suffix: string }> = {
   en: { prefix: "In queue, ", suffix: " visitors ahead" },
   "zh-cn": { prefix: "排队中，前面还有", suffix: "人" },
-  "zh-tw": { prefix: "排隊中，前面還有", suffix: "人" }
+  "zh-tw": { prefix: "排隊中，前面還有", suffix: "人" },
+  ja: { prefix: "順番待ち中。前にあと", suffix: "人います" },
+  ko: { prefix: "대기 중, 앞에 ", suffix: "명" },
+  de: { prefix: "In der Warteschlange, noch ", suffix: " Personen vor Ihnen" },
+  fr: { prefix: "En file d'attente, encore ", suffix: " personnes devant vous" },
+  ru: { prefix: "В очереди, впереди еще ", suffix: " чел." },
+  pt: { prefix: "Na fila, ainda ha ", suffix: " pessoas na sua frente" }
 };
 
 const previewSessionItems: PreviewSessionItem[] = [
@@ -1491,6 +2297,11 @@ const logoFileInput = ref<HTMLInputElement>();
 const cropModalOpen = ref(false);
 const cropImageSrc = ref("");
 const cropImgEl = ref<HTMLImageElement>();
+const chatPageHeroImageInputRef = ref<HTMLInputElement>();
+const chatPageHeroCropModalOpen = ref(false);
+const chatPageHeroCropImageSrc = ref("");
+const chatPageHeroCropImgEl = ref<HTMLImageElement>();
+const chatPageHeroCropLang = ref<LangKey>("zh-cn");
 
 // Quick Access Modal
 const quickAccessModalOpen = ref(false);
@@ -1695,6 +2506,10 @@ const triggerLogoUpload = () => {
   logoFileInput.value?.click();
 };
 
+const triggerChatPageHeroImageUpload = () => {
+  chatPageHeroImageInputRef.value?.click();
+};
+
 const handleLogoFileChange = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
@@ -1709,6 +2524,24 @@ const handleLogoFileChange = (e: Event) => {
   };
   reader.readAsDataURL(file);
   // reset so re-selecting same file triggers change
+  (e.target as HTMLInputElement).value = "";
+};
+
+const handleChatPageHeroImageChange = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    emitToast("图片大小不能超过2MB");
+    (e.target as HTMLInputElement).value = "";
+    return;
+  }
+  chatPageHeroCropLang.value = globalLang.value;
+  const reader = new FileReader();
+  reader.onload = () => {
+    chatPageHeroCropImageSrc.value = reader.result as string;
+    chatPageHeroCropModalOpen.value = true;
+  };
+  reader.readAsDataURL(file);
   (e.target as HTMLInputElement).value = "";
 };
 
@@ -1729,6 +2562,23 @@ const applyCrop = () => {
   autoSave();
 };
 
+const applyChatPageHeroImageCrop = () => {
+  if (!chatPageHeroCropImgEl.value) return;
+  const img = chatPageHeroCropImgEl.value;
+  const canvas = document.createElement("canvas");
+  const size = Math.min(img.naturalWidth, img.naturalHeight);
+  canvas.width = 320;
+  canvas.height = 320;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const sx = (img.naturalWidth - size) / 2;
+  const sy = (img.naturalHeight - size) / 2;
+  ctx.drawImage(img, sx, sy, size, size, 0, 0, 320, 320);
+  chatPageHeroImage[chatPageHeroCropLang.value] = canvas.toDataURL("image/png");
+  chatPageHeroCropModalOpen.value = false;
+  autoSave();
+};
+
 let qaCounter = 3;
 const addQuickAccess = () => {
   const id = `qa-${qaCounter++}`;
@@ -1741,22 +2591,200 @@ const removeQuickAccess = (id: string) => {
   autoSave();
 };
 
-let fieldCounter = 4;
-const addFormField = () => {
-  const id = `f-${fieldCounter++}`;
-  settings.formFields.push({ id, type: "text", label: { en: "Custom Field", "zh-cn": "自定义字段", "zh-tw": "自定義欄位" }, placeholder: { en: "Please enter...", "zh-cn": "请输入...", "zh-tw": "請輸入..." }, required: false });
+let sessionFieldCounter = 4;
+let offlineFieldCounter = 5;
+let selectOptionCounter = 1;
+
+const getFormFieldList = (scenario: FormScenario) => {
+  return scenario === "offline" ? settings.offlineFormFields : settings.formFields;
+};
+
+const isSingleInstanceFieldType = (fieldType: FormFieldType) => {
+  return fieldType === "name" || fieldType === "phone" || fieldType === "email";
+};
+
+const isFormFieldOptionDisabled = (scenario: FormScenario, fieldType: FormFieldType) => {
+  if (!isSingleInstanceFieldType(fieldType)) {
+    return false;
+  }
+  return getFormFieldList(scenario).some(field => field.type === fieldType);
+};
+
+const closeAddFieldMenu = () => {
+  activeAddFieldMenu.value = null;
+};
+
+const toggleAddFieldMenu = (scenario: FormScenario) => {
+  activeAddFieldMenu.value = activeAddFieldMenu.value === scenario ? null : scenario;
+};
+
+const createLocalizedFieldText = (
+  label: Record<LangKey, string>,
+  placeholder: Record<LangKey, string>
+) => ({
+  label,
+  placeholder
+});
+
+const chineseNumerals = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+
+const createSelectOption = (index: number) => {
+  const chineseSuffix = chineseNumerals[index] || `${index + 1}`;
+  const numericSuffix = `${index + 1}`;
+  return {
+    id: `fo-${selectOptionCounter++}`,
+    value: {
+      en: `Option ${numericSuffix}`,
+      "zh-cn": `选项${chineseSuffix}`,
+      "zh-tw": `選項${chineseSuffix}`,
+      ja: `オプション${numericSuffix}`,
+      ko: `옵션 ${numericSuffix}`,
+      de: `Option ${numericSuffix}`,
+      fr: `Option ${numericSuffix}`,
+      ru: `Вариант ${numericSuffix}`,
+      pt: `Opcao ${numericSuffix}`
+    }
+  };
+};
+
+const createFormField = (id: string, fieldType: FormFieldType): FormField => {
+  switch (fieldType) {
+    case "name": {
+      const localized = createLocalizedFieldText(
+        { en: "Name", "zh-cn": "姓名", "zh-tw": "姓名", ja: "お名前", ko: "이름", de: "Name", fr: "Nom", ru: "Имя", pt: "Nome" },
+        {
+          en: "Please enter your name",
+          "zh-cn": "请输入姓名",
+          "zh-tw": "請輸入姓名",
+          ja: "お名前を入力してください",
+          ko: "이름을 입력해 주세요",
+          de: "Bitte geben Sie Ihren Namen ein",
+          fr: "Veuillez saisir votre nom",
+          ru: "Введите ваше имя",
+          pt: "Digite seu nome"
+        }
+      );
+      return { id, type: "name", required: true, ...localized };
+    }
+    case "phone": {
+      const localized = createLocalizedFieldText(
+        { en: "Phone", "zh-cn": "电话", "zh-tw": "電話", ja: "電話番号", ko: "전화번호", de: "Telefon", fr: "Telephone", ru: "Телефон", pt: "Telefone" },
+        {
+          en: "Please enter your phone number",
+          "zh-cn": "请输入电话",
+          "zh-tw": "請輸入電話",
+          ja: "電話番号を入力してください",
+          ko: "전화번호를 입력해 주세요",
+          de: "Bitte geben Sie Ihre Telefonnummer ein",
+          fr: "Veuillez saisir votre numero de telephone",
+          ru: "Введите ваш номер телефона",
+          pt: "Digite seu telefone"
+        }
+      );
+      return { id, type: "phone", required: true, ...localized };
+    }
+    case "email": {
+      const localized = createLocalizedFieldText(
+        { en: "Email", "zh-cn": "邮箱", "zh-tw": "郵箱", ja: "メールアドレス", ko: "이메일", de: "E-Mail", fr: "E-mail", ru: "Эл. почта", pt: "E-mail" },
+        {
+          en: "Please enter your email",
+          "zh-cn": "请输入邮箱",
+          "zh-tw": "請輸入郵箱",
+          ja: "メールアドレスを入力してください",
+          ko: "이메일을 입력해 주세요",
+          de: "Bitte geben Sie Ihre E-Mail ein",
+          fr: "Veuillez saisir votre e-mail",
+          ru: "Введите ваш e-mail",
+          pt: "Digite seu e-mail"
+        }
+      );
+      return { id, type: "email", required: true, ...localized };
+    }
+    case "select": {
+      const localized = createLocalizedFieldText(
+        { en: "Dropdown", "zh-cn": "下拉选择", "zh-tw": "下拉選擇", ja: "ドロップダウン", ko: "드롭다운", de: "Auswahlfeld", fr: "Liste deroulante", ru: "Выпадающий список", pt: "Lista suspensa" },
+        {
+          en: "Please select",
+          "zh-cn": "请选择",
+          "zh-tw": "請選擇",
+          ja: "選択してください",
+          ko: "선택해 주세요",
+          de: "Bitte waehlen Sie aus",
+          fr: "Veuillez selectionner",
+          ru: "Пожалуйста, выберите",
+          pt: "Selecione"
+        }
+      );
+      return { id, type: "select", required: false, options: [createSelectOption(0)], ...localized };
+    }
+    default: {
+      const localized = createLocalizedFieldText(
+        { en: "Text field", "zh-cn": "输入框", "zh-tw": "輸入框", ja: "入力欄", ko: "입력란", de: "Textfeld", fr: "Champ de texte", ru: "Текстовое поле", pt: "Campo de texto" },
+        {
+          en: "Please enter the content",
+          "zh-cn": "请输入内容",
+          "zh-tw": "請輸入內容",
+          ja: "内容を入力してください",
+          ko: "내용을 입력해 주세요",
+          de: "Bitte geben Sie den Inhalt ein",
+          fr: "Veuillez saisir le contenu",
+          ru: "Введите содержимое",
+          pt: "Digite o conteudo"
+        }
+      );
+      return { id, type: "text", required: false, ...localized };
+    }
+  }
+};
+
+const addFormField = (scenario: FormScenario = "session", fieldType: FormFieldType = "text") => {
+  if (isFormFieldOptionDisabled(scenario, fieldType)) {
+    return;
+  }
+  const counter = scenario === "offline" ? offlineFieldCounter++ : sessionFieldCounter++;
+  const id = `${scenario === "offline" ? "of" : "f"}-${counter}`;
+  getFormFieldList(scenario).push(createFormField(id, fieldType));
+  closeAddFieldMenu();
   autoSave();
 };
 
-const deleteConfirmIdx = ref<number | null>(null);
+const deleteConfirmKey = ref<string | null>(null);
 
-const toggleDeleteConfirm = (idx: number) => {
-  deleteConfirmIdx.value = deleteConfirmIdx.value === idx ? null : idx;
+const getDeleteConfirmKey = (scenario: FormScenario, idx: number) => `${scenario}:${idx}`;
+
+const isDeleteConfirmOpen = (scenario: FormScenario, idx: number) => {
+  return deleteConfirmKey.value === getDeleteConfirmKey(scenario, idx);
 };
 
-const confirmRemoveFormField = (idx: number) => {
-  settings.formFields.splice(idx, 1);
-  deleteConfirmIdx.value = null;
+const toggleDeleteConfirm = (scenario: FormScenario, idx: number) => {
+  const nextKey = getDeleteConfirmKey(scenario, idx);
+  deleteConfirmKey.value = deleteConfirmKey.value === nextKey ? null : nextKey;
+};
+
+const confirmRemoveFormField = (scenario: FormScenario, idx: number) => {
+  getFormFieldList(scenario).splice(idx, 1);
+  deleteConfirmKey.value = null;
+  autoSave();
+};
+
+const addSelectOption = (scenario: FormScenario, fieldIdx: number) => {
+  const field = getFormFieldList(scenario)[fieldIdx];
+  if (!field || field.type !== "select") {
+    return;
+  }
+  if (!field.options) {
+    field.options = [createSelectOption(0)];
+  }
+  field.options.push(createSelectOption(field.options.length));
+  autoSave();
+};
+
+const removeSelectOption = (scenario: FormScenario, fieldIdx: number, optionIdx: number) => {
+  const field = getFormFieldList(scenario)[fieldIdx];
+  if (!field || field.type !== "select" || !field.options || field.options.length <= 1) {
+    return;
+  }
+  field.options.splice(optionIdx, 1);
   autoSave();
 };
 
@@ -1806,7 +2834,7 @@ watch(previewMode, (mode) => {
 <style scoped>
 .widget-customize {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   height: 100%;
   overflow: hidden;
 }
@@ -1817,6 +2845,7 @@ watch(previewMode, (mode) => {
   display: flex;
   flex-direction: column;
   gap: var(--agent-space-16);
+  min-width: 0;
   overflow-y: auto;
   padding: var(--agent-space-24);
 }
@@ -1998,6 +3027,35 @@ watch(previewMode, (mode) => {
   padding: var(--agent-space-20);
 }
 
+.wc-accordion--form .wc-accordion__trigger {
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.wc-accordion--form .wc-accordion__body {
+  gap: 14px;
+  padding: 16px 18px 18px;
+}
+
+.wc-accordion--form .wc-card__title {
+  font-size: 15px;
+}
+
+.wc-accordion--form .wc-card__desc {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.wc-accordion--form .wc-label {
+  font-size: 12px;
+}
+
+.wc-accordion--form .wc-input {
+  border-radius: 9px;
+  font-size: 12px;
+  padding: 7px 10px;
+}
+
 .wc-card__title {
   color: var(--agent-color-text-primary);
   font-size: var(--agent-font-size-md);
@@ -2010,6 +3068,10 @@ watch(previewMode, (mode) => {
   font-size: var(--agent-font-size-sm);
   line-height: 1.5;
   margin: 0;
+}
+
+.wc-accordion__trigger--chat-page {
+  user-select: none;
 }
 
 /* Brand row */
@@ -2478,6 +3540,12 @@ watch(previewMode, (mode) => {
   resize: none;
 }
 
+.wc-chat-page-hero__textarea {
+  min-height: 108px;
+  padding-bottom: 14px;
+  resize: vertical;
+}
+
 .wc-upload-hint {
   color: var(--agent-color-text-tertiary);
   font-size: var(--agent-font-size-xs);
@@ -2618,71 +3686,127 @@ watch(previewMode, (mode) => {
 .wc-form-title-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .wc-form-fields-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .wc-form-fields {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .wc-form-field-row {
-  align-items: center;
   background: var(--agent-color-bg-muted);
-  border-radius: 10px;
+  border-radius: 20px;
   display: flex;
-  gap: 8px;
-  padding: 8px 10px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.wc-form-field-row__main {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 18px 84px minmax(0, 1fr) auto 16px;
+  width: 100%;
 }
 
 .wc-drag-handle {
-  color: var(--agent-color-text-tertiary);
+  color: #b3bccd;
   cursor: grab;
   display: inline-flex;
   flex-shrink: 0;
+  justify-content: center;
+  width: 18px;
+}
+
+.wc-drag-handle svg {
+  height: 14px;
+  width: 14px;
 }
 
 .wc-form-field-label {
   color: var(--agent-color-text-primary);
   flex-shrink: 0;
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  min-width: 36px;
+  font-size: 14px;
+  font-weight: var(--agent-font-weight-semibold);
+  line-height: 1.25;
+  min-width: 0;
 }
 
 .wc-form-field-placeholder {
   flex: 1;
+  border-color: #d8e0ec;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  height: 40px;
+  line-height: 40px;
   min-width: 0;
-  padding: 4px 8px;
+  padding: 0 14px;
 }
 
 .wc-checkbox-label {
   align-items: center;
-  color: var(--agent-color-text-secondary);
+  color: var(--agent-color-text-primary);
   display: inline-flex;
   flex-shrink: 0;
-  font-size: var(--agent-font-size-xs);
-  gap: 4px;
+  font-size: 13px;
+  font-weight: var(--agent-font-weight-medium);
+  gap: 5px;
   white-space: nowrap;
 }
 
 .wc-checkbox {
-  accent-color: var(--agent-color-brand-primary);
-  height: 14px;
-  width: 14px;
+  appearance: none;
+  background: var(--agent-color-bg-panel);
+  border: 2px solid #d8e0ec;
+  border-radius: 6px;
+  cursor: pointer;
+  height: 18px;
+  margin: 0;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  width: 18px;
+}
+
+.wc-checkbox:hover {
+  border-color: #b9c7dc;
+}
+
+.wc-checkbox:checked {
+  background: var(--agent-color-brand-primary);
+  border-color: var(--agent-color-brand-primary);
+}
+
+.wc-checkbox:checked::after {
+  border-bottom: 2px solid #fff;
+  border-right: 2px solid #fff;
+  content: "";
+  height: 6px;
+  left: 4px;
+  position: absolute;
+  top: 1px;
+  transform: rotate(45deg);
+  width: 4px;
+}
+
+.wc-checkbox:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  outline: none;
 }
 
 .wc-form-field-delete {
   background: transparent;
   border: 0;
-  color: var(--agent-color-text-tertiary);
+  color: #b7c0d0;
   cursor: pointer;
   display: inline-flex;
   flex-shrink: 0;
@@ -2692,8 +3816,101 @@ watch(previewMode, (mode) => {
 
 .wc-form-field-delete:hover { color: var(--agent-color-status-error); }
 
+.wc-form-field-delete svg {
+  height: 16px;
+  width: 16px;
+}
+
 .wc-form-field-delete-wrap {
   position: relative;
+  flex-shrink: 0;
+}
+
+.wc-form-select-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 112px;
+  width: 100%;
+}
+
+.wc-form-select-option-row {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.wc-form-select-option-row__line {
+  border-bottom: 1.5px solid #d7deea;
+  border-left: 1.5px solid #d7deea;
+  border-bottom-left-radius: 10px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 22px;
+  width: 24px;
+}
+
+.wc-form-select-option-row__label {
+  color: var(--agent-color-text-primary);
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: var(--agent-font-weight-medium);
+  min-width: 36px;
+}
+
+.wc-form-select-option-input {
+  flex: 1;
+  border-color: #d8e0ec;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  height: 40px;
+  line-height: 40px;
+  min-width: 0;
+  padding: 0 14px;
+}
+
+.wc-form-select-option-delete {
+  align-items: center;
+  color: #b7c0d0;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.wc-form-select-option-delete:disabled {
+  color: var(--agent-color-border-strong);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.wc-add-option-btn {
+  align-items: center;
+  align-self: flex-start;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid #d8e0ec;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-semibold);
+  gap: 6px;
+  margin-left: 58px;
+  padding: 8px 14px;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.wc-add-option-btn:hover {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.wc-add-option-btn__icon {
+  color: var(--agent-color-text-primary);
+  display: inline-flex;
   flex-shrink: 0;
 }
 
@@ -2749,30 +3966,103 @@ watch(previewMode, (mode) => {
   opacity: 0.9;
 }
 
-.wc-add-field-btn {
-  align-items: center;
+.wc-add-field-wrap {
   align-self: flex-start;
-  background: transparent;
-  border: 1px dashed var(--agent-color-border-default);
-  border-radius: 8px;
-  color: var(--agent-color-text-secondary);
-  cursor: pointer;
   display: inline-flex;
-  font-size: var(--agent-font-size-xs);
-  gap: 4px;
-  padding: 6px 14px;
-  transition: border-color 0.15s, color 0.15s;
+  position: relative;
+  z-index: 2;
 }
 
-.wc-add-field-btn:hover {
-  border-color: var(--agent-color-brand-primary);
+.wc-add-field-btn {
+  align-items: center;
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-brand-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
   color: var(--agent-color-brand-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-semibold);
+  gap: 6px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 100px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.wc-add-field-btn:hover,
+.wc-add-field-btn--active {
+  background: var(--agent-color-brand-soft);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px);
+}
+
+.wc-add-field-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.wc-add-field-menu {
+  background: var(--agent-color-bg-panel);
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  left: 0;
+  min-width: 100%;
+  padding: 4px;
+  position: absolute;
+  top: auto;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  z-index: var(--agent-z-dropdown, 100);
+}
+
+.wc-add-field-menu__item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--agent-color-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-weight: var(--agent-font-weight-medium);
+  min-height: 30px;
+  padding: 7px 10px;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.wc-add-field-menu__item:hover {
+  background: var(--agent-color-brand-soft);
+  color: var(--agent-color-text-primary);
+}
+
+.wc-add-field-menu__item--disabled,
+.wc-add-field-menu__item:disabled {
+  color: #9ea7b8;
+  cursor: not-allowed;
+}
+
+.wc-add-field-menu__item--disabled:hover,
+.wc-add-field-menu__item:disabled:hover {
+  background: transparent;
 }
 
 /* ── Preview Panel ── */
 .wc-preview {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -2780,19 +4070,21 @@ watch(previewMode, (mode) => {
   align-items: center;
   border-bottom: 1px solid var(--agent-color-border-default);
   display: flex;
-  gap: 12px;
-  padding: 14px var(--agent-space-24);
+  gap: 8px;
+  padding: 10px 16px;
 }
 
 .wc-preview__title {
-  color: var(--agent-color-text-secondary);
-  font-size: var(--agent-font-size-sm);
+  color: var(--agent-color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .wc-preview-select {
   border-radius: 8px;
-  font-size: var(--agent-font-size-sm);
-  padding: 6px 10px;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 5px 10px;
   width: auto;
 }
 
@@ -2807,8 +4099,13 @@ watch(previewMode, (mode) => {
   align-items: center;
   justify-content: center;
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   position: relative;
+}
+
+.wc-preview__canvas--chat-page {
+  background: linear-gradient(180deg, #f7f9fc 0%, #f4f7fb 100%);
 }
 
 .wc-preview__page-mock {
@@ -2837,6 +4134,365 @@ watch(previewMode, (mode) => {
   border-radius: 10px;
   height: 80px;
   width: 60%;
+}
+
+.wc-chat-page-preview {
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  border: 1px solid rgba(218, 226, 238, 0.92);
+  border-radius: 28px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+  display: grid;
+  gap: 44px;
+  grid-template-columns: minmax(260px, 1fr) 322px;
+  height: min(calc(100% - 72px), 712px);
+  max-width: min(calc(100% - 72px), 1020px);
+  min-width: 0;
+  padding: 46px 40px;
+  position: relative;
+  width: min(calc(100% - 72px), 1020px);
+}
+
+.wc-chat-page-preview--hero-hidden {
+  display: flex;
+  justify-content: center;
+}
+
+.wc-chat-page-preview--hero-hidden .wc-chat-page-preview__panel-wrap {
+  justify-content: center;
+}
+
+.wc-chat-page-preview__hero {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-self: start;
+  max-width: 372px;
+  min-width: 0;
+}
+
+.wc-chat-page-preview__hero-image {
+  border-radius: 50%;
+  height: 64px;
+  object-fit: cover;
+  width: 64px;
+}
+
+.wc-chat-page-preview__hero-title {
+  color: #121826;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.wc-chat-page-preview__hero-desc {
+  color: #111827;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 372px;
+  white-space: pre-line;
+}
+
+.wc-chat-page-preview__panel-wrap {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  width: 100%;
+}
+
+.wc-chat-page-preview__panel {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.11);
+  display: flex;
+  flex-direction: column;
+  height: 602px;
+  overflow: hidden;
+  padding: 16px 14px 12px;
+  width: 322px;
+}
+
+.wc-chat-page-preview__panel-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0 6px;
+}
+
+.wc-chat-page-preview__brand {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  min-width: 0;
+}
+
+.wc-chat-page-preview__brand-logo {
+  border-radius: 50%;
+  height: 30px;
+  object-fit: cover;
+  width: 30px;
+}
+
+.wc-chat-page-preview__brand-name {
+  color: #202939;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wc-chat-page-preview__panel-menu {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #111827;
+  cursor: default;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
+}
+
+.wc-chat-page-preview__session-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 2px 0;
+}
+
+.wc-chat-page-preview__session-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  padding: 7px 8px;
+}
+
+.wc-chat-page-preview__session-avatar {
+  align-items: center;
+  background: #1daaf3;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 16px;
+  font-weight: 700;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.wc-chat-page-preview__session-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wc-chat-page-preview__session-top {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.wc-chat-page-preview__session-title {
+  color: #111827;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wc-chat-page-preview__session-time {
+  color: #7184a7;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.wc-chat-page-preview__session-desc {
+  color: #7184a7;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wc-chat-page-preview__cta {
+  align-items: center;
+  background: linear-gradient(180deg, #2f6bff 0%, #235ae8 100%);
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  cursor: default;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 600;
+  height: 42px;
+  justify-content: center;
+  margin-top: auto;
+  width: 100%;
+}
+
+.wc-chat-page-preview__footer {
+  color: #94a3b8;
+  font-size: 10px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+@container (max-width: 860px) {
+  .wc-chat-page-preview {
+    gap: 28px;
+    grid-template-columns: minmax(180px, 1fr) 280px;
+    height: min(calc(100% - 48px), 620px);
+    max-width: min(calc(100% - 48px), 820px);
+    padding: 32px 28px;
+    width: min(calc(100% - 48px), 820px);
+  }
+
+  .wc-chat-page-preview__hero {
+    gap: 12px;
+    max-width: 276px;
+  }
+
+  .wc-chat-page-preview__hero-image {
+    height: 56px;
+    width: 56px;
+  }
+
+  .wc-chat-page-preview__hero-title {
+    font-size: 24px;
+  }
+
+  .wc-chat-page-preview__hero-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    max-width: 276px;
+  }
+
+  .wc-chat-page-preview__panel {
+    border-radius: 22px;
+    height: 520px;
+    padding: 14px 12px 12px;
+    width: 280px;
+  }
+
+  .wc-chat-page-preview__brand-logo {
+    height: 28px;
+    width: 28px;
+  }
+
+  .wc-chat-page-preview__brand-name {
+    font-size: 13px;
+  }
+
+  .wc-chat-page-preview__session-list {
+    gap: 4px;
+    padding-top: 12px;
+  }
+
+  .wc-chat-page-preview__session-item {
+    gap: 8px;
+    padding: 6px;
+  }
+
+  .wc-chat-page-preview__session-avatar {
+    font-size: 14px;
+    height: 32px;
+    width: 32px;
+  }
+
+  .wc-chat-page-preview__session-title {
+    font-size: 11px;
+  }
+
+  .wc-chat-page-preview__session-time {
+    font-size: 9px;
+  }
+
+  .wc-chat-page-preview__session-desc {
+    font-size: 10px;
+  }
+
+  .wc-chat-page-preview__cta {
+    font-size: 12px;
+    height: 38px;
+  }
+}
+
+@container (max-width: 720px) {
+  .wc-chat-page-preview {
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    height: min(calc(100% - 32px), 616px);
+    max-width: min(calc(100% - 32px), 560px);
+    padding: 24px 20px;
+    width: min(calc(100% - 32px), 560px);
+  }
+
+  .wc-chat-page-preview__hero {
+    justify-self: stretch;
+    max-width: none;
+  }
+
+  .wc-chat-page-preview__hero-desc {
+    max-width: none;
+  }
+
+  .wc-chat-page-preview__panel-wrap {
+    justify-content: center;
+  }
+
+  .wc-chat-page-preview__panel {
+    height: 428px;
+    width: min(100%, 272px);
+  }
+}
+
+@container (max-width: 560px) {
+  .wc-chat-page-preview {
+    border-radius: 22px;
+    gap: 16px;
+    height: min(calc(100% - 24px), 560px);
+    max-width: min(calc(100% - 24px), 420px);
+    padding: 18px 16px;
+    width: min(calc(100% - 24px), 420px);
+  }
+
+  .wc-chat-page-preview__hero-image {
+    height: 48px;
+    width: 48px;
+  }
+
+  .wc-chat-page-preview__hero-title {
+    font-size: 21px;
+  }
+
+  .wc-chat-page-preview__hero-desc {
+    font-size: 12px;
+  }
+
+  .wc-chat-page-preview__panel {
+    border-radius: 18px;
+    height: 388px;
+    width: min(100%, 248px);
+  }
+
+  .wc-chat-page-preview__cta {
+    height: 36px;
+  }
 }
 
 /* Widget */
@@ -3628,36 +5284,50 @@ watch(previewMode, (mode) => {
 /* Form card (inside chat message) */
 .wc-widget__form-card {
   background: var(--agent-color-bg-panel);
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 24px 20px;
+  gap: 10px;
+  padding: 12px 12px 10px;
   width: 100%;
 }
 
 .wc-widget__form-card-title {
   color: var(--agent-color-text-primary);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
   margin: 0;
+}
+
+.wc-widget__form-scene-chip {
+  align-self: flex-start;
+  background: var(--agent-color-brand-soft);
+  border-radius: 999px;
+  color: var(--agent-color-brand-primary);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 0;
+  padding: 5px 8px;
 }
 
 .wc-widget__form-card-fields {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 7px;
 }
 
 .wc-widget__form-card-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .wc-widget__form-card-label {
   color: var(--agent-color-text-primary);
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -3669,23 +5339,50 @@ watch(previewMode, (mode) => {
 
 .wc-widget__form-card-input {
   background: var(--agent-color-bg-panel);
-  border: 1px solid var(--agent-color-border-default);
-  border-radius: 12px;
+  border: 1px solid #d8e0ec;
+  border-radius: 10px;
   color: var(--agent-color-text-primary);
   font-size: 11px;
-  height: 34px;
-  line-height: 34px;
-  padding: 0 12px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 10px;
 }
 
 .wc-widget__form-card-submit {
   background: var(--agent-color-brand-primary);
-  border-radius: 12px;
+  align-items: center;
+  border-radius: 10px;
   color: #fff;
-  font-size: 12px;
+  display: flex;
+  font-size: 11px;
   font-weight: 600;
-  padding: 10px;
+  height: 32px;
+  justify-content: center;
   text-align: center;
+}
+
+.wc-widget__form-empty {
+  background: var(--agent-color-bg-panel);
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 280px;
+  padding: 18px 16px;
+}
+
+.wc-widget__form-empty-title {
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wc-widget__form-empty-text {
+  color: var(--agent-color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* Minimized FAB */

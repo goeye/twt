@@ -21,7 +21,7 @@
         </header>
 
         <div class="message__bubble-row">
-        <div class="message__bubble" :class="{ 'message__bubble--note': isNote }">
+        <div class="message__bubble" :class="{ 'message__bubble--note': isNote, 'message__bubble--media-only': isMediaOnlyMessage }">
           <!-- 非邮件会话：完整工具栏 -->
           <div
             v-if="showActions && hovered && role !== 'system' && role !== 'bot' && channelType !== 'email'"
@@ -93,16 +93,104 @@
               </div>
             </div>
             <!-- 查看原始邮件按钮 -->
-            <button v-if="contentType === 'html' && parsedEmail.quoted" class="message__action-btn" title="查看引用内容" @click="quotedExpanded = !quotedExpanded">
+            <button v-if="contentType === 'html' && parsedMessage.quoted" class="message__action-btn" title="查看引用内容" @click="quotedExpanded = !quotedExpanded">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
             </button>
           </div>
-          <div v-if="contentType === 'html' && parsedEmail.body && parsedEmail.body.trim()" class="message__html-content" v-html="parsedEmail.body" />
-          <div v-else-if="contentType === 'html'" class="message__empty-body">（无邮件内容）</div>
+          <div v-if="contentType === 'html' && (parsedMessage.body?.trim() || parsedMessage.media.length > 0)" class="message__content-stack">
+            <div v-if="parsedMessage.body && parsedMessage.body.trim()" class="message__text-block">
+              <div class="message__html-content" v-html="parsedMessage.body" />
+            </div>
+            <div v-else-if="parsedMessage.media.length === 0" class="message__empty-body">（无邮件内容）</div>
+
+            <div
+              v-if="parsedMessage.media.length > 0"
+              class="message__media-section"
+              :class="{ 'message__media-section--standalone': !(parsedMessage.body && parsedMessage.body.trim()) }"
+            >
+              <div class="message__media-grid" :class="{ 'message__media-grid--single': parsedMessage.media.length === 1 }">
+                <button
+                  v-for="item in parsedMessage.media"
+                  :key="item.id"
+                  type="button"
+                  class="message__media-thumb"
+                  :class="{
+                    'message__media-thumb--video': item.type === 'video',
+                    'message__media-thumb--video-loading': isVideoThumbLoading(item),
+                  }"
+                  @click="openMediaPreview(item)"
+                >
+                  <img
+                    v-if="item.type === 'image' && !failedThumbIds.has(item.id)"
+                    :src="item.thumbnailSrc"
+                    :alt="item.alt"
+                    class="message__media-thumb-image"
+                    loading="lazy"
+                    @error="markThumbFailed(item.id)"
+                  />
+                  <template v-else-if="item.type === 'video' && !failedThumbIds.has(item.id)">
+                    <!-- 始终渲染 video 元素以触发 loadeddata/error -->
+                    <video
+                      :src="item.src"
+                      class="message__media-thumb-video"
+                      :class="{ 'message__media-thumb-video--hidden': videoThumbStatus[item.id] === 'loaded' }"
+                      muted
+                      playsinline
+                      preload="auto"
+                      @loadstart="handleVideoThumbLoadStart(item.id)"
+                      @loadeddata="handleVideoThumbLoaded(item.id)"
+                      @error="markThumbFailed(item.id)"
+                    />
+                    <!-- 有 poster 时显示图片封面，加载完成后隐藏 -->
+                    <img
+                      v-if="item.thumbnailSrc"
+                      :src="item.thumbnailSrc"
+                      :alt="item.alt"
+                      class="message__media-thumb-image"
+                      :class="{ 'message__media-thumb-image--hidden': videoThumbStatus[item.id] === 'loaded' }"
+                      loading="lazy"
+                      @error="markThumbFailed(item.id)"
+                    />
+                    <!-- 加载中覆盖层 -->
+                    <div
+                      v-if="isVideoThumbLoading(item)"
+                      class="message__video-loading message__video-loading--overlay"
+                    >
+                      <span class="message__video-loading-icon" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg>
+                      </span>
+                      <span class="message__preview-spinner message__preview-spinner--inverse"></span>
+                      <span class="message__video-loading-text">加载视频预览中...</span>
+                    </div>
+                  </template>
+                  <div v-else class="message__media-thumb-placeholder" :class="{ 'message__media-thumb-placeholder--video': item.type === 'video' }">
+                    <span class="message__media-thumb-placeholder-icon" aria-hidden="true">
+                      <svg v-if="item.type === 'video'" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg>
+                      <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 16.5v-9Z" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m8 16 3-3 2 2 3-4 2 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                  </div>
+                  <span
+                    v-if="item.type === 'video' && !isVideoThumbLoading(item)"
+                    class="message__media-thumb-badge"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg>
+                    <span>视频</span>
+                  </span>
+                  <span
+                    v-if="item.type === 'video' && !isVideoThumbLoading(item)"
+                    class="message__media-thumb-play"
+                    aria-hidden="true"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
           <span v-else>{{ content }}</span>
 
           <!-- 引用内容区域 -->
-          <div v-if="parsedEmail.quoted" class="message__quoted-section">
+          <div v-if="parsedMessage.quoted" class="message__quoted-section">
             <button
               v-if="!quotedExpanded"
               class="message__quoted-toggle"
@@ -111,14 +199,14 @@
               ...
             </button>
             <div v-if="quotedExpanded" class="message__quoted-content">
-              <div class="message__quoted-inner" v-html="parsedEmail.quoted" />
+              <div class="message__quoted-inner" v-html="parsedMessage.quoted" />
               <button class="message__quoted-collapse" @click="quotedExpanded = false">收起</button>
             </div>
           </div>
 
-          <div v-if="parsedEmail.attachments.length > 0" class="message__attachments">
+          <div v-if="parsedMessage.attachments.length > 0" class="message__attachments">
             <button
-              v-for="(att, idx) in parsedEmail.attachments"
+              v-for="(att, idx) in parsedMessage.attachments"
               :key="idx"
               type="button"
               class="message__attachment-card"
@@ -155,11 +243,81 @@
       </div>
     </template>
   </article>
+
+  <Teleport to="body">
+    <div v-if="previewMedia" class="message__preview-overlay" @click.self="closeMediaPreview">
+      <button type="button" class="message__preview-close" aria-label="关闭预览" @click="closeMediaPreview">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="message__preview-dialog">
+        <div
+          v-if="previewStatus === 'loading' && previewMedia?.type !== 'video'"
+          class="message__preview-state"
+        >
+          <span class="message__preview-spinner"></span>
+          <span>加载中...</span>
+        </div>
+        <div
+          v-else-if="previewStatus === 'error'"
+          class="message__preview-state message__preview-state--error"
+          :class="{ 'message__preview-state--video-error': previewMedia?.type === 'video' }"
+        >
+          <strong>{{ previewMedia?.type === "video" ? "加载失败" : "图片预览失败" }}</strong>
+          <div class="message__preview-actions">
+            <button type="button" class="message__preview-retry" @click="retryMediaPreview">重试</button>
+          </div>
+        </div>
+        <img
+          v-if="previewMedia.type === 'image'"
+          :key="`image-${previewAttempt}`"
+          :src="previewMedia.src"
+          :alt="previewMedia.alt"
+          class="message__preview-content"
+          :class="{ 'message__preview-content--hidden': previewStatus !== 'loaded' }"
+          @load="handlePreviewLoaded"
+          @error="handlePreviewError"
+        />
+        <video
+          v-else
+          ref="previewVideoRef"
+          :key="`video-${previewAttempt}`"
+          class="message__preview-content"
+          :class="{ 'message__preview-content--hidden': previewStatus === 'error' }"
+          autoplay
+          controls
+          playsinline
+          preload="auto"
+          @loadstart="handlePreviewVideoLoadStart"
+          @loadeddata="handlePreviewVideoLoaded"
+          @playing="handlePreviewVideoPlaying"
+          @error="handlePreviewError"
+        >
+          <source :src="previewMedia.src" @error="handlePreviewError" />
+        </video>
+        <div
+          v-if="previewMedia.type === 'video' && previewStatus === 'loading'"
+          class="message__preview-video-loading"
+        >
+          <div class="message__video-loading">
+            <span class="message__preview-spinner message__preview-spinner--inverse"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import type { MessageTranslation } from "../../types";
+
+interface ParsedMediaItem {
+  id: string;
+  type: "image" | "video";
+  src: string;
+  thumbnailSrc: string;
+  alt: string;
+}
 
 const props = withDefaults(
   defineProps<{
@@ -205,13 +363,27 @@ const moreMenuOpen = ref(false);
 const translatePanelOpen = ref(false);
 const selectedTranslateLang = ref("");
 const quotedExpanded = ref(false);
+const failedThumbIds = ref(new Set<string>());
+const videoThumbStatus = ref<Record<string, "loading" | "loaded" | "error">>({});
+const previewMedia = ref<ParsedMediaItem | null>(null);
+const previewStatus = ref<"loading" | "loaded" | "error">("loading");
+const previewAttempt = ref(0);
+const previewVideoRef = ref<HTMLVideoElement | null>(null);
+
+const VIDEO_THUMB_TIMEOUT_MS = 7000;
+const PREVIEW_VIDEO_TIMEOUT_MS = 7000;
+const PREVIEW_FAKE_LOADING_MS = 800;
+const videoThumbTimeouts = new Map<string, number>();
+let previewVideoTimeoutId: number | null = null;
+let previewRevealTimeoutId: number | null = null;
+let previewLoadingStartedAt = 0;
 
 function getPlainText(): string {
   if (props.contentType === 'html') {
     const doc = new DOMParser().parseFromString(props.content, 'text/html');
     // 移除图片和附件区域，只保留纯文本用于翻译
-    for (const img of Array.from(doc.body.querySelectorAll('img'))) {
-      img.remove();
+    for (const mediaNode of Array.from(doc.body.querySelectorAll('img, video, source'))) {
+      mediaNode.remove();
     }
     // 移除附件 div（包含文件 emoji 和文件大小的 div）
     for (const div of Array.from(doc.body.children)) {
@@ -243,9 +415,9 @@ function handleMenuAction(action: 'translate' | 'revoke') {
 const ALLOWED_TAGS = new Set([
   'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ol', 'ul', 'li', 'a',
   'blockquote', 'h1', 'h2', 'h3', 'h4', 'table', 'tr', 'td', 'th',
-  'thead', 'tbody', 'span', 'div', 'hr', 'img',
+  'thead', 'tbody', 'span', 'div', 'hr', 'img', 'video', 'source',
 ]);
-const ALLOWED_ATTRS = new Set(['href', 'src', 'alt', 'target', 'width', 'height', 'style']);
+const ALLOWED_ATTRS = new Set(['href', 'src', 'alt', 'target', 'width', 'height', 'style', 'poster', 'preload', 'playsinline', 'controls']);
 
 function sanitizeHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -291,17 +463,50 @@ function sanitizeHtml(html: string): string {
   return doc.body.innerHTML;
 }
 
-const sanitizedContent = computed(() => {
-  if (props.contentType !== 'html') return props.content;
-  return sanitizeHtml(props.content);
-});
-
 interface ParsedAttachment {
   name: string;
   size: string;
   icon: string;
   ext: string;
   rawHtml: string;
+}
+
+function extractMedia(html: string): { body: string; media: ParsedMediaItem[] } {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const media: ParsedMediaItem[] = [];
+
+  Array.from(doc.body.querySelectorAll('img, video')).forEach((node, index) => {
+    if (node.tagName === 'IMG') {
+      const img = node as HTMLImageElement;
+      const src = img.getAttribute('src')?.trim() ?? '';
+      if (!src) return;
+
+      media.push({
+        id: `image-${index}-${src}`,
+        type: 'image',
+        src,
+        thumbnailSrc: src,
+        alt: img.getAttribute('alt')?.trim() || '图片预览'
+      });
+      img.remove();
+      return;
+    }
+
+    const video = node as HTMLVideoElement;
+    const src = video.getAttribute('src')?.trim() || video.querySelector('source')?.getAttribute('src')?.trim() || '';
+    if (!src) return;
+
+    media.push({
+      id: `video-${index}-${src}`,
+      type: 'video',
+      src,
+      thumbnailSrc: video.getAttribute('poster')?.trim() || '',
+      alt: video.getAttribute('title')?.trim() || '视频预览'
+    });
+    video.remove();
+  });
+
+  return { body: doc.body.innerHTML, media };
 }
 
 function getFileIcon(name: string): string {
@@ -385,14 +590,184 @@ function handleAttachmentClick(att: ParsedAttachment) {
   }
 }
 
-const parsedEmail = computed(() => {
-  if (props.contentType !== 'html') return { body: props.content, attachments: [] as ParsedAttachment[], quoted: '' };
+function markThumbFailed(id: string) {
+  clearVideoThumbTimeout(id);
+  const nextFailedIds = new Set(failedThumbIds.value);
+  nextFailedIds.add(id);
+  failedThumbIds.value = nextFailedIds;
+  videoThumbStatus.value = {
+    ...videoThumbStatus.value,
+    [id]: 'error',
+  };
+}
+
+function handleVideoThumbLoadStart(id: string) {
+  videoThumbStatus.value = {
+    ...videoThumbStatus.value,
+    [id]: 'loading',
+  };
+  clearVideoThumbTimeout(id);
+  videoThumbTimeouts.set(
+    id,
+    window.setTimeout(() => {
+      if ((videoThumbStatus.value[id] ?? 'loading') === 'loading') {
+        markThumbFailed(id);
+      }
+    }, VIDEO_THUMB_TIMEOUT_MS)
+  );
+}
+
+function handleVideoThumbLoaded(id: string) {
+  clearVideoThumbTimeout(id);
+  videoThumbStatus.value = {
+    ...videoThumbStatus.value,
+    [id]: 'loaded',
+  };
+}
+
+function isVideoThumbLoading(item: ParsedMediaItem) {
+  return item.type === 'video'
+    && !failedThumbIds.value.has(item.id)
+    && (videoThumbStatus.value[item.id] ?? 'loading') !== 'loaded';
+}
+
+function openMediaPreview(item: ParsedMediaItem) {
+  clearPreviewPendingTimers();
+  previewMedia.value = item;
+  previewStatus.value = 'loading';
+  previewAttempt.value += 1;
+  if (item.type === 'video') {
+    previewLoadingStartedAt = Date.now();
+    schedulePreviewVideoTimeout();
+  }
+}
+
+function closeMediaPreview() {
+  clearPreviewPendingTimers();
+  previewLoadingStartedAt = 0;
+  previewMedia.value = null;
+}
+
+function retryMediaPreview() {
+  if (!previewMedia.value) return;
+  clearPreviewPendingTimers();
+  previewStatus.value = 'loading';
+  previewAttempt.value += 1;
+  if (previewMedia.value.type === 'video') {
+    previewLoadingStartedAt = Date.now();
+    schedulePreviewVideoTimeout();
+  }
+}
+
+function handlePreviewVideoLoadStart() {
+  if (previewMedia.value?.type !== 'video') return;
+  previewStatus.value = 'loading';
+  if (!previewLoadingStartedAt) {
+    previewLoadingStartedAt = Date.now();
+  }
+  schedulePreviewVideoTimeout();
+}
+
+function handlePreviewLoaded() {
+  clearPreviewVideoTimeout();
+  const remainingLoadingMs = previewMedia.value?.type === 'video'
+    ? Math.max(0, PREVIEW_FAKE_LOADING_MS - (Date.now() - previewLoadingStartedAt))
+    : 0;
+
+  clearPreviewRevealTimeout();
+
+  if (remainingLoadingMs === 0) {
+    previewLoadingStartedAt = 0;
+    previewStatus.value = 'loaded';
+    return;
+  }
+
+  previewRevealTimeoutId = window.setTimeout(() => {
+    previewRevealTimeoutId = null;
+    previewLoadingStartedAt = 0;
+    previewStatus.value = 'loaded';
+  }, remainingLoadingMs);
+}
+
+async function handlePreviewVideoLoaded() {
+  if (!previewVideoRef.value) return;
+
+  try {
+    await previewVideoRef.value.play();
+  } catch {
+    // If autoplay is blocked, show the video so users can start it manually.
+    handlePreviewLoaded();
+  }
+}
+
+function handlePreviewVideoPlaying() {
+  handlePreviewLoaded();
+}
+
+function handlePreviewError() {
+  clearPreviewPendingTimers();
+  previewLoadingStartedAt = 0;
+  previewStatus.value = 'error';
+}
+
+function clearVideoThumbTimeout(id: string) {
+  const timeoutId = videoThumbTimeouts.get(id);
+  if (timeoutId !== undefined) {
+    window.clearTimeout(timeoutId);
+    videoThumbTimeouts.delete(id);
+  }
+}
+
+function clearPreviewVideoTimeout() {
+  if (previewVideoTimeoutId !== null) {
+    window.clearTimeout(previewVideoTimeoutId);
+    previewVideoTimeoutId = null;
+  }
+}
+
+function clearPreviewRevealTimeout() {
+  if (previewRevealTimeoutId !== null) {
+    window.clearTimeout(previewRevealTimeoutId);
+    previewRevealTimeoutId = null;
+  }
+}
+
+function clearPreviewPendingTimers() {
+  clearPreviewVideoTimeout();
+  clearPreviewRevealTimeout();
+}
+
+function schedulePreviewVideoTimeout() {
+  clearPreviewVideoTimeout();
+  previewVideoTimeoutId = window.setTimeout(() => {
+    if (previewStatus.value === 'loading' && previewMedia.value?.type === 'video') {
+      previewStatus.value = 'error';
+    }
+  }, PREVIEW_VIDEO_TIMEOUT_MS);
+}
+
+onBeforeUnmount(() => {
+  clearPreviewPendingTimers();
+  videoThumbTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+  videoThumbTimeouts.clear();
+});
+
+const parsedMessage = computed(() => {
+  if (props.contentType !== 'html') return { body: props.content, attachments: [] as ParsedAttachment[], quoted: '', media: [] as ParsedMediaItem[] };
   const sanitized = sanitizeHtml(props.content);
   // 提取引用内容
   const { body, quoted } = extractQuotedContent(sanitized);
+  // 提取媒体
+  const { body: mediaRemovedBody, media } = extractMedia(body);
   // 提取附件
-  const result = extractAttachments(body);
-  return { ...result, quoted };
+  const result = extractAttachments(mediaRemovedBody);
+  return { ...result, quoted, media };
+});
+
+const isMediaOnlyMessage = computed(() => {
+  if (props.contentType !== "html") return false;
+  const hasTextBody = Boolean(parsedMessage.value.body && parsedMessage.value.body.trim());
+  return !hasTextBody && parsedMessage.value.media.length > 0 && parsedMessage.value.attachments.length === 0 && !parsedMessage.value.quoted;
 });
 </script>
 
@@ -479,6 +854,12 @@ const parsedEmail = computed(() => {
   white-space: pre-wrap;
 }
 
+.message__bubble--media-only {
+  background: transparent !important;
+  border: 0;
+  padding: 0;
+}
+
 .message--customer .message__bubble {
   background: #ffffff;
 }
@@ -486,6 +867,11 @@ const parsedEmail = computed(() => {
 .message--highlighted .message__bubble {
   background: rgba(47, 107, 255, 0.08);
   box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.2);
+}
+
+.message--highlighted .message__bubble--media-only {
+  background: transparent;
+  box-shadow: none;
 }
 
 .message--agent .message__bubble {
@@ -519,10 +905,195 @@ const parsedEmail = computed(() => {
   word-break: break-word;
 }
 
+.message__content-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message__text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .message__empty-body {
   color: var(--agent-color-text-tertiary, #9ca3af);
   font-size: var(--agent-font-size-sm, 13px);
   font-style: italic;
+}
+
+.message__media-section {
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  padding-top: 12px;
+}
+
+.message__media-section--standalone {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.message__media-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.message__media-grid--single {
+  grid-template-columns: minmax(0, 220px);
+}
+
+.message__media-thumb {
+  background: transparent;
+  border: 1px solid var(--agent-color-border-default);
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 132px;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.message__media-thumb:hover {
+  border-color: var(--agent-color-brand-primary);
+  box-shadow: 0 8px 20px rgba(47, 107, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.message__media-thumb--video-loading {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.98)),
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.2), transparent 58%);
+}
+
+.message__media-thumb-image {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.message__media-thumb-image--hidden {
+  display: none;
+}
+
+.message__media-thumb-video {
+  background: transparent;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: auto;
+  width: 100%;
+}
+
+.message__media-thumb-video--hidden {
+  display: none;
+}
+
+.message__video-loading {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  text-align: center;
+}
+
+.message__video-loading--overlay {
+  backdrop-filter: blur(6px);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.94)),
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 58%);
+  inset: 0;
+  padding: 16px;
+  position: absolute;
+}
+
+.message__video-loading-icon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: #f8fafc;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.message__video-loading-text {
+  color: #e2e8f0;
+  font-size: var(--agent-font-size-sm);
+  font-weight: var(--agent-font-weight-medium);
+}
+
+.message__media-thumb-placeholder {
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 248, 250, 0.98));
+  color: var(--agent-color-text-tertiary);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  min-height: 132px;
+  padding: 16px;
+}
+
+.message__media-thumb-placeholder--video {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.96)),
+    radial-gradient(circle at top, rgba(96, 165, 250, 0.18), transparent 55%);
+  color: #f8fafc;
+}
+
+.message__media-thumb-placeholder-icon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  color: inherit;
+  display: inline-flex;
+  height: 52px;
+  justify-content: center;
+  width: 52px;
+}
+
+.message__media-thumb-placeholder--video .message__media-thumb-placeholder-icon {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.message__media-thumb-badge {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.72);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: var(--agent-font-weight-medium);
+  gap: 4px;
+  left: 10px;
+  padding: 4px 8px;
+  position: absolute;
+  top: 10px;
+}
+
+.message__media-thumb-play {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px;
 }
 
 .message__send-status {
@@ -931,5 +1502,132 @@ const parsedEmail = computed(() => {
 
 .message__translation-retry:hover {
   color: var(--agent-color-brand-hover);
+}
+
+.message__preview-overlay {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.72);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 32px;
+  position: fixed;
+  z-index: calc(var(--agent-z-modal, 1000) + 10);
+}
+
+.message__preview-dialog {
+  align-items: center;
+  background: transparent;
+  border-radius: 20px;
+  box-shadow: none;
+  display: flex;
+  justify-content: center;
+  max-height: min(80vh, 760px);
+  max-width: min(80vw, 1080px);
+  min-height: 240px;
+  min-width: min(80vw, 420px);
+  overflow: visible;
+  padding: 0;
+  position: relative;
+}
+
+.message__preview-close {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  cursor: pointer;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  width: 40px;
+  z-index: 1;
+}
+
+.message__preview-content {
+  display: block;
+  max-height: calc(80vh - 48px);
+  max-width: calc(80vw - 48px);
+  object-fit: contain;
+}
+
+.message__preview-content--hidden {
+  display: none;
+}
+
+.message__preview-video-loading {
+  align-items: center;
+  backdrop-filter: blur(6px);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.8)),
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.16), transparent 58%);
+  border-radius: 20px;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+}
+
+.message__preview-state {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(229, 230, 235, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+  color: var(--agent-color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  min-height: 220px;
+  min-width: 280px;
+  padding: 28px 32px;
+}
+
+.message__preview-state--error {
+  color: var(--agent-color-text-primary);
+}
+
+.message__preview-state--video-error {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.98)),
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.2), transparent 58%);
+  border-color: rgba(248, 250, 252, 0.12);
+  color: #e2e8f0;
+}
+
+.message__preview-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.message__preview-spinner {
+  animation: spin 1s linear infinite;
+  border: 3px solid rgba(47, 107, 255, 0.16);
+  border-radius: 50%;
+  border-top-color: var(--agent-color-brand-primary, #2f6bff);
+  display: inline-block;
+  height: 28px;
+  width: 28px;
+}
+
+.message__preview-spinner--inverse {
+  border-color: rgba(255, 255, 255, 0.18);
+  border-top-color: #ffffff;
+}
+
+.message__preview-retry {
+  background: var(--agent-color-brand-primary);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-size: var(--agent-font-size-sm);
+  padding: 8px 16px;
 }
 </style>

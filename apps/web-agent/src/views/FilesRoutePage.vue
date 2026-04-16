@@ -7,6 +7,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { usePermission } from "../composables/usePermission";
 import ArchiveConversationTab from "../components/archive/ArchiveConversationTab.vue";
 import ArchiveChatTab from "../components/archive/ArchiveChatTab.vue";
 
@@ -17,6 +18,8 @@ const emit = defineEmits<{
   (e: "navigate-to-session", sessionInfo: { id: string; queueKey: string }): void;
 }>();
 
+const { hasPermission } = usePermission();
+
 const props = withDefaults(
   defineProps<{
     activeKey?: FilesPageKey;
@@ -26,9 +29,21 @@ const props = withDefaults(
   }
 );
 
-const resolvedActiveKey = computed<FilesPageKey>(() => (
-  props.activeKey === "all-chats" ? "all-chats" : "all-conversations"
-));
+const availableKeys = computed<FilesPageKey[]>(() => {
+  const keys: FilesPageKey[] = [];
+  if (hasPermission("archive-conversation")) {
+    keys.push("all-conversations");
+  }
+  if (hasPermission("archive-chat")) {
+    keys.push("all-chats");
+  }
+  return keys.length > 0 ? keys : ["all-conversations"];
+});
+
+const resolvedActiveKey = computed<FilesPageKey>(() => {
+  const nextKey = props.activeKey === "all-chats" ? "all-chats" : "all-conversations";
+  return availableKeys.value.includes(nextKey) ? nextKey : availableKeys.value[0];
+});
 </script>
 
 <style scoped>

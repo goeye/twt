@@ -156,6 +156,19 @@
           <span class="conversation-header__tooltip">删除聊天</span>
         </div>
       </template>
+
+      <div v-if="showDetailToggle" class="conversation-header__icon-btn-wrap">
+        <button
+          class="conversation-header__icon-btn"
+          :class="{ 'conversation-header__icon-btn--active': detailOpen }"
+          type="button"
+          :aria-label="detailOpen ? '隐藏详情' : '展示详情'"
+          @click="handleToggleDetail"
+        >
+          <span class="conversation-header__panel-icon" aria-hidden="true"></span>
+        </button>
+        <span class="conversation-header__tooltip">{{ detailOpen ? "隐藏详情" : "展示详情" }}</span>
+      </div>
     </div>
   </header>
 </template>
@@ -178,6 +191,8 @@ const props = withDefaults(
     closed?: boolean;
     mode?: "conversation" | "single-chat" | "group-chat";
     channelType?: ChannelType;
+    showDetailToggle?: boolean;
+    detailOpen?: boolean;
   }>(),
   {
     editable: false,
@@ -187,7 +202,9 @@ const props = withDefaults(
     showCloseAction: true,
     isProcessing: false,
     closed: false,
-    mode: "conversation"
+    mode: "conversation",
+    showDetailToggle: false,
+    detailOpen: true
   }
 );
 
@@ -202,6 +219,7 @@ const emit = defineEmits<{
   (e: "start-group-chat"): void;
   (e: "add-member"): void;
   (e: "delete-chat"): void;
+  (e: "toggle-detail"): void;
 }>();
 
 const isEditing = ref(false);
@@ -263,6 +281,10 @@ const handleClose = () => {
 const handleCloseEmail = () => {
   if (props.closed) return;
   emit("close-email");
+};
+
+const handleToggleDetail = () => {
+  emit("toggle-detail");
 };
 </script>
 
@@ -364,6 +386,16 @@ const handleCloseEmail = () => {
   color: var(--agent-color-text-primary);
 }
 
+.conversation-header__icon-btn--active {
+  background: var(--agent-color-brand-soft);
+  color: var(--agent-color-brand-primary);
+}
+
+.conversation-header__icon-btn--active:hover {
+  background: var(--agent-color-brand-soft);
+  color: var(--agent-color-brand-primary);
+}
+
 .conversation-header__icon-btn--danger:hover {
   background: rgba(245, 63, 63, 0.06);
   color: var(--agent-color-status-error);
@@ -401,6 +433,27 @@ const handleCloseEmail = () => {
   transition: opacity var(--agent-motion-fast) ease;
   white-space: nowrap;
   z-index: var(--agent-z-dropdown);
+}
+
+.conversation-header__panel-icon {
+  border: 1.4px solid currentColor;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 14px;
+  position: relative;
+  width: 14px;
+}
+
+.conversation-header__panel-icon::after {
+  background: currentColor;
+  border-radius: 1px;
+  content: "";
+  height: 8px;
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 2px;
 }
 
 .conversation-header__icon-btn-wrap:hover .conversation-header__tooltip {

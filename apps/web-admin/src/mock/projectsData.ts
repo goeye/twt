@@ -1,4 +1,15 @@
-export interface Project {
+export interface ProjectFeatureFlags {
+  autopilotEnabled: boolean;
+  preSessionFormEnabled: boolean;
+  autoReplySuggestionEnabled: boolean;
+  chatTranslationEnabled: boolean;
+  writeTranslateEnabled: boolean;
+  textPolishEnabled: boolean;
+  sessionEvaluationEnabled: boolean;
+  contactUsEnabled: boolean;
+}
+
+export interface Project extends ProjectFeatureFlags {
   id: number;
   name: string;
   serviceVersion: string;
@@ -30,6 +41,18 @@ export interface Project {
   verifyTime: string | null;
   siteStatus: string;
 }
+
+const createFeatureFlags = (overrides: Partial<ProjectFeatureFlags> = {}): ProjectFeatureFlags => ({
+  autopilotEnabled: false,
+  preSessionFormEnabled: false,
+  autoReplySuggestionEnabled: false,
+  chatTranslationEnabled: false,
+  writeTranslateEnabled: false,
+  textPolishEnabled: false,
+  sessionEvaluationEnabled: false,
+  contactUsEnabled: false,
+  ...overrides,
+});
 
 export const projectsData: Project[] = [
   {
@@ -63,6 +86,13 @@ export const projectsData: Project[] = [
     hasValidProject: false,
     verifyTime: null,
     siteStatus: "启用",
+    ...createFeatureFlags({
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 571,
@@ -95,6 +125,16 @@ export const projectsData: Project[] = [
     hasValidProject: true,
     verifyTime: "2026-03-26",
     siteStatus: "启用",
+    ...createFeatureFlags({
+      autopilotEnabled: true,
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      chatTranslationEnabled: true,
+      writeTranslateEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 570,
@@ -127,6 +167,11 @@ export const projectsData: Project[] = [
     hasValidProject: true,
     verifyTime: "2026-03-26",
     siteStatus: "启用",
+    ...createFeatureFlags({
+      preSessionFormEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 569,
@@ -159,6 +204,14 @@ export const projectsData: Project[] = [
     hasValidProject: true,
     verifyTime: "2026-03-26",
     siteStatus: "启用",
+    ...createFeatureFlags({
+      autopilotEnabled: true,
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 568,
@@ -191,6 +244,10 @@ export const projectsData: Project[] = [
     hasValidProject: false,
     verifyTime: null,
     siteStatus: "启用",
+    ...createFeatureFlags({
+      preSessionFormEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 567,
@@ -223,6 +280,9 @@ export const projectsData: Project[] = [
     hasValidProject: false,
     verifyTime: null,
     siteStatus: "启用",
+    ...createFeatureFlags({
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 566,
@@ -255,6 +315,16 @@ export const projectsData: Project[] = [
     hasValidProject: true,
     verifyTime: "2026-03-24",
     siteStatus: "启用",
+    ...createFeatureFlags({
+      autopilotEnabled: true,
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      chatTranslationEnabled: true,
+      writeTranslateEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 565,
@@ -287,6 +357,7 @@ export const projectsData: Project[] = [
     hasValidProject: false,
     verifyTime: null,
     siteStatus: "禁用",
+    ...createFeatureFlags(),
   },
   {
     id: 564,
@@ -319,6 +390,13 @@ export const projectsData: Project[] = [
     hasValidProject: false,
     verifyTime: null,
     siteStatus: "启用",
+    ...createFeatureFlags({
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
   {
     id: 563,
@@ -351,5 +429,15 @@ export const projectsData: Project[] = [
     hasValidProject: true,
     verifyTime: "2026-03-26",
     siteStatus: "启用",
+    ...createFeatureFlags({
+      autopilotEnabled: true,
+      preSessionFormEnabled: true,
+      autoReplySuggestionEnabled: true,
+      chatTranslationEnabled: true,
+      writeTranslateEnabled: true,
+      textPolishEnabled: true,
+      sessionEvaluationEnabled: true,
+      contactUsEnabled: true,
+    }),
   },
 ];

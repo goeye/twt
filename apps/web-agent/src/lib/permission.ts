@@ -10,11 +10,19 @@
 export interface PermFeature {
   key: string
   label: string
+  exclusiveGroup?: string
+  autoSelect?: boolean
+  disabledInRoleEditor?: boolean
+  hiddenInRoleEditor?: boolean
+  roleEditorColumn?: number
+  requires?: string[]
+  scopeLevel?: 'personal' | 'all'
 }
 
 export interface PermItem {
   key: string
   label: string
+  hiddenInRoleEditor?: boolean
   features?: PermFeature[]
 }
 
@@ -38,16 +46,125 @@ export const PERMISSION_TREE: PermGroup[] = [
   },
   {
     key: 'conversation',
-    label: '消息',
-    locked: true,
-    lockedLabel: '管理',
+    label: '会话',
+    children: [
+      {
+        key: 'conversation-online',
+        label: '会话',
+        hiddenInRoleEditor: true,
+        features: [
+          {
+            key: 'conversation-online-manage',
+            label: '管理',
+            autoSelect: true,
+            disabledInRoleEditor: true,
+            roleEditorColumn: 1,
+          },
+          {
+            key: 'conversation-online-scope-personal',
+            label: '个人数据',
+            exclusiveGroup: 'conversation-online-scope',
+            autoSelect: true,
+            hiddenInRoleEditor: true,
+            requires: ['conversation-online-manage'],
+            scopeLevel: 'personal',
+          },
+          {
+            key: 'conversation-online-scope-all',
+            label: '全员数据',
+            exclusiveGroup: 'conversation-online-scope',
+            autoSelect: false,
+            roleEditorColumn: 4,
+            requires: ['conversation-online-manage'],
+            scopeLevel: 'all',
+          },
+        ],
+      },
+    ],
   },
   {
     key: 'archive',
     label: '档案',
     children: [
-      { key: 'archive-conversation', label: '会话记录', features: [{ key: 'archive-conversation-manage', label: '管理' }] },
-      { key: 'archive-chat', label: '聊天记录', features: [{ key: 'archive-chat-manage', label: '管理' }] },
+      {
+        key: 'archive-conversation',
+        label: '会话记录',
+        features: [
+          {
+            key: 'archive-conversation-view-associate',
+            label: '查看&关联',
+            roleEditorColumn: 1,
+          },
+          {
+            key: 'archive-conversation-scope-personal',
+            label: '个人数据',
+            exclusiveGroup: 'archive-conversation-scope',
+            autoSelect: true,
+            hiddenInRoleEditor: true,
+            requires: ['archive-conversation-view-associate'],
+            scopeLevel: 'personal',
+          },
+          {
+            key: 'archive-conversation-scope-all',
+            label: '全员数据',
+            exclusiveGroup: 'archive-conversation-scope',
+            autoSelect: false,
+            roleEditorColumn: 4,
+            requires: ['archive-conversation-view-associate'],
+            scopeLevel: 'all',
+          },
+          {
+            key: 'archive-conversation-claim',
+            label: '领取会话',
+            autoSelect: false,
+            roleEditorColumn: 2,
+            requires: ['archive-conversation-view-associate'],
+          },
+          {
+            key: 'archive-conversation-assign',
+            label: '分配会话',
+            autoSelect: false,
+            roleEditorColumn: 3,
+            requires: ['archive-conversation-view-associate'],
+          },
+        ],
+      },
+      {
+        key: 'archive-chat',
+        label: '聊天记录',
+        features: [
+          {
+            key: 'archive-chat-view-associate',
+            label: '查看&关联',
+            roleEditorColumn: 1,
+          },
+          {
+            key: 'archive-chat-manage',
+            label: '管理',
+            autoSelect: false,
+            roleEditorColumn: 2,
+            requires: ['archive-chat-view-associate'],
+          },
+          {
+            key: 'archive-chat-scope-personal',
+            label: '个人数据',
+            exclusiveGroup: 'archive-chat-scope',
+            autoSelect: true,
+            hiddenInRoleEditor: true,
+            requires: ['archive-chat-view-associate'],
+            scopeLevel: 'personal',
+          },
+          {
+            key: 'archive-chat-scope-all',
+            label: '全员数据',
+            exclusiveGroup: 'archive-chat-scope',
+            autoSelect: false,
+            roleEditorColumn: 4,
+            requires: ['archive-chat-view-associate'],
+            scopeLevel: 'all',
+          },
+        ],
+      },
     ],
   },
   {
@@ -229,5 +346,95 @@ export function getAllPermissionKeys(): string[] {
       }
     }
   }
+  return keys
+}
+
+export function getScopedPermissionKeys(scopePreference: 'personal' | 'all' = 'all'): string[] {
+  const keys: string[] = []
+
+  for (const group of PERMISSION_TREE) {
+    keys.push(group.key)
+
+    if (!group.children) continue
+
+    for (const item of group.children) {
+      keys.push(item.key)
+
+      if (!item.features) continue
+
+      const resolvedExclusiveGroups = new Set<string>()
+
+      for (const feat of item.features) {
+        if (!feat.exclusiveGroup) {
+          keys.push(feat.key)
+          continue
+        }
+
+        if (resolvedExclusiveGroups.has(feat.exclusiveGroup)) {
+          continue
+        }
+
+        resolvedExclusiveGroups.add(feat.exclusiveGroup)
+
+        const candidates = item.features.filter(
+          (candidate) => candidate.exclusiveGroup === feat.exclusiveGroup
+        )
+
+        const preferred =
+          candidates.find((candidate) => candidate.scopeLevel === scopePreference) ??
+          candidates.find((candidate) => candidate.autoSelect !== false) ??
+          candidates[0]
+
+        if (preferred) {
+          keys.push(preferred.key)
+        }
+      }
+    }
+  }
+
+  return keys
+}
+
+export function getScopedToggleableKeys(scopePreference: 'personal' | 'all' = 'all'): string[] {
+  const keys: string[] = []
+
+  for (const group of PERMISSION_TREE) {
+    if (group.locked || !group.children) continue
+
+    for (const item of group.children) {
+      keys.push(item.key)
+
+      if (!item.features) continue
+
+      const resolvedExclusiveGroups = new Set<string>()
+
+      for (const feat of item.features) {
+        if (!feat.exclusiveGroup) {
+          keys.push(feat.key)
+          continue
+        }
+
+        if (resolvedExclusiveGroups.has(feat.exclusiveGroup)) {
+          continue
+        }
+
+        resolvedExclusiveGroups.add(feat.exclusiveGroup)
+
+        const candidates = item.features.filter(
+          (candidate) => candidate.exclusiveGroup === feat.exclusiveGroup
+        )
+
+        const preferred =
+          candidates.find((candidate) => candidate.scopeLevel === scopePreference) ??
+          candidates.find((candidate) => candidate.autoSelect !== false) ??
+          candidates[0]
+
+        if (preferred) {
+          keys.push(preferred.key)
+        }
+      }
+    }
+  }
+
   return keys
 }

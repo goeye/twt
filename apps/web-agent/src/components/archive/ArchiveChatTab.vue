@@ -2,6 +2,9 @@
   <section class="files-page__card agent-panel">
     <header class="files-page__header">
       <h1 class="files-page__title">聊天记录</h1>
+      <span class="archive-scope-badge" :class="{ 'archive-scope-badge--all': canViewAllArchiveChatData }">
+        {{ archiveChatScopeLabel }}
+      </span>
     </header>
 
     <section class="files-page__summary summary-banner">
@@ -181,9 +184,17 @@
             </tr>
             <tr v-for="row in paginatedChatRows" v-else :key="row.id">
               <td>
-                <button type="button" class="archive-link" @click="openChatDrawer(row)">{{ row.title }}</button>
                 <button
-                  v-if="chatMatchResults.has(row.id)"
+                  v-if="canManageArchiveChat"
+                  type="button"
+                  class="archive-link"
+                  @click="openChatDrawer(row)"
+                >
+                  {{ row.title }}
+                </button>
+                <span v-else class="archive-link archive-link--static">{{ row.title }}</span>
+                <button
+                  v-if="canManageArchiveChat && chatMatchResults.has(row.id)"
                   type="button"
                   class="archive-match-count"
                   @click.stop="openChatMatchList(row)"
@@ -280,6 +291,7 @@
               <td>{{ row.updatedAtLabel }}</td>
               <td class="archive-table__actions-cell">
                 <button
+                  v-if="canManageArchiveChat"
                   type="button"
                   class="archive-action-btn"
                   aria-label="更多操作"
@@ -290,7 +302,7 @@
                   <span />
                 </button>
 
-                <div v-if="openChatActionMenuId === row.id" class="archive-action-menu" @click.stop>
+                <div v-if="canManageArchiveChat && openChatActionMenuId === row.id" class="archive-action-menu" @click.stop>
                   <button type="button" class="archive-action-menu__item" @click="openChatDrawer(row)">查看聊天</button>
                 </div>
               </td>
@@ -337,7 +349,7 @@
 
   <!-- Chat record drawer -->
   <ArchiveConversationDrawer
-    :open="Boolean(chatDrawerRow)"
+    :open="Boolean(canManageArchiveChat && chatDrawerRow)"
     :title="chatDrawerRow?.title ?? ''"
     :messages="chatDrawerMessages"
     assign-label="查看详情"
@@ -358,6 +370,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { AgentIcon } from "@twt/ui-agent";
+import { usePermission } from "../../composables/usePermission";
 import ArchiveConversationDrawer from "./ArchiveConversationDrawer.vue";
 import ArchiveMessageListDrawer from "./ArchiveMessageListDrawer.vue";
 import {
@@ -439,6 +452,8 @@ interface ChatFilterState {
 const emit = defineEmits<{
   (e: "toast", message: string): void;
 }>();
+
+const { hasPermission } = usePermission();
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -591,6 +606,7 @@ const pendingChatId = ref<string>("");
 
 // Chat member panel (inline, shared for visitor and staff columns)
 const chatMemberPanelRowId = ref<string | null>(null);
+const currentArchiveAgentName = "客服主管";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -653,18 +669,45 @@ const allChatRows = ref<ChatRecord[]>([
   }
 ]);
 
+const hasArchiveChatAccess = computed(() => hasPermission("archive-chat"));
+const canManageArchiveChat = computed(() => hasPermission("archive-chat-manage"));
+const canViewPersonalArchiveChatData = computed(() => hasPermission("archive-chat-scope-personal"));
+const canViewAllArchiveChatData = computed(() => hasPermission("archive-chat-scope-all"));
+const archiveChatScopeLabel = computed(() => (
+  canViewAllArchiveChatData.value ? "全员数据" : "个人数据"
+));
+
+const scopedChatRows = computed(() => {
+  if (!hasArchiveChatAccess.value) {
+    return [];
+  }
+
+  if (canViewAllArchiveChatData.value) {
+    return allChatRows.value;
+  }
+
+  if (!canViewPersonalArchiveChatData.value) {
+    return [];
+  }
+
+  return allChatRows.value.filter((row) => (
+    row.owner === currentArchiveAgentName ||
+    row.staffMembers.some((member) => member.name === currentArchiveAgentName)
+  ));
+});
+
 /* ------------------------------------------------------------------ */
 /*  Computed                                                           */
 /* ------------------------------------------------------------------ */
 
-const chatOwnerOptions = computed(() => [...new Set(allChatRows.value.map((r) => r.owner))]);
+const chatOwnerOptions = computed(() => [...new Set(scopedChatRows.value.map((r) => r.owner))]);
 
 const chatSummaryStats = computed(() => {
-  const total = allChatRows.value.length;
-  const single = allChatRows.value.filter((r) => r.chatType === "single").length;
-  const group = allChatRows.value.filter((r) => r.chatType === "group").length;
-  const active = allChatRows.value.filter((r) => r.status === "active").length;
-  const dissolved = allChatRows.value.filter((r) => r.status === "dissolved").length;
+  const total = scopedChatRows.value.length;
+  const single = scopedChatRows.value.filter((r) => r.chatType === "single").length;
+  const group = scopedChatRows.value.filter((r) => r.chatType === "group").length;
+  const active = scopedChatRows.value.filter((r) => r.status === "active").length;
+  const dissolved = scopedChatRows.value.filter((r) => r.status === "dissolved").length;
   return [
     { key: "total", label: "\u603B\u804A\u5929\u6570", value: total },
     { key: "single", label: "\u5355\u804A\u6570", value: single },
@@ -678,7 +721,7 @@ const visibleChatRows = computed(() => {
   const filters = appliedChatFilters.value;
   const keyword = filters.keyword.trim().toLowerCase();
 
-  const rows = allChatRows.value.filter((row) => {
+  const rows = scopedChatRows.value.filter((row) => {
     if (keyword) {
       if (filters.searchField === "conversationRecord") {
         const texts: string[] = [];
@@ -946,6 +989,22 @@ onMounted(() => {
   font-weight: var(--agent-font-weight-semibold);
   line-height: 1.2;
   margin: 0;
+}
+
+.archive-scope-badge {
+  align-items: center;
+  background: var(--agent-color-brand-soft);
+  border-radius: 999px;
+  color: var(--agent-color-brand-primary);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: var(--agent-font-weight-medium);
+  line-height: 1;
+  padding: 8px 12px;
+}
+
+.archive-scope-badge--all {
+  background: rgba(47, 107, 255, 0.12);
 }
 
 .summary-banner {
@@ -1334,6 +1393,12 @@ onMounted(() => {
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.archive-link--static {
+  cursor: default;
+  display: inline;
+  text-decoration: none;
 }
 
 .archive-match-count {

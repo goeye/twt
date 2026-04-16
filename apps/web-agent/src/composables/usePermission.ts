@@ -11,6 +11,7 @@ import {
   SETTINGS_NAV_PERMISSION_MAP,
   LOCKED_PERMISSIONS,
   getAllPermissionKeys,
+  getScopedPermissionKeys,
 } from '../lib/permission'
 
 // ---- Mock 角色预设 ----
@@ -18,10 +19,12 @@ import {
 export type MockRole = 'admin' | 'agent' | 'limited'
 
 const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
-  admin: () => getAllPermissionKeys(),
+  admin: () => getScopedPermissionKeys('all'),
   agent: () => [
     'home', 'conversation',
-    'archive', 'archive-conversation', 'archive-conversation-manage',
+    'conversation-online', 'conversation-online-manage', 'conversation-online-scope-personal',
+    'archive', 'archive-conversation', 'archive-conversation-view-associate', 'archive-conversation-scope-personal', 'archive-conversation-claim',
+    'archive-chat', 'archive-chat-view-associate', 'archive-chat-manage', 'archive-chat-scope-personal',
     'visitor', 'visitor-online', 'visitor-online-manage',
     'customer', 'customer-online', 'customer-online-manage',
     'campaign', 'campaign-mass', 'campaign-mass-manage',
@@ -32,7 +35,8 @@ const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
   ],
   limited: () => [
     'home', 'conversation',
-    'archive', 'archive-conversation', 'archive-conversation-manage',
+    'conversation-online', 'conversation-online-manage', 'conversation-online-scope-personal',
+    'archive', 'archive-conversation', 'archive-conversation-view-associate', 'archive-conversation-scope-personal',
   ],
 }
 

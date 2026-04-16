@@ -121,7 +121,7 @@
         :columns="columns"
         :data-source="displayData"
         :pagination="pagination"
-        :scroll="{ x: 3000 }"
+        :scroll="{ x: 4500 }"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
@@ -219,6 +219,7 @@ import { ref, computed, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { SearchOutlined, ReloadOutlined, EyeOutlined, DownOutlined } from "@ant-design/icons-vue";
 import { projectsData } from "../mock/projectsData";
+import type { Project } from "../mock/projectsData";
 import type { TableProps } from "ant-design-vue";
 
 const router = useRouter();
@@ -281,6 +282,54 @@ const columns = [
   { title: "聊天数", key: "chatDays", width: 80, sorter: true },
   { title: "会话独立访客数", key: "sessionIndependentVisitorCount", width: 140, sorter: true },
   { title: "语言环境", dataIndex: "language", key: "language", width: 100 },
+  {
+    title: "Autopilot",
+    key: "autopilotEnabled",
+    width: 110,
+    customRender: ({ record }: { record: Project }) => (record.autopilotEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "会话前表单",
+    key: "preSessionFormEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.preSessionFormEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "自动推荐回复",
+    key: "autoReplySuggestionEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.autoReplySuggestionEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "聊天翻译",
+    key: "chatTranslationEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.chatTranslationEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "边写边译",
+    key: "writeTranslateEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.writeTranslateEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "文本润色",
+    key: "textPolishEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.textPolishEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "会话评价",
+    key: "sessionEvaluationEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.sessionEvaluationEnabled ? "开启" : "关闭"),
+  },
+  {
+    title: "联系我们",
+    key: "contactUsEnabled",
+    width: 120,
+    customRender: ({ record }: { record: Project }) => (record.contactUsEnabled ? "开启" : "关闭"),
+  },
   { title: "有效项目", key: "hasValidProject", width: 90 },
   { title: "达标时间", key: "verifyTime", width: 120 },
   { title: "站点状态", key: "siteStatus", width: 90 },

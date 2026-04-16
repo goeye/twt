@@ -1,12 +1,12 @@
 <template>
   <nav
     class="nav-rail"
-    :class="{ 'nav-rail--expanded': isExpanded }"
-    @mouseenter="isExpanded = true"
-    @mouseleave="isExpanded = false"
+    :class="{ 'nav-rail--expanded': expandedState, 'nav-rail--pinned': pinned }"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <div class="nav-rail__brand">
-      <slot name="brand" :expanded="isExpanded">
+      <slot name="brand" :expanded="expandedState">
         <div class="nav-rail__brand-text">{{ brandLabel }}</div>
       </slot>
     </div>
@@ -16,14 +16,14 @@
         :key="item.key"
         :active="item.key === activeKey"
         :badge="item.badge"
-        :expanded="isExpanded"
+        :expanded="expandedState"
         :icon="item.icon ?? 'home'"
         :label="item.label"
         @select="$emit('select', item.key)"
       />
     </div>
     <div class="nav-rail__footer">
-      <slot name="footer" :expanded="isExpanded">
+      <slot name="footer" :expanded="expandedState">
         <button type="button" class="avatar-btn">{{ avatarLabel }}</button>
       </slot>
     </div>
@@ -31,20 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { NavItem } from "../../types";
 import PrimaryNavItem from "./PrimaryNavItem.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     items: NavItem[];
     activeKey: string;
     brandLabel?: string;
     avatarLabel?: string;
+    pinned?: boolean;
   }>(),
   {
     brandLabel: "TW",
-    avatarLabel: "A"
+    avatarLabel: "A",
+    pinned: false
   }
 );
 
@@ -53,6 +55,19 @@ defineEmits<{
 }>();
 
 const isExpanded = ref(false);
+const expandedState = computed(() => props.pinned || isExpanded.value);
+
+const handleMouseEnter = () => {
+  if (!props.pinned) {
+    isExpanded.value = true;
+  }
+};
+
+const handleMouseLeave = () => {
+  if (!props.pinned) {
+    isExpanded.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -82,6 +97,13 @@ const isExpanded = ref(false);
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
   width: 200px;
+}
+
+.nav-rail--pinned {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--agent-color-bg-panel);
+  box-shadow: none;
 }
 
 .nav-rail__brand {
