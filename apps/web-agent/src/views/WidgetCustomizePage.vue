@@ -193,6 +193,7 @@
               </div>
               <AgentSwitch :model-value="settings.hideBrandLogo" @update:model-value="toggleHideBrandLogo" />
             </div>
+          </div>
         </article>
 
       </div>
