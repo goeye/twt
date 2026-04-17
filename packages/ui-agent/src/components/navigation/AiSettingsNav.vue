@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import AgentIcon from "../icon/AgentIcon.vue";
 
 interface AiSettingsNavItem {
@@ -94,7 +94,7 @@ interface AiSettingsNavGroup {
   items: AiSettingsNavItem[];
 }
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title?: string;
     activeKey: string;
@@ -111,6 +111,20 @@ defineEmits<{
 }>();
 
 const expandedKeys = reactive(new Set<string>());
+
+watch(
+  () => [props.activeKey, props.groups] as const,
+  () => {
+    for (const group of props.groups) {
+      for (const item of group.items) {
+        if (item.children?.some((child) => child.key === props.activeKey)) {
+          expandedKeys.add(item.key);
+        }
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 function toggleExpand(key: string) {
   if (expandedKeys.has(key)) {

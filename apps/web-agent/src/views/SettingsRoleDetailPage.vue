@@ -74,10 +74,7 @@
                     :disabled="!editable || feat.disabledInRoleEditor"
                     @change="toggleFeature(feat.key, getInlinePermissionGroupKey(group))"
                   />
-                  <span
-                    class="perm-check__label"
-                    :class="{ 'perm-check__label--muted': isViewAssociateFeature(feat) }"
-                  >{{ feat.label }}</span>
+                  <span class="perm-check__label">{{ feat.label }}</span>
                 </label>
               </div>
             </div>
@@ -118,10 +115,7 @@
                       :disabled="!editable || feat.disabledInRoleEditor"
                       @change="toggleFeature(feat.key, child.key)"
                     />
-                    <span
-                      class="perm-check__label"
-                      :class="{ 'perm-check__label--muted': isViewAssociateFeature(feat) }"
-                    >{{ feat.label }}</span>
+                    <span class="perm-check__label">{{ feat.label }}</span>
                   </label>
                 </div>
               </div>
@@ -277,9 +271,7 @@ const getImplicitRoleEditorPermissionKeys = (): string[] => {
 
 const normalizePermissionKeys = (keys: string[]): Set<string> => {
   const next = new Set(
-    [...keys, ...getImplicitRoleEditorPermissionKeys()].map((key) => (
-      key === "conversation-online-view-associate" ? "conversation-online-manage" : key
-    ))
+    [...keys, ...getImplicitRoleEditorPermissionKeys()]
   );
   let changed = true;
 
@@ -397,16 +389,6 @@ const getFeatureGridStyle = (_feature: PermFeature, featureIndex: number): { gri
   gridColumn: String(featureIndex + 1),
 });
 
-const isViewAssociateFeature = (feature: PermFeature): boolean =>
-  feature.key.includes("view-associate");
-
-const shouldPreserveItemSelectionOnFeatureToggle = (
-  itemKey: string,
-  feature: PermFeature
-): boolean =>
-  isViewAssociateFeature(feature) &&
-  (itemKey === "archive-conversation" || itemKey === "archive-chat");
-
 const collectRequiredFeatureKeys = (
   item: PermItem | undefined,
   featKey: string,
@@ -462,8 +444,6 @@ const toggleFeature = (featKey: string, itemKey: string) => {
   }
 
   const next = new Set(checkedPerms.value);
-  const shouldPreserveItemSelection = shouldPreserveItemSelectionOnFeatureToggle(itemKey, feature);
-  const itemWasSelected = next.has(itemKey);
   if (next.has(featKey)) {
     if (feature.exclusiveGroup) {
       const siblings = item.features?.filter(
@@ -516,14 +496,6 @@ const toggleFeature = (featKey: string, itemKey: string) => {
     next.add(featKey);
     if (!next.has(itemKey)) {
       next.add(itemKey);
-    }
-  }
-
-  if (shouldPreserveItemSelection) {
-    if (itemWasSelected) {
-      next.add(itemKey);
-    } else {
-      next.delete(itemKey);
     }
   }
 
@@ -892,10 +864,6 @@ const handleSave = () => {
   color: #4b5563;
   font-size: 13px;
   white-space: nowrap;
-}
-
-.perm-check__label--muted {
-  color: #8b97a9;
 }
 
 @media (max-width: 1080px) {

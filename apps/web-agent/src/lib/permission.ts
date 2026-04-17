@@ -91,17 +91,11 @@ export const PERMISSION_TREE: PermGroup[] = [
         label: '会话记录',
         features: [
           {
-            key: 'archive-conversation-view-associate',
-            label: '查看&关联',
-            roleEditorColumn: 1,
-          },
-          {
             key: 'archive-conversation-scope-personal',
             label: '个人数据',
             exclusiveGroup: 'archive-conversation-scope',
             autoSelect: true,
             hiddenInRoleEditor: true,
-            requires: ['archive-conversation-view-associate'],
             scopeLevel: 'personal',
           },
           {
@@ -110,22 +104,19 @@ export const PERMISSION_TREE: PermGroup[] = [
             exclusiveGroup: 'archive-conversation-scope',
             autoSelect: false,
             roleEditorColumn: 4,
-            requires: ['archive-conversation-view-associate'],
             scopeLevel: 'all',
           },
           {
             key: 'archive-conversation-claim',
             label: '领取会话',
             autoSelect: false,
-            roleEditorColumn: 2,
-            requires: ['archive-conversation-view-associate'],
+            roleEditorColumn: 1,
           },
           {
             key: 'archive-conversation-assign',
             label: '分配会话',
             autoSelect: false,
-            roleEditorColumn: 3,
-            requires: ['archive-conversation-view-associate'],
+            roleEditorColumn: 2,
           },
         ],
       },
@@ -134,16 +125,10 @@ export const PERMISSION_TREE: PermGroup[] = [
         label: '聊天记录',
         features: [
           {
-            key: 'archive-chat-view-associate',
-            label: '查看&关联',
-            roleEditorColumn: 1,
-          },
-          {
             key: 'archive-chat-manage',
             label: '管理',
             autoSelect: false,
-            roleEditorColumn: 2,
-            requires: ['archive-chat-view-associate'],
+            roleEditorColumn: 1,
           },
           {
             key: 'archive-chat-scope-personal',
@@ -151,7 +136,6 @@ export const PERMISSION_TREE: PermGroup[] = [
             exclusiveGroup: 'archive-chat-scope',
             autoSelect: true,
             hiddenInRoleEditor: true,
-            requires: ['archive-chat-view-associate'],
             scopeLevel: 'personal',
           },
           {
@@ -160,7 +144,6 @@ export const PERMISSION_TREE: PermGroup[] = [
             exclusiveGroup: 'archive-chat-scope',
             autoSelect: false,
             roleEditorColumn: 4,
-            requires: ['archive-chat-view-associate'],
             scopeLevel: 'all',
           },
         ],

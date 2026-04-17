@@ -281,6 +281,7 @@
               <p class="wc-card__desc">在访客开始会话之前收集必要的信息，帮助客服更好地提供服务</p>
             </div>
             <AgentSwitch :model-value="settings.enableSessionForm" @click.stop @update:model-value="handleSessionFormToggle" />
+            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">

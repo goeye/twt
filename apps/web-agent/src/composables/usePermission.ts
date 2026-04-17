@@ -23,8 +23,8 @@ const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
   agent: () => [
     'home', 'conversation',
     'conversation-online', 'conversation-online-manage', 'conversation-online-scope-personal',
-    'archive', 'archive-conversation', 'archive-conversation-view-associate', 'archive-conversation-scope-personal', 'archive-conversation-claim',
-    'archive-chat', 'archive-chat-view-associate', 'archive-chat-manage', 'archive-chat-scope-personal',
+    'archive', 'archive-conversation', 'archive-conversation-scope-personal', 'archive-conversation-claim',
+    'archive-chat', 'archive-chat-manage', 'archive-chat-scope-personal',
     'visitor', 'visitor-online', 'visitor-online-manage',
     'customer', 'customer-online', 'customer-online-manage',
     'campaign', 'campaign-mass', 'campaign-mass-manage',
@@ -36,7 +36,7 @@ const MOCK_ROLE_PRESETS: Record<MockRole, () => string[]> = {
   limited: () => [
     'home', 'conversation',
     'conversation-online', 'conversation-online-manage', 'conversation-online-scope-personal',
-    'archive', 'archive-conversation', 'archive-conversation-view-associate', 'archive-conversation-scope-personal',
+    'archive', 'archive-conversation', 'archive-conversation-scope-personal',
   ],
 }
 

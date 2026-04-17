@@ -584,8 +584,8 @@ const handleViewRole = (roleId: string) => {
     roleDetailIsSystem.value = true;
     roleDetailPerms.value = [
       "conversation-online", "conversation-online-manage", "conversation-online-scope-personal",
-      "archive-conversation", "archive-conversation-view-associate", "archive-conversation-scope-personal", "archive-conversation-claim",
-      "archive-chat", "archive-chat-view-associate", "archive-chat-manage", "archive-chat-scope-personal",
+      "archive-conversation", "archive-conversation-scope-personal", "archive-conversation-claim",
+      "archive-chat", "archive-chat-manage", "archive-chat-scope-personal",
       "visitor-online", "visitor-online-manage",
       "visitor-all", "visitor-all-manage",
       "customer-online", "customer-online-manage",
@@ -603,8 +603,8 @@ const handleViewRole = (roleId: string) => {
     roleDetailIsSystem.value = false;
     roleDetailPerms.value = [
       "conversation-online", "conversation-online-manage", "conversation-online-scope-all",
-      "archive-conversation", "archive-conversation-view-associate", "archive-conversation-scope-all", "archive-conversation-claim", "archive-conversation-assign",
-      "archive-chat", "archive-chat-view-associate", "archive-chat-manage", "archive-chat-scope-all",
+      "archive-conversation", "archive-conversation-scope-all", "archive-conversation-claim", "archive-conversation-assign",
+      "archive-chat", "archive-chat-manage", "archive-chat-scope-all",
       "visitor-online", "visitor-online-manage",
       "report-manual", "report-manual-view",
       "report-evaluation", "report-evaluation-view",

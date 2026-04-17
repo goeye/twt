@@ -1382,9 +1382,15 @@ const settingsNavGroupsBase = [
     title: "安装",
     leadingEmoji: "⚙️",
     items: [
-      { key: "website-code", label: "网站代码" },
-      { key: "install", label: "聊天页面" },
-      { key: "customize", label: "自定义" },
+      {
+        key: "web",
+        label: "网页",
+        children: [
+          { key: "website-code", label: "网站代码" },
+          { key: "install", label: "聊天页面" },
+          { key: "customize", label: "自定义" }
+        ]
+      },
       { key: "email", label: "Email" },
       { key: "telegram", label: "Telegram" }
     ]
