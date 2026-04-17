@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Writer"
+  short_description: "Generate structured PRDs and save them under the target project's prd directory"
+  default_prompt: "Use $prd-writer to confirm information architecture first, then generate a structured PRD and save it under the corresponding project's prd directory."

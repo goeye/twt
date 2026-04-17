@@ -1,6 +1,6 @@
-<template><div><h1 id="配置项参考" tabindex="-1">配置项参考 <a class="header-anchor" href="#配置项参考">#</a></h1>
+<template><div><h1 id="配置项参考" tabindex="-1">配置项参考</h1>
 <p>基础安装后即可使用默认聊天功能。如需自定义，可参考以下配置调整聊天组件的外观和行为。</p>
-<h2 id="隐藏默认图标" tabindex="-1">隐藏默认图标 <a class="header-anchor" href="#隐藏默认图标">#</a></h2>
+<h2 id="隐藏默认图标" tabindex="-1">隐藏默认图标</h2>
 <p>将 <code v-pre>icon</code> 设置为 <code v-pre>&quot;2&quot;</code> 可隐藏右下角默认浮窗图标，然后通过自定义按钮触发聊天窗口。</p>
 <div class="hint-container tip">
 <p class="hint-container-title">注意</p>
@@ -19,7 +19,7 @@
 <span class="line"><span class="token punctuation">}</span><span class="token punctuation">)</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="监听未读消息数" tabindex="-1">监听未读消息数 <a class="header-anchor" href="#监听未读消息数">#</a></h2>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="监听未读消息数" tabindex="-1">监听未读消息数</h2>
 <p>通过自定义事件监听未读消息数变化，可用于在自定义按钮上显示未读角标。</p>
 <div class="hint-container warning">
 <p class="hint-container-title">注意</p>
@@ -31,7 +31,7 @@
 <span class="line"><span class="token punctuation">}</span><span class="token punctuation">)</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="语言配置" tabindex="-1">语言配置 <a class="header-anchor" href="#语言配置">#</a></h2>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="语言配置" tabindex="-1">语言配置</h2>
 <p>TWT Chat 小部件的界面语言通过 <code v-pre>window.__twt__config.lang</code> 指定，<strong>不自动检测浏览器语言</strong>。</p>
 <p>支持的语言代码：</p>
 <table>
@@ -62,7 +62,7 @@
 <span class="line"><span class="token keyword">const</span> lang <span class="token operator">=</span> langMap<span class="token punctuation">[</span>navigator<span class="token punctuation">.</span>language<span class="token punctuation">]</span> <span class="token operator">??</span> <span class="token string">'en'</span></span>
 <span class="line">window<span class="token punctuation">.</span>__twt__config <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token literal-property property">appid</span><span class="token operator">:</span> <span class="token string">'YOUR_APPID'</span><span class="token punctuation">,</span> lang <span class="token punctuation">}</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="动态设置语言" tabindex="-1">动态设置语言 <a class="header-anchor" href="#动态设置语言">#</a></h2>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="动态设置语言" tabindex="-1">动态设置语言</h2>
 <p>在运行时切换聊天组件的界面语言，无需重新加载页面。</p>
 <p>支持的语言代码：<code v-pre>zh-cn</code>（简体中文）、<code v-pre>zh-tw</code>（繁体中文）、<code v-pre>en</code>（英文）。</p>
 <div class="language-html line-numbers-mode" data-highlighter="prismjs" data-ext="html" data-title="html"><pre v-pre><code><span class="line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"></span>
@@ -74,9 +74,9 @@
 <span class="line"><span class="token punctuation">}</span><span class="token punctuation">)</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="接入内部系统的客户信息" tabindex="-1">接入内部系统的客户信息 <a class="header-anchor" href="#接入内部系统的客户信息">#</a></h2>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="接入内部系统的客户信息" tabindex="-1">接入内部系统的客户信息</h2>
 <p>将你系统中已登录用户的信息同步到 TWT Chat，客服在工作台中可直接查看访客身份。</p>
-<h3 id="方式一-静态设置-页面加载时" tabindex="-1">方式一：静态设置（页面加载时） <a class="header-anchor" href="#方式一-静态设置-页面加载时">#</a></h3>
+<h3 id="方式一-静态设置-页面加载时" tabindex="-1">方式一：静态设置（页面加载时）</h3>
 <p>在页面加载时通过 <code v-pre>window.__twt__config</code> 设置客户信息。需要在页面加载时设置，否则无法生效。</p>
 <div class="language-html line-numbers-mode" data-highlighter="prismjs" data-ext="html" data-title="html"><pre v-pre><code><span class="line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"></span>
 <span class="line"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>__twt__config<span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
@@ -100,7 +100,7 @@
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="方式二-动态设置-加载后调用" tabindex="-1">方式二：动态设置（加载后调用） <a class="header-anchor" href="#方式二-动态设置-加载后调用">#</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="方式二-动态设置-加载后调用" tabindex="-1">方式二：动态设置（加载后调用）</h3>
 <p>通过 <code v-pre>login</code> 方法动态设置客户信息，适用于先无感登录、在 SDK 加载后再设置的场景。</p>
 <div class="language-html line-numbers-mode" data-highlighter="prismjs" data-ext="html" data-title="html"><pre v-pre><code><span class="line"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"></span>
 <span class="line"><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>__twt__api <span class="token operator">&amp;&amp;</span> window<span class="token punctuation">.</span>__twt__api<span class="token punctuation">.</span>login<span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
@@ -108,7 +108,7 @@
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="sbs-mm-签名生成规则" tabindex="-1">sbs_mm 签名生成规则 <a class="header-anchor" href="#sbs-mm-签名生成规则">#</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="sbs-mm-签名生成规则" tabindex="-1">sbs_mm 签名生成规则</h3>
 <p><code v-pre>sbs_mm</code> 用于验证用户身份，需在<strong>服务端</strong>生成：</p>
 <div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text" data-title="text"><pre v-pre><code><span class="line">sbs_mm = md5( md5(sbs + '_' + AppSecret) + '_' + ranstr )</span>
 <span class="line"></span></code></pre>

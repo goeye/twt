@@ -1,16 +1,3 @@
 import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/direct-link.html.vue"
-const data = JSON.parse("{\"path\":\"/chat-page/direct-link.html\",\"title\":\"直接链接\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"链接格式\",\"slug\":\"链接格式\",\"link\":\"#链接格式\",\"children\":[]},{\"level\":2,\"title\":\"使用场景\",\"slug\":\"使用场景\",\"link\":\"#使用场景\",\"children\":[]},{\"level\":2,\"title\":\"自定义语言\",\"slug\":\"自定义语言\",\"link\":\"#自定义语言\",\"children\":[]}],\"git\":{\"updatedTime\":1775012611000},\"filePathRelative\":\"chat-page/direct-link.md\"}")
+const data = JSON.parse("{\"path\":\"/chat-page/direct-link.html\",\"title\":\"直接链接\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"链接格式\",\"slug\":\"链接格式\",\"link\":\"#链接格式\",\"children\":[]},{\"level\":2,\"title\":\"使用场景\",\"slug\":\"使用场景\",\"link\":\"#使用场景\",\"children\":[]},{\"level\":2,\"title\":\"自定义语言\",\"slug\":\"自定义语言\",\"link\":\"#自定义语言\",\"children\":[]}],\"git\":{},\"filePathRelative\":\"chat-page/direct-link.md\"}")
 export { comp, data }
-
-if (import.meta.webpackHot) {
-  import.meta.webpackHot.accept()
-  if (__VUE_HMR_RUNTIME__.updatePageData) {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  }
-}
-
-if (import.meta.hot) {
-  import.meta.hot.accept(({ data }) => {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  })
-}

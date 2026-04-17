@@ -9,35 +9,36 @@
 ```html
 <!-- Start of TWT Chat code -->
 <script>
-window.__twt__config = {
-  appid: "你的APPID",
-  lang: "zh-cn",
-  theme: "light",
-  sbs: "",
-  sbs_mm: "",
-  ranstr: "",
-  name: "",
-  nickname: "",
-  email: "",
-  phone: "",
-  icon: "1"
-};
-(function(n, t) {
-  var e = { init: function() {
-    var n = t.createElement("script");
-    n.async = !0;
-    n.type = "text/javascript";
-    n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
-    t.head.appendChild(n);
-  }};
-  e.init();
-})(window, document);
+  window.TWTChatWidget = window.TWTChatWidget || {
+    _q: [],
+    on: function () {
+      this._q.push(["on", Array.prototype.slice.call(arguments)]);
+    },
+  };
+
+  window.__twt__config = {
+    appid: "你的APPID",
+    icon: "1",
+  };
+
+  (function (n, t) {
+    var e = {
+      init: function () {
+        var n = t.createElement("script");
+        n.async = !0;
+        n.type = "text/javascript";
+        n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
+        t.head.appendChild(n);
+      },
+    };
+    e.init();
+  })(window, document);
 </script>
 <!-- End of TWT Chat code -->
 ```
 
 ::: tip 提示
-你可以在 TWT Chat 后台的 **设置 > 网站代码** 页面直接复制已填入 `appid` 的代码。
+你可以在 TWT Chat 后台的 **设置 > 安装 > 网站代码** 页面直接复制已填入 `appid` 的代码。
 :::
 
 ## 配置字段说明

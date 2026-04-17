@@ -96,6 +96,7 @@
         .msg-bubble { background: #fff; padding: 10px 16px; border-radius: 2px 16px 16px 16px; font-size: 15px; line-height: 1.5; color: var(--text-main); word-break: break-all; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: inline-block;}
         .msg-row.self .msg-bubble { background: var(--primary); color: #fff; border-radius: 16px 2px 16px 16px; box-shadow: 0 1px 2px rgba(22,119,255,0.2);}
         .msg-sub-text { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+        .msg-sub-text.unread { color: var(--primary); }
         .chat-input { height: 80px; background: #fff; border-top: 1px solid var(--border); padding: 12px 20px 24px; display: flex; gap: 12px; align-items: center; }
         .chat-input input { flex: 1; height: 36px; background: rgba(0,0,0,0.04); border-radius: 18px; border: none; padding: 0 16px; font-size: 15px; outline: none; }
         .chat-input .btn-send { background: var(--primary); color: #fff; border: none; border-radius: 18px; padding: 0 16px; height: 36px; font-size: 14px;}
@@ -273,6 +274,47 @@
         .m-filter-footer { padding: 16px 0 32px; display: flex; gap: 12px; background: #fff; border-top: 1px solid #F2F3F5; }
         .m-filter-footer-btn-reset { flex: 1; height: 48px; background: #F2F3F5; color: #4E5969; border-radius: 24px; font-size: 16px; font-weight: 500; border: none; cursor: pointer;}
         .m-filter-footer-btn-confirm { flex: 1; height: 48px; background: var(--primary); color: #fff; border-radius: 24px; font-size: 16px; font-weight: 500; border: none; cursor: pointer;}
+
+        /* === 移动端 Slash 快捷回复面板 === */
+        .m-slash-qr-mask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1500; background: transparent; display: none; }
+        .m-slash-qr-mask.show { display: block; }
+        .m-slash-qr-panel { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; max-height: 72vh; }
+        .m-slash-qr-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid #F2F3F5; flex-shrink: 0; }
+        .m-slash-qr-title { font-size: 15px; font-weight: 600; color: #1D2129; }
+        .m-slash-qr-close { width: 28px; height: 28px; border-radius: 50%; background: #F2F3F5; display: flex; align-items: center; justify-content: center; color: #4E5969; font-size: 18px; cursor: pointer; }
+        .m-slash-qr-search { margin: 10px 16px; display: flex; align-items: center; background: #F2F3F5; border-radius: 10px; padding: 7px 12px; gap: 8px; flex-shrink: 0; }
+        .m-slash-qr-search i { color: #86909C; font-size: 16px; }
+        .m-slash-qr-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: #1D2129; }
+        
+        .m-slash-qr-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 200px; gap: 12px; }
+        .m-slash-qr-empty-icon { width: 64px; height: 64px; background: #F7F8FA; border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #C9CDD4; }
+        .m-slash-qr-empty-text { font-size: 14px; color: #86909C; text-align: center; line-height: 1.6; }
+        .m-slash-qr-list { flex: 1; overflow-y: auto; padding: 4px 0 24px; }
+        .m-slash-qr-item { display: flex; align-items: flex-start; padding: 12px 16px; gap: 10px; cursor: pointer; transition: background 0.15s; }
+        .m-slash-qr-item:active { background: #F2F8FF; }
+        .m-slash-qr-item-tag { flex-shrink: 0; font-size: 11px; color: var(--primary); background: #EEF3FF; border-radius: 4px; padding: 2px 6px; margin-top: 2px; }
+        
+        /* Refined Mobile Quick Reply Tabs & List */
+        .m-qr-tabs { display: flex; overflow-x: auto; padding: 0 16px; gap: 24px; border-bottom: 1px solid #F2F3F5; flex-shrink: 0; background: #fff; }
+        .m-qr-tabs::-webkit-scrollbar { display: none; }
+        .m-qr-tab { font-size: 15px; color: #86909C; padding: 12px 0; white-space: nowrap; position: relative; cursor: pointer; flex-shrink: 0; }
+        .m-qr-tab.active { color: var(--primary); font-weight: 600; }
+        .m-qr-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: var(--primary); border-radius: 2px; }
+        
+        .m-slash-qr-list { flex: 1; overflow-y: auto; padding: 8px 16px 40px; scrollbar-width: none; -ms-overflow-style: none; }
+        .m-slash-qr-list::-webkit-scrollbar { display: none; }
+        .m-qr-item-row { display: flex; align-items: flex-start; gap: 10px; padding: 16px 0; border-bottom: 1px solid #F2F3F5; cursor: pointer; transition: background 0.2s; }
+        .m-qr-item-row:active { background: #F7F8FA; }
+        .m-qr-item-row:last-child { border-bottom: none; }
+        
+        /* Inline Image Indicator Style (Matching screenshot) */
+        .m-qr-img-indicator { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; background: #333; border-radius: 4px; padding: 1px 5px; color: #fff; font-size: 10px; margin-right: 6px; font-weight: 600; height: 16px; line-height: 14px; }
+        .m-qr-img-indicator i { font-size: 11px; }
+        
+        .m-qr-item-content { flex: 1; min-width: 0; }
+        .m-qr-item-text { font-size: 15px; color: #1D2129; line-height: 1.6; word-break: break-all; }
+        .m-qr-item-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; color: #86909C; }
+        .m-qr-item-tag { background: #F2F3F5; padding: 1px 6px; border-radius: 4px; }
 
         /* New Todo Page Styles */
         .m-todo-top-fixed { background: #fff; border-bottom: 1px solid #F2F3F5; border-radius: 0 0 16px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); z-index: 100; flex-shrink: 0; display: flex; flex-direction: column; position: relative; }
@@ -895,7 +937,7 @@
                     </div>
                     
                     <div style="padding: 16px 16px 24px 16px; flex: 1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
-                        <input type="text" class="td-detail-title-input" id="ctTitleInput" placeholder="写下你的待办事项" style="font-size: 20px; font-weight: 600; padding: 0; outline: none; border: none; background: transparent;">
+                        <input type="text" class="td-detail-title-input" id="ctTitleInput" placeholder="写下你的待办事项" maxlength="100" style="font-size: 20px; font-weight: 600; padding: 0; outline: none; border: none; background: transparent;">
                         
                         <div class="td-detail-comp" style="align-items: flex-start;">
                             <i class="ri-file-text-line" style="margin-top: 2px;"></i>
@@ -1123,7 +1165,7 @@
                             <i class="ri-check-line"></i> 已完成
                         </div>
                         
-                        <input type="text" class="td-detail-title-input" id="tdDetailTitleInput" value="待办事项1" placeholder="写下你的待办事项">
+                        <input type="text" class="td-detail-title-input" id="tdDetailTitleInput" value="待办事项1" maxlength="100" placeholder="写下你的待办事项">
                         
                         <div class="td-detail-comp" style="margin-top: 4px; align-items: flex-start;">
                             <i class="ri-file-text-line" style="margin-top: 2px;"></i>
@@ -1310,6 +1352,7 @@
                     <input type="text" id="mInput" placeholder="请输入..." style="flex: 1; border: none; outline: none; font-size: 15px; color: #1D2129; background: transparent; padding: 0;" oninput="handleMobileChatInput()">
                     <div style="display: flex; align-items: center; gap: 12px; color: #1D2129; font-size: 24px; margin-left: 12px;">
                         <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                        <i class="ri-chat-smile-2-line" style="cursor: pointer;" title="快捷回复" onclick="openMobileSlashQr('')"></i>
                         <i id="mChatAddIcon" class="ri-add-circle-line" style="cursor: pointer;" onclick="showToast('调用原生发送图片、视频、文件')"></i>
                         <button id="mChatSendBtn" style="display: none; background: #1677FF; color: #fff; border: none; border-radius: 4px; padding: 0 14px; font-size: 14px; cursor: pointer; height: 30px; line-height: 30px; transition: 0.2s; margin-left: -4px;" onclick="sendMobileMsg()">发送</button>
                     </div>
@@ -1354,7 +1397,19 @@
                             <span style="color: #1D2129; font-size: 14px;">2026-03-20 16:03:34</span>
                         </div>
                     </div>
-                    
+
+                    <!-- Card: 会话标签 -->
+                    <div style="background: #fff; border-radius: 16px; margin-bottom: 20px; padding: 0 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
+                            <div style="font-size: 14px; font-weight: 600; color: #1D2129; display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-price-tag-3-fill"></i> 会话标签
+                            </div>
+                        </div>
+                        <div style="padding-bottom: 24px; min-height: 48px; display: flex; align-items: center;">
+                            <div id="mSelectedSessionTags" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;"></div>
+                        </div>
+                    </div>
+
                     <!-- Card 2: 服务客服 -->
                     <div style="background: #fff; border-radius: 16px; margin-bottom: 20px; padding: 0 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F2F3F5;">
@@ -1505,21 +1560,201 @@
                     </div>
                 </div>
             </div>
+
+        <!-- 移动端会话标签选择面板 (bottom sheet) -->
+        <div id="mSessionTagPanel" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; display: none; overflow: hidden;">
+            <div id="mSessionTagMask" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.3s;" onclick="closeMobileSessionTagPanel()"></div>
+            <div id="mSessionTagSheet" style="position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; max-height: 60vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease-out; overflow: hidden; box-sizing: border-box;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #F2F3F5; flex-shrink: 0;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1D2129;">会话标签</div>
+                    <i class="ri-close-line" style="font-size: 22px; color: #86909C; cursor: pointer;" onclick="closeMobileSessionTagPanel()"></i>
+                </div>
+                <!-- Search -->
+                <div style="padding: 12px 16px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; background: #F5F7FA; border-radius: 8px; padding: 8px 12px;">
+                        <i class="ri-search-line" style="color: #86909C; font-size: 16px;"></i>
+                        <input type="text" id="mSessionTagSearch" placeholder="搜索标签" style="flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: #1D2129;" oninput="renderMobileSessionTags(this.value)">
+                    </div>
+                </div>
+                <!-- Tag list -->
+                <div id="mSessionTagList" style="flex: 1; overflow-y: auto; padding: 0 16px 16px;"></div>
+            </div>
+        </div>
         </div>
 
         <script>
             function switchSessionPageTab(tab) {
                 document.getElementById('spTabSession').style.background = tab === 'session' ? '#fff' : 'transparent';
                 document.getElementById('spTabSession').style.color = tab === 'session' ? '#1D2129' : '#86909C';
-                
+
                 document.getElementById('spTabVisitor').style.background = tab === 'visitor' ? '#fff' : 'transparent';
                 document.getElementById('spTabVisitor').style.color = tab === 'visitor' ? '#1D2129' : '#86909C';
-                
+
                 document.getElementById('spContentSession').style.display = tab === 'session' ? 'block' : 'none';
                 document.getElementById('spContentVisitor').style.display = tab === 'visitor' ? 'block' : 'none';
                 document.getElementById('spSessionEndWrap').style.display = tab === 'session' ? 'block' : 'none';
                 document.getElementById('spSessionTransferWrap').style.display = tab === 'session' ? 'block' : 'none';
             }
+
+            // === 移动端会话标签 ===
+            // 获取标签数据（与客户端共享 localStorage）
+            function getMobileSessionTagData() {
+                try {
+                    return JSON.parse(localStorage.getItem('sessionTagData')) || [
+                        { id: 101, sort: 2, name: '售后', count: 5, creatorAvatar: '', creatorName: '李四', createTime: '2026-04-05 14:30:00' },
+                        { id: 102, sort: 1, name: '投诉', count: 3, creatorAvatar: '', creatorName: '王三', createTime: '2026-04-01 10:00:00' }
+                    ];
+                } catch (e) {
+                    return [
+                        { id: 101, sort: 2, name: '售后' },
+                        { id: 102, sort: 1, name: '投诉' }
+                    ];
+                }
+            }
+
+            function getMobileSelectedTagIds() {
+                try {
+                    var mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping')) || {};
+                    // 用当前会话ID作为 key，这里简化用第一个
+                    var sessionKey = 'mobile_current_session';
+                    return mapping[sessionKey] || [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveMobileSelectedTagIds(ids) {
+                try {
+                    var mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping')) || {};
+                    mapping['mobile_current_session'] = ids;
+                    localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+                } catch (e) {}
+            }
+
+            function openMobileSessionTagPanel() {
+                var panel = document.getElementById('mSessionTagPanel');
+                var sheet = document.getElementById('mSessionTagSheet');
+                var mask = document.getElementById('mSessionTagMask');
+                panel.style.display = 'flex';
+                sheet.style.transform = 'translateY(100%)';
+                mask.style.opacity = '0';
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        sheet.style.transform = 'translateY(0)';
+                        mask.style.opacity = '1';
+                    });
+                });
+                document.getElementById('mSessionTagSearch').value = '';
+                renderMobileSessionTags('');
+            }
+
+            function closeMobileSessionTagPanel() {
+                var panel = document.getElementById('mSessionTagPanel');
+                var sheet = document.getElementById('mSessionTagSheet');
+                var mask = document.getElementById('mSessionTagMask');
+                sheet.style.transform = 'translateY(100%)';
+                mask.style.opacity = '0';
+                setTimeout(function() {
+                    panel.style.display = 'none';
+                }, 300);
+            }
+
+            function renderMobileSessionTags(filter) {
+                var list = document.getElementById('mSessionTagList');
+                var allTags = getMobileSessionTagData();
+                var selectedIds = getMobileSelectedTagIds();
+
+                // 过滤
+                var filtered = allTags;
+                if (filter && filter.trim()) {
+                    var kw = filter.trim().toLowerCase();
+                    filtered = allTags.filter(function(t) {
+                        return t.name.toLowerCase().indexOf(kw) !== -1;
+                    });
+                    // 如果没有匹配，显示"创建标签"
+                    if (filtered.length === 0) {
+                        list.innerHTML = '<div style="text-align: center; padding: 24px 0;">' +
+                            '<div style="color: #86909C; font-size: 14px; margin-bottom: 12px;">未找到标签 "' + filter + '"</div>' +
+                            '<div style="color: var(--primary); font-size: 14px; cursor: pointer; font-weight: 500;" onclick="createMobileSessionTag(\'' + filter.replace(/'/g, "\\'") + '\')">创建标签 "' + filter + '"</div>' +
+                            '</div>';
+                        return;
+                    }
+                }
+
+                var html = '';
+                filtered.forEach(function(tag) {
+                    var checked = selectedIds.indexOf(tag.id) !== -1;
+                    html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #F2F3F5; cursor: pointer;" onclick="toggleMobileSessionTag(' + tag.id + ')">' +
+                        '<span style="font-size: 15px; color: #1D2129;">' + tag.name + '</span>' +
+                        '<div style="width: 24px; height: 24px; border-radius: 6px; border: 2px solid ' + (checked ? 'var(--primary)' : '#D9DADE') + '; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">' +
+                        (checked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+                        '</div>' +
+                        '</div>';
+                });
+                list.innerHTML = html;
+            }
+
+            function toggleMobileSessionTag(tagId) {
+                var selectedIds = getMobileSelectedTagIds();
+                var idx = selectedIds.indexOf(tagId);
+                if (idx === -1) {
+                    selectedIds.push(tagId);
+                } else {
+                    selectedIds.splice(idx, 1);
+                }
+                saveMobileSelectedTagIds(selectedIds);
+                renderMobileSessionTags(document.getElementById('mSessionTagSearch').value);
+                updateMobileSessionTagPills();
+            }
+
+            function createMobileSessionTag(name) {
+                var allTags = getMobileSessionTagData();
+                var newId = Date.now();
+                var newTag = { id: newId, sort: 0, name: name, count: 0, creatorAvatar: '', creatorName: '', createTime: new Date().toLocaleString() };
+                allTags.push(newTag);
+                try {
+                    localStorage.setItem('sessionTagData', JSON.stringify(allTags));
+                } catch (e) {}
+                // 自动选中
+                var selectedIds = getMobileSelectedTagIds();
+                selectedIds.push(newId);
+                saveMobileSelectedTagIds(selectedIds);
+                renderMobileSessionTags('');
+                updateMobileSessionTagPills();
+            }
+
+            function updateMobileSessionTagPills() {
+                var container = document.getElementById('mSelectedSessionTags');
+                var allTags = getMobileSessionTagData();
+                var selectedIds = getMobileSelectedTagIds();
+                var selectedTags = allTags.filter(function(t) { return selectedIds.indexOf(t.id) !== -1; });
+
+                var html = '';
+                selectedTags.forEach(function(tag) {
+                    html += '<span style="background: #F2F3F5; border-radius: 4px; padding: 4px 10px; font-size: 13px; color: #4E5969; display: inline-flex; align-items: center; gap: 4px;">' +
+                        tag.name +
+                        '<i class="ri-close-line" style="cursor: pointer; font-size: 14px; color: #86909C;" onclick="removeMobileSessionTag(' + tag.id + ')"></i>' +
+                        '</span>';
+                });
+                // 添加按钮始终在最后
+                html += '<div id="mSessionTagAddBtn" style="width: 32px; height: 32px; border-radius: 50%; background: #F2F3F5; display: inline-flex; align-items: center; justify-content: center; color: #86909C; font-size: 18px; font-weight: 300; cursor: pointer; vertical-align: middle;" onclick="openMobileSessionTagPanel()">' +
+                    '<i class="ri-add-line"></i>' +
+                    '</div>';
+                container.innerHTML = html;
+            }
+
+            function removeMobileSessionTag(tagId) {
+                var selectedIds = getMobileSelectedTagIds();
+                var idx = selectedIds.indexOf(tagId);
+                if (idx !== -1) {
+                    selectedIds.splice(idx, 1);
+                    saveMobileSelectedTagIds(selectedIds);
+                }
+                updateMobileSessionTagPills();
+            }
+            // 初始化渲染标签
+            updateMobileSessionTagPills();
         </script>
 
         <!-- 客户信息页 (客服-消息专用) -->
@@ -1552,6 +1787,20 @@
                     <div style="display: flex; margin-bottom: 16px;">
                         <span style="color: #86909C; width: 80px; font-size: 14px;">邮箱</span>
                         <span style="color: #1D2129; font-size: 14px; flex: 1;">-</span>
+                    </div>
+                </div>
+
+                <!-- 访客标签 -->
+                <div style="padding: 16px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1D2129; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="ri-price-tag-3-fill" style="color: #1D2129;"></i> 访客标签</span>
+                        <i class="ri-arrow-up-s-line" style="color: #86909C;"></i>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 40px; margin-bottom: 16px;">
+                        <div id="mSelectedVisitorTags" style="display: contents;"></div>
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #F2F3F5; display: flex; align-items: center; justify-content: center; color: #86909C; font-size: 18px; cursor: pointer;" onclick="openMobileVisitorTagPanel()">
+                            <i class="ri-add-line"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -2202,7 +2451,7 @@
                     <i class="ri-close-line" onclick="closeTodoSheet()" style="font-size: 20px;"></i>
                 </div>
                 
-                <input type="text" id="todoSheetInput" placeholder="写下你的待办事项" style="width: 100%; border: none; outline: none; font-size: 20px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary); background: transparent;">
+                <input type="text" id="todoSheetInput" placeholder="写下你的待办事项" maxlength="100" style="width: 100%; border: none; outline: none; font-size: 20px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary); background: transparent;">
                 
                 <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px;">
                     <i class="ri-file-text-line" style="font-size: 18px; color: #86909C; padding-top: 2px;"></i>
@@ -3340,7 +3589,12 @@
             }
         }
         
+        const MOBILE_TODO_TITLE_MAX_LENGTH = 100;
         let currentDetailTodoId = null;
+
+        function limitMobileTodoTitle(value) {
+            return String(value || '').slice(0, MOBILE_TODO_TITLE_MAX_LENGTH);
+        }
         
         function getTodoById(id) {
             if (typeof mTodoMap === 'undefined') return null;
@@ -3366,7 +3620,7 @@
             
             // Set values
             if (todo) {
-                titleInput.value = todo.title;
+                titleInput.value = limitMobileTodoTitle(todo.title);
                 descInput.value = todo.desc || '';
                 isCompleted = todo.completed;
             } else {
@@ -3374,9 +3628,9 @@
                 const calCard = document.querySelector(`.m-cal-card-item[data-id="${id}"]`);
                 
                 if (todoCard) {
-                    titleInput.value = todoCard.querySelector('.m-todo-d-title').innerText;
+                    titleInput.value = limitMobileTodoTitle(todoCard.querySelector('.m-todo-d-title').innerText);
                 } else if (calCard) {
-                    titleInput.value = calCard.querySelector('.m-cal-card-cat').innerText;
+                    titleInput.value = limitMobileTodoTitle(calCard.querySelector('.m-cal-card-cat').innerText);
                 } else {
                     titleInput.value = '待办事项';
                 }
@@ -3398,6 +3652,7 @@
             // Update mapping logic on input for immediate sync
             titleInput.oninput = function() {
                 if(currentDetailTodoId) {
+                    titleInput.value = limitMobileTodoTitle(titleInput.value);
                     const newTitle = titleInput.value || '未命名待办';
                     
                     const activeTodo = getTodoById(currentDetailTodoId);
@@ -3502,7 +3757,9 @@
         }
 
         function confirmCreateTodo() {
-            const title = document.getElementById('ctTitleInput').value.trim();
+            const titleInput = document.getElementById('ctTitleInput');
+            const title = limitMobileTodoTitle(titleInput.value).trim();
+            titleInput.value = limitMobileTodoTitle(titleInput.value);
             if(!title) {
                 showToast('请输入待办事项标题');
                 return;
@@ -4404,7 +4661,7 @@
         function openTodoSheet(isEdit, todo) {
             currentEditingTodo = isEdit ? todo : null;
             document.getElementById('todoSheetTitle').innerText = isEdit ? '编辑待办' : '新建待办';
-            document.getElementById('todoSheetInput').value = isEdit ? todo.title : '';
+            document.getElementById('todoSheetInput').value = isEdit ? limitMobileTodoTitle(todo.title) : '';
             document.getElementById('todoSheetDeleteBtn').style.display = isEdit ? 'block' : 'none';
             document.getElementById('todoSheetOverlay').classList.add('show');
             setTimeout(() => document.getElementById('todoSheetInput').focus(), 100);
@@ -4417,7 +4674,9 @@
         }
 
         function submitTodoSheet() {
-            const title = document.getElementById('todoSheetInput').value.trim();
+            const titleInput = document.getElementById('todoSheetInput');
+            const title = limitMobileTodoTitle(titleInput.value).trim();
+            titleInput.value = limitMobileTodoTitle(titleInput.value);
             if(!title) return;
             
             const y = mSelectedDate.getFullYear();
@@ -4433,8 +4692,8 @@
             }
             
             closeTodoSheet();
-            renderMobileCalendar();
-            renderMobileTodoList();
+            if (typeof renderFullCalendar === 'function') renderFullCalendar();
+            if (typeof applyCurrentTabFilters === 'function') applyCurrentTabFilters();
         }
 
         function deleteTodoSheet() {
@@ -4446,8 +4705,8 @@
                 mTodoMap[dateKey] = mTodoMap[dateKey].filter(t => t.id !== currentEditingTodo.id);
             }
             closeTodoSheet();
-            renderMobileCalendar();
-            renderMobileTodoList();
+            if (typeof renderFullCalendar === 'function') renderFullCalendar();
+            if (typeof applyCurrentTabFilters === 'function') applyCurrentTabFilters();
         }
 
         function addMobileTodo() {
@@ -4772,6 +5031,7 @@
                         <input type="text" id="mInput" placeholder="请输入..." style="flex: 1; border: none; outline: none; font-size: 15px; color: #1D2129; background: transparent; padding: 0;" oninput="handleMobileChatInput()">
                         <div style="display: flex; align-items: center; gap: 12px; color: #1D2129; font-size: 24px; margin-left: 12px;">
                             <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                            <i class="ri-chat-smile-2-line" style="cursor: pointer;" title="快捷回复" onclick="showToast('快捷回复')"></i>
                             <i id="mChatAddIcon" class="ri-add-circle-line" style="cursor: pointer;" onclick="showToast('调用原生发送图片、视频、文件')"></i>
                             <button id="mChatSendBtn" style="display: none; background: #1677FF; color: #fff; border: none; border-radius: 4px; padding: 0 14px; font-size: 14px; cursor: pointer; height: 30px; line-height: 30px; transition: 0.2s; margin-left: -4px;" onclick="sendMobileMsg()">发送</button>
                         </div>
@@ -4968,6 +5228,7 @@
 
         // Chat View Interaction
         let activeChatName = '';
+        let isCurrentChatGroup = false;
         
         function toggleMobilePendingState(iconEl) {
             const isPending = iconEl.classList.contains('ri-inbox-archive-line');
@@ -5003,6 +5264,8 @@
             } else if (name.includes('客户服务群') || name.includes('群聊')) {
                 isGroup = true;
             }
+            
+            isCurrentChatGroup = isGroup; // Sync global state
             
             activeChatName = name;
             document.getElementById('chatPageTitle').innerText = name;
@@ -5190,30 +5453,61 @@
         function closeChat() { document.getElementById('chatPage').classList.remove('show'); }
 
         // Logic
-        function sendMobileMsg() {
-            const input = document.getElementById('mInput');
-            const txt = input.value.trim();
-            if(!txt) return;
+        // Helper to append a single message bubble (text or image) to the chat
+        function appendMobileSelfMessage(content, type) {
             const area = document.getElementById('msgArea');
+            if (!area) return;
+            
+            let bubbleContent = '';
+            if (type === 'image') {
+                bubbleContent = `<div class="msg-bubble" style="padding:4px; background:transparent; border:none; display:flex; justify-content:flex-end;">
+                    <img src="${content}" style="max-width:200px; max-height:200px; border-radius:8px; display:block;">
+                </div>`;
+            } else {
+                bubbleContent = `<div class="msg-bubble">${content}</div>`;
+            }
+
+            const statusText = isCurrentChatGroup ? '全部未读' : '未读';
+
             area.insertAdjacentHTML('beforeend', `
                 <div class="msg-row self">
                     <div class="avatar" style="width:36px;height:36px;font-size:14px;background:#DCE6FE;color:var(--primary);font-weight:500;">我</div>
                     <div class="msg-info">
-                        <div class="msg-bubble">${txt}</div>
+                        ${bubbleContent}
+                        <div class="msg-sub-text unread" style="text-align: right;">${statusText}</div>
                     </div>
                 </div>`);
-            input.value = '';
+            
             area.scrollTop = area.scrollHeight;
-            handleMobileChatInput();
+        }
 
-            // Optional: update recent chat preview
-            const list = document.getElementById('chatListContainer');
-            // Mock: Just prepend a generic one for prototype feel
+        // Logic
+        function sendMobileMsg() {
+            const input = document.getElementById('mInput');
+            const txt = (input.value || '').trim();
+            if(!txt) return;
+            
+            appendMobileSelfMessage(txt, 'text');
+            
+            input.value = '';
+            handleMobileChatInput();
         }
 
         function handleMobileChatInput() {
-            const val = document.getElementById('mInput').value;
-            if(val.trim().length > 0) {
+            var input = document.getElementById('mInput');
+            if (!input) return;
+            var val = input.value;
+
+            // Detect / to trigger quick reply
+            var slashIdx = val.lastIndexOf('/');
+            if (slashIdx !== -1) {
+                var keyword = val.substring(slashIdx + 1);
+                openMobileSlashQr(keyword);
+            } else {
+                closeMobileSlashQr();
+            }
+
+            if (val.trim().length > 0) {
                 document.getElementById('mChatAddIcon').style.display = 'none';
                 document.getElementById('mChatSendBtn').style.display = 'inline-block';
             } else {
@@ -5254,9 +5548,9 @@
             `);
         }
 
-        // Initialize Calendar if view is switched
-        renderMobileCalendar();
-        renderMobileTodoList();
+        // Initialize components
+        if (typeof renderFullCalendar === 'function') renderFullCalendar();
+        if (typeof applyCurrentTabFilters === 'function') applyCurrentTabFilters();
 
         function openMobileSearch() {
             document.getElementById('mobileSearchPage').classList.add('show');
@@ -5266,7 +5560,335 @@
             document.getElementById('mobileSearchPage').classList.remove('show');
         }
 
+        // === 移动端 Slash 快捷回复 ===
+        var mobileQrData = {
+            public: [
+                { id: 1, tag: '问候', reply: '您好，欢迎咨询！请问有什么可以帮您？', cat: 'public', images: [] },
+                { id: 2, tag: '报价', reply: '关于产品价格，您可以参考我们的官网价目表，或者我为您发送一份详细的报价单。', cat: 'public', images: ['img1.jpg'] },
+                { id: 3, tag: '技术', reply: '如果您在使用过程中遇到技术问题，请详细描述报错信息，我会为您记录并反馈给技术团队。', cat: 'public', images: [] },
+                { id: 4, tag: '物流', reply: '您的订单正在火速配送中，通常在 3-5 个工作日内即可送达，请您耐心等待。', cat: 'public', images: ['logistics.png'] }
+            ],
+            personal: [
+                { id: 1, tag: '欢迎', reply: '哈喽！我是您的专属客服小林，很高兴为您服务。', cat: 'personal', images: [] },
+                { id: 2, tag: '等候', reply: '好的，正在为您查询中，请稍等片刻哈。', cat: 'personal', images: ['wait.gif'] },
+                { id: 3, tag: '致谢', reply: '不客气，如果您还有其他问题，欢迎随时联系我！', cat: 'personal', images: [] }
+            ]
+        };
+
+        var mobileQrPermission = { hasPublic: true, hasPersonal: true };
+        var currentMobileQrCat = 'public'; // 'public' | 'personal'
+        var currentMobileQrTag = 'all';    // 'all' | string tag name
+
+        function openMobileSlashQr(keyword) {
+            var mask = document.getElementById('mSlashQrMask');
+            if (!mask) return;
+            mask.classList.add('show');
+            
+            var searchInput = document.getElementById('mSlashQrSearch');
+            if (searchInput) {
+                searchInput.value = keyword;
+                searchInput.focus();
+            }
+            
+            // Reset to default
+            currentMobileQrCat = 'public';
+            currentMobileQrTag = 'all';
+            
+            renderMobileSlashQrTabs(); 
+            renderMobileSlashQrList();
+        }
+
+        function closeMobileSlashQr() {
+            var mask = document.getElementById('mSlashQrMask');
+            if (mask) mask.classList.remove('show');
+        }
+
+        function renderMobileSlashQrTabs() {
+            var catContainer = document.getElementById('mQrTabs');
+            if (catContainer) {
+                var catHtml = '';
+                catHtml += '<div class="m-qr-tab ' + (currentMobileQrCat === 'public' ? 'active' : '') + '" onclick="switchMobileQrCat(\'public\', this)">公共回复</div>';
+                catHtml += '<div class="m-qr-tab ' + (currentMobileQrCat === 'personal' ? 'active' : '') + '" onclick="switchMobileQrCat(\'personal\', this)">个人回复</div>';
+                catContainer.innerHTML = catHtml;
+            }
+        }
+
+        function switchMobileQrCat(cat, el) {
+            currentMobileQrCat = cat;
+            renderMobileSlashQrTabs();
+            renderMobileSlashQrList();
+        }
+
+        function renderMobileSlashQrList() {
+            var list = document.getElementById('mSlashQrList');
+            var emptyWrap = document.getElementById('mSlashQrEmpty');
+            var addBtn = document.getElementById('mSlashQrAddBtn');
+            var kw = (document.getElementById('mSlashQrSearch').value || '').trim().toLowerCase();
+            
+            if (!list) return;
+
+            // 1. Get Pool by Category
+            var pool = mobileQrData[currentMobileQrCat] || [];
+            
+            // 2. Filter by Keyword
+            var filtered = pool;
+            if (kw) {
+                filtered = pool.filter(function(r) {
+                    return (r.reply && r.reply.toLowerCase().indexOf(kw) !== -1) || (r.tag && r.tag.toLowerCase().indexOf(kw) !== -1);
+                });
+            }
+
+            if (filtered.length === 0) {
+                list.style.display = 'none';
+                if (emptyWrap) emptyWrap.style.display = 'flex';
+                var hasAny = mobileQrPermission.hasPublic || mobileQrPermission.hasPersonal;
+                if (addBtn) addBtn.style.display = hasAny ? 'block' : 'none';
+            } else {
+                if (emptyWrap) emptyWrap.style.display = 'none';
+                list.style.display = 'block';
+                var html = '';
+                filtered.forEach(function(r, idx) {
+                    var imgHtml = (r.images && r.images.length > 0) ? 
+                        '<span class="m-qr-img-indicator"><i class="ri-image-line"></i>' + r.images.length + '</span>' : '';
+                    
+                    html += '<div class="m-qr-item-row" onclick="insertMobileSlashQr(' + idx + ')">' +
+                        '<div class="m-qr-item-content">' +
+                        '  <div class="m-qr-item-text">' + imgHtml + r.reply + '</div>' +
+                        '</div>' +
+                        '</div>';
+                });
+                list.innerHTML = html;
+                window._mSlashQrFiltered = filtered;
+            }
+        }
+
+        function insertMobileSlashQr(idx) {
+            var filtered = window._mSlashQrFiltered || [];
+            var item = filtered[idx];
+            if (!item) return;
+            
+            // 1. Send Images as separate messages
+            if (item.images && item.images.length > 0) {
+                item.images.forEach(function(img) {
+                    appendMobileSelfMessage(img, 'image');
+                });
+            }
+            
+            // 2. Send Text as separate message
+            if (item.reply) {
+                appendMobileSelfMessage(item.reply, 'text');
+            }
+            
+            // 3. Cleanup & Close
+            var input = document.getElementById('mInput');
+            if (input) {
+                var val = input.value;
+                var slashIdx = val.lastIndexOf('/');
+                // Remove the triggering / and keyword
+                input.value = (slashIdx !== -1) ? val.substring(0, slashIdx) : '';
+                handleMobileChatInput();
+            }
+            closeMobileSlashQr();
+        }
+
+        function navigateMobileToQuickReply() {
+            closeMobileSlashQr();
+            var hasAny = mobileQrPermission.hasPublic || mobileQrPermission.hasPersonal;
+            if (!hasAny) return;
+            document.getElementById('csPage').classList.add('show');
+            showToast('已跳转到客服工作台');
+        }
+
+        // === 移动端访客标签 ===
+        function getMobileVisitorTagData() {
+            try {
+                return JSON.parse(localStorage.getItem('visitorTagData')) || [
+                    { id: 201, sort: 2, name: '高价值', count: 5, creatorAvatar: '', creatorName: '李四', createTime: '2026-04-05 14:30:00' },
+                    { id: 202, sort: 1, name: '意向强', count: 3, creatorAvatar: '', creatorName: '王三', createTime: '2026-04-01 10:00:00' }
+                ];
+            } catch (e) {
+                return [
+                    { id: 201, sort: 2, name: '高价值' },
+                    { id: 202, sort: 1, name: '意向强' }
+                ];
+            }
+        }
+
+        function getMobileSelectedVisitorTagIds() {
+            try {
+                var mapping = JSON.parse(localStorage.getItem('visitorTagSelectionMapping')) || {};
+                var sessionKey = 'mobile_personal_current_visitor';
+                return mapping[sessionKey] || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveMobileSelectedVisitorTagIds(ids) {
+            try {
+                var mapping = JSON.parse(localStorage.getItem('visitorTagSelectionMapping')) || {};
+                var sessionKey = 'mobile_personal_current_visitor';
+                mapping[sessionKey] = ids;
+                localStorage.setItem('visitorTagSelectionMapping', JSON.stringify(mapping));
+            } catch (e) {}
+        }
+
+        function openMobileVisitorTagPanel() {
+            var panel = document.getElementById('mVisitorTagPanel');
+            if(panel) panel.classList.add('show');
+            var search = document.getElementById('mVisitorTagSearch');
+            if(search) search.value = '';
+            renderMobileVisitorTags('');
+        }
+
+        function closeMobileVisitorTagPanel() {
+            var panel = document.getElementById('mVisitorTagPanel');
+            if(panel) panel.classList.remove('show');
+        }
+
+        function renderMobileVisitorTags(filter) {
+            var list = document.getElementById('mVisitorTagList');
+            if(!list) return;
+            var allTags = getMobileVisitorTagData();
+            var selectedIds = getMobileSelectedVisitorTagIds();
+
+            var filtered = allTags;
+            if (filter && filter.trim()) {
+                var kw = filter.trim().toLowerCase();
+                filtered = allTags.filter(function(t) {
+                    return t.name.toLowerCase().indexOf(kw) !== -1;
+                });
+                if (filtered.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; padding: 24px 0;">' +
+                        '<div style="color: #86909C; font-size: 14px; margin-bottom: 12px;">未找到标签 "' + filter + '"</div>' +
+                        '<div style="color: var(--primary); font-size: 14px; cursor: pointer; font-weight: 500;" onclick="createMobileVisitorTag(\'' + filter.replace(/'/g, "\\'") + '\')">创建标签 "' + filter + '"</div>' +
+                        '</div>';
+                    return;
+                }
+            }
+
+            var html = '';
+            filtered.forEach(function(tag) {
+                var checked = selectedIds.indexOf(tag.id) !== -1;
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #F2F3F5; cursor: pointer;" onclick="toggleMobileVisitorTag(' + tag.id + ')">' +
+                    '<span style="font-size: 15px; color: #1D2129;">' + tag.name + '</span>' +
+                    '<div style="width: 24px; height: 24px; border-radius: 6px; border: 2px solid ' + (checked ? 'var(--primary)' : '#D9DADE') + '; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">' +
+                    (checked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+                    '</div>' +
+                    '</div>';
+            });
+            list.innerHTML = html;
+        }
+
+        function toggleMobileVisitorTag(tagId) {
+            var selectedIds = getMobileSelectedVisitorTagIds();
+            var idx = selectedIds.indexOf(tagId);
+            if (idx === -1) {
+                selectedIds.push(tagId);
+            } else {
+                selectedIds.splice(idx, 1);
+            }
+            saveMobileSelectedVisitorTagIds(selectedIds);
+            var search = document.getElementById('mVisitorTagSearch');
+            renderMobileVisitorTags(search ? search.value : '');
+            updateMobileVisitorTagPills();
+        }
+
+        function createMobileVisitorTag(name) {
+            var allTags = getMobileVisitorTagData();
+            var newId = Date.now();
+            var newTag = { id: newId, sort: 0, name: name, count: 0, creatorAvatar: '', creatorName: '', createTime: new Date().toLocaleString() };
+            allTags.unshift(newTag);
+            try {
+                localStorage.setItem('visitorTagData', JSON.stringify(allTags));
+            } catch (e) {}
+            var selectedIds = getMobileSelectedVisitorTagIds();
+            selectedIds.push(newId);
+            saveMobileSelectedVisitorTagIds(selectedIds);
+            
+            var search = document.getElementById('mVisitorTagSearch');
+            if(search) search.value = '';
+            renderMobileVisitorTags('');
+            updateMobileVisitorTagPills();
+        }
+
+        function updateMobileVisitorTagPills() {
+            var container = document.getElementById('mSelectedVisitorTags');
+            if(!container) return;
+            var allTags = getMobileVisitorTagData();
+            var selectedIds = getMobileSelectedVisitorTagIds();
+            var selectedTags = allTags.filter(function(t) { return selectedIds.indexOf(t.id) !== -1; });
+
+            var html = '';
+            selectedTags.forEach(function(tag) {
+                html += '<span style="background: #F2F3F5; border-radius: 4px; padding: 4px 10px; font-size: 13px; color: #4E5969; display: inline-flex; align-items: center; gap: 4px;">' +
+                    tag.name +
+                    '<i class="ri-close-line" style="cursor: pointer; font-size: 14px; color: #86909C;" onclick="removeMobileVisitorTag(' + tag.id + ')"></i>' +
+                    '</span>';
+            });
+            container.innerHTML = html;
+        }
+
+        function removeMobileVisitorTag(tagId) {
+            var selectedIds = getMobileSelectedVisitorTagIds();
+            var idx = selectedIds.indexOf(tagId);
+            if (idx !== -1) {
+                selectedIds.splice(idx, 1);
+                saveMobileSelectedVisitorTagIds(selectedIds);
+            }
+            updateMobileVisitorTagPills();
+        }
+
+        // Initialize tags
+        updateMobileVisitorTagPills();
+
     </script>
+
+    <!-- 移动端访客标签选择面板 (bottom sheet) -->
+    <div class="todo-sheet-overlay" id="mVisitorTagPanel" onclick="closeMobileVisitorTagPanel()">
+        <div class="todo-sheet" style="padding: 24px 0 0 0; display: flex; flex-direction: column; height: 80vh;" onclick="event.stopPropagation()">
+            <div class="todo-sheet-header" style="position: relative; margin-bottom: 16px; padding: 0 16px;">
+                <div onclick="closeMobileVisitorTagPanel()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; color: #86909C; cursor: pointer;"><i class="ri-close-line"></i></div>
+                <div style="font-size: 16px; font-weight: 600; color: #1D2129; flex: 1; text-align: center;">访客标签</div>
+            </div>
+            <div style="padding: 0 16px 12px 16px; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 8px; background: #F2F3F5; border-radius: 8px; padding: 8px 12px;">
+                    <i class="ri-search-line" style="color: #86909C; font-size: 16px;"></i>
+                    <input type="text" id="mVisitorTagSearch" placeholder="搜索标签" style="flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: #1D2129;" oninput="renderMobileVisitorTags(this.value)">
+                </div>
+            </div>
+            <div id="mVisitorTagList" style="flex: 1; overflow-y: auto; padding: 0 16px 24px 16px;"></div>
+        </div>
+    </div>
+
+    <!-- 移动端 Slash 快捷回复面板 -->
+    <div class="todo-sheet-overlay" id="mSlashQrMask" onclick="closeMobileSlashQr()" style="z-index: 2000;">
+        <div class="todo-sheet" style="padding: 0; display: flex; flex-direction: column; height: 66.7vh; border-radius: 20px 20px 0 0;" onclick="event.stopPropagation()">
+            <div class="m-slash-qr-header">
+                <div class="m-slash-qr-close" onclick="closeMobileSlashQr()"><i class="ri-close-line"></i></div>
+                <span class="m-slash-qr-title">快捷回复</span>
+                <div style="width: 28px;"></div> <!-- Spacer -->
+            </div>
+            
+            <div class="m-slash-qr-search">
+                <i class="ri-search-line"></i>
+                <input type="text" id="mSlashQrSearch" placeholder="搜索快捷回复" oninput="renderMobileSlashQrList()">
+            </div>
+            
+            <!-- Category Tabs (Row 1) -->
+            <div class="m-qr-tabs" id="mQrTabs">
+                <div class="m-qr-tab active" onclick="switchMobileQrCat('public', this)">公共回复</div>
+                <div class="m-qr-tab" onclick="switchMobileQrCat('personal', this)">个人回复</div>
+            </div>
+            
+            <div class="m-slash-qr-list" id="mSlashQrList"></div>
+            
+            <div class="m-slash-qr-empty" id="mSlashQrEmpty" style="display: none;">
+                <div class="m-slash-qr-empty-icon"><i class="ri-inbox-line"></i></div>
+                <div class="m-slash-qr-empty-text">没有匹配到相关的快捷回复</div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

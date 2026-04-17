@@ -1,16 +1,3 @@
 import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/widget/examples.html.vue"
 const data = JSON.parse("{\"path\":\"/widget/examples.html\",\"title\":\"示例项目\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"纯 HTML 最小接入\",\"slug\":\"纯-html-最小接入\",\"link\":\"#纯-html-最小接入\",\"children\":[]},{\"level\":2,\"title\":\"React 项目接入\",\"slug\":\"react-项目接入\",\"link\":\"#react-项目接入\",\"children\":[]},{\"level\":2,\"title\":\"Vue 3 项目接入\",\"slug\":\"vue-3-项目接入\",\"link\":\"#vue-3-项目接入\",\"children\":[]},{\"level\":2,\"title\":\"自定义触发按钮\",\"slug\":\"自定义触发按钮\",\"link\":\"#自定义触发按钮\",\"children\":[]},{\"level\":2,\"title\":\"传递登录用户信息\",\"slug\":\"传递登录用户信息\",\"link\":\"#传递登录用户信息\",\"children\":[]},{\"level\":2,\"title\":\"多语言切换\",\"slug\":\"多语言切换\",\"link\":\"#多语言切换\",\"children\":[]}],\"git\":{},\"filePathRelative\":\"widget/examples.md\"}")
 export { comp, data }
-
-if (import.meta.webpackHot) {
-  import.meta.webpackHot.accept()
-  if (__VUE_HMR_RUNTIME__.updatePageData) {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  }
-}
-
-if (import.meta.hot) {
-  import.meta.hot.accept(({ data }) => {
-    __VUE_HMR_RUNTIME__.updatePageData(data)
-  })
-}

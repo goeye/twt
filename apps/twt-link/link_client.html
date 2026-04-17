@@ -936,6 +936,21 @@
             font-size: 20px;
         }
 
+        .toolbar-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .toolbar-icon-btn:hover {
+            color: var(--primary-color);
+        }
+
         .input-box {
             flex: 1;
             padding: 0 20px;
@@ -943,6 +958,13 @@
             border: none;
             resize: none;
             font-size: 14px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .input-box[contenteditable="true"]:empty:before {
+            content: attr(data-placeholder);
+            color: var(--text-tertiary);
+            pointer-events: none;
         }
 
         .btn-send {
@@ -2794,6 +2816,128 @@
             transform: none;
         }
 
+        /* Quick reply panel */
+        .toolbar-icon-btn.active { color: var(--primary-color); }
+        .quick-reply-panel {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+            max-height: 400px;
+            overflow: hidden;
+            z-index: 100;
+        }
+        .quick-reply-panel.show { display: block; }
+        .qr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .qr-header-title { font-size: 14px; font-weight: 600; color: #111; }
+        .qr-header-actions { display: flex; align-items: center; gap: 8px; color: #86909c; }
+        .qr-body { display: flex; height: 320px; }
+        .qr-sidebar {
+            width: 160px;
+            border-right: 1px solid #f0f0f0;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .qr-cat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #4e5969;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .qr-cat:hover { background: #f2f3f5; color: var(--primary-color); }
+        .qr-cat.active { background: #f2f3f5; color: var(--primary-color) !important; border-left-color: var(--primary-color); font-weight: 500; }
+        .qr-count { color: #86909c; font-size: 11px; background: #f2f3f5; padding: 1px 6px; border-radius: 10px; }
+        .qr-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #fafafa;
+        }
+        .qr-item {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #1D2129;
+            line-height: 1.6;
+            background: #fff;
+            border: 1px solid #E5E6EB;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .qr-item:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: var(--primary-color); }
+        .qr-item.selected { background: #f0f5ff; border-color: #1677FF; }
+        .qr-item-empty {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            padding: 40px 0;
+            display: none; /* We use .qr-empty-state now */
+        }
+        .qr-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .qr-empty-text {
+            font-size: 14px;
+            color: #86909c;
+            margin: 16px 0 24px;
+            line-height: 1.6;
+        }
+        .qr-add-btn {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .qr-add-btn:hover { background: #4080ff; box-shadow: 0 4px 12px rgba(22,119,255,0.2); }
+        .qr-reply-text { flex: 1; min-width: 0; word-break: break-word; }
+        .qr-img-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+        .qr-img-count i { color: #86909c; font-size: 14px; }
+        .qr-img-count span { color: #86909c; font-size: 12px; }
+        /* Quick reply image preview thumbnails */
+        .qr-thumb-wrap { display: inline-block; position: relative; margin-right: 8px; }
+        .qr-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e6eb; }
+        .qr-thumb-remove {
+            position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+            background: #f53f3f; color: #fff; border-radius: 50%; font-size: 12px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            border: 1px solid #fff; line-height: 1;
+        }
+
+
     </style>
 </head>
 
@@ -3252,7 +3396,7 @@
                     </div>
 
                     <div class="list-content" id="onlineListContent" style="flex: 1;">
-                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '待回复')" data-type="private" data-unread="true" data-visitor="访客00001">
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '待回复')" data-type="private" data-unread="true" data-visitor="访客00001" data-session-id="20250890990">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 ?
                                 <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
@@ -3271,7 +3415,7 @@
                             </div>
                         </div>
 
-                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '排队中')" data-type="private" data-unread="true" data-visitor="访客00003">
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '排队中')" data-type="private" data-unread="true" data-visitor="访客00003" data-session-id="20250890991">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 ?
                                 <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#00B42A; border:2px solid #fff;"></div>
@@ -3289,7 +3433,7 @@
                             </div>
                         </div>
 
-                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '已回复')" data-type="private" data-unread="false" data-visitor="访客00004">
+                        <div class="chat-item online-item" onclick="selectChat(this, '新的会话', null, 'private', true, '已回复')" data-type="private" data-unread="false" data-visitor="访客00004" data-session-id="20250890993">
                             <div class="chat-avatar" style="background:#DCE6FE;color:var(--primary-color);font-size:16px;font-weight:500;position:relative;">
                                 ?
                                 <div style="position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#86909c; border:2px solid #fff;"></div>
@@ -3398,14 +3542,40 @@
                         </div>
                     </div>
 
-                    <div class="chat-input-area" id="chatInputArea">
+                    <div class="chat-input-area" id="chatInputArea" style="position: relative;">
+                        <!-- 快捷回复面板 -->
+                        <div class="quick-reply-panel" id="quickReplyPanel">
+                            <div class="qr-header">
+                                <span class="qr-header-title">快捷回复</span>
+                                <div class="qr-header-actions">
+                                    <i class="ri-settings-3-line" style="cursor: pointer; font-size: 16px;" onclick="navigateToQuickReplyBackend()" title="设置"></i>
+                                    <i class="ri-close-line" style="cursor: pointer; font-size: 16px;" onclick="toggleQuickReplyPanel()" title="关闭"></i>
+                                </div>
+                            </div>
+                            <div class="qr-body">
+                                <div class="qr-sidebar" id="qrSidebar">
+                                    <!-- Dynamically rendered -->
+                                </div>
+                                <div class="qr-content" id="qrContent">
+                                    <div class="qr-item-empty">请选择分类或标签查看快捷回复</div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="input-toolbar">
                             <i class="ri-emotion-line" title="表情" onclick="showToast('打开表情面板')"></i>
+                            <span class="toolbar-icon-btn" title="快捷回复" onclick="toggleQuickReplyPanel()" id="quickReplyBtn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    <polyline points="13 8 11 12 15 12 13 16"/>
+                                </svg>
+                            </span>
                             <i class="ri-folder-2-line" title="文件" onclick="showToast('调出原生文件选择框')"></i>
                             <i class="ri-at-line" title="At群成员"></i>
                         </div>
-                        <textarea class="input-box" id="msgInput" placeholder="输入消息，按 Enter 发送"
-                            onkeypress="handleKeySend(event)"></textarea>
+                        <!-- Image preview area for quick reply images -->
+                        <div id="qrImagePreview" style="display:none; padding: 4px 16px 0; flex-shrink: 0;"></div>
+                        <div class="input-box" id="msgInput" contenteditable="true" data-placeholder="输入消息，按 Enter 发送"
+                            onkeypress="handleKeySend(event)" oninput="handleMsgInput()"></div>
                         <button class="btn-send" onclick="sendMsg()"> 发送 </button>
                     </div>
 
@@ -3546,17 +3716,48 @@
                             </div>
                         </div>
 
+                        <!-- 访客标签 -->
+                        <div style="margin-bottom: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
+                                    <i class="ri-price-tag-3-fill"></i> 访客标签
+                                </div>
+                                <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                            </div>
+                            <div style="display: flex; flex-flow: row wrap; gap: 8px; margin-top: 16px; position: relative;">
+                                <div id="selectedVisitorTagsPills" style="display: contents;">
+                                    <!-- Selected Tags Rendered Here -->
+                                </div>
+                                <div id="addVisitorTagBtn" style="width: 28px; height: 28px; border-radius: 50%; background: #f2f3f5; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #86909c; flex-shrink: 0; transition: 0.2s; position: relative;" 
+                                     onmouseover="this.style.background='#e5e6eb'" 
+                                     onmouseout="this.style.background='#f2f3f5'"
+                                     onclick="event.stopPropagation(); openVisitorTagSelection(this)">
+                                    <i class="ri-add-line" style="font-size: 16px;"></i>
+                                </div>
+
+                                <!-- 访客标签选择弹窗 -->
+                                <div id="visitorTagSelectionPopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; border: 1px solid #f0f0f0;" onclick="event.stopPropagation()">
+                                    <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                        <input type="text" id="visitorTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; font-size: 13px; color: #111; outline: none; background: transparent;" oninput="filterVisitorTags(this.value)">
+                                    </div>
+                                    <div id="visitorTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">
+                                        <!-- JS 动态渲染 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 客户信息 -->
                         <div style="margin-bottom: 24px; display: none;" id="exclusiveClientInfoBox">
                             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
-                                    <i class="ri-user-fill"></i> 访客信息
+                                    <i class="ri-user-fill"></i> 客户信息
                                 </div>
                                 <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13px; margin-top: 16px;">
                                 <div style="display: flex; align-items: flex-start;">
-                                    <span style="color: #86909c; width: 80px; flex-shrink: 0;">客服标识</span>
+                                    <span style="color: #86909c; width: 80px; flex-shrink: 0;">客户标识</span>
                                     <span style="color: #111; word-break: break-all;" id="customerInfoAgentId">XQWERT</span>
                                 </div>
                             </div>
@@ -3635,9 +3836,40 @@
                                 <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13px; margin-top: 16px;">
-                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">会话ID</span><span style="color: #111;">36926</span></div>
-                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">发起时间</span><span style="color: #111;">2026-03-20 11:45:46</span></div>
-                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">接待时间</span><span style="color: #111;">2026-03-20 16:03:34</span></div>
+                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">会话ID</span><span id="sessionInfoID" style="color: #111;">36926</span></div>
+                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">发起时间</span><span id="sessionInfoStartTime" style="color: #111;">2026-03-20 11:45:46</span></div>
+                                <div style="display: flex;"><span style="color: #6682A5; width: 80px; flex-shrink: 0;">接待时间</span><span id="sessionInfoAcceptTime" style="color: #111;">2026-03-20 16:03:34</span></div>
+                            </div>
+                        </div>
+
+                        <!-- 会话标签 -->
+                        <div style="margin-bottom: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
+                                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
+                                    <i class="ri-price-tag-3-fill"></i> 会话标签
+                                </div>
+                                <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                            </div>
+                            <div style="display: flex; flex-flow: row wrap; gap: 8px; margin-top: 16px; position: relative;">
+                                <div id="selectedSessionTagsPills" style="display: contents;">
+                                    <!-- Selected Session Tags Rendered Here -->
+                                </div>
+                                <div id="addSessionTagBtn" style="width: 28px; height: 28px; border-radius: 50%; background: #f2f3f5; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #86909c; flex-shrink: 0; transition: 0.2s; position: relative;" 
+                                     onmouseover="this.style.background='#e5e6eb'" 
+                                     onmouseout="this.style.background='#f2f3f5'"
+                                     onclick="event.stopPropagation(); window.openSessionTagSelection(this)">
+                                    <i class="ri-add-line" style="font-size: 16px;"></i>
+                                </div>
+
+                                <!-- 会话标签选择弹窗 -->
+                                <div id="sessionTagSelectionPopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; border: 1px solid #f0f0f0;" onclick="event.stopPropagation()">
+                                    <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                        <input type="text" id="sessionTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; font-size: 13px; color: #111; outline: none; background: transparent;" oninput="window.filterSessionTags(this.value)">
+                                    </div>
+                                    <div id="sessionTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">
+                                        <!-- JS 动态渲染 -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -3973,7 +4205,7 @@
 
             <!-- 客服管理后台 -->
             <div class="app-view" id="view-cs" style="padding: 0; flex-direction: column;">
-                <iframe src="link_customer_service.html?v=4" style="flex: 1; width: 100%; height: 100%; border: none; display: block; overflow: hidden;"></iframe>
+                <iframe id="csIframe" src="link_customer_service.html?v=4" style="flex: 1; width: 100%; height: 100%; border: none; display: block; overflow: hidden;"></iframe>
             </div>
 
             <!-- To-Do View -->
@@ -4434,7 +4666,7 @@
             </style>
             <div class="modal-body" style="padding-top: 24px; padding-bottom: 16px; min-height: 400px; display: flex; flex-direction: column;">
 
-                <input type="text" id="createTodoTitleInput" placeholder="写下你的待办事项" style="width: 100%; border: none; outline: none; font-size: 22px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary);">
+                <input type="text" id="createTodoTitleInput" placeholder="写下你的待办事项" maxlength="100" style="width: 100%; border: none; outline: none; font-size: 22px; font-weight: bold; margin-bottom: 20px; color: var(--text-primary);">
                 
                 <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px;">
                     <i class="ri-file-text-line" style="font-size: 18px; color: #86909C; padding-top: 2px;"></i>
@@ -4538,9 +4770,19 @@
                 return `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 ${hh}:${mm}`;
             }
         }
+        const TODO_TITLE_MAX_LENGTH = 100;
+
+        function limitTodoTitle(value) {
+            return String(value || '').slice(0, TODO_TITLE_MAX_LENGTH);
+        }
+
         function submitCreateTodo() {
             const titleInput = document.getElementById('createTodoTitleInput');
-            if (!titleInput || !titleInput.value.trim()) {
+            const normalizedTitle = limitTodoTitle(titleInput ? titleInput.value : '').trim();
+            if (titleInput) {
+                titleInput.value = limitTodoTitle(titleInput.value);
+            }
+            if (!normalizedTitle) {
                 showToast('请填写待办事项标题', 'error');
                 if (titleInput) titleInput.focus();
                 return;
@@ -4562,7 +4804,7 @@
                         <input type="checkbox" onclick="toggleTaskCompletion(event, this.closest('.todo-card'))">
                     </div>
                     <div class="todo-card-content">
-                        <div class="todo-title">${titleInput.value.trim()}</div>
+                        <div class="todo-title">${normalizedTitle}</div>
                         <div class="todo-meta">
                             <span style="color: var(--text-primary);">截止时间: ${dateText} ${timeText} <i class="ri-notification-3-line"></i></span>
                         </div>
@@ -6101,7 +6343,7 @@
                 const row = document.createElement('div');
                 row.style.cssText = `display: flex; align-items: center; justify-content: space-between; position: relative; padding: 6px 8px; margin: 0 -8px; border-radius: 6px; cursor: default;`;
                 
-                const removeBtnHtml = '';
+                const removeBtnHtml = index > 0 ? `<div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px solid transparent; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#F2F3F5'; this.style.borderColor='#E5E6EB';" onmouseleave="this.style.background='transparent'; this.style.borderColor='transparent';" onclick="promptRemoveCSR(event, '${chatName}', '${cs.id}')"><i class="ri-close-line" style="color: #86909c; font-size: 14px;"></i></div>` : '';
                 
                 row.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
@@ -7060,7 +7302,7 @@
             if (!drawer) return;
             
             const titleInput = document.getElementById('tdDetailTitleInput');
-            if (titleInput) titleInput.value = title;
+            if (titleInput) titleInput.value = limitTodoTitle(title);
             
             const descArea = document.getElementById('tdDetailDescArea');
             if (descArea && cardElem) {
@@ -7400,7 +7642,32 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- 访客标签 -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-price-tag-3-fill"></i> 访客标签
+                            </div>
+                            <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 18px;"></i>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-left: 2px; position: relative;">
+                            <div id="memberVisitorTagsPills" style="display: contents;"></div>
+                            <div id="addMemberVisitorTagBtn" style="width: 28px; height: 28px; border-radius: 50%; background: #f2f3f5; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;" onclick="event.stopPropagation(); openMemberVisitorTagSelection(this)">
+                                <i class="ri-add-line" style="font-size: 16px;"></i>
+                            </div>
+                            <!-- 访客标签选择弹窗 -->
+                            <div id="memberVisitorTagSelectionPopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; border: 1px solid #f0f0f0;" onclick="event.stopPropagation()">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                    <input type="text" id="memberVisitorTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; outline: none; font-size: 13px; color: #111;" oninput="window.filterMemberVisitorTags(this.value)">
+                                </div>
+                                <div id="memberVisitorTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">
+                                    <!-- JS 动态渲染 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 附加信息 -->
                     <div style="margin-bottom: 24px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
@@ -7496,7 +7763,32 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- 访客标签 -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-price-tag-3-fill"></i> 访客标签
+                            </div>
+                            <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 18px;"></i>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-left: 2px; position: relative;">
+                            <div id="memberVisitorTagsPills" style="display: contents;"></div>
+                            <div id="addMemberVisitorTagBtn" style="width: 28px; height: 28px; border-radius: 50%; background: #f2f3f5; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;" onclick="event.stopPropagation(); openMemberVisitorTagSelection(this)">
+                                <i class="ri-add-line" style="font-size: 16px;"></i>
+                            </div>
+                            <!-- 访客标签选择弹窗 -->
+                            <div id="memberVisitorTagSelectionPopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; border: 1px solid #f0f0f0;" onclick="event.stopPropagation()">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                    <input type="text" id="memberVisitorTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; outline: none; font-size: 13px; color: #111;" oninput="window.filterMemberVisitorTags(this.value)">
+                                </div>
+                                <div id="memberVisitorTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">
+                                    <!-- JS 动态渲染 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 客户信息 -->
                     <div style="margin-bottom: 24px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
@@ -7512,7 +7804,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 附加信息 -->
                     <div style="margin-bottom: 24px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: #111; font-size: 15px; margin-bottom: 16px; cursor: pointer;" onclick="toggleMemberInfoSection(this)">
@@ -7617,6 +7909,8 @@
             </div>
             ${panelContent}
             `;
+            // Load visitor tags for this member
+            window.loadMemberVisitorTags(name);
         }
 
         window.toggleMemberInfoSection = function(el) {
@@ -7791,6 +8085,426 @@
         // Chat Features
         let currentItem = null;
         let currentIsServiceChat = false;
+        // --- Visitor Tag Logic ---
+        const defaultVisitorTagData = [
+            { id: 1, sort: 2, name: '普通客户', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-14 18:31:40' },
+            { id: 2, sort: 1, name: '优质客户', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-25 10:03:32' }
+        ];
+        let visitorTagData = JSON.parse(localStorage.getItem('visitorTagData')) || defaultVisitorTagData;
+        let selectedVisitorTagIds = new Set();
+        let currentActiveCustomerKey = null;
+
+        function saveVisitorTagsToStorage() {
+            localStorage.setItem('visitorTagData', JSON.stringify(visitorTagData));
+        }
+
+        // Helper for tag items
+        function getTagItemHtml(t) {
+            const isChecked = selectedVisitorTagIds.has(t.id);
+            return `
+                <div class="visitor-tag-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleVisitorTagSelection(${t.id}, event)">
+                    <span style="font-size: 13px; color: #111;">${t.name}</span>
+                    <div class="tag-checkbox" style="width: 16px; height: 16px; border: 1.5px solid ${isChecked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${isChecked ? '#2970FF' : '#fff'};" data-id="${t.id}" data-checked="${isChecked}">
+                        <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${isChecked ? 'block' : 'none'};"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.openVisitorTagSelection = function(btn) {
+            const popup = document.getElementById('visitorTagSelectionPopup');
+            if (!popup) return;
+            const isVisible = popup.style.display === 'block';
+            if (isVisible) {
+                popup.style.display = 'none';
+            } else {
+                window.renderVisitorTagList();
+                popup.style.display = 'block';
+                const input = document.getElementById('visitorTagSearchInput');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        };
+
+        window.loadVisitorTagsForCurrentCustomer = function(customerKey) {
+            if (!customerKey) {
+                selectedVisitorTagIds = new Set();
+                window.updateVisitorTagPills();
+                return;
+            }
+            currentActiveCustomerKey = customerKey;
+            const mapping = JSON.parse(localStorage.getItem('customerTagSelectionMapping')) || {};
+            const savedIds = mapping[customerKey] || [];
+            selectedVisitorTagIds = new Set(savedIds);
+            window.updateVisitorTagPills();
+        };
+
+        window.saveSelectedVisitorTagsForCurrentCustomer = function() {
+            if (!currentActiveCustomerKey) return;
+            const mapping = JSON.parse(localStorage.getItem('customerTagSelectionMapping')) || {};
+            mapping[currentActiveCustomerKey] = Array.from(selectedVisitorTagIds);
+            localStorage.setItem('customerTagSelectionMapping', JSON.stringify(mapping));
+        };
+
+        window.updateVisitorTagPills = function() {
+            const container = document.getElementById('selectedVisitorTagsPills');
+            if (!container) return;
+            const selectedTags = visitorTagData.filter(t => selectedVisitorTagIds.has(t.id));
+            
+            container.innerHTML = selectedTags.map(t => `
+                <div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">
+                    ${t.name}
+                    <i class="ri-close-line" style="cursor: pointer; font-size: 14px;" onclick="window.toggleVisitorTagSelection(${t.id})"></i>
+                </div>
+            `).join('');
+        };
+
+        window.renderVisitorTagList = function(filter = '') {
+            const container = document.getElementById('visitorTagListContainer');
+            if (!container) return;
+            const trimmedFilter = filter.trim();
+            const sortFn = (a, b) => (b.sort !== a.sort) ? (b.sort - a.sort) : ((b.id || 0) - (a.id || 0));
+            let html = '';
+            if (trimmedFilter === '') {
+                html = visitorTagData.sort(sortFn).map(t => getTagItemHtml(t)).join('');
+            } else {
+                const exactMatch = visitorTagData.find(t => t.name === trimmedFilter);
+                const partialMatches = visitorTagData.filter(t => t.name !== trimmedFilter && t.name.includes(trimmedFilter));
+                if (exactMatch) {
+                    html = getTagItemHtml(exactMatch);
+                } else if (partialMatches.length > 0) {
+                    html = `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onclick="window.createVisitorTag('${trimmedFilter.replace(/'/g, "\\'")}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmedFilter}</span></span></div>` + partialMatches.sort(sortFn).map(t => getTagItemHtml(t)).join('');
+                } else {
+                    html = `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onclick="window.createVisitorTag('${trimmedFilter.replace(/'/g, "\\'")}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmedFilter}</span></span></div>`;
+                }
+            }
+            container.innerHTML = html;
+        };
+
+        window.toggleVisitorTagSelection = function(id, event) {
+            if (event) event.stopPropagation();
+            if (selectedVisitorTagIds.has(id)) {
+                selectedVisitorTagIds.delete(id);
+            } else {
+                selectedVisitorTagIds.add(id);
+            }
+            window.saveSelectedVisitorTagsForCurrentCustomer();
+            window.renderVisitorTagList(document.getElementById('visitorTagSearchInput')?.value || '');
+            window.updateVisitorTagPills();
+        };
+
+        window.createVisitorTag = function(name) {
+            if (visitorTagData.some(t => t.name === name)) return;
+            const newId = Date.now();
+            const maxSort = Math.max(...visitorTagData.map(t => t.sort), 0);
+            const newTag = { id: newId, sort: maxSort + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() }; 
+            visitorTagData.push(newTag);
+            saveVisitorTagsToStorage();
+            selectedVisitorTagIds.add(newId);
+            window.saveSelectedVisitorTagsForCurrentCustomer();
+            const input = document.getElementById('visitorTagSearchInput');
+            if (input) input.value = '';
+            window.renderVisitorTagList();
+            window.updateVisitorTagPills();
+        };
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'visitorTagData' && e.newValue) {
+                visitorTagData = JSON.parse(e.newValue);
+                window.renderVisitorTagList(document.getElementById('visitorTagSearchInput')?.value || '');
+                window.updateVisitorTagPills();
+                window.updateMemberVisitorTagPills();
+            }
+            if (e.key === 'customerTagSelectionMapping' && e.newValue) {
+                if (typeof currentActiveCustomerKey !== 'undefined' && currentActiveCustomerKey) {
+                    window.loadVisitorTagsForCurrentCustomer(currentActiveCustomerKey);
+                }
+            }
+            if (e.key === 'customerTagSelectionMapping' && e.newValue) {
+                if (typeof currentActiveMemberKey !== 'undefined' && currentActiveMemberKey) {
+                    window.loadMemberVisitorTags(currentActiveMemberKey);
+                }
+            }
+        });
+
+        // --- Member Info Visitor Tag Logic ---
+        let memberSelectedTagIds = new Set();
+        let currentActiveMemberKey = null;
+
+        window.openMemberVisitorTagSelection = function(btn) {
+            const popup = document.getElementById('memberVisitorTagSelectionPopup');
+            if (!popup) return;
+            const isVisible = popup.style.display === 'block';
+            if (isVisible) {
+                popup.style.display = 'none';
+            } else {
+                window.renderMemberVisitorTagList();
+                popup.style.display = 'block';
+                const input = document.getElementById('memberVisitorTagSearchInput');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        };
+
+        window.loadMemberVisitorTags = function(memberKey) {
+            if (!memberKey) {
+                memberSelectedTagIds = new Set();
+                window.updateMemberVisitorTagPills();
+                return;
+            }
+            currentActiveMemberKey = memberKey;
+            const mapping = JSON.parse(localStorage.getItem('customerTagSelectionMapping')) || {};
+            const savedIds = mapping['member_' + memberKey] || [];
+            memberSelectedTagIds = new Set(savedIds);
+            window.updateMemberVisitorTagPills();
+        };
+
+        window.saveSelectedMemberVisitorTags = function() {
+            if (!currentActiveMemberKey) return;
+            const mapping = JSON.parse(localStorage.getItem('customerTagSelectionMapping')) || {};
+            mapping['member_' + currentActiveMemberKey] = Array.from(memberSelectedTagIds);
+            localStorage.setItem('customerTagSelectionMapping', JSON.stringify(mapping));
+        };
+
+        window.updateMemberVisitorTagPills = function() {
+            const container = document.getElementById('memberVisitorTagsPills');
+            if (!container) return;
+            const selectedTags = visitorTagData.filter(t => memberSelectedTagIds.has(t.id));
+            container.innerHTML = selectedTags.map(t => `
+                <div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">
+                    ${t.name}
+                    <i class="ri-close-line" style="cursor: pointer; font-size: 14px;" onclick="window.toggleMemberVisitorTagSelection(${t.id})"></i>
+                </div>
+            `).join('');
+        };
+
+        window.renderMemberVisitorTagList = function(filter = '') {
+            const container = document.getElementById('memberVisitorTagListContainer');
+            if (!container) return;
+            let html = '';
+            let filtered = visitorTagData;
+            if (filter && filter.trim()) {
+                const kw = filter.trim().toLowerCase();
+                filtered = visitorTagData.filter(t => t.name.toLowerCase().indexOf(kw) !== -1);
+                if (filtered.length === 0) {
+                    html = `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onclick="window.createMemberVisitorTag('${filter.replace(/'/g, "\\'")}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${filter}</span></span></div>`;
+                    container.innerHTML = html;
+                    return;
+                }
+            }
+            filtered.forEach(t => {
+                const isChecked = memberSelectedTagIds.has(t.id);
+                html += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleMemberVisitorTagSelection(${t.id}, event)">
+                        <span style="font-size: 13px; color: #111;">${t.name}</span>
+                        <div style="width: 16px; height: 16px; border: 1.5px solid ${isChecked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${isChecked ? '#2970FF' : '#fff'};">
+                            <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${isChecked ? 'block' : 'none'};"></i>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        };
+
+        window.filterMemberVisitorTags = function(val) {
+            window.renderMemberVisitorTagList(val);
+        };
+
+        window.toggleMemberVisitorTagSelection = function(id, event) {
+            if (event) event.stopPropagation();
+            if (memberSelectedTagIds.has(id)) {
+                memberSelectedTagIds.delete(id);
+            } else {
+                memberSelectedTagIds.add(id);
+            }
+            window.saveSelectedMemberVisitorTags();
+            window.renderMemberVisitorTagList(document.getElementById('memberVisitorTagSearchInput')?.value || '');
+            window.updateMemberVisitorTagPills();
+        };
+
+        window.createMemberVisitorTag = function(name) {
+            if (visitorTagData.some(t => t.name === name)) return;
+            const newId = Date.now();
+            const maxSort = Math.max(...visitorTagData.map(t => t.sort), 0);
+            const newTag = { id: newId, sort: maxSort + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() };
+            visitorTagData.push(newTag);
+            saveVisitorTagsToStorage();
+            memberSelectedTagIds.add(newId);
+            window.saveSelectedMemberVisitorTags();
+            const input = document.getElementById('memberVisitorTagSearchInput');
+            if (input) input.value = '';
+            window.renderMemberVisitorTagList();
+            window.updateMemberVisitorTagPills();
+        };
+
+        // --- Session Tag Logic ---
+        const defaultSessionTagData = [
+            { id: 101, sort: 2, name: '售后', count: 5, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisi', creatorName: '李四', createTime: '2026-04-05 14:30:00' },
+            { id: 102, sort: 1, name: '投诉', count: 3, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan', creatorName: '王三', createTime: '2026-04-01 10:00:00' }
+        ];
+        let sessionTagData = JSON.parse(localStorage.getItem('sessionTagData')) || defaultSessionTagData;
+        let selectedSessionTagIds = new Set();
+        let currentActiveSessionKey = null;
+
+        function saveSessionTagsToStorage() {
+            localStorage.setItem('sessionTagData', JSON.stringify(sessionTagData));
+        }
+
+        function getSessionTagItemHtml(t) {
+            const isChecked = selectedSessionTagIds.has(t.id);
+            return `
+                <div class="session-tag-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleSessionTagSelection(${t.id}, event)">
+                    <span style="font-size: 13px; color: #111;">${t.name}</span>
+                    <div class="tag-checkbox" style="width: 16px; height: 16px; border: 1.5px solid ${isChecked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${isChecked ? '#2970FF' : '#fff'};" data-id="${t.id}" data-checked="${isChecked}">
+                        <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${isChecked ? 'block' : 'none'};"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.openSessionTagSelection = function(btn) {
+            const popup = document.getElementById('sessionTagSelectionPopup');
+            if (!popup) return;
+            const isVisible = popup.style.display === 'block';
+            if (isVisible) {
+                popup.style.display = 'none';
+            } else {
+                window.renderSessionTagList();
+                popup.style.display = 'block';
+                const input = document.getElementById('sessionTagSearchInput');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        };
+
+        window.loadSessionTags = function(sessionKey) {
+            if (!sessionKey) {
+                selectedSessionTagIds = new Set();
+                window.updateSessionTagPills();
+                return;
+            }
+            currentActiveSessionKey = sessionKey;
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping')) || {};
+            const savedIds = mapping[sessionKey] || [];
+            selectedSessionTagIds = new Set(savedIds);
+            window.updateSessionTagPills();
+        };
+
+        window.saveSelectedSessionTags = function() {
+            if (!currentActiveSessionKey) return;
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping')) || {};
+            mapping[currentActiveSessionKey] = Array.from(selectedSessionTagIds);
+            localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+        };
+
+        window.updateSessionTagPills = function() {
+            const container = document.getElementById('selectedSessionTagsPills');
+            if (!container) return;
+            const selectedTags = sessionTagData.filter(t => selectedSessionTagIds.has(t.id));
+            
+            container.innerHTML = selectedTags.map(t => `
+                <div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">
+                    ${t.name}
+                    <i class="ri-close-line" style="cursor: pointer; font-size: 14px;" onclick="window.toggleSessionTagSelection(${t.id})"></i>
+                </div>
+            `).join('');
+        };
+
+        window.renderSessionTagList = function(filter = '') {
+            const container = document.getElementById('sessionTagListContainer');
+            if (!container) return;
+            const trimmedFilter = filter.trim();
+            const sortFn = (a, b) => (b.sort !== a.sort) ? (b.sort - a.sort) : ((b.id || 0) - (a.id || 0));
+            let html = '';
+            if (trimmedFilter === '') {
+                html = sessionTagData.sort(sortFn).map(t => getSessionTagItemHtml(t)).join('');
+            } else {
+                const exactMatch = sessionTagData.find(t => t.name === trimmedFilter);
+                const partialMatches = sessionTagData.filter(t => t.name !== trimmedFilter && t.name.includes(trimmedFilter));
+                if (exactMatch) {
+                    html = getSessionTagItemHtml(exactMatch);
+                } else if (partialMatches.length > 0) {
+                    html = `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onclick="window.createSessionTag('${trimmedFilter.replace(/'/g, "\\'")}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmedFilter}</span></span></div>` + partialMatches.sort(sortFn).map(t => getSessionTagItemHtml(t)).join('');
+                } else {
+                    html = `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onclick="window.createSessionTag('${trimmedFilter.replace(/'/g, "\\'")}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmedFilter}</span></span></div>`;
+                }
+            }
+            container.innerHTML = html;
+        };
+
+        window.filterSessionTags = function(val) {
+            window.renderSessionTagList(val);
+        };
+
+        window.toggleSessionTagSelection = function(id, event) {
+            if (event) event.stopPropagation();
+            if (selectedSessionTagIds.has(id)) {
+                selectedSessionTagIds.delete(id);
+            } else {
+                selectedSessionTagIds.add(id);
+            }
+            window.saveSelectedSessionTags();
+            window.renderSessionTagList(document.getElementById('sessionTagSearchInput')?.value || '');
+            window.updateSessionTagPills();
+        };
+
+        window.createSessionTag = function(name) {
+            if (sessionTagData.some(t => t.name === name)) return;
+            const newId = Date.now();
+            const maxSort = Math.max(...sessionTagData.map(t => t.sort), 0);
+            const newTag = { id: newId, sort: maxSort + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() }; 
+            sessionTagData.push(newTag);
+            saveSessionTagsToStorage();
+            selectedSessionTagIds.add(newId);
+            window.saveSelectedSessionTags();
+            const input = document.getElementById('sessionTagSearchInput');
+            if (input) input.value = '';
+            window.renderSessionTagList();
+            window.updateSessionTagPills();
+        };
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'sessionTagData' && e.newValue) {
+                sessionTagData = JSON.parse(e.newValue);
+                window.renderSessionTagList(document.getElementById('sessionTagSearchInput')?.value || '');
+                window.updateSessionTagPills();
+            }
+            if (e.key === 'sessionTagSelectionMapping' && e.newValue) {
+                if (typeof currentActiveSessionKey !== 'undefined' && currentActiveSessionKey) {
+                    window.loadSessionTags(currentActiveSessionKey);
+                }
+            }
+        });
+
+        // Poll for session tag changes from the customer service iframe
+        let lastMappingHash = '';
+        let lastTagDataHash = '';
+        setInterval(() => {
+            const raw = localStorage.getItem('sessionTagSelectionMapping') || '{}';
+            const hash = raw.length + '|' + raw.slice(-50);
+            if (hash !== lastMappingHash) {
+                lastMappingHash = hash;
+                if (currentActiveSessionKey) {
+                    window.loadSessionTags(currentActiveSessionKey);
+                }
+            }
+            // Poll for sessionTagData changes (new tags created from customer service iframe)
+            const tagRaw = localStorage.getItem('sessionTagData') || '[]';
+            const tagHash = tagRaw.length + '|' + tagRaw.slice(-50);
+            if (tagHash !== lastTagDataHash) {
+                lastTagDataHash = tagHash;
+                sessionTagData = JSON.parse(tagRaw);
+                window.renderSessionTagList(document.getElementById('sessionTagSearchInput')?.value || '');
+                window.updateSessionTagPills();
+            }
+        }, 1000);
+
         function selectChat(el, name, count, type, isServiceChat = false, serviceStatus = null) {
             if (name === '在线会话') {
                 document.getElementById('msgListPanelMain').style.display = 'none';
@@ -7887,24 +8601,29 @@
                 if (divider) divider.style.display = 'none';
 
                 if (isServiceChat) {
-                    const actualVisitorName = el.getAttribute('data-visitor') || name;
+                    const visitorName = el.getAttribute('data-visitor') || name;
+                    const sessionId = el.getAttribute('data-session-id') || '';
+                    const isOnlineSession = el.classList.contains('online-item') || (el.closest && el.closest('#msgListPanelOnline') !== null);
+                    const contextPrefix = isOnlineSession ? 'online_' : 'msglist_';
+                    const uniqueVisitorKey = sessionId || (contextPrefix + visitorName);
+
                     const cname = document.getElementById('customerInfoName');
-                    if (cname) cname.innerText = actualVisitorName;
+                    if (cname) cname.innerText = visitorName;
                     
                     const exclusiveClientInfoBox = document.getElementById('exclusiveClientInfoBox');
                     if (exclusiveClientInfoBox) {
-                        exclusiveClientInfoBox.style.display = actualVisitorName.startsWith('客户') ? 'block' : 'none';
+                        exclusiveClientInfoBox.style.display = visitorName.startsWith('客户') ? 'block' : 'none';
                     }
 
                     const sessionTabBtn = document.getElementById('sessionInfoTabBtn');
                     if (sessionTabBtn) {
-                        sessionTabBtn.style.display = actualVisitorName.startsWith('访客') ? 'block' : 'none';
-                        if (actualVisitorName.startsWith('访客')) {
+                        sessionTabBtn.style.display = visitorName.startsWith('访客') ? 'block' : 'none';
+                        if (visitorName.startsWith('访客')) {
                             if (window.renderSessionCSRListContainer) {
                                 if (!window.chatSessionCSRMap) window.chatSessionCSRMap = {};
-                                if (!window.chatSessionCSRMap[actualVisitorName]) window.chatSessionCSRMap[actualVisitorName] = ['cs_1'];
-                                window.csAlreadyInSession = window.chatSessionCSRMap[actualVisitorName];
-                                window.renderSessionCSRListContainer(actualVisitorName, serviceStatus);
+                                if (!window.chatSessionCSRMap[uniqueVisitorKey]) window.chatSessionCSRMap[uniqueVisitorKey] = ['cs_1'];
+                                window.csAlreadyInSession = window.chatSessionCSRMap[uniqueVisitorKey];
+                                window.renderSessionCSRListContainer(uniqueVisitorKey, serviceStatus);
                             }
                         }
                     }
@@ -7920,7 +8639,27 @@
                         }
                         switchRightTab('customer', customerTab);
                     }
+                    
+                    window.loadVisitorTagsForCurrentCustomer(uniqueVisitorKey);
+                    window.loadSessionTags(uniqueVisitorKey);
+                    
+                    // Update Session Info IDs and Times
+                    const idEl = document.getElementById('sessionInfoID');
+                    const startEl = document.getElementById('sessionInfoStartTime');
+                    const acceptEl = document.getElementById('sessionInfoAcceptTime');
+                    if (idEl) idEl.innerText = Math.floor(Math.random() * 90000) + 10000;
+                    if (startEl) startEl.innerText = new Date(Date.now() - 1000 * 60 * 30).toLocaleString();
+                    if (acceptEl) acceptEl.innerText = new Date(Date.now() - 1000 * 60 * 5).toLocaleString();
+                } else {
+                    // Fix: Hide sidebar if not a service chat and not a group setting we want to show
+                    if (customerInfoPanel) customerInfoPanel.style.display = 'none';
+                    window.loadVisitorTagsForCurrentCustomer(null);
+                    window.loadSessionTags(null);
                 }
+            } else {
+                if (customerInfoPanel) customerInfoPanel.style.display = 'none';
+                window.loadVisitorTagsForCurrentCustomer(null);
+                window.loadSessionTags(null);
             }
 
             // Avatar Clone
@@ -8298,6 +9037,70 @@
             }
         }
 
+        function insertQuickReplyFromSearch(idx) {
+            var filtered = window._currentFilteredReplies || [];
+            var item = filtered[idx];
+            if (!item) return;
+
+            var input = document.getElementById('msgInput');
+            if (input) {
+                var txt = input.innerText || '';
+                var slashIdx = txt.lastIndexOf('/');
+                if (slashIdx !== -1) {
+                    // Replace /keyword with reply
+                    var before = txt.substring(0, slashIdx);
+                    input.innerText = before + item.reply;
+                } else {
+                    input.innerText = item.reply;
+                }
+                
+                // Set focus and move cursor to end
+                input.focus();
+                var range = document.createRange();
+                var sel = window.getSelection();
+                range.selectNodeContents(input);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            toggleQuickReplyPanel(false);
+        }
+
+        function handleQuickReplyGoToAdd() {
+            var targetMenu = '快捷回复';
+            if (quickReplyPermissions.hasPublic && !quickReplyPermissions.hasPersonal) {
+                targetMenu = '公共回复';
+            } else if (!quickReplyPermissions.hasPublic && quickReplyPermissions.hasPersonal) {
+                targetMenu = '个人回复';
+            }
+            
+            // Close panel first
+            toggleQuickReplyPanel(false);
+            
+            // Switch to CS module
+            document.querySelectorAll('.app-view').forEach(function(v) { v.classList.remove('active'); });
+            var csView = document.getElementById('view-cs');
+            if (csView) {
+                csView.classList.add('active');
+                csView.style.flexDirection = 'column';
+            }
+            
+            // Update Nav item
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+                if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'cs'")) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Send jump message to iframe
+            var iframe = document.getElementById('csIframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'navigateToMenu', menu: targetMenu }, '*');
+            }
+            showToast('已跳转到快捷回复管理');
+        }
+
         window.toggleCustomFilterMenu = function(e) {
             if (e) e.stopPropagation();
             const menu = document.getElementById('customFilterDropdown');
@@ -8446,16 +9249,105 @@
             if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMsg(); }
         }
 
+        function handleMsgInput() {
+            var input = document.getElementById('msgInput');
+            if (!input) return;
+            var txt = input.innerText || '';
+
+            // Detect / to trigger search in existing quick reply panel
+            var slashIdx = txt.lastIndexOf('/');
+            if (slashIdx !== -1) {
+                var keyword = txt.substring(slashIdx + 1).replace(/\n/g, '').trim();
+                openQuickReplyWithSearch(keyword);
+            } else {
+                // If slash is removed, we might want to close or just keep it open
+                // For better UX, let's only close if the panel was opened via slash
+                if (window._openedViaSlash) {
+                    toggleQuickReplyPanel(false);
+                }
+            }
+        }
+
+        function openQuickReplyWithSearch(keyword) {
+            var panel = document.getElementById('quickReplyPanel');
+            if (!panel) return;
+            
+            window._openedViaSlash = true;
+            window._qrSearchKeyword = keyword;
+            quickReplyCurrentFilter = 'public'; // Default to Public as requested
+            
+            if (!panel.classList.contains('show')) {
+                toggleQuickReplyPanel(true);
+            } else {
+                renderQuickReplyPanel();
+            }
+        }
+
+
         function sendMsg() {
             const input = document.getElementById('msgInput');
-            const txt = input.value.trim();
-            if (!txt) return;
-            const msgHtml = `<div class="msg-row self"><div class="chat-avatar" style="width: 32px; height: 32px; font-size:14px; background:var(--primary-color); color:#fff">王</div><div><div style="font-size: 12px; color: var(--text-tertiary); text-align:right; margin-bottom:4px;">王三 (我)</div><div class="msg-bubble">${txt}</div></div></div>`;
+            const txt = (input.innerText || '').trim();
             const area = document.getElementById('messageArea');
-            area.insertAdjacentHTML('beforeend', msgHtml);
-            input.value = '';
+            const unreadText = (currentItem && currentItem.getAttribute('data-type') === 'group') ? '全部未读' : '未读';
+
+            // Check if there are pending images from quick reply
+            const pendingImages = window._qrImages;
+            window._qrImages = null;
+
+            // Send images first (if any) - each image as a separate message
+            if (pendingImages && pendingImages.length > 0) {
+                pendingImages.forEach(function(imgSrc) {
+                    const imgHtml = `<div class="msg-row self" data-read="unread">
+                        <div class="chat-avatar" style="width: 32px; height: 32px; font-size:14px; background:var(--primary-color); color:#fff">王</div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-tertiary); text-align:right; margin-bottom:4px;">王三</div>
+                            <div class="msg-bubble" style="padding: 4px;">
+                                <img src="${imgSrc}" style="max-width: 200px; border-radius: 8px; display: block; cursor: pointer;" onclick="showImagePreview(this.src)"/>
+                            </div>
+                            <div style="font-size: 11px; color: var(--primary-color); text-align:right; margin-top:2px;" class="msg-read-status unread">${unreadText}</div>
+                        </div>
+                    </div>`;
+                    area.insertAdjacentHTML('beforeend', imgHtml);
+                });
+            }
+
+            // Send text
+            if (txt) {
+                const msgHtml = `<div class="msg-row self" data-read="unread">
+                    <div class="chat-avatar" style="width: 32px; height: 32px; font-size:14px; background:var(--primary-color); color:#fff">王</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-tertiary); text-align:right; margin-bottom:4px;">王三</div>
+                        <div class="msg-bubble">${txt}</div>
+                        <div style="font-size: 11px; color: var(--primary-color); text-align:right; margin-top:2px;" class="msg-read-status unread">${unreadText}</div>
+                    </div>
+                </div>`;
+                area.insertAdjacentHTML('beforeend', msgHtml);
+                if (currentItem) currentItem.querySelector('.msg-preview').innerText = txt;
+            }
+
+            // Clear input
+            input.innerHTML = '';
+            var imagePreview = document.getElementById('qrImagePreview');
+            if (imagePreview) {
+                imagePreview.innerHTML = '';
+                imagePreview.style.display = 'none';
+            }
             area.scrollTop = area.scrollHeight;
-            if (currentItem) currentItem.querySelector('.msg-preview').innerText = txt;
+
+            // Simulate read status: click on "未读" to toggle to "已读"
+            setTimeout(function() {
+                document.querySelectorAll('.msg-read-status').forEach(function(el) {
+                    el.onclick = function() {
+                        if (this.textContent === '未读') {
+                            this.textContent = '已读';
+                            this.style.color = '#00B42A';
+                        } else if (this.textContent === '全部未读') {
+                            this.textContent = '全部已读';
+                            this.style.color = '#00B42A';
+                        }
+                    };
+                });
+            }, 100);
         }
 
         function togglePinned() {
@@ -8468,6 +9360,270 @@
             } else {
                 const icon = currentItem.querySelector('.pinned-icon');
                 if (icon) icon.remove();
+            }
+        }
+
+        // === Quick Reply Panel ===
+        var quickReplyAllData = { publicReplies: [], personalReplies: [] };
+        var quickReplyCurrentFilter = 'public'; // 'public', 'personal', or tag name
+        var quickReplyPermissions = { hasPublic: true, hasPersonal: true }; // Simulated permissions
+        var selectedQrItem = null; // { reply, images }
+
+        function toggleQuickReplyPanel(forceShow) {
+            var panel = document.getElementById('quickReplyPanel');
+            var btn = document.getElementById('quickReplyBtn');
+            if (!panel) return;
+            
+            var shouldShow = (forceShow !== undefined) ? forceShow : !panel.classList.contains('show');
+            
+            if (shouldShow) {
+                panel.classList.add('show');
+                if (btn) btn.classList.add('active');
+                requestQuickReplyData();
+            } else {
+                panel.classList.remove('show');
+                if (btn) btn.classList.remove('active');
+                // Clear slash search state when closing
+                window._openedViaSlash = false;
+                window._qrSearchKeyword = '';
+            }
+        }
+
+        function requestQuickReplyData() {
+            var iframe = document.getElementById('csIframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'getQuickReplyData' }, '*');
+            }
+        }
+
+        // Listen for quick reply data from backend
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'quickReplyData') {
+                quickReplyAllData = {
+                    publicReplies: e.data.publicReplies || [],
+                    personalReplies: e.data.personalReplies || []
+                };
+                renderQuickReplyPanel();
+            }
+        });
+
+        function getAllTags() {
+            var tags = {};
+            var allReplies = quickReplyAllData.publicReplies.concat(quickReplyAllData.personalReplies);
+            allReplies.forEach(function(r) {
+                if (r.tag) {
+                    var t = r.tag.trim();
+                    if (!tags[t]) tags[t] = 0;
+                    tags[t]++;
+                }
+            });
+            return tags;
+        }
+
+        function renderQuickReplyPanel() {
+            var sidebar = document.getElementById('qrSidebar');
+            var content = document.getElementById('qrContent');
+            if (!sidebar || !content) return;
+
+            var kw = (window._qrSearchKeyword || '').trim().toLowerCase();
+            var pubCount = quickReplyAllData.publicReplies.length;
+            var perCount = quickReplyAllData.personalReplies.length;
+            var tags = getAllTags();
+
+            // Build sidebar HTML
+            var sidebarHtml = '';
+            var tags = getAllTags();
+            
+            if (kw) {
+                // In search mode, show specific matching categories and tags
+                // Check if categories have matches
+                var pubMatchCount = quickReplyAllData.publicReplies.filter(function(r) { 
+                    return r.reply.toLowerCase().indexOf(kw) !== -1 || (r.tag && r.tag.toLowerCase().indexOf(kw) !== -1); 
+                }).length;
+                var perMatchCount = quickReplyAllData.personalReplies.filter(function(r) { 
+                    return r.reply.toLowerCase().indexOf(kw) !== -1 || (r.tag && r.tag.toLowerCase().indexOf(kw) !== -1); 
+                }).length;
+
+                if (pubMatchCount > 0 || (quickReplyCurrentFilter === 'public')) {
+                    sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === 'public' ? 'active' : '') + '" onclick="selectQrCat(\'public\')"><span>公共回复</span><span class="qr-count">' + pubMatchCount + '</span></div>';
+                }
+                if (perMatchCount > 0 || (quickReplyCurrentFilter === 'personal')) {
+                    sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === 'personal' ? 'active' : '') + '" onclick="selectQrCat(\'personal\')"><span>个人回复</span><span class="qr-count">' + perMatchCount + '</span></div>';
+                }
+
+                // Add matching tags with leading /
+                for (var tag in tags) {
+                    if (tags.hasOwnProperty(tag)) {
+                        if (tag.toLowerCase().indexOf(kw) !== -1) {
+                            sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === tag ? 'active' : '') + '" onclick="selectQrCat(\'' + tag.replace(/'/g, "\\'") + '\')"><span>' + tag + '</span><span class="qr-count">' + tags[tag] + '</span></div>';
+                        }
+                    }
+                }
+            } else {
+                sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === 'public' ? 'active' : '') + '" onclick="selectQrCat(\'public\')"><span>公共回复</span><span class="qr-count">' + pubCount + '</span></div>';
+                sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === 'personal' ? 'active' : '') + '" onclick="selectQrCat(\'personal\')"><span>个人回复</span><span class="qr-count">' + perCount + '</span></div>';
+                // Add tags
+                for (var tag in tags) {
+                    if (tags.hasOwnProperty(tag)) {
+                        sidebarHtml += '<div class="qr-cat ' + (quickReplyCurrentFilter === tag ? 'active' : '') + '" onclick="selectQrCat(\'' + tag.replace(/'/g, "\\'") + '\')"><span>' + tag + '</span><span class="qr-count">' + tags[tag] + '</span></div>';
+                    }
+                }
+            }
+            sidebar.innerHTML = sidebarHtml;
+
+            // Build content HTML
+            var filtered = [];
+            var allReplies = quickReplyAllData.publicReplies.concat(quickReplyAllData.personalReplies);
+            
+            if (kw) {
+                // If searching, filter based on the current active category
+                var pool = [];
+                if (quickReplyCurrentFilter === 'public') {
+                    pool = quickReplyAllData.publicReplies;
+                } else if (quickReplyCurrentFilter === 'personal') {
+                    pool = quickReplyAllData.personalReplies;
+                } else {
+                    // Tag filter
+                    pool = allReplies.filter(function(r) { return r.tag && r.tag.trim() === quickReplyCurrentFilter; });
+                }
+                
+                filtered = pool.filter(function(r) {
+                    var matchContent = r.reply.toLowerCase().indexOf(kw) !== -1;
+                    var matchTag = r.tag && r.tag.toLowerCase().indexOf(kw) !== -1;
+                    return matchContent || matchTag;
+                });
+            } else {
+                if (quickReplyCurrentFilter === 'public') {
+                    filtered = quickReplyAllData.publicReplies;
+                } else if (quickReplyCurrentFilter === 'personal') {
+                    filtered = quickReplyAllData.personalReplies;
+                } else {
+                    filtered = allReplies.filter(function(r) { return r.tag && r.tag.trim() === quickReplyCurrentFilter; });
+                }
+            }
+
+            if (filtered.length === 0) {
+                sidebar.style.display = 'none';
+                content.style.background = '#fff'; // White background for full empty state
+                var hasAnyPermission = quickReplyPermissions.hasPublic || quickReplyPermissions.hasPersonal;
+                var addBtnHtml = hasAnyPermission ? '<button class="qr-add-btn" onclick="handleQuickReplyGoToAdd()">去添加</button>' : '';
+                
+                content.innerHTML = '<div class="qr-empty-state">' +
+                    '<i class="ri-search-line" style="font-size: 40px; color: #DCDEE1;"></i>' +
+                    '<div class="qr-empty-text">没有匹配你搜索的快捷回复，请重新搜索</div>' +
+                    addBtnHtml +
+                    '</div>';
+            } else {
+                sidebar.style.display = 'block';
+                content.style.background = '#fafafa';
+                var contentHtml = '';
+                filtered.forEach(function(r, idx) {
+                    var imgCount = r.images ? r.images.length : (r.picture && r.picture !== '-' ? parseInt(r.picture) || 0 : 0);
+                    var imgIcon = '';
+                    if (imgCount > 0) {
+                        imgIcon = '<span class="qr-img-count"><i class="ri-image-2-fill"></i><span>' + imgCount + '</span></span>';
+                    }
+                    contentHtml += '<div class="qr-item" data-reply-idx="' + idx + '">' +
+                        '<div style="display: flex; align-items: flex-start; gap: 6px;">' +
+                        imgIcon +
+                        '<span class="qr-reply-text">' + r.reply + '</span>' +
+                        '</div></div>';
+                });
+                content.innerHTML = contentHtml;
+
+                // Attach click handlers
+                window._qrCurrentFiltered = filtered;
+                content.querySelectorAll('.qr-item').forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        var idx = parseInt(this.getAttribute('data-reply-idx'));
+                        var data = window._qrCurrentFiltered[idx];
+                        if (kw) {
+                            insertQuickReplyFromSearch(idx);
+                        } else {
+                            insertQuickReply(this, data);
+                        }
+                    });
+                });
+            }
+        }
+
+        function selectQrCat(filter) {
+            quickReplyCurrentFilter = filter;
+            renderQuickReplyPanel();
+        }
+
+        function insertQuickReply(el, replyData) {
+            var input = document.getElementById('msgInput');
+            var imagePreview = document.getElementById('qrImagePreview');
+
+            // Always replace: clear existing content and images
+            input.innerHTML = replyData.reply || '';
+            window._qrImages = [];
+
+            // Handle images
+            var images = replyData.images || [];
+            if (images.length > 0) {
+                window._qrImages = images.slice();
+                var thumbsHtml = '';
+                images.forEach(function(src, idx) {
+                    thumbsHtml += '<span class="qr-thumb-wrap" data-idx="' + idx + '">' +
+                        '<img class="qr-thumb" src="' + src + '" />' +
+                        '<span class="qr-thumb-remove" onclick="removeQrThumb(event, ' + idx + ')">&times;</span>' +
+                        '</span>';
+                });
+                imagePreview.innerHTML = thumbsHtml;
+                imagePreview.style.display = 'block';
+            } else {
+                imagePreview.innerHTML = '';
+                imagePreview.style.display = 'none';
+            }
+
+            input.focus();
+            // Close panel
+            toggleQuickReplyPanel();
+        }
+
+        function removeQrThumb(event, idx) {
+            event.stopPropagation();
+            if (window._qrImages) {
+                window._qrImages.splice(idx, 1);
+            }
+            var imagePreview = document.getElementById('qrImagePreview');
+            if (window._qrImages && window._qrImages.length > 0) {
+                var thumbsHtml = '';
+                window._qrImages.forEach(function(src, i) {
+                    thumbsHtml += '<span class="qr-thumb-wrap" data-idx="' + i + '">' +
+                        '<img class="qr-thumb" src="' + src + '" />' +
+                        '<span class="qr-thumb-remove" onclick="removeQrThumb(event, ' + i + ')">&times;</span>' +
+                        '</span>';
+                });
+                imagePreview.innerHTML = thumbsHtml;
+            } else {
+                imagePreview.innerHTML = '';
+                imagePreview.style.display = 'none';
+            }
+        }
+
+        function navigateToQuickReplyBackend() {
+            toggleQuickReplyPanel();
+            // Hide all app views (remove active class only, let CSS handle display)
+            document.querySelectorAll('.app-view').forEach(function(v) { v.classList.remove('active'); });
+            // Show CS view - use class for consistency with CSS
+            var csView = document.getElementById('view-cs');
+            csView.classList.add('active');
+            // Override flex-direction for CS view (it needs column, not row)
+            csView.style.flexDirection = 'column';
+            // Activate "客服" nav item
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+                if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'cs'")) {
+                    item.classList.add('active');
+                }
+            });
+            // Navigate iframe to public replies
+            var iframe = document.getElementById('csIframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'navigateToMenu', menu: '公共回复' }, '*');
             }
         }
 
@@ -8618,11 +9774,19 @@
                 divBtn.style.display = (!isSelf && currentIsServiceChat) ? 'none' : 'block';
             }
         }
-        document.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
             const msgMenu = document.getElementById('msgMenu');
             const chatMenu = document.getElementById('chatMenu');
+            const slashDd = document.getElementById('slashQrDropdown');
             if (msgMenu) msgMenu.style.display = 'none';
             if (chatMenu) chatMenu.style.display = 'none';
+            // Close slash QR if clickarget is outside it and outside the input
+            if (slashDd && slashDd.classList.contains('show')) {
+                const inputArea = document.getElementById('chatInputArea');
+                if (inputArea && !inputArea.contains(e.target)) {
+                    closeDesktopSlashQr();
+                }
+            }
         });
 
         // 聊天列表右键菜单
@@ -9969,7 +11133,7 @@
 
             <!-- 标题区域 -->
             <div style="margin-bottom: 20px;">
-                <input type="text" id="tdDetailTitleInput" placeholder="写下你的待办事项" oninput="if(window.currentEditingCard) { const t=window.currentEditingCard.querySelector('.todo-title'); if(t) t.innerText=this.value; }" style="width: 100%; border: none; outline: none; font-size: 22px; font-weight: bold; color: var(--text-primary);">
+                <input type="text" id="tdDetailTitleInput" placeholder="写下你的待办事项" maxlength="100" oninput="this.value = limitTodoTitle(this.value); if(window.currentEditingCard) { const t=window.currentEditingCard.querySelector('.todo-title'); if(t) t.innerText=this.value; }" style="width: 100%; border: none; outline: none; font-size: 22px; font-weight: bold; color: var(--text-primary);">
             </div>
 
             <!-- 描述 -->
@@ -10988,6 +12152,85 @@
             }
         };
         
+        // Visitor Tag functionality moved to main block
+
+        // Visitor Tag Logic moved to primary script block
+
+        // Helper moved to primary script block
+
+        window.createVisitorTag = function(name) {
+            // Check if already exists (defense)
+            if (visitorTagData.some(t => t.name === name)) return;
+
+            const newId = Date.now();
+            // Logic: New tags get the largest sort value to appear at the top
+            const maxSort = Math.max(...visitorTagData.map(t => t.sort), 0);
+            const newTag = { 
+                id: newId, 
+                sort: maxSort + 1, 
+                name: name,
+                count: 0,
+                creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski',
+                creatorName: 'tuski',
+                createTime: new Date().toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\//g,'-')
+            }; 
+            
+            visitorTagData.push(newTag);
+            saveVisitorTagsToStorage();
+            selectedVisitorTagIds.add(newId);
+            saveSelectedVisitorTagsForCurrentCustomer();
+            
+            // Logic: Return to initial state and keep it selected
+            const input = document.getElementById('visitorTagSearchInput');
+            if (input) input.value = '';
+            
+            renderVisitorTagList();
+            updateVisitorTagPills();
+        };
+
+        window.filterVisitorTags = function(val) {
+            renderVisitorTagList(val);
+        };
+
+        window.toggleVisitorTagSelection = function(id, event) {
+            if (event) event.stopPropagation();
+            if (selectedVisitorTagIds.has(id)) {
+                selectedVisitorTagIds.delete(id);
+            } else {
+                selectedVisitorTagIds.add(id);
+            }
+            saveSelectedVisitorTagsForCurrentCustomer();
+            renderVisitorTagList(document.getElementById('visitorTagSearchInput').value);
+            updateVisitorTagPills();
+        };
+
+        // Tag rendering helpers moved to primary block
+
+        // Global click handler to close popup
+        document.addEventListener('click', function(e) {
+            // Visitor Tags Popup
+            const visitorPopup = document.getElementById('visitorTagSelectionPopup');
+            if (visitorPopup && visitorPopup.style.display === 'block') {
+                if (!visitorPopup.contains(e.target) && e.target.id !== 'addVisitorTagBtn' && !e.target.closest('#addVisitorTagBtn')) {
+                    visitorPopup.style.display = 'none';
+                }
+            }
+            // Session Tags Popup
+            const sessionPopup = document.getElementById('sessionTagSelectionPopup');
+            if (sessionPopup && sessionPopup.style.display === 'block') {
+                if (!sessionPopup.contains(e.target) && e.target.id !== 'addSessionTagBtn' && !e.target.closest('#addSessionTagBtn')) {
+                    sessionPopup.style.display = 'none';
+                }
+            }
+            // Member Visitor Tags Popup
+            const memberPopup = document.getElementById('memberVisitorTagSelectionPopup');
+            if (memberPopup && memberPopup.style.display === 'block') {
+                if (!memberPopup.contains(e.target) && e.target.id !== 'addMemberVisitorTagBtn' && !e.target.closest('#addMemberVisitorTagBtn')) {
+                    memberPopup.style.display = 'none';
+                }
+            }
+        });
+
         // Initial setup
         window.updateGlobalMsgBadge();
         if (window.applyOnlineChatsFilter) window.applyOnlineChatsFilter();

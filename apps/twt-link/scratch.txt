@@ -1,0 +1,246 @@
+175:        <div class="notch"></div>
+186:                    <div class="status-dot" id="headerStatusDot"></div>
+187:                </div>
+188:                <div class="status-text" id="headerStatusText">在线</div>
+190:            </div>
+191:        </div>
+195:            <div class="main-tab active" onclick="switchMainTab(this)">待回复 1</div>
+196:            <div class="main-tab" onclick="switchMainTab(this)">排队中 1</div>
+197:            <div class="main-tab" onclick="switchMainTab(this)">待处理 1</div>
+198:            <div class="main-tab" onclick="switchMainTab(this)">已回复 1</div>
+199:        </div>
+203:            <div class="pill active" onclick="switchPill(this)">全部 1</div>
+204:            <div class="pill" onclick="switchPill(this)">客户 0</div>
+205:            <div class="pill" onclick="switchPill(this)">访客 1</div>
+206:        </div>
+211:        </div>
+220:                </div>
+227:                    </div>
+229:                </div>
+230:            </div>
+233:                <div class="msg-time">09:00</div>
+235:                    <div class="msg-avatar">?</div>
+236:                    <div class="msg-bubble">你好</div>
+237:                </div>
+238:            </div>
+246:                    </div>
+247:                </div>
+249:                    <div style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #E5E6EB; border-radius: 22px; font-size: 15px; font-weight: 500; color: #111; background: #fff; cursor: pointer; box-sizing: border-box;" onclick="document.getElementById('assignQueuePage').classList.add('show')">分配会话</div>
+250:                    <div style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; font-size: 15px; font-weight: 500; color: #fff; background: var(--primary); cursor: pointer; box-sizing: border-box;" onclick="openClaimQueueModal()">领取会话</div>
+251:                </div>
+252:            </div>
+253:        </div>
+261:                        <div class="tab-pill active" onclick="switchInfoTab('session', this)">会话信息</div>
+262:                        <div class="tab-pill" onclick="switchInfoTab('visitor', this)">访客信息</div>
+263:                    </div>
+264:                </div>
+265:                <div style="width: 24px;"></div>
+266:            </div>
+270:                    <div class="card-title"><i class="ri-user-3-fill"></i> 基础信息</div>
+272:                        <div class="info-label">会话ID</div>
+273:                        <div class="info-value">36926</div>
+274:                    </div>
+276:                        <div class="info-label">发起时间</div>
+277:                        <div class="info-value">2026-03-20 11:45:46</div>
+278:                    </div>
+280:                        <div class="info-label">接待时间</div>
+281:                        <div class="info-value">2026-03-20 16:03:34</div>
+282:                    </div>
+283:                </div>
+286:                    <div class="card-title"><i class="ri-price-tag-3-fill"></i> 会话标签</div>
+288:                        <div id="mSelectedSessionTags" style="display: contents;"></div>
+291:                        </div>
+292:                    </div>
+293:                </div>
+295:                    <div class="card-title"><i class="ri-customer-service-2-fill"></i> 服务客服</div>
+300:                                <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); background: #fff; padding: 0px 4px; border-radius: 6px; font-size: 9px; color: var(--primary); border: 1px solid #E8F3FF; white-space: nowrap;">会话负责人</div>
+301:                            </div>
+302:                            <div style="font-size: 12px; color: var(--text-main); margin-top: 8px;">王三</div>
+303:                        </div>
+306:                                <div style="width: 44px; height: 44px; background: #F2F3F5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #86909C; font-size: 20px;"><i class="ri-add-line"></i></div>
+307:                                <div style="font-size: 12px; color: var(--text-main); margin-top: 8px;">添加</div>
+308:                            </div>
+310:                        </div>
+311:                    </div>
+314:                        <div style="font-size: 13px; color: #C9CDD4;">暂无服务客服</div>
+315:                    </div>
+316:                </div>
+317:                <div class="action-btn primary" id="actionBtnTransfer" onclick="document.getElementById('transferAgentPage').classList.add('show')">转移会话</div>
+318:                <div class="action-btn danger" id="actionBtnEnd" onclick="endMobileSession()">结束会话</div>
+319:            </div>
+323:                    <div class="card-title"><i class="ri-contacts-book-2-fill"></i> 基础信息</div>
+325:                        <div class="info-label">备注名</div>
+326:                        <div class="info-value">-</div>
+327:                    </div>
+329:                        <div class="info-label">姓名</div>
+330:                        <div class="info-value">访客00004</div>
+331:                    </div>
+333:                        <div class="info-label">电话</div>
+334:                        <div class="info-value">-</div>
+335:                    </div>
+337:                        <div class="info-label">邮箱</div>
+338:                        <div class="info-value">-</div>
+339:                    </div>
+340:                </div>
+342:                    <div class="card-title"><i class="ri-information-fill"></i> 附加信息</div>
+344:                        <div class="info-label">起点页面</div>
+345:                        <div class="info-value"><a href="#" style="color: var(--primary); text-decoration: none;">https://visitorchat.twt.com/dir...</a></div>
+346:                    </div>
+348:                        <div class="info-label">会话总数</div>
+349:                        <div class="info-value">1个会话</div>
+350:                    </div>
+351:                </div>
+353:                    <div class="card-title"><i class="ri-map-pin-2-fill"></i> 访问轨迹</div>
+356:                            <div class="track-dot"></div>
+357:                            <div class="track-line"></div>
+358:                            <div class="track-text">与我们聊天</div>
+359:                            <div class="track-time">2026-03-23 17:12 &nbsp; 2天 18小时 8分</div>
+360:                        </div>
+361:                    </div>
+362:                </div>
+364:                    <div class="card-title"><i class="ri-computer-line"></i> 设备信息</div>
+366:                        <div class="info-label">IP 地址</div>
+367:                        <div class="info-value">-</div>
+368:                    </div>
+370:                        <div class="info-label">操作系统</div>
+371:                        <div class="info-value">Mac OS X</div>
+372:                    </div>
+374:                        <div class="info-label">浏览器</div>
+375:                        <div class="info-value">Chrome 130.0.0.0</div>
+376:                    </div>
+378:                        <div class="info-label">语言</div>
+379:                        <div class="info-value">简体中文</div>
+380:                    </div>
+381:                </div>
+382:            </div>
+383:        </div>
+389:                    <div class="sheet-close" onclick="toggleStatusSheet()"><i class="ri-close-line"></i></div>
+390:                    <div class="sheet-title">在线状态</div>
+391:                </div>
+393:                    <div class="option-dot" style="background: #00B42A;"></div>
+394:                    <div class="option-text">在线</div>
+396:                </div>
+398:                    <div class="option-dot" style="background: #C9CDD4;"></div>
+399:                    <div class="option-text">离开</div>
+401:                </div>
+402:        </div>
+403:        </div>
+408:                <div class="page-title">添加客服</div>
+409:            </div>
+415:                </div>
+416:            </div>
+421:                    <div class="agent-ava">王三</div>
+422:                    <div class="agent-name">王三 <span class="manager-badge">会话负责人</span></div>
+423:                </div>
+426:                    <div class="agent-ava add-agent-ava">三书</div>
+427:                    <div class="agent-name add-agent-name">王三书</div>
+428:                </div>
+431:                    <div class="agent-ava add-agent-ava">w</div>
+432:                    <div class="agent-name add-agent-name">wangsan</div>
+433:                </div>
+434:            </div>
+437:                <div class="footer-count">已选择(<span id="addAgentCount">0</span>)</div>
+439:            </div>
+440:        </div>
+446:                <div class="page-title">移除客服</div>
+447:            </div>
+452:                </div>
+453:            </div>
+454:            <div id="raListContainer" class="page-content"></div>
+456:                <div class="footer-count">已选择(<span id="removeAgentCount">0</span>)</div>
+458:            </div>
+459:        </div>
+464:                <div class="page-title">转移会话</div>
+465:            </div>
+470:                </div>
+471:            </div>
+475:                    <div class="agent-ava">王三</div>
+476:                    <div class="agent-name">王三 <span class="manager-badge">会话负责人</span></div>
+477:                </div>
+480:                    <div class="agent-ava transfer-agent-ava">三书</div>
+481:                    <div class="agent-name transfer-agent-name">王三书</div>
+482:                </div>
+485:                    <div class="agent-ava transfer-agent-ava">w</div>
+486:                    <div class="agent-name transfer-agent-name">wangsan</div>
+487:                </div>
+488:            </div>
+490:                <div class="footer-count">已选择(<span id="transferAgentCount">0</span>)<div id="transferAgentSelectedAvatars" style="display: inline-flex; gap: 4px; margin-left: 8px;"></div></div>
+492:            </div>
+493:        </div>
+499:                <div class="page-title">分配会话</div>
+500:            </div>
+505:                </div>
+506:            </div>
+510:                    <div class="agent-ava assign-queue-ava">王三</div>
+511:                    <div class="agent-name assign-queue-name">王三</div>
+512:                </div>
+515:                    <div class="agent-ava assign-queue-ava">三书</div>
+516:                    <div class="agent-name assign-queue-name">王三书</div>
+517:                </div>
+520:                    <div class="agent-ava assign-queue-ava">w</div>
+521:                    <div class="agent-name assign-queue-name">wangsan</div>
+522:                </div>
+523:            </div>
+525:                <div class="footer-count">已选择(<span id="assignQueueCount">0</span>)<div id="assignQueueSelectedAvatars" style="display: inline-flex; gap: 4px; margin-left: 8px;"></div></div>
+527:        </div>
+531:                <div class="global-modal-title">结束会话</div>
+532:                <div class="global-modal-desc">确定结束该会话?</div>
+536:                </div>
+537:            </div>
+538:        </div>
+543:                    <div class="global-modal-title" style="margin-bottom: 0;">编辑会话标题</div>
+545:                </div>
+547:                    <div style="font-size: 14px; color: #111; margin-bottom: 8px;"><span style="color: #F53F3F;">*</span>会话标题</div>
+549:                </div>
+552:                </div>
+553:            </div>
+554:        </div>
+560:                    <div style="font-size: 18px; font-weight: 600; color: #1D2129; line-height: 24px;">确定分配给该客服吗？</div>
+561:                </div>
+565:                </div>
+566:            </div>
+567:        </div>
+571:                <div class="global-modal-title">确认领取</div>
+572:                <div class="global-modal-desc">确认领取该会话吗？</div>
+576:                </div>
+577:            </div>
+578:        </div>
+580:        <!-- 移动端会话标签选择面板 (bottom sheet) -->
+584:                    <div class="sheet-close" onclick="closeMobileSessionTagPanel()" style="left: 16px;"><i class="ri-close-line"></i></div>
+585:                    <div class="sheet-title">会话标签</div>
+586:                </div>
+591:                    </div>
+592:                </div>
+593:                <div id="mSessionTagList" style="flex: 1; overflow-y: auto; padding: 0 16px 24px 16px;"></div>
+598:                </div>
+599:            </div>
+600:        </div>
+601:    </div>
+603:    <div id="toast" class="toast"></div>
+643:                        <div>暂无会话</div>
+644:                    </div>
+651:                            ${item.unread > 0 ? `<div class="unread-badge">${item.unread}</div>` : ''}
+652:                            <div class="avatar-status"></div>
+653:                        </div>
+656:                                <div class="chat-name">${item.name}</div>
+657:                                <div class="chat-time">${item.time}</div>
+658:                            </div>
+659:                            <div class="chat-msg">${item.msg}</div>
+660:                        </div>
+661:                    </div>
+841:                        </div>
+842:                        <div style="font-size: 12px; color: #1D2129; margin-top: 8px;">${name}</div>
+843:                    </div>
+866:                    <div class="agent-ava">王三</div>
+867:                    <div class="agent-name">王三 <span class="manager-badge">会话负责人</span></div>
+868:                </div>
+883:                        <div class="agent-ava remove-agent-ava">${avatar}</div>
+884:                        <div class="agent-name remove-agent-name">${name}</div>
+885:                    </div>
+1002:                avatarContainer.insertAdjacentHTML('beforeend', `<div style="width: 24px; height: 24px; background: #E8F3FF; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 10px; font-weight: 500;">${avatarText}</div>`);
+1057:                avatarContainer.insertAdjacentHTML('beforeend', `<div style="width: 24px; height: 24px; background: #E8F3FF; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 10px; font-weight: 500;">${avatarText}</div>`);
+1188:                        '<div style="color: #86909C; font-size: 14px; margin-bottom: 12px;">未找到标签 "' + filter + '"</div>' +
+1189:                        '<div style="color: var(--primary); font-size: 14px; cursor: pointer; font-weight: 500;" onclick="createMobileSessionTag(\'' + filter.replace(/'/g, "\\'") + '\')">创建标签 "' + filter + '"</div>' +
+1190:                        '</div>';
+1202:                    '</div>' +
+1203:                    '</div>';

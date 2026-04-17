@@ -13,11 +13,6 @@ export default defineUserConfig({
   theme: defaultTheme({
     siteTitle: false,
     navbar: [
-      { text: '快速开始', link: '/guide/quickstart' },
-      { text: '网站小部件', link: '/widget/' },
-      { text: '聊天页面', link: '/chat-page/' },
-      { text: '开放 API', link: '/api/' },
-      { text: 'Webhooks', link: '/webhooks/' },
       { text: 'TWT.com', link: 'https://twt.com' },
     ],
     sidebar: [
@@ -26,6 +21,7 @@ export default defineUserConfig({
         children: [
           '/guide/README.md',
           '/guide/quickstart.md',
+          '/widget/examples.md',
         ],
       },
       {
@@ -37,7 +33,6 @@ export default defineUserConfig({
           '/widget/installation.md',
           '/widget/configuration.md',
           '/widget/javascript-api.md',
-          '/widget/examples.md',
         ],
       },
       {
@@ -89,8 +84,7 @@ export default defineUserConfig({
     ],
     sidebarDepth: 0,
     editLink: false,
-    lastUpdated: true,
-    lastUpdatedText: '最后更新',
+    lastUpdated: false,
     contributors: false,
     notFound: ['页面不存在', '这里什么都没有'],
     backToHome: '返回首页',
@@ -98,9 +92,7 @@ export default defineUserConfig({
 
   markdown: {
     anchor: {
-      permalink: true,
-      permalinkSymbol: '#',
-      permalinkBefore: false,
+      permalink: false,
     },
     toc: {
       level: [2, 3],

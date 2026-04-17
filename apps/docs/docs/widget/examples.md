@@ -19,27 +19,28 @@
   <p>页面右下角应出现聊天浮窗图标。</p>
 
   <script>
+  window.TWTChatWidget = window.TWTChatWidget || {
+    _q: [],
+    on: function () {
+      this._q.push(["on", Array.prototype.slice.call(arguments)]);
+    },
+  };
+
   window.__twt__config = {
     appid: "你的APPID",
-    lang: "zh-cn",
-    theme: "light",
-    sbs: "",
-    sbs_mm: "",
-    ranstr: "",
-    name: "",
-    nickname: "",
-    email: "",
-    phone: "",
-    icon: "1"
+    icon: "1",
   };
-  (function(n, t) {
-    var e = { init: function() {
-      var n = t.createElement("script");
-      n.async = !0;
-      n.type = "text/javascript";
-      n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
-      t.head.appendChild(n);
-    }};
+
+  (function (n, t) {
+    var e = {
+      init: function () {
+        var n = t.createElement("script");
+        n.async = !0;
+        n.type = "text/javascript";
+        n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
+        t.head.appendChild(n);
+      },
+    };
     e.init();
   })(window, document);
   </script>

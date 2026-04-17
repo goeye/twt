@@ -14,7 +14,6 @@
 1. [基础安装](./installation) — 获取安装代码，粘贴到页面 `</body>` 前
 2. [配置项参考](./configuration) — 设置语言、隐藏默认图标、传递用户信息
 3. [JavaScript API](./javascript-api) — 运行时控制聊天窗口
-4. [示例项目](./examples) — 可直接复制运行的完整接入示例
 
 ## 能获得什么
 

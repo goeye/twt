@@ -743,10 +743,10 @@
                                     </div>
                                 </td>
                                 <td style="color: #1D2129;">TWT</td>
-                                <td><span id="listAppScopeTag" style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
+                                <td><span id="listAppScopeTag-kefu" style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
                                 <td>
                                     <span class="action-link" onclick="openAppDetail('kefu')">设置</span>
-                                    <span class="action-link danger" id="listAppStatusBtn" onclick="toggleAppStatus()">停用</span>
+                                    <span class="action-link danger" id="listAppStatusBtn-kefu" onclick="toggleAppStatus('kefu')">停用</span>
                                 </td>
                             </tr>
 
@@ -763,10 +763,10 @@
                                     </div>
                                 </td>
                                 <td style="color: #1D2129;">TWT</td>
-                                <td><span style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
+                                <td><span id="listAppScopeTag-calendar" style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
                                 <td>
                                     <span class="action-link" onclick="openAppDetail('calendar')">设置</span>
-                                    <span class="action-link danger" onclick="toggleAppStatus()">停用</span>
+                                    <span class="action-link danger" id="listAppStatusBtn-calendar" onclick="toggleAppStatus('calendar')">停用</span>
                                 </td>
                             </tr>
 
@@ -783,10 +783,10 @@
                                     </div>
                                 </td>
                                 <td style="color: #1D2129;">TWT</td>
-                                <td><span style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
+                                <td><span id="listAppScopeTag-todo" style="background: #E8F3FF; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500;">全部成员</span></td>
                                 <td>
                                     <span class="action-link" onclick="openAppDetail('todo')">设置</span>
-                                    <span class="action-link danger" onclick="toggleAppStatus()">停用</span>
+                                    <span class="action-link danger" id="listAppStatusBtn-todo" onclick="toggleAppStatus('todo')">停用</span>
                                 </td>
                             </tr>
 
@@ -1379,6 +1379,8 @@
             }
         };
         function openAppDetail(appType) {
+            currentActiveApp = appType;
+            updateAppSwitchUI(appType);
             const cfg = appDetailConfigs[appType] || appDetailConfigs.kefu;
             document.getElementById('appDetailIconBox').style.background = cfg.bg;
             document.getElementById('appDetailIconBox').style.boxShadow = cfg.shadow;
@@ -1675,131 +1677,83 @@
         }
 
         // 个人信息下拉菜单
-        let isAppEnabled = true;
+                let appStates = { kefu: true, calendar: true, todo: true };
+        let currentActiveApp = 'kefu';
+        let pendingDisableAppType = '';
 
-        function openAppEnter() {
-            if (!isAppEnabled) return;
-            window.open('link_customer_service.html', '_blank');
-        }
-
-        function toggleAppStatus() {
-            if (isAppEnabled) {
+        function toggleAppStatus(appType) {
+            if (!appType) appType = currentActiveApp;
+            if (appStates[appType]) {
+                pendingDisableAppType = appType;
                 openModal('disableAppModal');
             } else {
-                isAppEnabled = true;
-                updateAppSwitchUI();
+                appStates[appType] = true;
+                updateAppSwitchUI(appType);
             }
         }
 
         function confirmDisableApp() {
-            isAppEnabled = false;
-            updateAppSwitchUI();
+            if (pendingDisableAppType) {
+                appStates[pendingDisableAppType] = false;
+                updateAppSwitchUI(pendingDisableAppType);
+            }
             closeModal('disableAppModal');
         }
 
-        function updateAppSwitchUI() {
-            const statusText = document.getElementById('appStatusText');
-            const switchBg = document.getElementById('appStatusSwitch');
-            const switchKnob = document.getElementById('appStatusKnob');
-            const listBtn = document.getElementById('listAppStatusBtn');
-            const listScopeTag = document.getElementById('listAppScopeTag');
-            const listEnterBtn = document.getElementById('listAppEnterBtn');
+        function updateAppSwitchUI(appType) {
+            const isEnabled = appStates[appType];
             
-            if (isAppEnabled) {
-                if (statusText) statusText.innerText = '已启用';
-                if (switchBg) switchBg.style.background = 'var(--primary)';
-                if (switchKnob) { switchKnob.style.right = '2px'; switchKnob.style.left = 'auto'; }
-                if (listBtn) {
-                    listBtn.innerText = '停用';
-                    listBtn.className = 'action-link danger';
-                }
-                if (listScopeTag) {
-                    if (typeof finalMixedSelected !== 'undefined' && finalMixedSelected.length > 0) {
-                        listScopeTag.innerText = '部分成员';
-                        listScopeTag.style.background = '#E8F5EF';
-                        listScopeTag.style.color = '#00B365';
-                        listScopeTag.style.borderRadius = '4px';
-                        listScopeTag.style.fontWeight = '500';
+            // Detail view update sync
+            if (appType === currentActiveApp) {
+                const statusText = document.getElementById('appStatusText');
+                const switchBg = document.getElementById('appStatusSwitch');
+                const switchKnob = document.getElementById('appStatusKnob');
+                
+                if (statusText) statusText.innerText = isEnabled ? '已启用' : '已停用';
+                if (switchBg) switchBg.style.background = isEnabled ? 'var(--primary)' : '#e5e6eb';
+                if (switchKnob) {
+                    if(isEnabled) {
+                         switchKnob.style.right = '2px';
+                         switchKnob.style.left = 'auto';
                     } else {
-                        listScopeTag.innerText = '全部成员';
-                        listScopeTag.style.background = '#E8F3FF';
-                        listScopeTag.style.color = 'var(--primary)';
-                        listScopeTag.style.borderRadius = '12px';
-                        listScopeTag.style.fontWeight = '500';
+                         switchKnob.style.left = '2px';
+                         switchKnob.style.right = 'auto';
                     }
                 }
-                if (listEnterBtn) {
-                    listEnterBtn.style.color = 'var(--primary)';
-                    listEnterBtn.style.cursor = 'pointer';
-                    listEnterBtn.style.opacity = '1';
-                }
-            } else {
-                if (statusText) statusText.innerText = '已停用';
-                if (switchBg) switchBg.style.background = 'var(--text-tertiary)';
-                if (switchKnob) { switchKnob.style.left = '2px'; switchKnob.style.right = 'auto'; }
-                if (listBtn) {
+            }
+            
+            // List view update
+            const listBtn = document.getElementById('listAppStatusBtn-' + appType);
+            const listScopeTag = document.getElementById('listAppScopeTag-' + appType);
+            
+            if (listBtn) {
+                if (isEnabled) {
+                    listBtn.innerText = '停用';
+                    listBtn.className = 'action-link danger';
+                    listBtn.style.color = '';
+                } else {
                     listBtn.innerText = '启用';
                     listBtn.className = 'action-link';
+                    listBtn.style.color = 'var(--primary)';
                 }
-                if (listScopeTag) {
-                    listScopeTag.innerText = '管理员已停用';
+            }
+            
+            if (listScopeTag) {
+                if (isEnabled) {
+                    // Basic fallback to '全部成员'
+                    listScopeTag.innerText = '全部成员';
+                    listScopeTag.style.background = '#E8F3FF';
+                    listScopeTag.style.color = 'var(--primary)';
+                    listScopeTag.style.borderRadius = '12px';
+                    listScopeTag.style.fontWeight = '500';
+                } else {
+                    listScopeTag.innerText = '已停用';
                     listScopeTag.style.background = '#f2f3f5';
-                    listScopeTag.style.color = 'var(--text-secondary)';
+                    listScopeTag.style.color = '#86909c';
                     listScopeTag.style.borderRadius = '4px';
                     listScopeTag.style.fontWeight = 'normal';
                 }
-                if (listEnterBtn) {
-                    listEnterBtn.style.color = 'var(--text-tertiary)';
-                    listEnterBtn.style.cursor = 'not-allowed';
-                    listEnterBtn.style.opacity = '0.5';
-                }
             }
-        }
-
-        // 多选登录账号联动
-        document.getElementById('mTypePhone').addEventListener('change', function() {
-            document.getElementById('phoneGroup').style.display = this.checked ? 'flex' : 'none';
-        });
-        document.getElementById('mTypeMail').addEventListener('change', function() {
-            document.getElementById('mailGroup').style.display = this.checked ? 'flex' : 'none';
-        });
-
-        // 生成随机密码
-        function genRandomPwd() {
-            let numStr = Math.random().toString().slice(-8);
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let charStr = chars[Math.floor(Math.random() * 26)] + chars[Math.floor(Math.random() * 26)];
-            let pwd = (numStr + charStr).split('').sort(() => 0.5 - Math.random()).join('');
-            document.getElementById('mPwd').value = pwd;
-            validatePwd();
-            showToast('已生成高强度随机密码', 'success');
-        }
-
-        // 验证部门选择 Modal 逻辑闭环
-        function renderSelectedDepts() {
-            const container = document.getElementById('selectedDeptsContainer');
-            const label = document.getElementById('selectedDeptCountLabel');
-            const checkboxes = document.querySelectorAll('.modal-dept-cb');
-            
-            if(!container) return;
-            
-            let selected = [];
-            checkboxes.forEach(cb => {
-                if(cb.checked) {
-                    selected.push(cb.value);
-                }
-            });
-            
-            label.innerText = `已选择 (${selected.length}/10)`;
-            container.innerHTML = '';
-            
-            selected.forEach(val => {
-                container.innerHTML += `
-                    <div style="background:#fff; border: 1px solid var(--border-color); border-radius:4px; padding:6px 12px; font-size:14px; display:flex; align-items:center; gap:6px;">
-                        <i class="ri-organization-chart" style="color:var(--text-secondary);"></i> ${val} <i class="ri-close-circle-fill" style="color:#C4C4C4; cursor:pointer;" onclick="removeSelectedDept('${val}')"></i>
-                    </div>
-                `;
-            });
         }
         
         function removeSelectedDept(val) {
@@ -2412,13 +2366,13 @@
         function updatePartialScopeListUI() {
             const ui = document.getElementById('partialScopeUI');
             const container = document.getElementById('partialScopeList');
-            const listScopeTag = document.getElementById('listAppScopeTag');
+            const listScopeTag = document.getElementById('listAppScopeTag-' + currentActiveApp);
             container.innerHTML = '';
             
             if (finalMixedSelected.length === 0) {
                 ui.style.display = 'none';
                 document.querySelector('input[name="appScope"][value="all"]').checked = true;
-                if (listScopeTag && isAppEnabled) {
+                if (listScopeTag && typeof appStates !== "undefined" && appStates[currentActiveApp]) {
                     listScopeTag.innerText = '全部成员';
                     listScopeTag.style.background = '#E8F3FF';
                     listScopeTag.style.color = 'var(--primary)';
@@ -2430,7 +2384,7 @@
             
             ui.style.display = 'block';
             document.querySelector('input[name="appScope"][value="partial"]').checked = true;
-            if (listScopeTag && isAppEnabled) {
+            if (listScopeTag && typeof appStates !== "undefined" && appStates[currentActiveApp]) {
                 listScopeTag.innerText = '部分成员';
                 listScopeTag.style.background = '#E8F5EF';
                 listScopeTag.style.color = '#00B365';

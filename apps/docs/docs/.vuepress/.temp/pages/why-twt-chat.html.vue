@@ -1,6 +1,6 @@
-<template><div><h1 id="为什么选择-twt-chat" tabindex="-1">为什么选择 TWT Chat <a class="header-anchor" href="#为什么选择-twt-chat">#</a></h1>
+<template><div><h1 id="为什么选择-twt-chat" tabindex="-1">为什么选择 TWT Chat</h1>
 <p>TWT Chat 是一款面向全球化企业的在线客服 SaaS 平台，将 AI 客服、实时聊天、视频通话、远程协助集成在一个 SDK 中。</p>
-<h2 id="核心优势" tabindex="-1">核心优势 <a class="header-anchor" href="#核心优势">#</a></h2>
+<h2 id="核心优势" tabindex="-1">核心优势</h2>
 <table>
 <thead>
 <tr>
@@ -56,9 +56,9 @@
 </tr>
 </tbody>
 </table>
-<h2 id="一体化方案" tabindex="-1">一体化方案 <a class="header-anchor" href="#一体化方案">#</a></h2>
+<h2 id="一体化方案" tabindex="-1">一体化方案</h2>
 <p>传统方案需要拼凑多个工具：聊天用 Intercom、视频用 Zoom、远程协助用 TeamViewer。TWT Chat 将这些能力整合在一个 SDK 中，降低集成成本和维护复杂度。</p>
-<h2 id="适用场景" tabindex="-1">适用场景 <a class="header-anchor" href="#适用场景">#</a></h2>
+<h2 id="适用场景" tabindex="-1">适用场景</h2>
 <ul>
 <li>跨境电商客服</li>
 <li>SaaS 产品技术支持</li>

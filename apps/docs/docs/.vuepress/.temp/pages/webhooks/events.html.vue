@@ -1,6 +1,6 @@
-<template><div><h1 id="事件类型" tabindex="-1">事件类型 <a class="header-anchor" href="#事件类型">#</a></h1>
+<template><div><h1 id="事件类型" tabindex="-1">事件类型</h1>
 <p>当前系统支持以下 Webhook 事件类型。</p>
-<h2 id="unreplied-访客消息未回复" tabindex="-1">UNREPLIED - 访客消息未回复 <a class="header-anchor" href="#unreplied-访客消息未回复">#</a></h2>
+<h2 id="unreplied-访客消息未回复" tabindex="-1">UNREPLIED - 访客消息未回复</h2>
 <table>
 <thead>
 <tr>
@@ -31,7 +31,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="content-字段说明" tabindex="-1">content 字段说明 <a class="header-anchor" href="#content-字段说明">#</a></h3>
+<h3 id="content-字段说明" tabindex="-1">content 字段说明</h3>
 <table>
 <thead>
 <tr>
@@ -110,7 +110,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="完整示例" tabindex="-1">完整示例 <a class="header-anchor" href="#完整示例">#</a></h3>
+<h3 id="完整示例" tabindex="-1">完整示例</h3>
 <div class="language-json line-numbers-mode" data-highlighter="prismjs" data-ext="json" data-title="json"><pre v-pre><code><span class="line"><span class="token punctuation">{</span></span>
 <span class="line">  <span class="token property">"created_at"</span><span class="token operator">:</span> <span class="token number">1765439941</span><span class="token punctuation">,</span></span>
 <span class="line">  <span class="token property">"event"</span><span class="token operator">:</span> <span class="token string">"UNREPLIED"</span><span class="token punctuation">,</span></span>
@@ -132,7 +132,7 @@
 <span class="line">  <span class="token punctuation">]</span></span>
 <span class="line"><span class="token punctuation">}</span></span>
 <span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="应用场景" tabindex="-1">应用场景 <a class="header-anchor" href="#应用场景">#</a></h3>
+<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="应用场景" tabindex="-1">应用场景</h3>
 <ul>
 <li>自动转接到其他客服</li>
 <li>触发邮件/短信通知提醒客服</li>

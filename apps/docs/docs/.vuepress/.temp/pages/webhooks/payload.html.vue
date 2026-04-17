@@ -1,6 +1,6 @@
-<template><div><h1 id="请求体结构" tabindex="-1">请求体结构 <a class="header-anchor" href="#请求体结构">#</a></h1>
+<template><div><h1 id="请求体结构" tabindex="-1">请求体结构</h1>
 <p>每个 Webhook 请求都遵循统一的结构规范。</p>
-<h2 id="请求头" tabindex="-1">请求头 <a class="header-anchor" href="#请求头">#</a></h2>
+<h2 id="请求头" tabindex="-1">请求头</h2>
 <p>每个 Webhook 请求至少包含以下两个请求头：</p>
 <table>
 <thead>
@@ -23,7 +23,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="请求体" tabindex="-1">请求体 <a class="header-anchor" href="#请求体">#</a></h2>
+<h2 id="请求体" tabindex="-1">请求体</h2>
 <p>请求体为 JSON 格式，所有事件共享以下基础字段：</p>
 <table>
 <thead>
@@ -62,7 +62,7 @@
 </tbody>
 </table>
 <p><code v-pre>content</code> 数组中的字段根据事件类型不同而不同，详见 <a href="./events">事件类型</a>。</p>
-<h2 id="响应要求" tabindex="-1">响应要求 <a class="header-anchor" href="#响应要求">#</a></h2>
+<h2 id="响应要求" tabindex="-1">响应要求</h2>
 <p>你的接收端应在 <strong>5 秒内</strong> 返回 HTTP <code v-pre>200</code> 状态码，表示已成功接收。</p>
 <p>如果返回非 200 状态码或超时，系统将进行重试。</p>
 </div></template>
