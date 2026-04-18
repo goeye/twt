@@ -1,12 +1,9 @@
 ---
-title: TWT Chat 开发者文档
-sidebar: false
-pageClass: redirect-page
+layout: false
 ---
-
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-onMounted(() => router.replace('/guide/'))
+import { useRouter } from 'vitepress'
+const { go } = useRouter()
+onMounted(() => go('/docs/guide/'))
 </script>
