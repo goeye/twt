@@ -26,7 +26,7 @@ export default defineUserConfig({
         selectLanguageText: '🌐',
         navbar: [{ text: 'TWT.com', link: 'https://twt.com' }],
         sidebar: [
-          { text: '概览', link: '/guide/' },
+          { text: '介绍', link: '/guide/' },
           {
             text: '网站小部件',
             collapsible: true,
