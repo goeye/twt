@@ -1,3 +1,16 @@
 import comp from "/Users/pg133/Downloads/TWT/TWT/twt/apps/docs/docs/.vuepress/.temp/pages/chat-page/parameters.html.vue"
 const data = JSON.parse("{\"path\":\"/chat-page/parameters.html\",\"title\":\"URL 参数说明\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"语言参数\",\"slug\":\"语言参数\",\"link\":\"#语言参数\",\"children\":[]},{\"level\":2,\"title\":\"客户信息参数\",\"slug\":\"客户信息参数\",\"link\":\"#客户信息参数\",\"children\":[{\"level\":3,\"title\":\"sbs_mm 生成规则\",\"slug\":\"sbs-mm-生成规则\",\"link\":\"#sbs-mm-生成规则\",\"children\":[]},{\"level\":3,\"title\":\"完整示例\",\"slug\":\"完整示例\",\"link\":\"#完整示例\",\"children\":[]}]}],\"git\":{},\"filePathRelative\":\"chat-page/parameters.md\"}")
 export { comp, data }
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept()
+  if (__VUE_HMR_RUNTIME__.updatePageData) {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  }
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(({ data }) => {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  })
+}
