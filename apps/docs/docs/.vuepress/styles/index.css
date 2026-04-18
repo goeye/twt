@@ -1,4 +1,27 @@
-.vp-site-name {
+/* 隐藏语言切换下拉箭头 */
+.vp-navbar-item .vp-navbar-dropdown-title .arrow {
+  display: none;
+}
+
+/* 导航栏顺序：搜索 → 语言切换 → TWT.com → 主题切换 */
+.vp-navbar-items-wrapper {
+  display: flex;
+  align-items: center;
+}
+.vp-navbar-items-wrapper .search-box {
+  order: -2;
+}
+.vp-navbar-items-wrapper .vp-navbar-items {
+  order: -1;
+  display: flex;
+  align-items: center;
+}
+/* 语言切换（dropdown）排在 TWT.com（auto-link）前面 */
+.vp-navbar-items .vp-navbar-item:has(.vp-navbar-dropdown-wrapper) {
+  order: -1;
+}
+
+
   display: none;
 }
 

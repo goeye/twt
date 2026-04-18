@@ -18,10 +18,6 @@ export default defineUserConfig({
   },
 
   plugins: [searchPlugin({})],
-  alias: {
-    '@theme/VPNavbar.vue': path.resolve(__dirname, './components/VPNavbar.vue'),
-    '@theme/VPNavbarItems.vue': path.resolve(__dirname, './components/VPNavbarItems.vue'),
-  },
   theme: defaultTheme({
     siteTitle: false,
     locales: {
