@@ -181,6 +181,13 @@ const doc = (
 
 const docGroups: DocGroup[] = [
   {
+    id: 'intro',
+    title: '介绍',
+    items: [
+      { id: 'introduction', label: '介绍' }
+    ]
+  },
+  {
     id: 'open-api',
     title: '开发文档',
     items: [
@@ -195,6 +202,43 @@ const docGroups: DocGroup[] = [
 ];
 
 const docArticles: Record<string, DocArticle> = {
+  'introduction': doc(
+    'introduction',
+    'TWT Chat 开发者文档',
+    [
+      '在你的网站、App 或系统中接入在线客服，3 分钟完成部署。'
+    ],
+    [
+      {
+        title: '选择接入方式',
+        tables: [
+          {
+            columns: ['模块', '适用场景'],
+            rows: [
+              ['网站小部件', '在任意网页嵌入聊天浮窗，一行代码完成接入'],
+              ['聊天页面', '独立聊天页面，适合插件、App、社交媒体场景'],
+              ['开放 API', '服务端管理会话、同步客户数据'],
+              ['Webhooks', '实时接收聊天事件，驱动业务系统自动化']
+            ]
+          }
+        ]
+      },
+      {
+        title: '常见场景',
+        tables: [
+          {
+            columns: ['我想…', '推荐方案'],
+            rows: [
+              ['在网站右下角放一个聊天天钮', '网站小部件 → 基础安装'],
+              ['在原生 App 里放一个聊天天钮', '聊天页面 → 直接链接'],
+              ['用自己的域名部署客服天窗', '聊天页面 → 自托管部署'],
+              ['直到访客店的登录身份', '网站小部件 → 配置访客参数']
+            ]
+          }
+        ]
+      }
+    ]
+  ),
   'api-overview': doc(
     'api-overview',
     '接口概览',
@@ -555,9 +599,9 @@ const { data } = await axios.post(
   )
 };
 
-const defaultDocId = 'customer-upsert';
+const defaultDocId = 'introduction';
 const activeDocId = ref(defaultDocId);
-const openGroupIds = ref<string[]>(['open-api']);
+const openGroupIds = ref<string[]>(['intro', 'open-api']);
 
 const currentDoc = computed(() => docArticles[activeDocId.value] ?? docArticles[defaultDocId]);
 
