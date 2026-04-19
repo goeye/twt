@@ -16,6 +16,19 @@
 
 **Base URL：** `https://apichat.twt.com`，HTTPS，JSON 格式。
 
+## API 一览
+
+| 接口 | 方法 | 模块 | 说明 |
+| --- | --- | --- | --- |
+| [鉴权与签名](./authentication) | — | 鉴权 | HMAC-SHA256 签名，所有接口必读 |
+| [创建单聊](./chat/create-session) | POST | 在线聊天 | 创建单个聊天会话 |
+| [批量创建单聊](./chat/create-session-batch) | POST | 在线聊天 | 批量创建单聊会话 |
+| [创建群聊](./chat/create-group) | POST | 在线聊天 | 批量创建群聊会话 |
+| [删除单聊](./chat/delete-session) | POST | 在线聊天 | 删除单个聊天会话 |
+| [解散群聊](./chat/dissolve-group) | POST | 在线聊天 | 解散单个群聊 |
+| [批量解散群聊](./chat/dissolve-group-batch) | POST | 在线聊天 | 批量解散群聊 |
+| [错误码参考](./error-codes) | — | 通用 | 统一错误响应格式 |
+
 ## 能获得什么
 
 - 将 TWT Chat 嵌入业务系统工作流，自动化会话管理
