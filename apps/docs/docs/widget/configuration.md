@@ -23,18 +23,6 @@ document.getElementById('open-chat').addEventListener('click', function () {
 </script>
 ```
 
-## 监听未读消息数
-
-SDK 会通过 `__twt__custom_event` 抛出未读消息变化事件，你可以拿它给自定义入口挂角标。
-
-```html
-<script>
-window.addEventListener('__twt__custom_event', function (event) {
-  console.log('Unread message count:', event.detail.unread)
-})
-</script>
-```
-
 ## 设置界面语言
 
 `lang` 不会自动读取浏览器语言，需要你在配置里显式传入。
@@ -50,16 +38,6 @@ window.addEventListener('__twt__custom_event', function (event) {
 window.__twt__config = {
   appid: '你的APPID',
   lang: 'en',
-}
-</script>
-```
-
-如果你想在运行时切换语言，也可以在 SDK 加载后调用：
-
-```html
-<script>
-if (window.__twt__api && window.__twt__api.setLanguage) {
-  window.__twt__api.setLanguage('zh-cn')
 }
 </script>
 ```
@@ -91,24 +69,6 @@ window.__twt__config = {
 </script>
 ```
 
-也可以在 SDK 加载后动态登录：
-
-```html
-<script>
-if (window.__twt__api && window.__twt__api.login) {
-  window.__twt__api.login(
-    'user_1001',
-    '服务端生成的签名',
-    '服务端生成的随机串',
-    '张三',
-    '张三',
-    'zhangsan@example.com',
-    '13800000000'
-  )
-}
-</script>
-```
-
 ## `sbs_mm` 生成规则
 
 `sbs_mm` 必须在服务端生成，公式如下：
@@ -125,4 +85,4 @@ sbs_mm = md5(md5(sbs + '_' + AppSecret) + '_' + ranstr)
 
 - [基础安装](./installation) 查看最小接入代码
 - [示例项目](./examples) 查看完整接入示例
-- [JavaScript API](./javascript-api) 查看运行时控制能力
+- [JavaScript API](./javascript-api) 查看运行时方法、事件和 SDK 生命周期

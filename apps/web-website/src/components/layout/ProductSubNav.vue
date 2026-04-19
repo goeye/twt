@@ -40,7 +40,7 @@
               </button>
               <div class="product-subnav__menu">
                 <RouterLink to="/help-center">{{ t.helpCenter }}</RouterLink>
-                <RouterLink to="/developer-docs">{{ t.devDocs }}</RouterLink>
+                <a :href="developerDocsHref">{{ t.devDocs }}</a>
                 <RouterLink to="/updates">{{ t.productUpdates }}</RouterLink>
               </div>
             </div>
@@ -56,6 +56,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useT } from '../../composables/useLocale';
+import { developerDocsHref } from '../../constants/developerDocs';
 
 withDefaults(defineProps<{
   activeKey?: 'help-center' | 'developer-docs';
