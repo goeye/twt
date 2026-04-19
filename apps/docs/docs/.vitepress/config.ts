@@ -6,7 +6,11 @@ export default defineConfig({
   description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服',
 
   themeConfig: {
-    nav: [{ text: 'TWT.com', link: 'https://twt.com' }],
+    logo: '/twt-mark.svg',
+    nav: [
+      { component: 'DocLanguageSwitch' },
+      { text: 'TWT.com', link: 'https://twt.com' },
+    ],
     sidebar: [
       { text: '介绍', link: '/' },
       {
