@@ -47,7 +47,7 @@
 
 ## 下一步
 
-- [自定义配置](/widget/configuration) — 调整外观和行为
+- [JavaScript API](/widget/javascript-api) — 调整外观和行为
 - [JavaScript API](/widget/javascript-api) — 程序化控制聊天组件
 - [传递客户信息](/chat-page/parameters) — 将已登录用户信息同步到聊天
 

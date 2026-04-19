@@ -1,0 +1,35 @@
+.VPSidebar .group {
+  padding-top: 16px !important;
+}
+
+.VPSidebar .group + .group {
+  border-top: none !important;
+  margin-top: 16px;
+  padding-top: 0 !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0,
+.VPSidebar .VPSidebarItem.collapsed.level-0 {
+  padding-bottom: 0 !important;
+}
+
+.VPDocAsideOutline .outline-title {
+  display: none;
+}
+
+.VPSidebarItem.is-active > .item .link {
+  background-color: var(--vp-c-default-soft);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 -8px;
+}
+
+.vp-doc h2 {
+  border-top: none;
+  margin-top: 32px;
+  padding-top: 0;
+}
+
+.vp-doc h2 .header-anchor {
+  top: 0;
+}
