@@ -15,8 +15,8 @@ export default defineConfig({
         link: '/widget/',
         items: [
           { text: '3 分钟接入', link: '/widget/installation' },
-          { text: '示例项目', link: '/widget/examples' },
           { text: 'JavaScript API', link: '/widget/javascript-api' },
+          { text: '示例项目', link: '/widget/examples' },
         ],
       },
       {

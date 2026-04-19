@@ -2,6 +2,24 @@
 
 基础安装并加载 SDK 后，运行时能力会挂载到 `window.__twt__api` 上。
 
+## API 一览
+
+| 方法 | 说明 | 返回值 |
+| --- | --- | --- |
+| `icon = '2'` | 隐藏默认图标 | — |
+| `login(sbs, sbs_mm, ranstr, name, nickname, email, phone)` | 动态设置客户信息 | — |
+| `open()` | 打开聊天窗口 | — |
+| `close()` | 关闭聊天窗口 | — |
+| `setLanguage(lang)` | 动态设置语言 | — |
+| `isReady()` | 检查 SDK 是否就绪 | `boolean` |
+| `onReady(callback)` | 注册就绪回调 | — |
+| `getError()` | 获取错误信息 | `Object \| null` |
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| `__twt__sdk_ready` | SDK 加载完成 | — |
+| `__twt__custom_event` | 未读消息数变化 | `e.detail.unread` |
+
 ## 隐藏默认图标
 
 将 `icon` 设置为 `"2"` 可隐藏右下角默认浮窗图标，然后通过自定义按钮触发聊天窗口。
@@ -23,115 +41,6 @@ document.getElementById('button').addEventListener('click', function () {
   }
 })
 </script>
-```
-
-## API 一览
-
-| 方法 | 说明 | 返回值 |
-| --- | --- | --- |
-| `open()` | 打开聊天窗口 | — |
-| `close()` | 关闭聊天窗口 | — |
-| `setLanguage(lang)` | 切换界面语言 | — |
-| `login(sbs, sbs_mm, ranstr, name, nickname, email, phone)` | 动态设置客户信息 | — |
-| `isReady()` | 检查 SDK 是否就绪 | `boolean` |
-| `onReady(callback)` | 注册就绪回调 | — |
-| `getError()` | 获取错误信息 | `Object \| null` |
-
-## 事件一览
-
-| 事件名 | 说明 | 回调参数 |
-| --- | --- | --- |
-| `__twt__sdk_ready` | SDK 加载完成 | — |
-| `__twt__custom_event` | 未读消息数变化 | `e.detail.unread` |
-
-::: tip 提示
-如果你需要隐藏默认图标、设置初始语言，或者在页面加载时注入登录用户信息，请看本页「接入内部系统的客户信息」章节。
-:::
-
-## 聊天窗口控制
-
-### open()
-
-打开聊天窗口。
-
-```javascript
-if (window.__twt__api && window.__twt__api.open) {
-  window.__twt__api.open()
-}
-```
-
-### close()
-
-关闭聊天窗口。
-
-```javascript
-if (window.__twt__api && window.__twt__api.close) {
-  window.__twt__api.close()
-}
-```
-
-## 动态设置语言
-
-在运行时切换聊天组件的界面语言，无需重新加载页面。
-
-支持的语言代码：`zh-cn`、`zh-tw`、`en`。
-
-```javascript
-if (window.__twt__api && window.__twt__api.setLanguage) {
-  window.__twt__api.setLanguage('en')
-}
-```
-
-## 动态设置客户信息
-
-`login` 适用于 SDK 加载完成后再同步用户身份的场景。`sbs_mm` 的生成规则和安全要求见本页「sbs_mm 签名生成规则」章节。
-
-```javascript
-if (window.__twt__api && window.__twt__api.login) {
-  window.__twt__api.login(
-    'user_1001',
-    '服务端生成的签名',
-    '服务端生成的随机串',
-    '张三',
-    '张三',
-    'zhangsan@example.com',
-    '13800000000'
-  )
-}
-```
-
-## SDK 生命周期
-
-### isReady()
-
-检查 SDK 是否已加载完成。
-
-```javascript
-if (window.__twt__api && window.__twt__api.isReady()) {
-  console.log('SDK 已加载完成')
-}
-```
-
-### onReady(callback)
-
-注册 SDK 就绪回调，回调函数会收到 API 对象作为参数。
-
-```javascript
-if (window.__twt__api && window.__twt__api.onReady) {
-  window.__twt__api.onReady((api) => {
-    console.log('SDK 已加载完成', api)
-  })
-}
-```
-
-### getError()
-
-获取 SDK 错误信息。返回值：`Object | null`。
-
-```javascript
-if (window.__twt__api && window.__twt__api.getError) {
-  console.log(window.__twt__api.getError())
-}
 ```
 
 ## 接入内部系统的客户信息
@@ -194,6 +103,74 @@ sbs_mm = md5( md5(sbs + '_' + AppSecret) + '_' + ranstr )
 ::: danger 安全警告
 `AppSecret` 是生成 `sbs_mm` 的必要参数，请在**开发设置**中生成，务必在服务端完成签名计算，切勿将 `AppSecret` 暴露到前端代码中。
 :::
+
+## 聊天窗口控制
+
+### open()
+
+打开聊天窗口。
+
+```javascript
+if (window.__twt__api && window.__twt__api.open) {
+  window.__twt__api.open()
+}
+```
+
+### close()
+
+关闭聊天窗口。
+
+```javascript
+if (window.__twt__api && window.__twt__api.close) {
+  window.__twt__api.close()
+}
+```
+
+## 动态设置语言
+
+在运行时切换聊天组件的界面语言，无需重新加载页面。
+
+支持的语言代码：`zh-cn`、`zh-tw`、`en`。
+
+```javascript
+if (window.__twt__api && window.__twt__api.setLanguage) {
+  window.__twt__api.setLanguage('en')
+}
+```
+
+## SDK 生命周期
+
+### isReady()
+
+检查 SDK 是否已加载完成。
+
+```javascript
+if (window.__twt__api && window.__twt__api.isReady()) {
+  console.log('SDK 已加载完成')
+}
+```
+
+### onReady(callback)
+
+注册 SDK 就绪回调，回调函数会收到 API 对象作为参数。
+
+```javascript
+if (window.__twt__api && window.__twt__api.onReady) {
+  window.__twt__api.onReady((api) => {
+    console.log('SDK 已加载完成', api)
+  })
+}
+```
+
+### getError()
+
+获取 SDK 错误信息。返回值：`Object | null`。
+
+```javascript
+if (window.__twt__api && window.__twt__api.getError) {
+  console.log(window.__twt__api.getError())
+}
+```
 
 ## 事件监听
 
