@@ -66,5 +66,8 @@ export default defineConfig({
     search: { provider: 'local' },
     outline: { level: [2, 3], label: '' },
     docFooter: { prev: '上一页', next: '下一页' },
+    footer: {
+      copyright: 'Copyright © 2026 TWT',
+    },
   },
 })
