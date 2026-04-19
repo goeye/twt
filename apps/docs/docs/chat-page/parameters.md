@@ -14,9 +14,9 @@ https://visitorchat.twt.com/direct/{你的APPID}?lang=en
 
 | 代码 | 语言 |
 | --- | --- |
+| `en` | 英文 |
 | `zh-cn` | 简体中文（默认） |
 | `zh-tw` | 繁体中文 |
-| `en` | 英文 |
 
 ## 客户信息参数
 
