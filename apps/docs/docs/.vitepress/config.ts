@@ -26,6 +26,7 @@ export default defineConfig({
         items: [
           { text: '直接链接', link: '/chat-page/direct-link' },
           { text: '自托管部署', link: '/chat-page/self-hosted' },
+          { text: '嵌入 WebView AppBridge', link: '/chat-page/webview-appbridge' },
           { text: 'URL 参数说明', link: '/chat-page/parameters' },
         ],
       },
