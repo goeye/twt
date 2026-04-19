@@ -6,14 +6,14 @@
 
 | 方法 | 说明 | 返回值 |
 | --- | --- | --- |
-| `icon = '2'` | 隐藏默认图标 | — |
-| `login(sbs, sbs_mm, ranstr, name, nickname, email, phone)` | 动态设置客户信息 | — |
-| `open()` | 打开聊天窗口 | — |
-| `close()` | 关闭聊天窗口 | — |
-| `setLanguage(lang)` | 动态设置语言 | — |
-| `isReady()` | 检查 SDK 是否就绪 | `boolean` |
-| `onReady(callback)` | 注册就绪回调 | — |
-| `getError()` | 获取错误信息 | `Object \| null` |
+| [`icon = '2'`](#隐藏默认图标) | 隐藏默认图标 | — |
+| [`login(...)`](#接入内部系统的客户信息) | 动态设置客户信息 | — |
+| [`open()`](#聊天窗口控制) | 打开聊天窗口 | — |
+| [`close()`](#聊天窗口控制) | 关闭聊天窗口 | — |
+| [`setLanguage(lang)`](#动态设置语言) | 动态设置语言 | — |
+| [`isReady()`](#sdk-生命周期) | 检查 SDK 是否就绪 | `boolean` |
+| [`onReady(callback)`](#sdk-生命周期) | 注册就绪回调 | — |
+| [`getError()`](#sdk-生命周期) | 获取错误信息 | `Object \| null` |
 
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
