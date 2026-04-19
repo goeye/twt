@@ -6,3 +6,5 @@ dist
 .vite
 .gstack/
 apps/docs/docs/.vuepress/
+apps/docs/docs/.vitepress/cache/
+apps/docs/docs/.vitepress/dist/
