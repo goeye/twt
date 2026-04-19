@@ -1,37 +1,42 @@
 {
-  "hash": "24bbdc93",
-  "configHash": "4af7326f",
-  "lockfileHash": "539082c7",
-  "browserHash": "f57d4275",
+  "hash": "8eb75023",
+  "configHash": "7bf81a74",
+  "lockfileHash": "1ab0a09a",
+  "browserHash": "2d6a7286",
   "optimized": {
     "@vue/devtools-api": {
-      "src": "../../../../../../node_modules/.pnpm/@vue+devtools-api@7.7.9/node_modules/@vue/devtools-api/dist/index.js",
+      "src": "../../../../../../node_modules/.pnpm/@vue+devtools-api@8.1.1/node_modules/@vue/devtools-api/dist/index.js",
       "file": "@vue_devtools-api.js",
-      "fileHash": "a71b7063",
+      "fileHash": "76219411",
       "needsInterop": false
     },
     "@vuepress/shared": {
-      "src": "../../../../../../node_modules/.pnpm/@vuepress+shared@2.0.0-rc.19/node_modules/@vuepress/shared/dist/index.js",
+      "src": "../../../../../../node_modules/.pnpm/@vuepress+shared@2.0.0-rc.28/node_modules/@vuepress/shared/dist/index.js",
       "file": "@vuepress_shared.js",
-      "fileHash": "e894e7e0",
+      "fileHash": "12e965b5",
+      "needsInterop": false
+    },
+    "vue-router": {
+      "src": "../../../../../../node_modules/.pnpm/vue-router@5.0.4_@vue+compiler-sfc@3.5.32_vue@3.5.32_typescript@5.9.3_/node_modules/vue-router/dist/vue-router.js",
+      "file": "vue-router.js",
+      "fileHash": "1daabcab",
       "needsInterop": false
     },
     "vue": {
       "src": "../../../../../../node_modules/.pnpm/vue@3.5.29_typescript@5.9.3/node_modules/vue/dist/vue.runtime.esm-bundler.js",
       "file": "vue.js",
-      "fileHash": "451ef48e",
-      "needsInterop": false
-    },
-    "vue-router": {
-      "src": "../../../../../../node_modules/.pnpm/vue-router@4.6.4_vue@3.5.29_typescript@5.9.3_/node_modules/vue-router/dist/vue-router.esm-bundler.js",
-      "file": "vue-router.js",
-      "fileHash": "3612a952",
+      "fileHash": "3906346d",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-ZSNCQWCK": {
-      "file": "chunk-ZSNCQWCK.js"
+    "dist-Dd5hfWba": {
+      "file": "dist-Dd5hfWba.js",
+      "isDynamicEntry": false
+    },
+    "vue.runtime.esm-bundler-D1kL2Dww": {
+      "file": "vue.runtime.esm-bundler-D1kL2Dww.js",
+      "isDynamicEntry": false
     }
   }
 }
