@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  base: '/docs/',
+  base: process.env.NODE_ENV === 'production' ? '/docs/' : '/',
   title: 'TWT Chat 开发者文档',
   description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服',
 

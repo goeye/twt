@@ -34,7 +34,6 @@ export default defineUserConfig({
             children: [
               '/widget/README.md',
               '/widget/installation.md',
-              '/widget/configuration.md',
               '/widget/javascript-api.md',
             ],
           },
