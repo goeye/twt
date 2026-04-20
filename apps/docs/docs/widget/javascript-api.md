@@ -101,7 +101,7 @@ sbs_mm = md5( md5(sbs + '_' + AppSecret) + '_' + ranstr )
 | 4 | 对步骤 3 结果取 MD5（小写 32 位） | 最终 `sbs_mm` 值 |
 
 ::: danger 安全警告
-`AppSecret` 是生成 `sbs_mm` 的必要参数，请在**开发设置**中生成，务必在服务端完成签名计算，切勿将 `AppSecret` 暴露到前端代码中。
+`AppSecret` 是生成 `sbs_mm` 的必要参数，请在**设置 > 开发设置**中生成，务必在服务端完成签名计算，切勿将 `AppSecret` 暴露到前端代码中。
 :::
 
 ## 聊天窗口控制
@@ -130,7 +130,7 @@ if (window.__twt__api && window.__twt__api.close) {
 
 在运行时切换聊天组件的界面语言，无需重新加载页面。
 
-支持的语言代码：`zh-cn`、`zh-tw`、`en`。
+支持的语言代码：`en`、`zh-cn`、`zh-tw`。
 
 ```javascript
 if (window.__twt__api && window.__twt__api.setLanguage) {

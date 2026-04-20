@@ -55,10 +55,10 @@ export default defineConfig({
             text: '在线聊天',
             collapsed: true,
             items: [
-              { text: '创建会话', link: '/api/chat/create-session' },
-              { text: '批量创建会话', link: '/api/chat/create-session-batch' },
+              { text: '创建单聊', link: '/api/chat/create-session' },
+              { text: '批量创建单聊', link: '/api/chat/create-session-batch' },
               { text: '创建群组', link: '/api/chat/create-group' },
-              { text: '删除会话', link: '/api/chat/delete-session' },
+              { text: '删除单聊', link: '/api/chat/delete-session' },
               { text: '解散群组', link: '/api/chat/dissolve-group' },
               { text: '批量解散群组', link: '/api/chat/dissolve-group-batch' },
             ],

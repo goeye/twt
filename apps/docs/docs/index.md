@@ -2,7 +2,7 @@
 
 在你的网站、App 或系统中接入在线客服，3 分钟完成部署。
 
-**[快速开始](/widget/installation)**
+**[3 分钟接入](/widget/installation)**
 
 ## 接入方式
 

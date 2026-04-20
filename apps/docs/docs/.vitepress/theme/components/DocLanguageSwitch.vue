@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   screenMenu?: boolean
 }>()
 
 const open = ref(false)
-const rootEl = ref<HTMLElement | null>(null)
 const activeLocale = ref('简体中文')
 
 const locales = [
@@ -15,46 +14,21 @@ const locales = [
   { label: '繁体中文', value: 'zh-TW' },
 ]
 
-function togglePanel() {
-  open.value = !open.value
-}
-
 function selectLocale(label: string) {
   activeLocale.value = label
   open.value = false
 }
-
-function handleClickOutside(event: MouseEvent) {
-  if (!rootEl.value?.contains(event.target as Node)) {
-    open.value = false
-  }
-}
-
-function handleEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    open.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-  document.addEventListener('keydown', handleEscape)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-  document.removeEventListener('keydown', handleEscape)
-})
 </script>
 
 <template>
   <div
-    ref="rootEl"
     class="doc-language-switch"
     :class="{
       'doc-language-switch--open': open,
       'doc-language-switch--screen-menu': screenMenu,
     }"
+    @mouseenter="open = true"
+    @mouseleave="open = false"
   >
     <button
       type="button"
@@ -62,7 +36,6 @@ onBeforeUnmount(() => {
       aria-label="切换语言"
       :aria-expanded="open"
       aria-haspopup="menu"
-      @click="togglePanel"
     >
       <span class="doc-language-switch__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false">
