@@ -36,6 +36,8 @@
     "build:reseller-admin": "pnpm --filter reseller-admin build",
     "upload:reseller-admin": "cd apps && bash upcode.sh reseller-admin",
     "deploy:reseller-admin": "pnpm build:reseller-admin && pnpm upload:reseller-admin",
+    "dev:twt-link": "pnpm --filter twt-link dev",
+    "preview:twt-link": "pnpm --filter twt-link preview",
     "deploy:twt-link": "cd apps && rsync -av --password-file=./chanpin6 twt-link/ rsync://chanpin6@121.40.183.14:8730/project/twt-link/ && echo https://pm.pro.jishu666.com/twt-link/link_index.html",
     "deploy:all": "pnpm deploy:web-agent & pnpm deploy:web-customer & pnpm deploy:web-admin & pnpm deploy:mobile-app & pnpm deploy:web-website & pnpm deploy:docs & wait"
   }
