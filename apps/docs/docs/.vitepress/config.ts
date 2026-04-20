@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/docs/' : '/',
+  outDir: '../dist',
   title: 'TWT Chat 开发者文档',
   description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服',
 
@@ -30,8 +31,8 @@ export default defineConfig({
         items: [
           { text: '直接链接', link: '/chat-page/direct-link' },
           { text: '自托管部署', link: '/chat-page/self-hosted' },
-          { text: '嵌入 WebView AppBridge', link: '/chat-page/webview-appbridge' },
           { text: 'URL 参数说明', link: '/chat-page/parameters' },
+          { text: 'APP 嵌入访客端 WebView', link: '/chat-page/webview-appbridge' },
         ],
       },
       {

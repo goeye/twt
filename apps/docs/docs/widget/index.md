@@ -21,5 +21,5 @@
 - 可与自有 UI 深度集成，完全自定义触发方式和外观
 
 ::: tip 还没有账号？
-[免费注册 TWT Chat](https://twt.com) 获取 APPID，3 分钟完成接入。
+[免费注册 TWT Chat](https://twt.com) 获取网站代码，3 分钟完成接入。
 :::

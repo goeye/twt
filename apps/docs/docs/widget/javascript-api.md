@@ -1,6 +1,6 @@
 # JavaScript API
 
-基础安装并加载 SDK 后，运行时能力会挂载到 `window.__twt__api` 上。
+完成基础安装后，如需进行自定义配置，可使用下方 API
 
 ## API 一览
 
@@ -56,8 +56,7 @@ document.getElementById('button').addEventListener('click', function () {
 if (window.__twt__config) {
   // 用户唯一标识
   window.__twt__config.sbs = '{sbs}'
-  // sbs_mm 生成规则：md5(md5(sbs + '_' + AppSecret) + '_' + ranstr)
-  // 注：md5 结果为小写 32 位
+  // sbs_mm 签名
   window.__twt__config.sbs_mm = '{sbs_mm}'
   // 随机字符串（建议 16 位以上）
   window.__twt__config.ranstr = '{ranstr}'
@@ -104,6 +103,18 @@ sbs_mm = md5( md5(sbs + '_' + AppSecret) + '_' + ranstr )
 `AppSecret` 是生成 `sbs_mm` 的必要参数，请在**设置 > 开发设置**中生成，务必在服务端完成签名计算，切勿将 `AppSecret` 暴露到前端代码中。
 :::
 
+## 动态设置语言
+
+在运行时切换聊天组件的界面语言，无需重新加载页面。
+
+支持的语言代码：`en`、`zh-cn`、`zh-tw`。
+
+```javascript
+if (window.__twt__api && window.__twt__api.setLanguage) {
+  window.__twt__api.setLanguage('en')
+}
+```
+
 ## 聊天窗口控制
 
 ### open()
@@ -123,18 +134,6 @@ if (window.__twt__api && window.__twt__api.open) {
 ```javascript
 if (window.__twt__api && window.__twt__api.close) {
   window.__twt__api.close()
-}
-```
-
-## 动态设置语言
-
-在运行时切换聊天组件的界面语言，无需重新加载页面。
-
-支持的语言代码：`en`、`zh-cn`、`zh-tw`。
-
-```javascript
-if (window.__twt__api && window.__twt__api.setLanguage) {
-  window.__twt__api.setLanguage('en')
 }
 ```
 

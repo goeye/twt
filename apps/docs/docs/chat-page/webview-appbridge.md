@@ -1,4 +1,4 @@
-# 嵌入访客端 WebView AppBridge 对接
+# APP 嵌入访客端 WebView
 
 将访客端聊天页面嵌入 App 的 WebView 时，通过 AppBridge 实现 H5 与原生层的双向通信。
 

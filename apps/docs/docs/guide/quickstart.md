@@ -4,11 +4,9 @@
 
 ## 第 1 步：获取安装代码
 
-登录 [TWT Chat 客服端](https://chat.twt.com/)，进入 **设置 > 安装 > 网站代码**，复制安装代码片段。
+登录 [TWT Chat 客服端](https://chat.twt.com/)，进入 **设置 > 安装 > 网站代码**，复制安装代码。
 
-## 第 2 步：粘贴到网页
-
-将代码粘贴到你网站每个页面的 `</body>` 标签之前：
+示例代码如下：
 
 ```html
 <!-- Start of TWT Chat code -->
@@ -21,7 +19,7 @@
   };
 
   window.__twt__config = {
-    appid: "你的APPID",
+    appid: "以项目APPID为准",
     icon: "1",
   };
 
@@ -40,6 +38,10 @@
 </script>
 <!-- End of TWT Chat code -->
 ```
+
+## 第 2 步：粘贴到网页
+
+在每个网页的 `</body>` 标签之前，粘贴复制的网站代码
 
 ## 第 3 步：验证
 

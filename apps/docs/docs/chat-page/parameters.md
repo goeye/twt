@@ -2,14 +2,14 @@
 
 通过 URL 参数可以自定义聊天页面的语言，以及将你系统中的客户信息同步到 TWT Chat。
 
-## 语言参数
+## 自定义语言
 
 聊天页面的界面语言**会自动检测浏览器语言**，未检测到或不支持的语言时默认显示英文（`en`），也支持通过 `?lang=` 参数显式指定。
 
 在链接末尾追加 `?lang=` 参数切换界面语言：
 
 ```
-https://visitorchat.twt.com/direct/{你的APPID}?lang=en
+https://visitorchat.twt.com/direct/{你的项目APPID}?lang=en
 ```
 
 | 代码 | 语言 |

@@ -5,7 +5,7 @@
 ## 链接格式
 
 ```
-https://visitorchat.twt.com/direct/{你的APPID}
+https://visitorchat.twt.com/direct/{你的项目APPID}
 ```
 
 ## 使用场景
@@ -15,18 +15,6 @@ https://visitorchat.twt.com/direct/{你的APPID}
 - **社交媒体**：在公众号菜单、微博简介等位置放置链接
 - **二维码**：将链接生成二维码供线下扫码使用
 
-## 自定义语言
+## 自定义配置
 
-在链接末尾追加 `?lang=` 参数即可切换界面语言：
-
-```
-https://visitorchat.twt.com/direct/{你的APPID}?lang=en
-```
-
-支持的语言代码：
-
-| 代码 | 语言 |
-| --- | --- |
-| `en` | 英文 |
-| `zh-cn` | 简体中文 |
-| `zh-tw` | 繁体中文 |
+直接链接同样支持通过 URL 参数自定义语言和传递客户信息，详见 [URL 参数说明](./parameters)。
