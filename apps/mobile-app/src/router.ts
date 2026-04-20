@@ -5,7 +5,7 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/chat"
+      redirect: "/session"
     },
     {
       path: "/session",
