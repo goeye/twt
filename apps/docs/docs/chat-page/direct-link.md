@@ -17,4 +17,4 @@ https://visitorchat.twt.com/direct/{你的项目APPID}
 
 ## 自定义配置
 
-直接链接同样支持通过 URL 参数自定义语言和传递客户信息，详见 [URL 参数说明](./parameters)。
+直接链接支持通过 URL 参数自定义语言和传递客户信息，详见 [URL 参数说明](./parameters)。

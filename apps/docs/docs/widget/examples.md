@@ -237,5 +237,5 @@ window.__twt__config = {
 
 
 ::: tip 还没有账号？
-[免费注册 TWT Chat](https://twt.com) 获取网站代码，3 分钟完成接入。
+[免费注册 TWT Chat](https://twt.com) 获取网站代码，快速完成接入。
 :::

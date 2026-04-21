@@ -11,7 +11,7 @@
 
 ## 怎么做
 
-1. [3 分钟接入](./installation) — 获取安装代码，粘贴到页面 `</body>` 前
+1. [快速接入](./installation) — 获取安装代码，粘贴到页面 `</body>` 前
 2. [JavaScript API](./javascript-api) — 运行时控制聊天窗口
 
 ## 能获得什么
@@ -21,5 +21,5 @@
 - 可与自有 UI 深度集成，完全自定义触发方式和外观
 
 ::: tip 还没有账号？
-[免费注册 TWT Chat](https://twt.com) 获取网站代码，3 分钟完成接入。
+[免费注册 TWT Chat](https://twt.com) 获取网站代码，快速完成接入。
 :::

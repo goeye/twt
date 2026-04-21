@@ -4,7 +4,7 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/docs/' : '/',
   outDir: '../dist',
   title: 'TWT Chat 开发者文档',
-  description: 'TWT Chat 开发者文档 - 3 分钟接入在线客服',
+  description: 'TWT Chat 开发者文档 - 快速接入在线客服',
 
   themeConfig: {
     logo: '/twt-mark.svg',
@@ -19,7 +19,7 @@ export default defineConfig({
         collapsed: true,
         link: '/widget/',
         items: [
-          { text: '3 分钟接入', link: '/widget/installation' },
+          { text: '快速接入', link: '/widget/installation' },
           { text: 'JavaScript API', link: '/widget/javascript-api' },
           { text: '示例项目', link: '/widget/examples' },
         ],

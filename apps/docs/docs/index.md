@@ -1,6 +1,6 @@
 # TWT Chat 开发者文档
 
-在你的网站、App 或系统中接入在线客服，3 分钟完成部署。
+在你的网站、App 或系统中接入在线客服，快速完成部署。
 
 ## 接入方式
 
@@ -20,7 +20,7 @@
 
 | 我想... | 推荐方案 |
 | --- | --- |
-| 在网站右下角加一个聊天按钮 | [网站小部件 → 3 分钟接入](/widget/installation) |
+| 在网站右下角加一个聊天按钮 | [网站小部件 → 快速接入](/widget/installation) |
 | 在邮件或 App 里放一个聊天链接 | [聊天页面 → 直接链接](/chat-page/direct-link) |
 | 用自己的域名部署聊天页 | [聊天页面 → 自托管部署](/chat-page/self-hosted) |
 | 让客服看到访客的登录身份 | [网站小部件 → JavaScript API](/widget/javascript-api) |
