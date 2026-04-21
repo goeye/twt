@@ -23,6 +23,12 @@ const router = createRouter({
       component: () => import("./views/ArchiveView.vue")
     },
     {
+      path: "/session/:id/history",
+      name: "HistorySessions",
+      component: () => import("./views/HistorySessionsView.vue"),
+      meta: { hideTabBar: true }
+    },
+    {
       path: "/profile",
       name: "Profile",
       component: () => import("./views/ProfileView.vue")

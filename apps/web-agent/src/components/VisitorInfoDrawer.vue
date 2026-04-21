@@ -19,8 +19,17 @@
                 class="visitor-drawer__archive-link"
                 @click="$emit('close')"
               >
-                查看完整详情
+                进入档案
               </RouterLink>
+              <div v-if="view === 'main'" class="vd-more-wrap">
+                <button type="button" class="vd-more-btn" aria-label="更多操作">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+                <div class="vd-more-dropdown">
+                  <button type="button" class="vd-more-dropdown__item">发起聊天</button>
+                  <button type="button" class="vd-more-dropdown__item">创建会话</button>
+                </div>
+              </div>
               <button type="button" class="visitor-drawer__close" aria-label="关闭" @click="$emit('close')">
                 <span>&times;</span>
               </button>
@@ -180,10 +189,6 @@
               </div>
             </section>
           </div>
-          <footer class="vd-main-footer">
-            <button type="button" class="vd-main-footer__btn vd-main-footer__btn--secondary">发起聊天</button>
-            <button type="button" class="vd-main-footer__btn vd-main-footer__btn--primary">创建会话</button>
-          </footer>
           </template>
 
           <!-- 会话列表视图 -->
@@ -194,10 +199,7 @@
               class="vd-session-card"
               @click="openSessionDetail(item)"
             >
-              <div class="vd-session-card__top">
-                <span class="vd-session-card__title">{{ item.title }}</span>
-                <span class="vd-session-card__badge" :class="`vd-session-card__badge--${item.statusType}`">{{ item.status }}</span>
-              </div>
+              <div class="vd-session-card__title">{{ item.title }}</div>
               <div class="vd-session-card__meta">
                 <template v-if="item.agentName">
                   <span class="vd-session-card__agent-avatar">{{ item.agentName[0] }}</span>
@@ -206,6 +208,10 @@
               </div>
               <div v-if="item.tags.length" class="vd-session-card__tags">
                 <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="vd-session-card__tag">{{ tag }}</span>
+              </div>
+              <div class="vd-session-card__footer">
+                <span class="vd-session-card__badge" :class="`vd-session-card__badge--${item.statusType}`">{{ item.status }}</span>
+                <span v-if="item.createdAt" class="vd-session-card__time">{{ item.createdAt }}</span>
               </div>
             </div>
           </div>
@@ -279,6 +285,7 @@ interface SessionItem {
   status: string;
   statusType: string;
   agentName?: string;
+  createdAt?: string;
   tags: string[];
   messages: { id: string; role: "agent" | "customer" | "system"; sender: string; content: string; time: string; avatarText?: string; avatarColor?: string }[];
 }
@@ -323,54 +330,33 @@ const toggleSection = (key: string) => {
 
 const mockSessions: SessionItem[] = [
   {
-    id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", tags: ["支付", "紧急"],
+    id: 1, title: "反馈API Key格式错误", status: "排队中", statusType: "queueing", agentName: "张伟", createdAt: "2026-02-14 14:52", tags: [],
     messages: [
-      { id: "s1m1", role: "system", sender: "", content: "会话开始", time: "" },
-      { id: "s1m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" },
-      { id: "s1m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" },
-      { id: "s1m4", role: "customer", sender: "访客", content: "微信支付", time: "14:04", avatarText: "访", avatarColor: "#8d98a9" },
-      { id: "s1m5", role: "agent", sender: "张三", content: "已为您处理，请重试", time: "14:10", avatarText: "张", avatarColor: "#2f6bff" },
-      { id: "s1m6", role: "system", sender: "", content: "会话已关闭", time: "" },
+      { id: "s1m1", role: "system", sender: "", content: "等待分配", time: "" },
+      { id: "s1m2", role: "customer", sender: "访客", content: "你好，API Key 格式不对", time: "14:52", avatarText: "访", avatarColor: "#8d98a9" },
     ]
   },
   {
-    id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", tags: ["产品"],
+    id: 2, title: "这是一个很长的会话标题这是全部显示...", status: "已回复", statusType: "replied", agentName: "李昭宁", createdAt: "2025-02-14 14:56", tags: ["有购买意向", "价格敏感", "全部显示/折叠"],
     messages: [
       { id: "s2m1", role: "system", sender: "", content: "会话开始", time: "" },
       { id: "s2m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" },
-      { id: "s2m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" },
+      { id: "s2m3", role: "agent", sender: "李昭宁", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" },
     ]
   },
   {
-    id: 3, title: "退款申请", status: "排队中", statusType: "queueing", tags: ["退款"],
+    id: 3, title: "已回复", status: "已回复", statusType: "replied", agentName: "粒粒", createdAt: "2025-01-02 02:48", tags: [],
     messages: [
-      { id: "s3m1", role: "system", sender: "", content: "会话开始，等待分配", time: "" },
-      { id: "s3m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s3m1", role: "system", sender: "", content: "会话开始", time: "" },
+      { id: "s3m2", role: "customer", sender: "访客", content: "你好", time: "02:48", avatarText: "访", avatarColor: "#8d98a9" },
     ]
   },
   {
-    id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", tags: [],
+    id: 4, title: "新会话", status: "已关闭", statusType: "closed", agentName: "粒粒", createdAt: "2025-12-28 19:01", tags: [],
     messages: [
       { id: "s4m1", role: "system", sender: "", content: "会话开始", time: "" },
-      { id: "s4m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" },
-    ]
-  },
-  {
-    id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", tags: [],
-    messages: [
-      { id: "s5m1", role: "system", sender: "", content: "会话开始", time: "" },
-      { id: "s5m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" },
-      { id: "s5m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" },
-      { id: "s5m4", role: "system", sender: "", content: "会话已关闭", time: "" },
-    ]
-  },
-  {
-    id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", tags: ["技术"],
-    messages: [
-      { id: "s6m1", role: "system", sender: "", content: "会话开始", time: "" },
-      { id: "s6m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" },
-      { id: "s6m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" },
-      { id: "s6m4", role: "system", sender: "", content: "会话已关闭", time: "" },
+      { id: "s4m2", role: "customer", sender: "访客", content: "你好", time: "19:01", avatarText: "访", avatarColor: "#8d98a9" },
+      { id: "s4m3", role: "system", sender: "", content: "会话已关闭", time: "" },
     ]
   },
 ];
@@ -733,13 +719,6 @@ const mockSessions: SessionItem[] = [
   border-color: #c5d0e0;
 }
 
-.vd-session-card__top {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .vd-session-card__title {
   color: #222;
   font-size: 14px;
@@ -749,25 +728,13 @@ const mockSessions: SessionItem[] = [
   white-space: nowrap;
 }
 
-.vd-session-card__badge {
-  border-radius: 4px;
-  flex-shrink: 0;
-  font-size: 11px;
-  padding: 2px 7px;
-}
-
-.vd-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
-.vd-session-card__badge--active { background: #e6f4ea; color: #2e7d32; }
-.vd-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
-.vd-session-card__badge--pending { background: #fff3e0; color: #e65100; }
-.vd-session-card__badge--replied { background: #e6f4ea; color: #2e7d32; }
-
 .vd-session-card__meta {
   align-items: center;
   color: #7e8999;
   display: flex;
   font-size: 12px;
   gap: 8px;
+  min-width: 0;
 }
 
 .vd-session-card__agent-avatar {
@@ -784,8 +751,30 @@ const mockSessions: SessionItem[] = [
   width: 20px;
 }
 
-.vd-session-card__meta-sep {
-  color: #c5cdd8;
+.vd-session-card__footer {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.vd-session-card__badge {
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 7px;
+}
+
+.vd-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
+.vd-session-card__badge--active { background: #e8f0ff; color: #2f6bff; }
+.vd-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
+.vd-session-card__badge--pending { background: #ffece8; color: #d4380d; }
+.vd-session-card__badge--replied { background: #e8f0ff; color: #2f6bff; }
+
+.vd-session-card__time {
+  color: #93a0b2;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .vd-session-card__tags {
@@ -915,30 +904,62 @@ const mockSessions: SessionItem[] = [
   width: 100%;
 }
 
-.vd-main-footer {
-  display: flex;
-  gap: 8px;
-  padding: 10px 0 4px;
+/* More dropdown */
+.vd-more-wrap {
+  position: relative;
 }
 
-.vd-main-footer__btn {
-  border-radius: 22px;
+.vd-more-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #555;
   cursor: pointer;
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  height: 36px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
 }
 
-.vd-main-footer__btn--secondary {
-  background: #f5f6f8;
+.vd-more-btn:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.vd-more-dropdown {
+  background: #fff;
   border: 1px solid #e7ebf0;
-  color: var(--agent-color-text-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  display: none;
+  min-width: 120px;
+  padding: 4px 0;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
 }
 
-.vd-main-footer__btn--primary {
-  background: var(--agent-color-brand-primary);
-  border: 1px solid var(--agent-color-brand-primary);
-  color: #fff;
+.vd-more-wrap:hover .vd-more-dropdown {
+  display: block;
+}
+
+.vd-more-dropdown__item {
+  background: transparent;
+  border: 0;
+  color: #222;
+  cursor: pointer;
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 8px 16px;
+  text-align: left;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.vd-more-dropdown__item:hover {
+  background: #f5f6f8;
 }
 </style>
