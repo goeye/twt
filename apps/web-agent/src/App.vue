@@ -10,6 +10,18 @@
               </span>
               <span class="brand-expanded__name">{{ tenant.displayName }}</span>
               <AgentIcon name="chevron-down" :size="14" class="brand-expanded__arrow" />
+              <button
+                type="button"
+                class="brand-expanded__pin"
+                :class="{ 'brand-expanded__pin--active': primaryNavPinned }"
+                :aria-label="primaryNavPinned ? '取消固定一级菜单' : '固定一级菜单'"
+                @click.stop="togglePrimaryNavPinned"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 3h6l-.8 4.2 3.3 3.3v1H6.5v-1l3.3-3.3L9 3z" fill="currentColor" />
+                  <path d="M12 12v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </button>
             </div>
             <div v-if="projectSwitcherOpen" class="project-switcher-panel" @click.stop>
               <div v-if="!projectManageOpen">
@@ -172,18 +184,6 @@
                     <span>语言</span>
                     <AgentIcon name="chevron-right" :size="14" class="profile-card-panel__action-arrow" />
                   </button>
-                  <div class="profile-card-panel__subsetting">
-                    <span class="profile-card-panel__subsetting-label">固定菜单</span>
-                    <button
-                      type="button"
-                      class="profile-card-panel__switch"
-                      :class="{ 'profile-card-panel__switch--on': primaryNavPinned }"
-                      :aria-label="primaryNavPinned ? '取消固定一级菜单' : '固定一级菜单'"
-                      @click="togglePrimaryNavPinned"
-                    >
-                      <span class="profile-card-panel__switch-thumb"></span>
-                    </button>
-                  </div>
                 </div>
                 <div class="profile-card-panel__section">
                   <button type="button" class="profile-card-panel__action profile-card-panel__action--danger" @click="handleProfileAction('logout')">退出</button>
@@ -4643,6 +4643,42 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.brand-expanded__pin {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--agent-color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 28px;
+  height: 28px;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    background var(--agent-motion-fast),
+    color var(--agent-motion-fast),
+    opacity var(--agent-motion-fast);
+  width: 28px;
+}
+
+:deep(.agent-shell__rail:hover) .brand-expanded__pin,
+.brand-expanded__pin:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.brand-expanded__pin:hover {
+  background: rgba(47, 107, 255, 0.08);
+  color: var(--agent-color-brand-primary);
+}
+
+.brand-expanded__pin--active {
+  background: rgba(47, 107, 255, 0.12);
+  color: var(--agent-color-brand-primary);
+}
+
 .brand-expanded__arrow {
   color: var(--agent-color-text-secondary);
   margin-left: auto;
@@ -5146,21 +5182,6 @@ onBeforeUnmount(() => {
 
 .profile-card-panel__action--danger {
   color: var(--agent-color-text-primary);
-}
-
-.profile-card-panel__subsetting {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2px;
-  padding: 4px 0 1px;
-}
-
-.profile-card-panel__subsetting-label {
-  color: var(--agent-color-text-primary);
-  font-size: var(--agent-font-size-sm);
-  font-weight: var(--agent-font-weight-regular);
-  line-height: 1.4;
 }
 
 /* 版本切换器 */

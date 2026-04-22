@@ -79,7 +79,7 @@ export const PERMISSION_TREE: PermGroup[] = [
           },
           {
             key: 'conversation-online-scope-robot',
-            label: '机器人数据',
+            label: 'Autopilot数据',
             autoSelect: false,
             roleEditorColumn: 3,
             requires: ['conversation-online-manage'],
@@ -121,7 +121,7 @@ export const PERMISSION_TREE: PermGroup[] = [
           },
           {
             key: 'archive-conversation-assign',
-            label: '机器人数据',
+            label: 'Autopilot数据',
             autoSelect: false,
             roleEditorColumn: 3,
           },
