@@ -10,10 +10,52 @@
               <button v-if="view !== 'main'" type="button" class="visitor-drawer__back" aria-label="返回" @click="goBack">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <h2 class="visitor-drawer__title">{{ viewTitle }}</h2>
+              <template v-if="view === 'detail' && isEditingDetailTitle">
+                <input
+                  ref="detailTitleInputRef"
+                  v-model="draftDetailTitle"
+                  class="vd-detail-title-input"
+                  @blur="saveDetailTitle"
+                  @keydown.enter.prevent="saveDetailTitle"
+                  @keydown.esc.prevent="cancelEditDetailTitle"
+                />
+              </template>
+              <template v-else>
+                <h2 class="visitor-drawer__title">{{ viewTitle }}</h2>
+                <button
+                  v-if="view === 'detail'"
+                  type="button"
+                  class="vd-detail-edit-btn"
+                  aria-label="编辑会话标题"
+                  @click="startEditDetailTitle"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+              </template>
             </div>
             <div class="visitor-drawer__header-right">
-              <RouterLink
+              <template v-if="view === 'detail'">
+                <button
+                  type="button"
+                  class="vd-nav-btn"
+                  :class="{ 'vd-nav-btn--disabled': !hasPrevSession }"
+                  :disabled="!hasPrevSession"
+                  aria-label="上一个会话"
+                  @click="goToPrevSession"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>
+                <button
+                  type="button"
+                  class="vd-nav-btn"
+                  :class="{ 'vd-nav-btn--disabled': !hasNextSession }"
+                  :disabled="!hasNextSession"
+                  aria-label="下一个会话"
+                  @click="goToNextSession"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </template>              <RouterLink
                 v-if="view === 'sessions'"
                 :to="{ path: '/files', query: { tab: 'all-conversations' } }"
                 class="visitor-drawer__archive-link"
@@ -262,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 
 export interface VisitorDrawerData {
   name: string;
@@ -311,7 +353,7 @@ const viewTitle = computed(() => {
 });
 
 const goBack = () => {
-  if (view.value === "detail") { view.value = "sessions"; return; }
+  if (view.value === "detail") { isEditingDetailTitle.value = false; view.value = "sessions"; return; }
   view.value = "main";
 };
 
@@ -320,7 +362,47 @@ const openSessionDetail = (item: SessionItem) => {
   view.value = "detail";
 };
 
-watch(() => props.open, (v) => { if (!v) { view.value = "main"; activeSession.value = null; } });
+const activeSessionIndex = computed(() => {
+  if (!activeSession.value) return -1;
+  return mockSessions.findIndex((s) => s.id === activeSession.value!.id);
+});
+const hasPrevSession = computed(() => activeSessionIndex.value > 0);
+const hasNextSession = computed(() => activeSessionIndex.value >= 0 && activeSessionIndex.value < mockSessions.length - 1);
+
+const goToPrevSession = () => {
+  const idx = activeSessionIndex.value;
+  if (idx > 0) activeSession.value = mockSessions[idx - 1];
+};
+
+const goToNextSession = () => {
+  const idx = activeSessionIndex.value;
+  if (idx >= 0 && idx < mockSessions.length - 1) activeSession.value = mockSessions[idx + 1];
+};
+
+const isEditingDetailTitle = ref(false);
+const draftDetailTitle = ref("");
+const detailTitleInputRef = ref<HTMLInputElement | null>(null);
+
+const startEditDetailTitle = () => {
+  if (!activeSession.value) return;
+  draftDetailTitle.value = activeSession.value.title;
+  isEditingDetailTitle.value = true;
+  nextTick(() => detailTitleInputRef.value?.focus());
+};
+
+const saveDetailTitle = () => {
+  const next = draftDetailTitle.value.trim();
+  if (next && activeSession.value && next !== activeSession.value.title) {
+    activeSession.value.title = next;
+  }
+  isEditingDetailTitle.value = false;
+};
+
+const cancelEditDetailTitle = () => {
+  isEditingDetailTitle.value = false;
+};
+
+watch(() => props.open, (v) => { if (!v) { view.value = "main"; activeSession.value = null; isEditingDetailTitle.value = false; } });
 
 const isSectionCollapsed = (key: string) => collapsedSections.value.includes(key);
 const toggleSection = (key: string) => {
@@ -332,7 +414,7 @@ const mockSessions: SessionItem[] = [
   {
     id: 1, title: "反馈API Key格式错误", status: "排队中", statusType: "queueing", agentName: "张伟", createdAt: "2026-02-14 14:52", tags: [],
     messages: [
-      { id: "s1m1", role: "system", sender: "", content: "等待分配", time: "" },
+      { id: "s1m1", role: "system", sender: "", content: "", time: "" },
       { id: "s1m2", role: "customer", sender: "访客", content: "你好，API Key 格式不对", time: "14:52", avatarText: "访", avatarColor: "#8d98a9" },
     ]
   },
@@ -961,5 +1043,68 @@ const mockSessions: SessionItem[] = [
 
 .vd-more-dropdown__item:hover {
   background: #f5f6f8;
+}
+
+/* Detail nav buttons */
+.vd-nav-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #555;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.vd-nav-btn:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.vd-nav-btn--disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.vd-nav-btn--disabled:hover {
+  background: transparent;
+}
+
+/* Detail title edit */
+.vd-detail-edit-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #8d98a9;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.vd-detail-edit-btn:hover {
+  background: rgba(17, 17, 17, 0.06);
+  color: #555;
+}
+
+.vd-detail-title-input {
+  background: #fff;
+  border: 1px solid var(--agent-color-brand-primary, #2f6bff);
+  border-radius: 6px;
+  color: #222;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  min-width: 0;
+  outline: none;
+  padding: 2px 8px;
+  width: 100%;
 }
 </style>

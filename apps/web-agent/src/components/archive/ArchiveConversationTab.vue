@@ -346,12 +346,17 @@
     :search-keyword="appliedFilters.keyword"
     :assign-label="getDrawerAssignLabel(previewConversation)"
     :variant="getDrawerVariant(previewConversation)"
-    :editable="false"
+    :editable="true"
     :show-autopilot-actions="Boolean(previewConversation?.owner === aiAgentArchiveName && canClaimArchiveConversation && canAssignArchiveConversation)"
     :show-queueing-actions="Boolean(previewConversation?.status === 'queueing' && canClaimArchiveConversation && canAssignArchiveConversation)"
+    :has-prev="hasPrevConversation"
+    :has-next="hasNextConversation"
     @assign="previewConversation && handleDrawerAssign(previewConversation)"
     @takeover="previewConversation && handleDrawerTakeover(previewConversation)"
     @close="closeConversationDrawer"
+    @prev="goToPrevConversation"
+    @next="goToNextConversation"
+    @update:title="handleUpdateTitle"
   />
 
   <ArchiveMessageListDrawer
@@ -1199,6 +1204,35 @@ const visibleRows = computed(() => {
 });
 
 const previewConversation = computed(() => allRows.value.find((row) => row.id === previewConversationId.value) ?? null);
+
+const previewConversationIndex = computed(() => {
+  if (!previewConversationId.value) return -1;
+  return visibleRows.value.findIndex((row) => row.id === previewConversationId.value);
+});
+const hasPrevConversation = computed(() => previewConversationIndex.value > 0);
+const hasNextConversation = computed(() => previewConversationIndex.value >= 0 && previewConversationIndex.value < visibleRows.value.length - 1);
+
+const goToPrevConversation = () => {
+  const idx = previewConversationIndex.value;
+  if (idx > 0) {
+    previewConversationId.value = visibleRows.value[idx - 1].id;
+  }
+};
+
+const goToNextConversation = () => {
+  const idx = previewConversationIndex.value;
+  if (idx >= 0 && idx < visibleRows.value.length - 1) {
+    previewConversationId.value = visibleRows.value[idx + 1].id;
+  }
+};
+
+const handleUpdateTitle = (newTitle: string) => {
+  const row = previewConversation.value;
+  if (row) {
+    row.title = newTitle;
+  }
+};
+
 const pendingAssignConversation = computed(() => allRows.value.find((row) => row.id === pendingAssignConversationId.value) ?? null);
 
 const conversationMatchResults = computed(() => {

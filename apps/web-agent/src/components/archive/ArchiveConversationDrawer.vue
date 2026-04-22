@@ -29,10 +29,24 @@
           </div>
 
           <div class="archive-drawer__actions">
-            <button type="button" class="archive-drawer__icon-btn" aria-label="滚动到顶部" @click="scrollToTop">
+            <button
+              type="button"
+              class="archive-drawer__icon-btn"
+              :class="{ 'archive-drawer__icon-btn--disabled': !hasPrev }"
+              :disabled="!hasPrev"
+              aria-label="上一个会话"
+              @click="$emit('prev')"
+            >
               <AgentIcon name="chevron-down" :size="18" class="archive-drawer__icon archive-drawer__icon--up" />
             </button>
-            <button type="button" class="archive-drawer__icon-btn" aria-label="滚动到底部" @click="scrollToBottom">
+            <button
+              type="button"
+              class="archive-drawer__icon-btn"
+              :class="{ 'archive-drawer__icon-btn--disabled': !hasNext }"
+              :disabled="!hasNext"
+              aria-label="下一个会话"
+              @click="$emit('next')"
+            >
               <AgentIcon name="chevron-down" :size="18" class="archive-drawer__icon" />
             </button>
             <button type="button" class="archive-drawer__icon-btn" aria-label="关闭抽屉" @click="$emit('close')">
@@ -118,13 +132,17 @@ const props = withDefaults(
     variant?: "default" | "join";
     showAutopilotActions?: boolean;
     showQueueingActions?: boolean;
+    hasPrev?: boolean;
+    hasNext?: boolean;
   }>(),
   {
     assignLabel: "分配会话",
     editable: true,
     variant: "default",
     showAutopilotActions: false,
-    showQueueingActions: false
+    showQueueingActions: false,
+    hasPrev: false,
+    hasNext: false
   }
 );
 
@@ -134,6 +152,8 @@ const emit = defineEmits<{
   (e: "takeover"): void;
   (e: "edit-title"): void;
   (e: "update:title", value: string): void;
+  (e: "prev"): void;
+  (e: "next"): void;
 }>();
 
 const messagesRef = ref<HTMLElement | null>(null);
@@ -367,6 +387,16 @@ watch(
 
 .archive-drawer__icon-btn:hover {
   background: rgba(17, 17, 17, 0.06);
+}
+
+.archive-drawer__icon-btn--disabled {
+  color: var(--agent-color-text-quaternary, #ccc);
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.archive-drawer__icon-btn--disabled:hover {
+  background: transparent;
 }
 
 .archive-drawer__icon {
