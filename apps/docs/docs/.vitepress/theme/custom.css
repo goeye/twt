@@ -1,0 +1,318 @@
+.Layout {
+  --vp-nav-height: 76px;
+  --vp-nav-logo-height: 36px;
+}
+
+.VPNav {
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+}
+
+.VPNavBar {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+.VPNavBar .wrapper {
+  padding: 0 24px;
+}
+
+@media (min-width: 768px) {
+  .VPNavBar .wrapper {
+    padding: 0 28px;
+  }
+}
+
+.VPNavBar .container {
+  max-width: none;
+}
+
+.VPNavBar .content-body {
+  justify-content: flex-start;
+  gap: 24px;
+}
+
+.VPNavBar .search {
+  order: 1;
+  flex-grow: 0;
+  padding-left: 0;
+  margin-left: auto;
+}
+
+.VPNavBar .menu {
+  order: 2;
+}
+
+.VPNavBar .appearance {
+  order: 3;
+}
+
+.VPNavBar .extra {
+  order: 4;
+}
+
+.VPNavBarTitle .title {
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.VPNavBarTitle .title span {
+  letter-spacing: -0.02em;
+}
+
+.VPNavBarTitle :deep(.logo) {
+  margin-right: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.DocSearch-Button {
+  border-radius: 999px !important;
+  padding: 0 14px 0 16px !important;
+  width: 248px !important;
+  height: 42px !important;
+  background-color: #f1f3f7 !important;
+}
+
+.DocSearch-Button:hover {
+  border-color: rgba(47, 107, 255, 0.16) !important;
+  background-color: #eef2fb !important;
+}
+
+.DocSearch-Button .DocSearch-Button-Placeholder {
+  font-size: 14px !important;
+}
+
+.DocSearch-Button .DocSearch-Button-Key {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.VPSidebar .group {
+  padding-top: 16px !important;
+}
+
+.VPSidebar .group + .group {
+  border-top: none !important;
+  margin-top: 16px;
+  padding-top: 0 !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0,
+.VPSidebar .VPSidebarItem.collapsed.level-0 {
+  padding-bottom: 0 !important;
+}
+
+.VPDocAsideOutline .outline-title {
+  display: none;
+}
+
+.VPSidebarItem.is-active > .item .link {
+  background-color: var(--vp-c-default-soft);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 -8px;
+}
+
+.VPDocAsideOutline .content:not(:has(.outline-link.active)) .outline-link:first-child {
+  color: var(--vp-c-text-1);
+}
+
+.VPDocAsideOutline .content:not(:has(.outline-link.active)) .outline-marker {
+  top: 39px !important;
+  opacity: 1 !important;
+}
+
+.VPDocAsideOutline .outline-marker {
+  transform: translateY(-32px);
+}
+
+.VPNavBarMenu {
+  align-items: center;
+}
+
+.doc-language-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--vp-nav-height);
+}
+
+.doc-language-switch__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0 6px;
+  min-width: 32px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--vp-c-text-1);
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.doc-language-switch__trigger:hover {
+  color: var(--vp-c-brand-1);
+  background: var(--vp-c-default-soft);
+}
+
+.doc-language-switch__icon,
+.doc-language-switch__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-language-switch__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.doc-language-switch__screen-label {
+  margin-left: 10px;
+  line-height: 24px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.doc-language-switch__menu {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  z-index: calc(var(--vp-z-index-nav) + 2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  min-width: 176px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-elv);
+  box-shadow: var(--vp-shadow-3);
+}
+
+.doc-language-switch__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--vp-c-text-1);
+  text-align: left;
+  line-height: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.doc-language-switch__option:hover {
+  background: var(--vp-c-default-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.doc-language-switch__option--active {
+  background: var(--vp-c-default-soft);
+}
+
+.doc-language-switch__check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.VPNavBarMenu .doc-language-switch + .VPNavBarMenuLink::before,
+.VPNavBarMenu .doc-language-switch + .VPNavBarMenuGroup::before {
+  margin-right: 10px;
+  margin-left: 10px;
+  width: 1px;
+  height: 24px;
+  background-color: var(--vp-c-divider);
+  content: "";
+}
+
+@media (max-width: 767px) {
+  .VPNavBarMenu .doc-language-switch {
+    display: none;
+  }
+}
+
+.doc-language-switch--screen-menu {
+  display: block;
+  height: auto;
+}
+
+.doc-language-switch--screen-menu .doc-language-switch__trigger {
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 0 0 12px;
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+}
+
+.doc-language-switch--screen-menu .doc-language-switch__menu {
+  position: static;
+  margin: 4px 12px 12px;
+  box-shadow: none;
+}
+
+.vp-doc h2 {
+  border-top: none;
+  margin-top: 32px;
+  padding-top: 0;
+}
+
+.vp-doc h2 .header-anchor {
+  top: 0;
+}
+
+body .Layout .VPFooter.has-sidebar {
+  display: block;
+}
+
+.Layout .VPFooter {
+  border-top: 0;
+  padding: 28px 24px 36px;
+  background: #38404f;
+}
+
+.Layout .VPFooter .container {
+  max-width: none;
+}
+
+.Layout .VPFooter .message {
+  display: none;
+}
+
+.Layout .VPFooter .copyright {
+  margin: 0;
+  text-align: center;
+  line-height: 32px;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 768px) {
+  .Layout .VPFooter {
+    padding: 34px 32px 42px;
+  }
+}
+
+@media (min-width: 960px) {
+  .Layout .VPFooter {
+    position: relative;
+    z-index: calc(var(--vp-z-index-sidebar) + 1);
+  }
+}

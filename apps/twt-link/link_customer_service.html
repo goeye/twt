@@ -304,9 +304,83 @@ window.addEventListener('error', function(e) {
         .menu-disabled { opacity: 0.4 !important; pointer-events: none !important; cursor: not-allowed !important; user-select: none !important; }
         .menu-greyed { opacity: 0.4 !important; }
 
+        /* Quick reply toolbar button */
+        .cs-toolbar-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            color: #4e5969;
+            transition: color 0.2s;
+        }
+        .cs-toolbar-icon-btn:hover { color: #2970FF; }
+        .cs-toolbar-icon-btn.active { color: #2970FF; }
+
+        /* Quick reply panel */
+        .quick-reply-cat { transition: all 0.2s; }
+        .quick-reply-cat:hover { background: #f2f3f5; }
+        .quick-reply-cat.active { background: #f2f3f5; color: #111 !important; }
+        .quick-reply-item:hover { background: #f7f8fa; border-color: #e5e6eb !important; }
+        .quick-reply-item.selected { background: #f0f5ff; border-color: #2970FF !important; }
+
     </style>
 </head>
 <body>
+    <div id="modalContainer" style="position: absolute; width: 0; height: 0; overflow: visible; z-index: 9999;">
+        <!-- Relocated Modals for Reliable Parsing -->
+        <div class="modal" id="addVisitorTagModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 4000; align-items: center; justify-content: center;">
+            <div class="modal-center-content" style="width: 440px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div id="visitorTagModalTitle" style="font-size: 16px; font-weight: 600; color: #111;">添加访客标签</div>
+                    <i class="ri-close-line" style="font-size: 20px; color: #111; cursor: pointer;" onclick="document.getElementById('addVisitorTagModal').style.display='none'"></i>
+                </div>
+                <div style="flex: 1; overflow-y: auto;">
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px;"><span style="color: #F53F3F; margin-right: 4px;">*</span>标签名称</div>
+                        <input id="visitorTagNameInput" type="text" placeholder="输入标签" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 8px; font-size: 14px; color: #111; outline: none; transition: border 0.2s;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'" oninput="if(typeof validateVisitorTagForm === 'function') validateVisitorTagForm()">
+                    </div>
+                    <div style="margin-bottom: 32px;">
+                        <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                            <span style="color: #F53F3F; margin-right: 4px;">*</span>排序 <span style="position: relative; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #e5e6eb; color: #86909c; font-size: 11px; cursor: pointer;" onmouseover="this.nextElementSibling.style.display='block'" onmouseout="this.nextElementSibling.style.display='none'">?</span><div style="display: none; position: absolute; top: 50%; left: calc(100% + 8px); transform: translateY(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 400; white-space: nowrap; z-index: 100;">标签在选择面板中将根据排序值由大到小进行展示</div></span>
+                        </div>
+                        <input id="visitorTagSortInput" type="number" value="3" style="width: 120px; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 8px; font-size: 14px; color: #111; outline: none;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'" oninput="if(typeof validateVisitorTagForm === 'function') validateVisitorTagForm()">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 12px;">
+                        <button style="height: 38px; padding: 0 24px; border: 1px solid #e5e6eb; background: #fff; color: #4e5969; border-radius: 100px; cursor: pointer; font-size: 14px; transition: 0.2s;" onmouseover="this.style.borderColor='#2970FF'; this.style.color='#2970FF'" onmouseout="this.style.borderColor='#e5e6eb'; this.style.color='#4e5969'" onclick="document.getElementById('addVisitorTagModal').style.display='none'">取消</button>
+                        <button id="visitorTagConfirmBtn" disabled style="height: 38px; padding: 0 32px; border: none; background: #D8E5FF; color: #fff; border-radius: 100px; cursor: not-allowed; font-size: 14px; transition: 0.2s;" onmouseover="if(!this.disabled) this.style.opacity=0.9" onmouseout="if(!this.disabled) this.style.opacity=1" onclick="if(typeof confirmAddVisitorTag=== 'function') confirmAddVisitorTag()">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal center" id="sessionTagModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 4000; align-items: center; justify-content: center;">
+            <div class="modal-center-content" style="width: 440px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 24px;">
+                <div style="display: flex; justify-content: flex-start; align-items: center; gap: 12px; margin-bottom: 24px;">
+                    <div id="sessionTagModalTitle" style="font-size: 16px; font-weight: 600; color: #111;">添加会话标签</div>
+                    <div style="flex: 1;"></div>
+                    <i class="ri-close-line" style="font-size: 20px; color: #111; cursor: pointer;" onclick="document.getElementById('sessionTagModal').style.display='none'"></i>
+                </div>
+                <div style="flex: 1; overflow-y: auto;">
+                    <div style="margin-bottom: 24px;">
+                        <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px;"><span style="color: #F53F3F; margin-right: 4px;">*</span>标签名称</div>
+                        <input id="sessionTagNameInput" type="text" placeholder="输入标签" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 8px; font-size: 14px; color: #111; outline: none; transition: border 0.2s;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'" oninput="if(typeof validateSessionTagForm === 'function') validateSessionTagForm()">
+                    </div>
+                    <div style="margin-bottom: 32px;">
+                        <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                            <span style="color: #F53F3F; margin-right: 4px;">*</span>排序 <span style="position: relative; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #e5e6eb; color: #86909c; font-size: 11px; cursor: pointer;" onmouseover="this.nextElementSibling.style.display='block'" onmouseout="this.nextElementSibling.style.display='none'">?</span><div style="display: none; position: absolute; top: 50%; left: calc(100% + 8px); transform: translateY(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 400; white-space: nowrap; z-index: 100;">标签在选择面板中将根据排序值由大到小进行展示</div></span>
+                        </div>
+                        <input id="sessionTagSortInput" type="number" value="4" style="width: 120px; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 8px; font-size: 14px; color: #111; outline: none;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'" oninput="if(typeof validateSessionTagForm === 'function') validateSessionTagForm()">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 12px;">
+                        <button style="height: 38px; padding: 0 24px; border: 1px solid #e5e6eb; background: #fff; color: #4e5969; border-radius: 100px; cursor: pointer; font-size: 14px; transition: 0.2s;" onmouseover="this.style.borderColor='#2970FF'; this.style.color='#2970FF'" onmouseout="this.style.borderColor='#e5e6eb'; this.style.color='#4e5969'" onclick="document.getElementById('sessionTagModal').style.display='none'">取消</button>
+                        <button id="sessionTagConfirmBtn" disabled style="height: 38px; padding: 0 32px; border: none; background: #D8E5FF; color: #fff; border-radius: 100px; cursor: not-allowed; font-size: 14px; transition: 0.2s;" onmouseover="if(!this.disabled) this.style.opacity=0.9" onmouseout="if(!this.disabled) this.style.opacity=1" onclick="if(typeof saveSessionTag === 'function') saveSessionTag()">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 全局提示 (Toast) -->
     <div id="toastMessage" class="toast">
@@ -376,6 +450,24 @@ window.addEventListener('error', function(e) {
             </div>
 
             <div class="menu-item menu-parent" onclick="toggleSubMenu(this)">
+                <span>标签</span>
+                <i class="ri-arrow-down-s-line menu-icon"></i>
+            </div>
+            <div class="submenu-container" style="display: none;">
+                <div class="submenu-item" onclick="switchMenu(this)">访客标签</div>
+                <div class="submenu-item" onclick="switchMenu(this)">会话标签</div>
+            </div>
+
+            <div class="menu-item menu-parent" onclick="toggleSubMenu(this)">
+                <span>快捷回复</span>
+                <i class="ri-arrow-down-s-line menu-icon"></i>
+            </div>
+            <div class="submenu-container" style="display: none;">
+                <div class="submenu-item" onclick="switchMenu(this)">公共回复</div>
+                <div class="submenu-item" onclick="switchMenu(this)">个人回复</div>
+            </div>
+
+            <div class="menu-item menu-parent" onclick="toggleSubMenu(this)">
                 <span>开发设置</span>
                 <i class="ri-arrow-down-s-line menu-icon"></i>
             </div>
@@ -392,24 +484,6 @@ window.addEventListener('error', function(e) {
                 <div class="submenu-item" onclick="switchMenu(this)">文档知识</div>
                 <div class="submenu-item" onclick="switchMenu(this)">常见问题</div>
                 <div class="submenu-item" onclick="switchMenu(this)">AI设置</div>
-            </div>
-
-            <div class="menu-item menu-parent menu-greyed" onclick="toggleSubMenu(this)">
-                <span>快捷回复</span>
-                <i class="ri-arrow-down-s-line menu-icon"></i>
-            </div>
-            <div class="submenu-container menu-disabled" style="display: none;">
-                <div class="submenu-item" onclick="switchMenu(this)">公共回复</div>
-                <div class="submenu-item" onclick="switchMenu(this)">个人回复</div>
-            </div>
-
-            <div class="menu-item menu-parent menu-greyed" onclick="toggleSubMenu(this)">
-                <span>标签</span>
-                <i class="ri-arrow-down-s-line menu-icon"></i>
-            </div>
-            <div class="submenu-container menu-disabled" style="display: none;">
-                <div class="submenu-item" onclick="switchMenu(this)">访客标签</div>
-                <div class="submenu-item" onclick="switchMenu(this)">会话标签</div>
             </div>
 
             <div class="menu-item menu-parent menu-greyed" onclick="toggleSubMenu(this)">
@@ -855,6 +929,7 @@ window.addEventListener('error', function(e) {
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">会话负责人</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">服务客服</th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">客服数量</th>
+                            <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none;">标签</th>
 
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; cursor: pointer;">发起时间 <i class="ri-expand-up-down-fill" style="color: #c0c4cc; font-size: 12px; margin-left: 2px;"></i></th>
                             <th style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; border-top: none; cursor: pointer;">接待时间 <i class="ri-expand-up-down-fill" style="color: #c0c4cc; font-size: 12px; margin-left: 2px;"></i></th>
@@ -2487,11 +2562,66 @@ window.addEventListener('error', function(e) {
                                             }
                                         }
                                     </script>
+                                    <div id="previewQuickReplyPanel" style="display: none; margin-bottom: 8px; background: #fff; border: 1px solid #e5e6eb; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); max-height: 400px; overflow: hidden;">
+                                        <!-- Header -->
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                            <div style="font-size: 14px; font-weight: 600; color: #111;">快捷回复</div>
+                                            <div style="display: flex; align-items: center; gap: 8px; color: #86909c;">
+                                                <i class="ri-settings-3-line" style="cursor: pointer; font-size: 16px;" title="设置"></i>
+                                                <i class="ri-close-line" style="cursor: pointer; font-size: 16px;" onclick="togglePreviewQuickReply()" title="关闭"></i>
+                                            </div>
+                                        </div>
+                                        <!-- Body -->
+                                        <div style="display: flex; height: 320px;">
+                                            <!-- Left sidebar -->
+                                            <div style="width: 160px; border-right: 1px solid #f0f0f0; overflow-y: auto; flex-shrink: 0;">
+                                                <div class="quick-reply-cat active" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #111; cursor: pointer; background: #f2f3f5;">
+                                                    <span>公共回复</span><span style="color: #86909c; font-size: 12px;">5</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>个人回复</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/1123</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/1</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/123</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/hello</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                            </div>
+                                            <!-- Right content -->
+                                            <div style="flex: 1; overflow-y: auto; padding: 12px 16px;">
+                                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                                        <span>· 1 You're welcome, please let me know if there's anything else I can help you with!</span>
+                                                    </div>
+                                                </div>
+                                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                                        <span>· 1 想要在手机放一个 AI 助手，选项不少，但要么像个「高级复读机」，要么是信息的搬运工——天知道，我想要的是一个能真干活的助手，一个除了能说还能动手的「创意合伙人」。今年你应该也感觉到了，AI 正在从「能聊」变成「能干」。OpenAI 搞了个 Atlas，Google 即将发布的 Gemini 3.0 让 AI 直接操作电脑……</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div id="previewMessageInputArea" style="background: #fff; border-radius: 12px; padding: 12px 16px; border: 1px solid #e5e6eb; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                                         <div style="font-size: 14px; color: #86909c;">输入消息...</div>
                                         <div style="display: flex; justify-content: space-between; align-items: center;">
                                             <div style="display: flex; align-items: center; gap: 16px; color: #4e5969; font-size: 18px;">
                                                 <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                                                <span class="cs-toolbar-icon-btn" title="快捷回复" onclick="togglePreviewQuickReply()" id="previewQuickReplyBtn">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                                        <polyline points="13 8 11 12 15 12 13 16"/>
+                                                    </svg>
+                                                </span>
                                                 <i class="ri-attachment-2" style="cursor: pointer;"></i>
                                             </div>
                                             <div style="width: 28px; height: 28px; background: #f2f3f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -2504,7 +2634,7 @@ window.addEventListener('error', function(e) {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Bottom Branding -->
                             <div class="powered-by-link-display" style="padding: 8px 16px 16px 16px; text-align: center; color: #c9cdd4; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 4px; background: #f7f8fa;">
                                 Powered by <span style="color: #8da2cc; font-weight: 600; display: flex; align-items: center; gap: 4px; font-size: 13px;"><i class="ri-message-3-fill" style="font-size: 14px;"></i>Link</span>
@@ -2544,11 +2674,62 @@ window.addEventListener('error', function(e) {
                                 
                                 <!-- Input Area -->
                                 <div style="margin-top: auto; padding-top: 16px; padding-bottom: 0; display: flex; flex-direction: column;">
+                                    <div id="previewQuickReplyPanel2" style="display: none; margin-bottom: 8px; background: #fff; border: 1px solid #e5e6eb; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); max-height: 400px; overflow: hidden;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                            <div style="font-size: 14px; font-weight: 600; color: #111;">快捷回复</div>
+                                            <div style="display: flex; align-items: center; gap: 8px; color: #86909c;">
+                                                <i class="ri-settings-3-line" style="cursor: pointer; font-size: 16px;"></i>
+                                                <i class="ri-close-line" style="cursor: pointer; font-size: 16px;" onclick="togglePreviewQuickReply()"></i>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; height: 320px;">
+                                            <div style="width: 160px; border-right: 1px solid #f0f0f0; overflow-y: auto; flex-shrink: 0;">
+                                                <div class="quick-reply-cat active" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #111; cursor: pointer; background: #f2f3f5;">
+                                                    <span>公共回复</span><span style="color: #86909c; font-size: 12px;">5</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>个人回复</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/1123</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/1</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/123</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                                </div>
+                                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                                    <span>/hello</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                                </div>
+                                            </div>
+                                            <div style="flex: 1; overflow-y: auto; padding: 12px 16px;">
+                                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                                        <span>· 1 You're welcome, please let me know if there's anything else I can help you with!</span>
+                                                    </div>
+                                                </div>
+                                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                                        <span>· 1 想要在手机放一个 AI 助手……</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div style="background: #fff; border-radius: 12px; padding: 12px 16px; border: 1px solid #e5e6eb; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                                         <div style="font-size: 14px; color: #86909c;">输入消息...</div>
                                         <div style="display: flex; justify-content: space-between; align-items: center;">
                                             <div style="display: flex; align-items: center; gap: 16px; color: #4e5969; font-size: 18px;">
                                                 <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                                                <span class="cs-toolbar-icon-btn" title="快捷回复" onclick="togglePreviewQuickReply()">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                                        <polyline points="13 8 11 12 15 12 13 16"/>
+                                                    </svg>
+                                                </span>
                                                 <i class="ri-attachment-2" style="cursor: pointer;"></i>
                                             </div>
                                             <div style="width: 28px; height: 28px; background: #f2f3f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -3045,14 +3226,19 @@ window.addEventListener('error', function(e) {
         <div class="table-container" id="visitorTagContainer" style="display: none; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-bottom: 16px; flex-shrink: 0;">
                 <div style="font-size: 16px; font-weight: 600; color: #111;">访客标签</div>
-                <button class="btn btn-primary" style="height: 32px; padding: 0 16px; font-size: 13px; border-radius: 4px;">
+                <button class="btn btn-primary" style="height: 32px; padding: 0 16px; font-size: 13px; border-radius: 4px;" onclick="openAddVisitorTagModal()">
                     <i class="ri-add-line" style="margin-right: 4px;"></i>添加
                 </button>
             </div>
-            <div style="display: flex; margin-bottom: 16px;">
-                <div style="border: 1px solid #e5e6eb; border-radius: 4px; height: 32px; display: flex; align-items: center; padding: 0 12px; background: #fdfdfd; width: 180px;">
-                    <input type="text" placeholder="搜索标签" style="border: none; outline: none; background: transparent; width: 100%; font-size: 13px;" oninput="renderVisitorTags(this.value)">
-                    <i class="ri-search-line" style="color: #c0c4cc; font-size: 14px; margin-left: 8px;"></i>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="position: relative; display: flex; align-items: center; width: 240px;">
+                    <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
+                        <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
+                            <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
+                            <input id="visitorTagSearchInput" type="text" placeholder="搜索标签" style="border: none; width: 100%; height: 100%; padding: 0 28px 0 32px; font-size: 13px; outline: none; background: transparent; color: #111;" oninput="renderVisitorTags(this.value); toggleClearIcon(this, 'visitorTagSearchClear')">
+                            <i id="visitorTagSearchClear" class="ri-close-circle-fill" style="position: absolute; right: 8px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="clearFilter('visitorTagSearchInput', 'visitorTagSearchClear', ()=>renderVisitorTags(document.getElementById('visitorTagSearchInput').value))"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div style="flex: 1; overflow-x: auto; overflow-y: auto;">
@@ -3073,6 +3259,43 @@ window.addEventListener('error', function(e) {
             </div>
         </div>
 
+        <!-- 会话标签面板 -->
+        <div class="table-container" id="sessionTagContainer" style="display: none; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="font-size: 16px; font-weight: 600; color: #111;">会话标签</div>
+                <button class="btn btn-primary" style="height: 32px; padding: 0 16px; font-size: 13px; border-radius: 4px;" onclick="openAddSessionTag()">
+                    <i class="ri-add-line" style="margin-right: 4px;"></i>添加
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="position: relative; display: flex; align-items: center; width: 240px;">
+                    <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
+                        <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
+                            <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
+                            <input id="sessionTagSearchInput" type="text" placeholder="搜索标签" style="border: none; width: 100%; height: 100%; padding: 0 28px 0 32px; font-size: 13px; outline: none; background: transparent; color: #111;" oninput="renderSessionTags(this.value); toggleClearIcon(this, 'sessionTagSearchClear')">
+                            <i id="sessionTagSearchClear" class="ri-close-circle-fill" style="position: absolute; right: 8px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="clearFilter('sessionTagSearchInput', 'sessionTagSearchClear', ()=>renderSessionTags(document.getElementById('sessionTagSearchInput').value))"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; overflow-x: auto; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 800px; white-space: nowrap;">
+                    <thead style="position: sticky; top: 0; background: #f7f8fa; z-index: 10;">
+                        <tr>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 80px;">排序</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb;">标签</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 120px;">使用数量 <i class="ri-expand-up-down-fill" style="color: #c0c4cc;"></i></th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 180px;">创建人</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 180px;">创建时间</th>
+                            <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 80px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTagTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 公共回复面板 -->
         <div class="table-container" id="publicReplyContainer" style="display: none; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-bottom: 16px; flex-shrink: 0;">
@@ -3081,10 +3304,15 @@ window.addEventListener('error', function(e) {
                     <i class="ri-add-line" style="margin-right: 4px;"></i>添加
                 </button>
             </div>
-            <div style="display: flex; margin-bottom: 16px;">
-                <div style="border: 1px solid #e5e6eb; border-radius: 4px; height: 32px; display: flex; align-items: center; padding: 0 12px; background: #fdfdfd; width: 180px;">
-                    <input type="text" placeholder="搜索回复" style="border: none; outline: none; background: transparent; width: 100%; font-size: 13px;" oninput="renderPublicReplies(this.value)">
-                    <i class="ri-search-line" style="color: #c0c4cc; font-size: 14px; margin-left: 8px;"></i>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="position: relative; display: flex; align-items: center; width: 240px;">
+                    <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
+                        <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
+                            <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
+                            <input id="publicReplySearchInput" type="text" placeholder="搜索回复" style="border: none; width: 100%; height: 100%; padding: 0 28px 0 32px; font-size: 13px; outline: none; background: transparent; color: #111;" oninput="renderPublicReplies(this.value); toggleClearIcon(this, 'publicReplySearchClear')">
+                            <i id="publicReplySearchClear" class="ri-close-circle-fill" style="position: absolute; right: 8px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="clearFilter('publicReplySearchInput', 'publicReplySearchClear', ()=>renderPublicReplies(document.getElementById('publicReplySearchInput').value))"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div style="flex: 1; overflow-x: auto; overflow-y: auto;">
@@ -3100,6 +3328,43 @@ window.addEventListener('error', function(e) {
                         </tr>
                     </thead>
                     <tbody id="publicReplyTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 个人回复面板 -->
+        <div class="table-container" id="personalReplyContainer" style="display: none; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="font-size: 16px; font-weight: 600; color: #111;">个人回复</div>
+                <button class="btn btn-primary" style="height: 32px; padding: 0 16px; font-size: 13px; border-radius: 4px;" onclick="openAddPersonalReply()">
+                    <i class="ri-add-line" style="margin-right: 4px;"></i>添加
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                <div style="position: relative; display: flex; align-items: center; width: 240px;">
+                    <div style="display: flex; border: 1px solid #e5e6eb; border-radius: 4px; overflow: hidden; height: 32px; background: #fdfdfd; width: 100%;">
+                        <div style="position: relative; display: flex; align-items: center; width: 100%; background: transparent;">
+                            <i class="ri-search-line" style="position: absolute; left: 12px; color: #c0c4cc; font-size: 14px;"></i>
+                            <input id="personalReplySearchInput" type="text" placeholder="搜索回复" style="border: none; width: 100%; height: 100%; padding: 0 28px 0 32px; font-size: 13px; outline: none; background: transparent; color: #111;" oninput="renderPersonalReplies(this.value); toggleClearIcon(this, 'personalReplySearchClear')">
+                            <i id="personalReplySearchClear" class="ri-close-circle-fill" style="position: absolute; right: 8px; color: #c0c4cc; font-size: 14px; cursor: pointer; display: none;" onclick="clearFilter('personalReplySearchInput', 'personalReplySearchClear', ()=>renderPersonalReplies(document.getElementById('personalReplySearchInput').value))"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; overflow-x: auto; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 1000px; white-space: nowrap;">
+                    <thead style="position: sticky; top: 0; background: #f7f8fa; z-index: 10;">
+                        <tr>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 120px;">标签</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 400px;">回复</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 80px;">图片</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 160px;">创建人</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 180px;">创建时间</th>
+                            <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #111; border-bottom: 1px solid #e5e6eb; width: 80px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="personalReplyTableBody">
                     </tbody>
                 </table>
             </div>
@@ -3586,7 +3851,7 @@ window.addEventListener('error', function(e) {
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
                 <button class="btn" style="border-radius: 100px; height: 36px; padding: 0 28px; background: #f4f5f7; border: 1px solid #e5e6eb; color: #111; font-weight: 500;" onclick="closeModal('confirmRemoveModal')">取消</button>
-                <button class="btn btn-primary" style="border-radius: 100px; height: 36px; padding: 0 28px; font-weight: 500;" onclick="executeRemoveCustomer()">确定</button>
+                <button class="btn btn-primary" style="border-radius: 100px; height: 36px; padding: 0 28px; font-weight: 500; background: #F53F3F; border: none; color: #fff;" onclick="executeRemoveCustomer()">确定移除</button>
             </div>
         </div>
     </div>
@@ -3659,7 +3924,7 @@ window.addEventListener('error', function(e) {
     <div class="drawer-mask" id="visitorDetailDrawer" onclick="closeVisitorDetail()">
         <div class="drawer-content" onclick="event.stopPropagation()">
             <div class="drawer-header">
-                <span style="font-size: 16px; font-weight: 600; color: #111;">客户详情</span>
+                <span style="font-size: 16px; font-weight: 600; color: #111;">访客信息</span>
                 <i class="ri-close-fill" style="font-size: 20px; color: #111; font-weight: bold; cursor: pointer;" onclick="closeVisitorDetail()"></i>
             </div>
             <div class="drawer-body" style="padding: 16px 24px;">
@@ -3692,18 +3957,33 @@ window.addEventListener('error', function(e) {
                     </div>
                 </div>
 
-                <!-- 客户信息 -->
-                <div style="margin-bottom: 24px; display: none;" id="exclusiveClientInfoBox">
+                <!-- 访客标签 -->
+                <div style="margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'; this.querySelector('.ri-arrow-up-s-line').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(180deg)' : 'rotate(0deg)';">
                         <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #111; font-size: 14px;">
-                            <i class="ri-user-fill"></i> 客户信息
+                            <i class="ri-price-tag-3-fill"></i> 访客标签
                         </div>
                         <i class="ri-arrow-up-s-line" style="color: #4e5969; font-size: 16px; transition: transform 0.3s; transform: rotate(0deg);"></i>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13px; margin-top: 16px;">
-                        <div style="display: flex; align-items: flex-start;">
-                            <span style="color: #86909c; width: 80px; flex-shrink: 0;">客服标识</span>
-                            <span style="color: #111; word-break: break-all;" id="vdObjAgentId">-</span>
+                    <div id="visitorDrawerTagContainer" style="display: flex; flex-flow: row wrap; gap: 8px; margin-top: 16px; position: relative;">
+                        <div id="selectedVisitorDrawerTags" style="display: contents;">
+                            <!-- Selected visitor tags rendered here -->
+                        </div>
+                        <div id="addVisitorDrawerTagBtn" style="width: 28px; height: 28px; border-radius: 50%; background: #f2f3f5; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #86909c; flex-shrink: 0; transition: 0.2s; position: relative;"
+                             onmouseover="this.style.background='#e5e6eb'"
+                             onmouseout="this.style.background='#f2f3f5'"
+                             onclick="event.stopPropagation(); openVisitorDrawerTagPicker(this)">
+                            <i class="ri-add-line" style="font-size: 16px;"></i>
+                        </div>
+
+                        <!-- 访客标签选择弹窗 -->
+                        <div id="visitorDrawerTagPopup" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; border: 1px solid #f0f0f0;" onclick="event.stopPropagation()">
+                            <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                <input type="text" id="visitorDrawerTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; font-size: 13px; color: #111; outline: none; background: transparent;" oninput="window.filterVisitorDrawerTags(this.value)">
+                            </div>
+                            <div id="visitorDrawerTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">
+                                <!-- JS 动态渲染 -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3887,10 +4167,61 @@ window.addEventListener('error', function(e) {
                 </div>
                 
                 <div style="background: #f7f8fa; padding: 12px 16px 24px 16px; display: flex; flex-direction: column;">
+                    <div id="previewQuickReplyPanel4" style="display: none; margin-bottom: 8px; background: #fff; border: 1px solid #e5e6eb; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); max-height: 400px; overflow: hidden;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                            <div style="font-size: 14px; font-weight: 600; color: #111;">快捷回复</div>
+                            <div style="display: flex; align-items: center; gap: 8px; color: #86909c;">
+                                <i class="ri-settings-3-line" style="cursor: pointer; font-size: 16px;"></i>
+                                <i class="ri-close-line" style="cursor: pointer; font-size: 16px;" onclick="togglePreviewQuickReply()"></i>
+                            </div>
+                        </div>
+                        <div style="display: flex; height: 320px;">
+                            <div style="width: 160px; border-right: 1px solid #f0f0f0; overflow-y: auto; flex-shrink: 0;">
+                                <div class="quick-reply-cat active" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #111; cursor: pointer; background: #f2f3f5;">
+                                    <span>公共回复</span><span style="color: #86909c; font-size: 12px;">5</span>
+                                </div>
+                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                    <span>个人回复</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                </div>
+                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                    <span>/1123</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                </div>
+                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                    <span>/1</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                </div>
+                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                    <span>/123</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                </div>
+                                <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                    <span>/hello</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; overflow-y: auto; padding: 12px 16px;">
+                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                        <span>· 1 You're welcome, please let me know if there's anything else I can help you with!</span>
+                                    </div>
+                                </div>
+                                <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                        <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                        <span>· 1 想要在手机放一个 AI 助手……</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div style="background: #fff; height: 50px; border-radius: 25px; display: flex; align-items: center; padding: 0 16px; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.02); border: 1px solid #f0f0f0;">
                         <input type="text" id="websiteWidgetChatInput" placeholder="请输入..." style="border: none; outline: none; flex: 1; font-size: 14px; background: transparent; color: #111;" onkeypress="handleWebsitePreviewSend(event)" oninput="handleWebsitePreviewInputState()">
                         <div style="display: flex; align-items: center; gap: 12px; color: #111; font-size: 22px; margin-left: 12px;">
                             <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                            <span class="cs-toolbar-icon-btn" title="快捷回复" onclick="togglePreviewQuickReply()" style="font-size: 20px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    <polyline points="13 8 11 12 15 12 13 16"/>
+                                </svg>
+                            </span>
                             <i id="websiteWidgetAddIcon" class="ri-add-circle-line" style="cursor: pointer;"></i>
                             <button id="websiteWidgetSendBtn" style="display: none; background: #1677FF; color: #fff; border: none; border-radius: 4px; padding: 0 14px; font-size: 14px; cursor: pointer; height: 30px; line-height: 30px; transition: 0.2s; margin-left: -4px;" onclick="execWebsitePreviewSend()">发送</button>
                         </div>
@@ -3926,7 +4257,7 @@ window.addEventListener('error', function(e) {
                 
                 <!-- 右半边 -->
                 <div style="flex:1; padding: 24px; display:flex; flex-direction:column; background:#fff; position: relative;">
-                    <div style="font-size:14px; margin-bottom: 24px; color:#111; font-weight: 500;" id="assignSelectedCountLabel">已选择 (0/1000)</div>
+                    <div style="font-size:14px; margin-bottom: 24px; color:#111; font-weight: 500;" id="assignSelectedCountLabel">已选择 (0/1)</div>
                     <div style="display:flex; flex-direction:row; flex-wrap:wrap; gap:12px; align-content:flex-start; flex: 1; overflow-y: auto;" id="assignSelectedContainer">
                         <!-- 渲染已选项 -->
                     </div>
@@ -4012,10 +4343,61 @@ window.addEventListener('error', function(e) {
                     
                     <!-- Input Area -->
                     <div style="background: #f7f8fa; padding: 12px 16px 24px 16px; display: flex; flex-direction: column;">
+                        <div id="previewQuickReplyPanel3" style="display: none; margin-bottom: 8px; background: #fff; border: 1px solid #e5e6eb; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); max-height: 400px; overflow: hidden;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                                <div style="font-size: 14px; font-weight: 600; color: #111;">快捷回复</div>
+                                <div style="display: flex; align-items: center; gap: 8px; color: #86909c;">
+                                    <i class="ri-settings-3-line" style="cursor: pointer; font-size: 16px;"></i>
+                                    <i class="ri-close-line" style="cursor: pointer; font-size: 16px;" onclick="togglePreviewQuickReply()"></i>
+                                </div>
+                            </div>
+                            <div style="display: flex; height: 320px;">
+                                <div style="width: 160px; border-right: 1px solid #f0f0f0; overflow-y: auto; flex-shrink: 0;">
+                                    <div class="quick-reply-cat active" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #111; cursor: pointer; background: #f2f3f5;">
+                                        <span>公共回复</span><span style="color: #86909c; font-size: 12px;">5</span>
+                                    </div>
+                                    <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                        <span>个人回复</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                    </div>
+                                    <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                        <span>/1123</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                    </div>
+                                    <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                        <span>/1</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                    </div>
+                                    <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                        <span>/123</span><span style="color: #86909c; font-size: 12px;">2</span>
+                                    </div>
+                                    <div class="quick-reply-cat" onclick="selectQuickReplyCat(this)" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 13px; color: #4e5969; cursor: pointer;">
+                                        <span>/hello</span><span style="color: #86909c; font-size: 12px;">1</span>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto; padding: 12px 16px;">
+                                    <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                        <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                            <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                            <span>· 1 You're welcome, please let me know if there's anything else I can help you with!</span>
+                                        </div>
+                                    </div>
+                                    <div class="quick-reply-item" onclick="selectQuickReplyContent(this)" style="padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #111; line-height: 1.6; border: 1px solid transparent; transition: all 0.2s;">
+                                        <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                            <i class="ri-flashlight-fill" style="color: #f7ba2a; font-size: 14px; margin-top: 2px; flex-shrink: 0;"></i>
+                                            <span>· 1 想要在手机放一个 AI 助手……</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div style="background: #fff; height: 50px; border-radius: 25px; display: flex; align-items: center; padding: 0 16px; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.02); border: 1px solid #f0f0f0;">
                             <input type="text" id="previewChatInput" placeholder="请输入..." style="border: none; outline: none; flex: 1; font-size: 14px; background: transparent; color: #111;" onkeypress="handlePreviewSend(event)" oninput="handlePreviewChatInputState()">
                             <div style="display: flex; align-items: center; gap: 12px; color: #111; font-size: 22px; margin-left: 12px;">
                                 <i class="ri-emotion-line" style="cursor: pointer;"></i>
+                                <span class="cs-toolbar-icon-btn" title="快捷回复" onclick="togglePreviewQuickReply()" style="font-size: 20px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        <polyline points="13 8 11 12 15 12 13 16"/>
+                                    </svg>
+                                </span>
                                 <i id="previewChatAddIcon" class="ri-add-circle-line" style="cursor: pointer;"></i>
                                 <button id="previewChatSendBtn" style="display: none; background: #1677FF; color: #fff; border: none; border-radius: 4px; padding: 0 14px; font-size: 14px; cursor: pointer; height: 30px; line-height: 30px; transition: 0.2s; margin-left: -4px;" onclick="execPreviewSend()">发送</button>
                             </div>
@@ -4027,27 +4409,6 @@ window.addEventListener('error', function(e) {
     </div>
 
     <!-- 添加访客标签弹窗 -->
-    <div class="modal" id="addVisitorTagModal">
-        <div class="modal-content" style="width: 440px; padding: 28px; border-radius: 12px; display: flex; flex-direction: column;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <div class="modal-title" style="font-size: 16px; font-weight: 600; color: #111;">添加访客标签</div>
-                <i class="ri-close-line" style="font-size: 22px; color: #888; cursor: pointer; font-weight: bold;" onclick="document.getElementById('addVisitorTagModal').style.display='none'"></i>
-            </div>
-            <div class="modal-body" style="flex: 1; overflow-y: auto;">
-                <div style="margin-bottom: 24px;">
-                    <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px;">标签名称</div>
-                    <input type="text" placeholder="输入标签" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 6px; font-size: 14px; color: #111; outline: none; transition: 0.2s;">
-                </div>
-                <div style="margin-bottom: 32px;">
-                    <div style="font-size: 14px; font-weight: 500; color: #111; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
-                        排序 <i class="ri-question-line" style="color: #c0c4cc; font-weight: normal; cursor: help;" title="决定标签在列表中的顺序"></i>
-                    </div>
-                    <input type="number" value="2" style="width: 120px; height: 38px; padding: 0 12px; border: 1px solid #e5e6eb; border-radius: 6px; font-size: 14px; color: #111; outline: none;">
-                </div>
-                <button class="btn btn-primary" style="width: 100%; height: 38px; border-radius: 6px; font-size: 14px; background: #8daeff; border: none; font-weight: 500;" onclick="document.getElementById('addVisitorTagModal').style.display='none'">保存</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 创建会话弹窗 -->
     <div class="modal" id="createSessionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
@@ -4209,6 +4570,21 @@ window.addEventListener('error', function(e) {
             const s = styles[rating] || { color: '#4e5969' };
             return `<span style="color: ${s.color};">${rating}</span>`;
         }
+        function renderSessionTagsCell(sessionId) {
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            const tagIds = mapping[sessionId] || [];
+            const tags = tagIds.map(id => sessionTagData.find(t => t.id === id)).filter(Boolean);
+            if (tags.length === 0) {
+                return `<div id="sessionTableTagPickerBtn_${sessionId}" style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px dashed #d9d9d9; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #86909c; font-size: 14px; transition: all 0.2s;" onclick="event.stopPropagation(); window.openSessionTagPicker(event, '${sessionId}', this)" onmouseover="this.style.borderColor='#2970FF'; this.style.color='#2970FF'" onmouseout="this.style.borderColor='#d9d9d9'; this.style.color='#86909c'"><i class="ri-add-line"></i></div>`;
+            }
+            let html = '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">';
+            tags.forEach(t => {
+                html += `<div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">${t.name}<i class="ri-close-line" style="cursor: pointer; font-size: 14px; color: #86909c;" onclick="event.stopPropagation(); window.removeSessionTag(event, '${sessionId}', ${t.id})"></i></div>`;
+            });
+            html += `<div id="sessionTableTagPickerBtn_${sessionId}" style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px dashed #d9d9d9; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #86909c; font-size: 13px; flex-shrink: 0; transition: all 0.2s;" onclick="event.stopPropagation(); window.openSessionTagPicker(event, '${sessionId}', this)" onmouseover="this.style.borderColor='#2970FF'; this.style.color='#2970FF'" onmouseout="this.style.borderColor='#d9d9d9'; this.style.color='#86909c'"><i class="ri-add-line"></i></div>`;
+            html += '</div>';
+            return html;
+        }
         function renderSessions() {
             const emptyState = document.getElementById('emptyState');
             const sessionTableContainer = document.getElementById('sessionTableContainer');
@@ -4285,6 +4661,7 @@ window.addEventListener('error', function(e) {
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.owner}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.owner}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${s.csCount}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">${renderSessionTagsCell(s.id)}</td>
 
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.startTime || '-'}</td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${s.receiveTime || '-'}</td>
@@ -4300,7 +4677,7 @@ window.addEventListener('error', function(e) {
                                 <div class="op-hover-menu">
                                     <div class="op-hover-item" onclick="openSessionDetail(event, '${s.id}')">查看会话</div>
                                     ${s.status === '排队中' ? `<div class="op-hover-item" onclick="openAssignSessionModal(event, '${s.id}')">分配会话</div>` : ''}
-                                    ${s.status === '已关闭' ? `<div class="op-hover-item" onclick="deleteSession(event, '${s.id}')" style="color: #F53F3F;">删除会话</div>` : ''}
+                                    ${s.status === '已关闭' ? `<div class="op-hover-item" onclick="event.stopPropagation(); window.deleteSession(event, '${s.id}')" style="color: #F53F3F;">删除会话</div>` : ''}
                                 </div>
                             </div>
                         </td>
@@ -4311,16 +4688,173 @@ window.addEventListener('error', function(e) {
         }
 
         
-        const visitorTagData = [
-            { id: 2, sort: 2, name: '·2112313', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-25 10:03:32' },
-            { id: 1, sort: 1, name: '1', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-14 18:31:40' }
+        const defaultVisitorTagData = [
+            { id: 2, sort: 1, name: '优质客户', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-25 10:03:32' },
+            { id: 1, sort: 2, name: '普通客户', count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-03-14 18:31:40' }
         ];
+        let visitorTagData = JSON.parse(localStorage.getItem('visitorTagData')) || defaultVisitorTagData;
+
+        function saveVisitorTagsToStorage() {
+            localStorage.setItem('visitorTagData', JSON.stringify(visitorTagData));
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'visitorTagData' && e.newValue) {
+                visitorTagData = JSON.parse(e.newValue);
+                if (typeof renderVisitorTags === 'function') renderVisitorTags();
+            }
+        });
+
+        function openAddVisitorTagModal() {
+            try {
+                console.log('openAddVisitorTagModal clicked');
+                window.editingVisitorTagId = null;
+                const nameInput = document.getElementById('visitorTagNameInput');
+                if (nameInput) nameInput.value = '';
+                
+                let maxSort = 0;
+                if (typeof visitorTagData !== 'undefined' && Array.isArray(visitorTagData) && visitorTagData.length > 0) {
+                    try {
+                        maxSort = Math.max(...visitorTagData.map(t => t.sort || 0));
+                    } catch (e) { console.warn('Sort calculation error:', e); }
+                }
+                const sortInput = document.getElementById('visitorTagSortInput');
+                if (sortInput) sortInput.value = maxSort + 1;
+                
+                const title = document.getElementById('visitorTagModalTitle');
+                if (title) title.innerText = '添加访客标签';
+                
+                if (typeof validateVisitorTagForm === 'function') validateVisitorTagForm();
+                
+                const modal = document.getElementById('addVisitorTagModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    console.log('addVisitorTagModal shown');
+                } else {
+                    console.error('addVisitorTagModal not found');
+                }
+            } catch (err) {
+                console.error('Error in openAddVisitorTagModal:', err);
+            }
+        }
+
+        function openEditVisitorTag(id) {
+            const item = visitorTagData.find(t => t.id === id);
+            if (!item) return;
+            window.editingVisitorTagId = id;
+            document.getElementById('visitorTagNameInput').value = item.name;
+            document.getElementById('visitorTagSortInput').value = item.sort;
+            document.getElementById('visitorTagModalTitle').innerText = '编辑访客标签';
+            document.getElementById('visitorTagConfirmBtn').disabled = false;
+            document.getElementById('visitorTagConfirmBtn').style.background = '#2970FF';
+            document.getElementById('visitorTagConfirmBtn').style.cursor = 'pointer';
+            document.getElementById('visitorTagConfirmBtn').style.opacity = '1';
+            document.getElementById('addVisitorTagModal').style.display = 'flex';
+        }
+
+        function validateVisitorTagForm() {
+            const name = document.getElementById('visitorTagNameInput').value.trim();
+            const sort = document.getElementById('visitorTagSortInput').value.trim();
+            const btn = document.getElementById('visitorTagConfirmBtn');
+            if (name && sort) {
+                btn.disabled = false;
+                btn.style.background = '#2970FF';
+                btn.style.cursor = 'pointer';
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.background = '#D8E5FF';
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '1';
+            }
+        }
+
+        function confirmAddVisitorTag() {
+            const name = document.getElementById('visitorTagNameInput').value.trim();
+            const sort = parseInt(document.getElementById('visitorTagSortInput').value);
+            if (!name || !sort) return;
+            if (window.editingVisitorTagId) {
+                const idx = visitorTagData.findIndex(t => t.id === window.editingVisitorTagId);
+                if (idx > -1) {
+                    visitorTagData[idx].name = name;
+                    visitorTagData[idx].sort = sort;
+                }
+            } else {
+                visitorTagData.push({
+                    id: Date.now(),
+                    sort: sort,
+                    name: name,
+                    count: 0,
+                    creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski',
+                    creatorName: 'tuski',
+                    createTime: new Date().toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\//g,'-')
+                });
+            }
+            document.getElementById('addVisitorTagModal').style.display = 'none';
+            saveVisitorTagsToStorage();
+            renderVisitorTags();
+            showToast(window.editingVisitorTagId ? '编辑成功' : '添加成功');
+        }
+
+        window.openDeleteVisitorTagModal = function(id) {
+            window.pendingVisitorTagDeleteId = id;
+            var existing = document.getElementById('visitorTagDeleteConfirmModal');
+            if (existing) existing.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'visitorTagDeleteConfirmModal';
+            modal.style.cssText = 'position:fixed!important;inset:0!important;background:rgba(0,0,0,0.5)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;display:flex!important;';
+            modal.onclick = function() { this.remove(); };
+            modal.innerHTML = '<div style="width:420px;background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.15);padding:32px 32px 24px;" onclick="event.stopPropagation()">' +
+                '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+                '<i class="ri-error-warning-fill" style="color:#FF8A00;font-size:28px;line-height:1;"></i>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:18px;font-weight:600;color:#111;margin-bottom:12px;line-height:28px;">确定删除此标签？</div>' +
+                '<div style="font-size:15px;color:#555;line-height:1.6;">删除后不可恢复，确认删除？</div>' +
+                '</div></div>' +
+                '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:32px;">' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;background:#f4f5f7;border:1px solid #e5e6eb;color:#111;font-weight:500;cursor:pointer;font-size:14px;" onclick="document.getElementById(\'visitorTagDeleteConfirmModal\').remove()">取消</button>' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;border:none;background:#F53F3F;color:#fff;font-weight:500;cursor:pointer;font-size:14px;" onclick="window.confirmDeleteVisitorTag()">确定删除</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        };
+
+        window.confirmDeleteVisitorTag = function() {
+            const id = window.pendingVisitorTagDeleteId;
+            const idx = visitorTagData.findIndex(item => item.id === id);
+            if (idx > -1) {
+                visitorTagData.splice(idx, 1);
+                saveVisitorTagsToStorage();
+
+                // Cleanup visitor info mappings
+                const mapping = JSON.parse(localStorage.getItem('customerTagSelectionMapping')) || {};
+                let changed = false;
+                for (let key in mapping) {
+                    if (Array.isArray(mapping[key]) && mapping[key].includes(id)) {
+                        mapping[key] = mapping[key].filter(tid => tid !== id);
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    localStorage.setItem('customerTagSelectionMapping', JSON.stringify(mapping));
+                }
+
+                renderVisitorTags();
+            }
+            var modal = document.getElementById('visitorTagDeleteConfirmModal');
+            if (modal) modal.remove();
+            showToast('删除成功');
+        }
 
         function renderVisitorTags(search = '') {
             const tbody = document.getElementById('visitorTagTableBody');
             if(!tbody) return;
             const s = search.toLowerCase();
-            const filtered = visitorTagData.filter(t => t.name.toLowerCase().includes(s));
+            const sorted = [...visitorTagData].sort((a, b) => {
+                if (b.sort !== a.sort) return b.sort - a.sort;
+                return new Date(b.createTime.replace(/-/g, '/')) - new Date(a.createTime.replace(/-/g, '/'));
+            });
+            const filtered = sorted.filter(t => t.name.toLowerCase().includes(s));
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无数据</div></td></tr>`;
             } else {
@@ -4336,8 +4870,14 @@ window.addEventListener('error', function(e) {
                         </div>
                     </td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${t.createTime}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; text-align: center;">
-                        <i class="ri-more-2-fill" style="color: #4e5969; font-size: 16px; cursor: pointer;"></i>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; text-align: center; position: relative;">
+                        <div style="display: inline-block; cursor: pointer; position: relative;" onmouseenter="this.querySelector('.action-menu-popover').style.display='flex';" onmouseleave="this.querySelector('.action-menu-popover').style.display='none';">
+                            <i class="ri-more-2-fill" style="color: #86909c; font-size: 16px;"></i>
+                            <div class="action-menu-popover" style="display: none; position: absolute; top: 100%; right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 8px 0; z-index: 100; flex-direction: column; min-width: 80px; border: 1px solid #e5e6eb;">
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #111; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="openEditVisitorTag(${t.id})">编辑</div>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #F53F3F; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.openDeleteVisitorTagModal(${t.id})">删除</div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -4346,7 +4886,10 @@ window.addEventListener('error', function(e) {
         }
 
         const publicReplyData = [
-            { id: 1, tag: '/hello', reply: '你好', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-04-02 12:02' }
+            { id: 1, tag: '问候', reply: '您好，欢迎咨询！请问有什么可以帮您？', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-04-02 12:02' },
+            { id: 2, tag: '报价', reply: '关于产品价格，您可以参考我们的官网价目表，或者我为您发送一份详细的报价单。', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-04-05 14:15' },
+            { id: 3, tag: '技术', reply: '如果您在使用过程中遇到技术问题，请详细描述报错信息，我会为您记录并反馈给技术团队。', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-04-08 10:30' },
+            { id: 4, tag: '物流', reply: '您的订单正在火速配送中，通常在 3-5 个工作日内即可送达，请您耐心等待。', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: '2026-04-10 16:45' }
         ];
 
         function deletePublicReply(id) {
@@ -4390,11 +4933,11 @@ window.addEventListener('error', function(e) {
                     </td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${r.createTime}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; text-align: center; position: relative;">
-                        <div style="display: inline-block; cursor: pointer; position: relative;" onmouseover="this.querySelector('.action-menu-popover').style.display='flex';" onmouseout="this.querySelector('.action-menu-popover').style.display='none';">
+                        <div style="display: inline-block; cursor: pointer; position: relative;" onmouseenter="this.querySelector('.action-menu-popover').style.display='flex';" onmouseleave="this.querySelector('.action-menu-popover').style.display='none';">
                             <i class="ri-more-2-fill" style="color: #86909c; font-size: 16px;"></i>
                             <div class="action-menu-popover" style="display: none; position: absolute; top: 100%; right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 8px 0; z-index: 100; flex-direction: column; min-width: 80px; border: 1px solid #e5e6eb;">
-                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #111; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="openEditPublicReply(${r.id})">编辑</div>
-                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #F53F3F; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="openDeletePublicReplyModal(${r.id})">删除</div>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #111; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openEditPublicReply(${r.id})">编辑</div>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #F53F3F; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openDeletePublicReplyModal(${r.id})">删除</div>
                             </div>
                         </div>
                     </td>
@@ -4406,7 +4949,642 @@ window.addEventListener('error', function(e) {
 
         function renderDevSettings() {} // No dynamic rows needed
 
-        
+        // === 个人回复 ===
+        const personalReplyData = [
+            { id: 1, tag: '欢迎', reply: '哈喽！我是您的专属客服小林，很高兴为您服务。', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan', creatorName: '王三', createTime: '2026-04-10 09:30' },
+            { id: 2, tag: '等候', reply: '好的，正在为您查询中，请稍等片刻哈。', picture: '1', images: ['https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=200'], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan', creatorName: '王三', createTime: '2026-04-12 14:20' },
+            { id: 3, tag: '致谢', reply: '不客气，如果您还有其他问题，欢迎随时联系我！', picture: '-', images: [], creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan', creatorName: '王三', createTime: '2026-04-14 11:05' }
+        ];
+
+        function deletePersonalReply(id) {
+            const idx = personalReplyData.findIndex(item => item.id === id);
+            if (idx > -1) {
+                personalReplyData.splice(idx, 1);
+                renderPersonalReplies();
+                if(typeof showToast === 'function') showToast('删除成功');
+            }
+        }
+
+        function renderPersonalReplies(search = '') {
+            const tbody = document.getElementById('personalReplyTableBody');
+            if(!tbody) return;
+            const s = search.toLowerCase();
+            const filtered = personalReplyData.filter(r => r.tag.toLowerCase().includes(s) || r.reply.toLowerCase().includes(s));
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无数据</div></td></tr>`;
+            } else {
+                tbody.innerHTML = filtered.map((r, idx) => `
+                    <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}';">
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                        <span style="display: inline-block; padding: 4px 8px; border: 1px solid #e5e6eb; border-radius: 4px; color: #4e5969; font-size: 13px;">${r.tag}</span>
+                    </td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.reply}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; position: relative;">
+                        ${r.images && r.images.length > 0 ? `
+                        <div style="display: inline-block; cursor: pointer; position: relative;" onmouseover="this.querySelector('.img-popover').style.display='grid';" onmouseout="this.querySelector('.img-popover').style.display='none';">
+                            <span style="color: #111;">${r.picture}</span>
+                            <div class="img-popover" style="display: none; position: absolute; top: calc(100% + 8px); left: 0px; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 12px; z-index: 100; grid-template-columns: repeat(5, 48px); gap: 8px; border: 1px solid #e5e6eb;">
+                                ${r.images.map(src => `<img src="${src}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid #f0f0f0;">`).join('')}
+                            </div>
+                        </div>
+                        ` : r.picture}
+                    </td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img src="${r.creatorAvatar}" style="width: 24px; height: 24px; border-radius: 50%; background: #f0f0f0;">
+                            <span>${r.creatorName}</span>
+                        </div>
+                    </td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${r.createTime}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; text-align: center; position: relative;">
+                        <div style="display: inline-block; cursor: pointer; position: relative;" onmouseenter="this.querySelector('.action-menu-popover').style.display='flex';" onmouseleave="this.querySelector('.action-menu-popover').style.display='none';">
+                            <i class="ri-more-2-fill" style="color: #86909c; font-size: 16px;"></i>
+                            <div class="action-menu-popover" style="display: none; position: absolute; top: 100%; right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 8px 0; z-index: 100; flex-direction: column; min-width: 80px; border: 1px solid #e5e6eb;">
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #111; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openEditPersonalReply(${r.id})">编辑</div>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #F53F3F; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openDeletePersonalReplyModal(${r.id})">删除</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            }
+            renderPagination('personalReplyContainer', filtered.length, 1, 10);
+        }
+
+        let editingPersonalReplyId = null;
+        function openAddPersonalReply() {
+            editingPersonalReplyId = null;
+            document.getElementById('personalReplyModalTitle').innerText = '添加个人回复';
+            document.getElementById('personalReplyTagInput').value = '';
+            document.getElementById('personalReplyTextInput').value = '';
+            document.getElementById('personalReplyModal').style.display = 'flex';
+        }
+        function openEditPersonalReply(id) {
+            editingPersonalReplyId = id;
+            const item = personalReplyData.find(r => r.id === id);
+            if (!item) return;
+            document.getElementById('personalReplyModalTitle').innerText = '编辑个人回复';
+            document.getElementById('personalReplyTagInput').value = item.tag;
+            document.getElementById('personalReplyTextInput').value = item.reply;
+            document.getElementById('personalReplyModal').style.display = 'flex';
+        }
+        function savePersonalReply() {
+            const tag = document.getElementById('personalReplyTagInput').value.trim();
+            const text = document.getElementById('personalReplyTextInput').value.trim();
+            if (!tag || !text) { if(typeof showToast === 'function') showToast('请填写标签和回复内容'); return; }
+            if (editingPersonalReplyId) {
+                const idx = personalReplyData.findIndex(r => r.id === editingPersonalReplyId);
+                if (idx > -1) {
+                    personalReplyData[idx].tag = tag;
+                    personalReplyData[idx].reply = text;
+                }
+            } else {
+                personalReplyData.unshift({
+                    id: Date.now(),
+                    tag: tag,
+                    reply: text,
+                    picture: '-',
+                    images: [],
+                    creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan',
+                    creatorName: '王三',
+                    createTime: new Date().toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\//g,'-')
+                });
+            }
+            document.getElementById('personalReplyModal').style.display = 'none';
+            renderPersonalReplies();
+            if(typeof showToast === 'function') showToast('保存成功');
+        }
+        window.openDeletePersonalReplyModal = function(id) {
+            window.pendingPersonalDeleteId = id;
+            var existing = document.getElementById('personalDeleteConfirmModal');
+            if (existing) existing.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'personalDeleteConfirmModal';
+            modal.style.cssText = 'position:fixed!important;inset:0!important;background:rgba(0,0,0,0.5)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;display:flex!important;';
+            modal.onclick = function() { this.remove(); };
+            modal.innerHTML = '<div style="width:420px;background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.15);padding:32px 32px 24px;" onclick="event.stopPropagation()">' +
+                '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+                '<i class="ri-error-warning-fill" style="color:#FF8A00;font-size:28px;line-height:1;"></i>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:18px;font-weight:600;color:#111;margin-bottom:12px;line-height:28px;">确定删除此回复？</div>' +
+                '<div style="font-size:15px;color:#555;line-height:1.6;">删除后不可恢复，确认删除？</div>' +
+                '</div></div>' +
+                '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:32px;">' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;background:#f4f5f7;border:1px solid #e5e6eb;color:#111;font-weight:500;cursor:pointer;font-size:14px;" onclick="document.getElementById(\'personalDeleteConfirmModal\').remove()">取消</button>' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;border:none;background:#F53F3F;color:#fff;font-weight:500;cursor:pointer;font-size:14px;" onclick="window.confirmDeletePersonalReply()">确定删除</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        };
+
+        window.confirmDeletePersonalReply = function() {
+            const idx = personalReplyData.findIndex(item => item.id === window.pendingPersonalDeleteId);
+            if (idx > -1) {
+                personalReplyData.splice(idx, 1);
+                renderPersonalReplies();
+            }
+            var modal = document.getElementById('personalDeleteConfirmModal');
+            if (modal) modal.remove();
+            if(typeof showToast === 'function') showToast('删除成功');
+        };
+
+        // === 会话标签 ===
+        const defaultSessionTagData = [
+            { id: 101, sort: 2, name: '售后', count: 5, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisi', creatorName: '李四', createTime: '2026-04-05 14:30:00' },
+            { id: 102, sort: 1, name: '投诉', count: 3, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan', creatorName: '王三', createTime: '2026-04-01 10:00:00' }
+        ];
+
+        let sessionTagData = JSON.parse(localStorage.getItem('sessionTagData')) || defaultSessionTagData;
+
+        function saveSessionTagsToStorage() {
+            localStorage.setItem('sessionTagData', JSON.stringify(sessionTagData));
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'sessionTagData' && e.newValue) {
+                sessionTagData = JSON.parse(e.newValue);
+                if (typeof renderSessionTags === 'function') renderSessionTags();
+            }
+        });
+
+        let editingSessionTagId = null;
+        window.openAddSessionTag = function() {
+            try {
+                editingSessionTagId = null;
+                const nameInput = document.getElementById('sessionTagNameInput');
+                if (nameInput) nameInput.value = '';
+                
+                let maxSort = 0;
+                if (typeof sessionTagData !== 'undefined' && Array.isArray(sessionTagData) && sessionTagData.length > 0) {
+                    try {
+                        maxSort = Math.max(...sessionTagData.map(t => t.sort || 0));
+                    } catch (e) { console.warn('Sort calculation error:', e); }
+                }
+                const sortInput = document.getElementById('sessionTagSortInput');
+                if (sortInput) sortInput.value = maxSort + 1;
+                
+                const title = document.getElementById('sessionTagModalTitle');
+                if (title) title.innerText = '添加会话标签';
+                
+                if (typeof window.validateSessionTagForm === 'function') window.validateSessionTagForm();
+                
+                const modal = document.getElementById('sessionTagModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error('Error in openAddSessionTag:', err);
+            }
+        };
+        window.openEditSessionTag = function(id) {
+            const item = sessionTagData.find(t => t.id === id);
+            if (!item) return;
+            editingSessionTagId = id;
+            document.getElementById('sessionTagNameInput').value = item.name;
+            document.getElementById('sessionTagSortInput').value = item.sort;
+            document.getElementById('sessionTagModalTitle').innerText = '编辑会话标签';
+            document.getElementById('sessionTagConfirmBtn').disabled = false;
+            document.getElementById('sessionTagConfirmBtn').style.background = '#2970FF';
+            document.getElementById('sessionTagConfirmBtn').style.cursor = 'pointer';
+            document.getElementById('sessionTagConfirmBtn').style.opacity = '1';
+            document.getElementById('sessionTagModal').style.display = 'flex';
+        };
+        window.validateSessionTagForm = function() {
+            const name = document.getElementById('sessionTagNameInput').value.trim();
+            const sort = document.getElementById('sessionTagSortInput').value.trim();
+            const btn = document.getElementById('sessionTagConfirmBtn');
+            if (name && sort) {
+                btn.disabled = false;
+                btn.style.background = '#2970FF';
+                btn.style.cursor = 'pointer';
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.background = '#D8E5FF';
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '1';
+            }
+        };
+        function saveSessionTag() {
+            const name = document.getElementById('sessionTagNameInput').value.trim();
+            const sort = parseInt(document.getElementById('sessionTagSortInput').value);
+            if (!name || !sort) return;
+            if (editingSessionTagId) {
+                const idx = sessionTagData.findIndex(t => t.id === editingSessionTagId);
+                if (idx > -1) {
+                    sessionTagData[idx].name = name;
+                    sessionTagData[idx].sort = sort;
+                }
+            } else {
+                sessionTagData.push({
+                    id: Date.now(),
+                    sort: sort,
+                    name: name,
+                    count: 0,
+                    creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangsan',
+                    creatorName: '王三',
+                    createTime: new Date().toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\//g,'-')
+                });
+            }
+            saveSessionTagsToStorage();
+            document.getElementById('sessionTagModal').style.display = 'none';
+            renderSessionTags();
+            showToast(editingSessionTagId ? '编辑成功' : '添加成功');
+        }
+        // Logic for opening the delete confirmation modal
+        window.openDeleteSessionTagModal = function(id) {
+            window.pendingSessionTagDeleteId = id;
+            // Remove existing modal if any, then create fresh
+            var existing = document.getElementById('sessionTagDeleteConfirmModal');
+            if (existing) existing.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'sessionTagDeleteConfirmModal';
+            modal.style.cssText = 'position:fixed!important;inset:0!important;background:rgba(0,0,0,0.5)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;display:flex!important;';
+            modal.onclick = function() { this.remove(); };
+            modal.innerHTML = '<div style="width:420px;background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.15);padding:32px 32px 24px;" onclick="event.stopPropagation()">' +
+                '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+                '<i class="ri-error-warning-fill" style="color:#FF8A00;font-size:28px;line-height:1;"></i>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:18px;font-weight:600;color:#111;margin-bottom:12px;line-height:28px;">确定删除此标签？</div>' +
+                '<div style="font-size:15px;color:#555;line-height:1.6;">删除后不可恢复，确认删除？</div>' +
+                '</div></div>' +
+                '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:32px;">' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;background:#f4f5f7;border:1px solid #e5e6eb;color:#111;font-weight:500;cursor:pointer;font-size:14px;" onclick="document.getElementById(\'sessionTagDeleteConfirmModal\').remove()">取消</button>' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;border:none;background:#F53F3F;color:#fff;font-weight:500;cursor:pointer;font-size:14px;" onclick="window.confirmDeleteSessionTag()">确定删除</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        };
+
+        // Logic for confirming the deletion
+        window.confirmDeleteSessionTag = function() {
+            const id = window.pendingSessionTagDeleteId;
+            if (!id) return;
+
+            // 1. Remove from master tag list
+            const idx = sessionTagData.findIndex(item => item.id === id);
+            if (idx > -1) {
+                sessionTagData.splice(idx, 1);
+                localStorage.setItem('sessionTagData', JSON.stringify(sessionTagData));
+            }
+
+            // 2. Deep cleanup: Remove this tag ID from all session mappings
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping')) || {};
+            let mappingChanged = false;
+            for (let sessionKey in mapping) {
+                if (Array.isArray(mapping[sessionKey]) && mapping[sessionKey].includes(id)) {
+                    mapping[sessionKey] = mapping[sessionKey].filter(tid => tid !== id);
+                    mappingChanged = true;
+                }
+            }
+            if (mappingChanged) {
+                localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            }
+
+            // 3. Update UI and remove modal
+            renderSessionTags();
+            const modal = document.getElementById('sessionTagDeleteConfirmModal');
+            if (modal) modal.remove();
+            if (typeof showToast === 'function') showToast('删除成功');
+        };
+
+        // === 表格内标签选择弹窗 ===
+        window.createTableTag = function(name, sessionId) {
+            if (sessionTagData.some(t => t.name === name)) return;
+            const newId = Date.now();
+            const maxSort = Math.max(...sessionTagData.map(t => t.sort), 0);
+            const newTag = { id: newId, sort: maxSort + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() };
+            sessionTagData.push(newTag);
+            saveSessionTagsToStorage();
+            // Auto-select the new tag for this session
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (!mapping[sessionId]) mapping[sessionId] = [];
+            mapping[sessionId].push(newId);
+            localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            // Re-render the picker with the new tag
+            const input = document.getElementById('tableTagSearchInput');
+            if (input) input.value = '';
+            const picker = document.getElementById('sessionTableTagPicker');
+            if (picker) {
+                picker.remove();
+                document.removeEventListener('click', closePicker);
+            }
+            renderSessions();
+        };
+
+        window.openSessionTagPicker = function(event, sessionId, btnEl) {
+            // Remove existing picker if any
+            const existing = document.getElementById('sessionTableTagPicker');
+            if (existing) existing.remove();
+
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            const selectedIds = new Set(mapping[sessionId] || []);
+
+            const rect = btnEl.getBoundingClientRect();
+            const scrollArea = document.getElementById('sessionTableScrollArea');
+            const tableEl = document.getElementById('sessionTable');
+            const tableRect = tableEl.getBoundingClientRect();
+
+            let picker = document.createElement('div');
+            picker.id = 'sessionTableTagPicker';
+            picker.style.cssText = `position: fixed; top: ${rect.bottom + 6}px; left: ${rect.left}px; width: 240px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 9999; overflow: hidden; border: 1px solid #f0f0f0;`;
+            picker.onclick = (e) => e.stopPropagation();
+
+            let html = `<div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0;">
+                <input type="text" id="tableTagSearchInput" placeholder="搜索/创建标签" style="width: 100%; border: none; font-size: 13px; color: #111; outline: none; background: transparent;" oninput="window.filterTableTags(this.value, '${sessionId}')">
+            </div>
+            <div id="tableTagListContainer" style="max-height: 300px; overflow-y: auto; padding: 4px 0;">`;
+
+            sessionTagData.forEach(t => {
+                const checked = selectedIds.has(t.id);
+                html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleTableTagSelection(event, '${sessionId}', ${t.id}, this)">
+                    <span style="font-size: 13px; color: #111;">${t.name}</span>
+                    <div style="width: 16px; height: 16px; border: 1.5px solid ${checked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${checked ? '#2970FF' : '#fff'};">
+                        <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${checked ? 'block' : 'none'};"></i>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            picker.innerHTML = html;
+            document.body.appendChild(picker);
+
+            const closePicker = (e) => {
+                if (picker && picker.parentNode) {
+                    picker.remove();
+                    renderSessions();
+                }
+                document.removeEventListener('click', closePicker);
+            };
+            // Delay to avoid immediate close from the click that opened it
+            setTimeout(() => document.addEventListener('click', closePicker), 100);
+        };
+
+        window.filterTableTags = function(val, sessionId) {
+            const container = document.getElementById('tableTagListContainer');
+            if (!container) return;
+            const trimmed = val.trim();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            const selectedIds = new Set(mapping[sessionId] || []);
+
+            let html = '';
+            if (trimmed === '') {
+                sessionTagData.forEach(t => {
+                    const checked = selectedIds.has(t.id);
+                    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleTableTagSelection(event, '${sessionId}', ${t.id}, this)">
+                        <span style="font-size: 13px; color: #111;">${t.name}</span>
+                        <div style="width: 16px; height: 16px; border: 1.5px solid ${checked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${checked ? '#2970FF' : '#fff'};">
+                            <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${checked ? 'block' : 'none'};"></i>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                const exactMatch = sessionTagData.find(t => t.name === trimmed);
+                const partialMatches = sessionTagData.filter(t => t.name !== trimmed && t.name.includes(trimmed));
+                const escapedName = trimmed.replace(/'/g, "\\'");
+                if (exactMatch) {
+                    const checked = selectedIds.has(exactMatch.id);
+                    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleTableTagSelection(event, '${sessionId}', ${exactMatch.id}, this)">
+                        <span style="font-size: 13px; color: #111;">${exactMatch.name}</span>
+                        <div style="width: 16px; height: 16px; border: 1.5px solid ${checked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${checked ? '#2970FF' : '#fff'};">
+                            <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${checked ? 'block' : 'none'};"></i>
+                        </div>
+                    </div>`;
+                    partialMatches.forEach(t => {
+                        const c = selectedIds.has(t.id);
+                        html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleTableTagSelection(event, '${sessionId}', ${t.id}, this)">
+                            <span style="font-size: 13px; color: #111;">${t.name}</span>
+                            <div style="width: 16px; height: 16px; border: 1.5px solid ${c ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${c ? '#2970FF' : '#fff'};">
+                                <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${c ? 'block' : 'none'};"></i>
+                            </div>
+                        </div>`;
+                    });
+                } else if (partialMatches.length > 0) {
+                    html += `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.createTableTag('${escapedName}', '${sessionId}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmed}</span></span></div>`;
+                    partialMatches.forEach(t => {
+                        const c = selectedIds.has(t.id);
+                        html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleTableTagSelection(event, '${sessionId}', ${t.id}, this)">
+                            <span style="font-size: 13px; color: #111;">${t.name}</span>
+                            <div style="width: 16px; height: 16px; border: 1.5px solid ${c ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${c ? '#2970FF' : '#fff'};">
+                                <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${c ? 'block' : 'none'};"></i>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.createTableTag('${escapedName}', '${sessionId}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmed}</span></span></div>`;
+                }
+            }
+            container.innerHTML = html;
+        };
+
+        window.toggleTableTagSelection = function(event, sessionId, tagId, el) {
+            event.stopPropagation();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (!mapping[sessionId]) mapping[sessionId] = [];
+            const idx = mapping[sessionId].indexOf(tagId);
+            if (idx > -1) {
+                mapping[sessionId].splice(idx, 1);
+            } else {
+                mapping[sessionId].push(tagId);
+            }
+            localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+
+            // Update checkbox visual
+            const checkbox = el.querySelector('div:last-child');
+            const isChecked = mapping[sessionId].includes(tagId);
+            checkbox.style.borderColor = isChecked ? '#2970FF' : '#d9d9d9';
+            checkbox.style.background = isChecked ? '#2970FF' : '#fff';
+            checkbox.querySelector('i').style.display = isChecked ? 'block' : 'none';
+        };
+
+        window.removeSessionTag = function(event, sessionId, tagId) {
+            event.stopPropagation();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (mapping[sessionId]) {
+                mapping[sessionId] = mapping[sessionId].filter(id => id !== tagId);
+                localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            }
+            renderSessions();
+        };
+
+        // === 访客详情抽屉内标签选择 ===
+        let visitorDrawerSessionId = '';
+
+        window.openVisitorDrawerTagPicker = function(btnEl) {
+            const popup = document.getElementById('visitorDrawerTagPopup');
+            if (!popup) return;
+            const isVisible = popup.style.display === 'block';
+            if (isVisible) {
+                popup.style.display = 'none';
+                return;
+            }
+            const input = document.getElementById('visitorDrawerTagSearchInput');
+            if (input) input.value = '';
+            window.renderVisitorDrawerTagList();
+            popup.style.display = 'block';
+            if (input) input.focus();
+        };
+
+        window.renderVisitorDrawerTagList = function(filter = '') {
+            const container = document.getElementById('visitorDrawerTagListContainer');
+            if (!container) return;
+            const trimmed = filter.trim();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            const selectedIds = new Set(mapping[visitorDrawerSessionId] || []);
+
+            let html = '';
+            if (trimmed === '') {
+                sessionTagData.forEach(t => {
+                    const checked = selectedIds.has(t.id);
+                    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleVisitorDrawerTagSelection(${t.id}, event)">
+                        <span style="font-size: 13px; color: #111;">${t.name}</span>
+                        <div style="width: 16px; height: 16px; border: 1.5px solid ${checked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${checked ? '#2970FF' : '#fff'};">
+                            <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${checked ? 'block' : 'none'};"></i>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                const exactMatch = sessionTagData.find(t => t.name === trimmed);
+                const partialMatches = sessionTagData.filter(t => t.name !== trimmed && t.name.includes(trimmed));
+                const escapedName = trimmed.replace(/'/g, "\\'");
+                if (exactMatch) {
+                    const checked = selectedIds.has(exactMatch.id);
+                    html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleVisitorDrawerTagSelection(${exactMatch.id}, event)">
+                        <span style="font-size: 13px; color: #111;">${exactMatch.name}</span>
+                        <div style="width: 16px; height: 16px; border: 1.5px solid ${checked ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${checked ? '#2970FF' : '#fff'};">
+                            <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${checked ? 'block' : 'none'};"></i>
+                        </div>
+                    </div>`;
+                    partialMatches.forEach(t => {
+                        const c = selectedIds.has(t.id);
+                        html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleVisitorDrawerTagSelection(${t.id}, event)">
+                            <span style="font-size: 13px; color: #111;">${t.name}</span>
+                            <div style="width: 16px; height: 16px; border: 1.5px solid ${c ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${c ? '#2970FF' : '#fff'};">
+                                <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${c ? 'block' : 'none'};"></i>
+                            </div>
+                        </div>`;
+                    });
+                } else if (partialMatches.length > 0) {
+                    html += `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.createVisitorDrawerTag('${escapedName}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmed}</span></span></div>`;
+                    partialMatches.forEach(t => {
+                        const c = selectedIds.has(t.id);
+                        html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.toggleVisitorDrawerTagSelection(${t.id}, event)">
+                            <span style="font-size: 13px; color: #111;">${t.name}</span>
+                            <div style="width: 16px; height: 16px; border: 1.5px solid ${c ? '#2970FF' : '#d9d9d9'}; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: ${c ? '#2970FF' : '#fff'};">
+                                <i class="ri-check-line" style="font-size: 12px; color: #fff; display: ${c ? 'block' : 'none'};"></i>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<div style="display: flex; align-items: center; padding: 10px 16px; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="window.createVisitorDrawerTag('${escapedName}')"><div style="width: 24px; height: 24px; border-radius: 50%; background: #2970FF; display: flex; align-items: center; justify-content: center; margin-right: 12px;"><i class="ri-add-line" style="color: #fff; font-size: 16px;"></i></div><span style="font-size: 13px; color: #111;">创建标签 <span style="font-weight: 600;">${trimmed}</span></span></div>`;
+                }
+            }
+            container.innerHTML = html;
+        };
+
+        window.filterVisitorDrawerTags = function(val) {
+            window.renderVisitorDrawerTagList(val);
+        };
+
+        window.toggleVisitorDrawerTagSelection = function(tagId, event) {
+            if (event) event.stopPropagation();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (!mapping[visitorDrawerSessionId]) mapping[visitorDrawerSessionId] = [];
+            const idx = mapping[visitorDrawerSessionId].indexOf(tagId);
+            if (idx > -1) {
+                mapping[visitorDrawerSessionId].splice(idx, 1);
+            } else {
+                mapping[visitorDrawerSessionId].push(tagId);
+            }
+            localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            window.renderVisitorDrawerTagList(document.getElementById('visitorDrawerTagSearchInput')?.value || '');
+            window.updateVisitorDrawerTagPills();
+        };
+
+        window.createVisitorDrawerTag = function(name) {
+            if (sessionTagData.some(t => t.name === name)) return;
+            const newId = Date.now();
+            const maxSort = Math.max(...sessionTagData.map(t => t.sort), 0);
+            const newTag = { id: newId, sort: maxSort + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() };
+            sessionTagData.push(newTag);
+            saveSessionTagsToStorage();
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (!mapping[visitorDrawerSessionId]) mapping[visitorDrawerSessionId] = [];
+            mapping[visitorDrawerSessionId].push(newId);
+            localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            const input = document.getElementById('visitorDrawerTagSearchInput');
+            if (input) input.value = '';
+            window.renderVisitorDrawerTagList();
+            window.updateVisitorDrawerTagPills();
+        };
+
+        window.updateVisitorDrawerTagPills = function() {
+            const container = document.getElementById('selectedVisitorDrawerTags');
+            if (!container) return;
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            const tagIds = mapping[visitorDrawerSessionId] || [];
+            const selectedTags = tagIds.map(id => sessionTagData.find(t => t.id === id)).filter(Boolean);
+            container.innerHTML = selectedTags.map(t => `
+                <div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">
+                    ${t.name}
+                    <i class="ri-close-line" style="cursor: pointer; font-size: 14px;" onclick="event.stopPropagation(); window.removeVisitorDrawerTag(${t.id})"></i>
+                </div>
+            `).join('');
+        };
+
+        window.removeVisitorDrawerTag = function(tagId) {
+            const mapping = JSON.parse(localStorage.getItem('sessionTagSelectionMapping') || '{}');
+            if (mapping[visitorDrawerSessionId]) {
+                mapping[visitorDrawerSessionId] = mapping[visitorDrawerSessionId].filter(id => id !== tagId);
+                localStorage.setItem('sessionTagSelectionMapping', JSON.stringify(mapping));
+            }
+            window.updateVisitorDrawerTagPills();
+        };
+
+        window.loadVisitorDrawerTags = function(sessionId) {
+            visitorDrawerSessionId = sessionId || '';
+            window.updateVisitorDrawerTagPills();
+        };
+
+        function renderSessionTags(search = '') {
+            const tbody = document.getElementById('sessionTagTableBody');
+            if(!tbody) return;
+            const s = search.toLowerCase();
+            const sorted = [...sessionTagData].sort((a, b) => {
+                if (b.sort !== a.sort) return b.sort - a.sort;
+                return new Date(b.createTime.replace(/-/g, '/')) - new Date(a.createTime.replace(/-/g, '/'));
+            });
+            const filtered = sorted.filter(t => t.name.toLowerCase().includes(s));
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="padding: 100px 0; text-align: center;"><div style="color: #86909c; font-size: 14px;"><i class="ri-inbox-archive-line" style="font-size: 32px; color: #c9cdd4; margin-bottom: 8px; display: block;"></i>暂无数据</div></td></tr>`;
+            } else {
+                tbody.innerHTML = filtered.map((t, idx) => `
+                    <tr style="height: 56px; background: ${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}; transition: background 0.2s;" onmouseover="this.style.background='#f2f3f5';" onmouseout="this.style.background='${idx % 2 !== 0 ? '#fdfdfd' : '#fff'}';">
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${t.sort}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${t.name}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${t.count}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img src="${t.creatorAvatar}" style="width: 24px; height: 24px; border-radius: 50%; background: #f0f0f0;">
+                            <span>${t.creatorName}</span>
+                        </div>
+                    </td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${t.createTime}</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; text-align: center; position: relative;">
+                        <div style="display: inline-block; cursor: pointer; position: relative;" onclick="toggleActionMenu(this, event)">
+                            <i class="ri-more-2-fill" style="color: #86909c; font-size: 16px;"></i>
+                            <div class="action-menu-popover" style="display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 8px 0; z-index: 2000; flex-direction: column; min-width: 80px; border: 1px solid #e5e6eb;">
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #111; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openEditSessionTag(${t.id}); closeAllActionMenus();">编辑</div>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; font-size: 14px; color: #F53F3F; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='transparent'" onclick="event.stopPropagation(); window.openDeleteSessionTagModal(${t.id}); closeAllActionMenus();">删除</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            }
+            renderPagination('sessionTagContainer', filtered.length, 1, 10);
+        }
+
+
         const docKnowledgeData = [
             { id: 101, name: 'https://www.baidu.com/', type: '网页', updateTime: '2026-04-02 16:15', status: '训练中' },
             { id: 102, name: '泛场景QA', type: '文章', updateTime: '2026-03-17 22:22', status: '训练中' },
@@ -4516,6 +5694,61 @@ window.addEventListener('error', function(e) {
             { id: 'FK00002', name: '客户00002', remark: '-', email: '-', phone: '-', tag: '-', status: '离线', firstVisit: '2026-03-23 17:12', lastVisit: '2026-03-23 17:12:40', trackCount: 1, ip: '216.227.168.68' }
         ];
 
+        // === 访客标签管理 ===
+        function getVisitorTagIds(visitorName) {
+            const mapping = JSON.parse(localStorage.getItem('visitorTagSelectionMapping') || '{}');
+            return mapping[visitorName] || [];
+        }
+        function saveVisitorTagIds(visitorName, tagIds) {
+            const mapping = JSON.parse(localStorage.getItem('visitorTagSelectionMapping') || '{}');
+            mapping[visitorName] = tagIds;
+            localStorage.setItem('visitorTagSelectionMapping', JSON.stringify(mapping));
+        }
+
+        function renderVisitorTagsPills(visitorName, maxVisible = 2) {
+            const tagIds = getVisitorTagIds(visitorName);
+            const tags = tagIds.map(id => sessionTagData.find(t => t.id === id)).filter(Boolean);
+            if (tags.length === 0) return '-';
+            let html = '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">';
+            const showCount = Math.min(tags.length, maxVisible);
+            for (let i = 0; i < showCount; i++) {
+                html += `<div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; white-space: nowrap; flex-shrink: 0;">${tags[i].name}</div>`;
+            }
+            const remaining = tags.length - showCount;
+            if (remaining > 0) {
+                const escapedName = visitorName.replace(/'/g, "\\'");
+                html += `<div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; cursor: pointer; white-space: nowrap; flex-shrink: 0;" onclick="event.stopPropagation(); window.openVisitorTagOverflowPopup('${escapedName}', this)">+ ${remaining}</div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        window.openVisitorTagOverflowPopup = function(visitorName, btnEl) {
+            const existing = document.getElementById('visitorTagOverflowPopup');
+            if (existing) existing.remove();
+
+            const tagIds = getVisitorTagIds(visitorName);
+            const tags = tagIds.map(id => sessionTagData.find(t => t.id === id)).filter(Boolean);
+
+            let popup = document.createElement('div');
+            popup.id = 'visitorTagOverflowPopup';
+            const rect = btnEl.getBoundingClientRect();
+            popup.style.cssText = `position: fixed; top: ${rect.bottom + 6}px; left: ${rect.left}px; min-width: 180px; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 9999; padding: 8px 12px; border: 1px solid #f0f0f0; display: flex; flex-wrap: wrap; gap: 6px;`;
+            popup.onclick = (e) => e.stopPropagation();
+
+            tags.forEach(t => {
+                popup.innerHTML += `<div style="background: #f2f3f5; border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #4e5969; white-space: nowrap;">${t.name}</div>`;
+            });
+
+            document.body.appendChild(popup);
+
+            const closePopup = () => {
+                if (popup && popup.parentNode) popup.remove();
+                document.removeEventListener('click', closePopup);
+            };
+            setTimeout(() => document.addEventListener('click', closePopup), 100);
+        };
+
         const exclusiveClientsData = [
             { agentId: 'XQWERT', id: 'FK00003', name: '客户00003', remark: '-', email: '-', phone: '-', tag: '-', status: '在线', firstVisit: '2026-03-23 17:12', lastVisit: '2026-03-23 17:12:40', trackCount: 1, ip: '216.227.168.68' },
             { agentId: 'POUYTR', id: 'FK00004', name: '客户00004', remark: '-', email: '-', phone: '-', tag: '-', status: '离线', firstVisit: '2026-03-23 17:12', lastVisit: '2026-03-23 17:12:40', trackCount: 1, ip: '216.227.168.68' }
@@ -4531,7 +5764,7 @@ window.addEventListener('error', function(e) {
 
             const firstVisitVal = document.getElementById('onlineVisitorFirstVisitFilter') ? document.getElementById('onlineVisitorFirstVisitFilter').value : '';
             const lastVisitVal = document.getElementById('clientLastVisitFilter') ? document.getElementById('clientLastVisitFilter').value : '';
-            
+
             let filtered = clientsData.filter(c => {
                 let matchSearch = true;
                 if (searchVal) {
@@ -4562,7 +5795,7 @@ window.addEventListener('error', function(e) {
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.phone}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">-</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${renderVisitorTagsPills(c.name)}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.firstVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #2970FF; text-decoration: underline; text-underline-offset: 3px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59">https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.ip}</td>
@@ -4592,7 +5825,7 @@ window.addEventListener('error', function(e) {
 
             const firstVisitVal = document.getElementById('allVisitorFirstVisitFilter') ? document.getElementById('allVisitorFirstVisitFilter').value : '';
             const lastVisitVal = document.getElementById('allVisitorLastVisitFilter') ? document.getElementById('allVisitorLastVisitFilter').value : '';
-            
+
             let filtered = clientsData.filter(c => {
                 let matchSearch = true;
                 if (searchVal) {
@@ -4623,7 +5856,7 @@ window.addEventListener('error', function(e) {
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.phone}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">-</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${renderVisitorTagsPills(c.name)}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.firstVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.lastVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${c.trackCount}</td>
@@ -4653,7 +5886,7 @@ window.addEventListener('error', function(e) {
             const searchTypeVal = document.getElementById('onlineClientSearchType') ? document.getElementById('onlineClientSearchType').value : 'name';
 
             const firstVisitVal = document.getElementById('onlineClientFirstVisitFilter') ? document.getElementById('onlineClientFirstVisitFilter').value : '';
-            
+
             let filtered = exclusiveClientsData.filter(c => {
                 let matchSearch = true;
                 if (searchVal) {
@@ -4686,7 +5919,7 @@ window.addEventListener('error', function(e) {
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.phone}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">-</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${renderVisitorTagsPills(c.name)}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.firstVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #2970FF; text-decoration: underline; text-underline-offset: 3px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59">https://visitorchat.twt.com/direct/040d99be00d826dd0ae83d6b2255df59</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.ip}</td>
@@ -4715,7 +5948,7 @@ function renderAllClients() {
 
             const firstVisitVal = document.getElementById('allClientFirstVisitFilter') ? document.getElementById('allClientFirstVisitFilter').value : '';
             const lastVisitVal = document.getElementById('allClientLastVisitFilter') ? document.getElementById('allClientLastVisitFilter').value : '';
-            
+
             let filtered = exclusiveClientsData.filter(c => {
                 let matchSearch = true;
                 if (searchVal) {
@@ -4747,7 +5980,7 @@ function renderAllClients() {
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.remark}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.email}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.phone}</td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">-</td>
+                    <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${renderVisitorTagsPills(c.name)}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.firstVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969;">${c.lastVisit}</td>
                     <td style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; color: #4e5969; text-align: center;">${c.trackCount}</td>
@@ -4933,7 +6166,7 @@ function resetAllClientFilters() {
                 } else {
                     inputEl.value = '';
                 }
-                
+
                 if (typeof currentPickerTarget !== 'undefined' && currentPickerTarget === inputEl) {
                     rangeStart = null;
                     rangeEnd = null;
@@ -4942,6 +6175,7 @@ function resetAllClientFilters() {
                 }
 
                 toggleClearIcon(inputEl, iconId, renderFn);
+                if (typeof renderFn === 'function') renderFn();
                 inputEl.dispatchEvent(new Event('change'));
             }
         }
@@ -5306,7 +6540,67 @@ function resetAllClientFilters() {
         }
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', renderCustomers);
+        let currentMenuTitle = '成员';
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCustomers();
+            // Initialize visitor tag sample data for 客户00001
+            if (!localStorage.getItem('visitorTagSelectionMapping')) {
+                const tagData = JSON.parse(localStorage.getItem('sessionTagData') || '[]');
+                const existingIds = tagData.map(t => t.id);
+                if (existingIds.length < 5) {
+                    // Create sample tags if needed
+                    const sampleNames = ['VIP', '高意向', '131231', '新建标签', '售后咨询'];
+                    sampleNames.forEach((name, i) => {
+                        if (!tagData.find(t => t.name === name)) {
+                            const newId = Date.now() + i + 1;
+                            tagData.push({ id: newId, sort: i + 1, name: name, count: 0, creatorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tuski', creatorName: 'tuski', createTime: new Date().toLocaleString() });
+                        }
+                    });
+                    localStorage.setItem('sessionTagData', JSON.stringify(tagData));
+                    sessionTagData = tagData;
+                }
+                // Get tag IDs for sample names
+                const freshTagData = JSON.parse(localStorage.getItem('sessionTagData'));
+                const sampleTagIds = ['VIP', '高意向', '131231', '新建标签', '售后咨询']
+                    .map(name => freshTagData.find(t => t.name === name)?.id)
+                    .filter(Boolean);
+                const visitorMapping = { '客户00001': sampleTagIds };
+                localStorage.setItem('visitorTagSelectionMapping', JSON.stringify(visitorMapping));
+            }
+            // Poll for session tag changes from the parent window (link_client.html)
+            let lastMappingHash = '';
+            let lastTagDataHash = '';
+            setInterval(() => {
+                // Poll for tag selection mapping changes
+                const raw = localStorage.getItem('sessionTagSelectionMapping') || '{}';
+                const hash = raw.length + '|' + raw.slice(-50);
+                if (hash !== lastMappingHash) {
+                    lastMappingHash = hash;
+                    // Only re-render sessions when on the session records page
+                    if (currentMenuTitle === '会话记录') {
+                        renderSessions();
+                    }
+                    // Sync visitor drawer tag pills
+                    window.updateVisitorDrawerTagPills();
+                }
+                // Poll for sessionTagData changes (new tags created from parent window)
+                const tagRaw = localStorage.getItem('sessionTagData') || '[]';
+                const tagHash = tagRaw.length + '|' + tagRaw.slice(-50);
+                if (tagHash !== lastTagDataHash) {
+                    lastTagDataHash = tagHash;
+                    sessionTagData = JSON.parse(tagRaw);
+                    if (currentMenuTitle === '会话记录') {
+                        renderSessions();
+                    }
+                    if (typeof renderSessionTags === 'function') renderSessionTags();
+                    // Re-render visitor drawer tag pills and list with new tag data
+                    window.updateVisitorDrawerTagPills();
+                    if (document.getElementById('visitorDrawerTagPopup')?.style.display === 'block') {
+                        window.renderVisitorDrawerTagList(document.getElementById('visitorDrawerTagSearchInput')?.value || '');
+                    }
+                }
+            }, 1000);
+        });
 
         let currentRoleMode = 'view';
         let currentRoleRowCell = null;
@@ -5594,7 +6888,7 @@ function resetAllClientFilters() {
         function switchMenu(el) {
             document.querySelectorAll('.menu-item, .submenu-item').forEach(item => item.classList.remove('active'));
             el.classList.add('active');
-            
+
             // 先清除所有 parent 的高亮
             document.querySelectorAll('.menu-parent').forEach(p => {
                 p.style.color = '';
@@ -5606,8 +6900,9 @@ function resetAllClientFilters() {
                 parent.style.color = '#111';
                 parent.style.fontWeight = '500';
             }
-            
+
             const title = el.innerText.trim();
+            currentMenuTitle = title;
             
             const emptyState = document.getElementById('emptyState');
             const tableContainer = document.getElementById('customerTableContainer');
@@ -5701,6 +6996,11 @@ function resetAllClientFilters() {
                 document.getElementById('emptyState').style.display = 'none';
                 document.getElementById('visitorTagContainer').style.display = 'flex';
                 renderVisitorTags();
+            } else if (title === '会话标签') {
+                document.querySelector('.empty-btn').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('sessionTagContainer').style.display = 'flex';
+                renderSessionTags();
             } else if (title === '自定义') {
                 document.querySelector('.empty-btn').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
@@ -5710,6 +7010,11 @@ function resetAllClientFilters() {
                 document.getElementById('emptyState').style.display = 'none';
                 document.getElementById('publicReplyContainer').style.display = 'flex';
                 renderPublicReplies();
+            } else if (title === '个人回复') {
+                document.querySelector('.empty-btn').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('personalReplyContainer').style.display = 'flex';
+                renderPersonalReplies();
             } else if (title === '开发设置') {
                 document.querySelector('.empty-btn').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'none';
@@ -5774,11 +7079,26 @@ function resetAllClientFilters() {
             }
         }
 
+        // === Action menu toggle (click-based instead of hover) ===
+        function toggleActionMenu(el, event) {
+            event.stopPropagation();
+            const popover = el.querySelector('.action-menu-popover');
+            const isOpen = popover.style.display === 'flex';
+            // Close all other action menus first
+            document.querySelectorAll('.action-menu-popover').forEach(p => p.style.display = 'none');
+            if (!isOpen) {
+                popover.style.display = 'flex';
+            }
+        }
+        function closeAllActionMenus() {
+            document.querySelectorAll('.action-menu-popover').forEach(p => p.style.display = 'none');
+        }
         document.addEventListener('click', () => {
             document.querySelectorAll('.row-dropdown').forEach(dd => dd.style.display = 'none');
             document.querySelectorAll('.action-menu').forEach(dd => dd.style.display = 'none');
             const previewMenu = document.getElementById('websitePreviewMsgMenu');
             if(previewMenu) previewMenu.style.display = 'none';
+            closeAllActionMenus();
         });
 
         // 统一Toast提示
@@ -5993,18 +7313,18 @@ function resetAllClientFilters() {
             };
         }
         
-        function deleteSession(e, id) {
+        window.deleteSession = function(e, id) {
             if(e) e.stopPropagation();
             if (confirm('确定要删除该条会话记录吗？')) {
                 sessions = sessions.filter(s => s.id !== id);
                 renderSessions();
             }
-        }
+        };
 
         function handleFooterDelete() {
             const item = currentNavInfo.list[currentNavInfo.index];
             if (item) {
-                deleteSession(null, item.id);
+                window.deleteSession(null, item.id);
                 closeSessionDetail();
             }
         }
@@ -6017,7 +7337,7 @@ function resetAllClientFilters() {
             if(e) e.stopPropagation();
             let c = (typeof clientsData !== 'undefined' ? clientsData : []).find(x => x.name === visitorId);
             let excC = (typeof exclusiveClientsData !== 'undefined' ? exclusiveClientsData : []).find(x => x.name === visitorId);
-            
+
             if (!c && !excC) {
                 const s = sessions.find(x => x.visitorId === visitorId);
                 if (s) c = { name: s.visitorName, remark: s.remark || '-', email: '-', phone: '-', ip: '-', trackCount: s.csCount || 1 };
@@ -6033,16 +7353,24 @@ function resetAllClientFilters() {
                 if (document.getElementById('vdObjIP')) document.getElementById('vdObjIP').innerText = activeC.ip || '-';
             }
             if (excC && excC.agentId) {
-                document.getElementById('exclusiveClientInfoBox').style.display = 'block';
-                document.getElementById('vdObjAgentId').innerText = excC.agentId;
+                if (document.getElementById('exclusiveClientInfoBox')) document.getElementById('exclusiveClientInfoBox').style.display = 'block';
+                if (document.getElementById('vdObjAgentId')) document.getElementById('vdObjAgentId').innerText = excC.agentId;
             } else {
                 if (document.getElementById('exclusiveClientInfoBox')) document.getElementById('exclusiveClientInfoBox').style.display = 'none';
             }
+
+            // Load visitor tags from session ID
+            const sessionForVisitor = sessions.find(s => s.visitorId === visitorId);
+            window.loadVisitorDrawerTags(sessionForVisitor ? sessionForVisitor.id : '');
+
             document.getElementById('visitorDetailDrawer').classList.add('show');
         }
-        
+
         function closeVisitorDetail() {
             document.getElementById('visitorDetailDrawer').classList.remove('show');
+            // Close tag picker if open
+            const popup = document.getElementById('visitorDrawerTagPopup');
+            if (popup) popup.style.display = 'none';
         }
 
         function openWebsitePreviewModal() {
@@ -6211,12 +7539,79 @@ function resetAllClientFilters() {
         }
 
         function confirmCreateSession() {
-            document.getElementById('createSessionModal').style.display = 'none';
-            if (window.parent && window.parent !== window) {
-                const targetName = document.getElementById('createSessionTargetName').innerText;
-                window.parent.postMessage({ type: 'jumpToChat', status: 'active', id: targetName, chatType: '单聊' }, '*');
+            const modal = document.getElementById('createSessionModal');
+            if (modal) modal.style.display = 'none';
+            try {
+                if (window.parent && window.parent !== window) {
+                    const targetNameEl = document.getElementById('createSessionTargetName');
+                    const targetName = targetNameEl ? targetNameEl.innerText : 'Unknown';
+                    window.parent.postMessage({ type: 'jumpToChat', status: 'active', id: targetName, chatType: '单聊' }, '*');
+                }
+            } catch (e) {
+                console.warn('Cross-origin frame access blocked in confirmCreateSession');
             }
         }
+
+        // === Quick Reply Panel ===
+        function togglePreviewQuickReply() {
+            var panels = document.querySelectorAll('[id^="previewQuickReplyPanel"]');
+            var btns = document.querySelectorAll('[id^="previewQuickReplyBtn"]');
+            var anyVisible = false;
+            panels.forEach(function(p) { if (p.style.display === 'block') anyVisible = true; });
+            if (anyVisible) {
+                panels.forEach(function(p) { p.style.display = 'none'; });
+                btns.forEach(function(b) { b.classList.remove('active'); });
+            } else {
+                panels.forEach(function(p) { p.style.display = 'block'; });
+                btns.forEach(function(b) { b.classList.add('active'); });
+            }
+        }
+
+        function selectQuickReplyCat(el) {
+            document.querySelectorAll('.quick-reply-cat').forEach(function(c) { c.classList.remove('active'); });
+            el.classList.add('active');
+        }
+
+        function selectQuickReplyContent(el) {
+            document.querySelectorAll('.quick-reply-item').forEach(function(c) { c.classList.remove('selected'); });
+            el.classList.add('selected');
+        }
+
+        // === Listen for parent frame messages ===
+        window.addEventListener('message', function(e) {
+            if (!e.data || !e.data.type) return;
+
+            if (e.data.type === 'navigateToMenu') {
+                var target = e.data.menu;
+                if (!target) return;
+                var items = document.querySelectorAll('.submenu-item');
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].innerText.trim() === target) {
+                        var parent = items[i].parentElement.previousElementSibling;
+                        if (parent && parent.classList.contains('menu-parent')) {
+                            parent.click();
+                        }
+                        items[i].click();
+                        break;
+                    }
+                }
+            }
+
+            // Return quick reply data to client panel
+            if (e.data.type === 'getQuickReplyData') {
+                var publicData = publicReplyData.map(function(r) {
+                    return { id: r.id, tag: r.tag, reply: r.reply, picture: r.picture, images: r.images || [] };
+                });
+                var personalData = personalReplyData.map(function(r) {
+                    return { id: r.id, tag: r.tag, reply: r.reply, picture: r.picture, images: r.images || [] };
+                });
+                window.parent.postMessage({
+                    type: 'quickReplyData',
+                    publicReplies: publicData,
+                    personalReplies: personalData
+                }, '*');
+            }
+        });
 
     </script>
 
@@ -6614,7 +8009,7 @@ function resetAllClientFilters() {
             const btn = document.getElementById('assignConfirmBtn');
             
             if (selectedAssignAgent) {
-                label.innerText = '已选择 (1/1000)';
+                label.innerText = '已选择 (1/1)';
                 container.innerHTML = `
                     <div style="display: inline-flex; align-items: center; padding: 4px 8px; background: #f2f3f5; border-radius: 4px;">
                         <div style="width: 24px; height: 24px; border-radius: 4px; background: #e8f3ff; color: #1677FF; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: 500; margin-right: 8px;">
@@ -6628,7 +8023,7 @@ function resetAllClientFilters() {
                 btn.style.cursor = 'pointer';
                 btn.disabled = false;
             } else {
-                label.innerText = '已选择 (0/1000)';
+                label.innerText = '已选择 (0/1)';
                 container.innerHTML = '';
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
@@ -8219,41 +9614,89 @@ About Baidu<br>
                 <button style="height: 40px; padding: 0 32px; border: none; background: #2970FF; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" onclick="confirmCrop()">确定</button>
             </div>
         </div>
-    <!-- Delete Public Reply Confirmation Modal -->
-    <div class="modal center" id="deletePublicReplyModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center;">
-        <div class="modal-center-content" style="width: 400px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-            <div style="padding: 24px 24px 16px;">
-                <div style="font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px;">删除数据</div>
-                <div style="font-size: 14px; color: #86909c;">删除后不可恢复，确认删除？</div>
+    </div>
+
+    </script>
+
+    <!-- 个人回复 Modal -->
+    <div class="modal center" id="personalReplyModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 4000; align-items: center; justify-content: center;">
+        <div class="modal-center-content" style="width: 560px; background: #fff; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div id="personalReplyModalTitle" style="font-size: 16px; font-weight: 600; color: #111;">添加个人回复</div>
+                <i class="ri-close-line" style="font-size: 20px; color: #111; cursor: pointer;" onclick="document.getElementById('personalReplyModal').style.display='none'"></i>
             </div>
-            
-            <div style="padding: 16px 24px 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                <button style="height: 38px; padding: 0 16px; border: 1px solid #e5e6eb; background: #fff; color: #111; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; letter-spacing: 2px;" onmouseover="this.style.background='#f2f3f5'" onmouseout="this.style.background='#fff'" onclick="document.getElementById('deletePublicReplyModal').style.display='none'">取 消</button>
-                <button style="height: 38px; padding: 0 20px; border: none; background: #F53F3F; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" onclick="confirmDeletePublicReply()">确认删除</button>
+            <div style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px;">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 500; color: #111;"><span style="color: #F53F3F; margin-right: 4px;">*</span>标签</div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div style="flex: 1; height: 38px; border: 1px solid #e5e6eb; border-radius: 8px; display: flex; align-items: center; overflow: hidden; box-sizing: border-box; transition: border 0.2s;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'">
+                            <div style="width: 38px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #111; border-right: 1px solid #f0f0f0;">/</div>
+                            <input id="personalReplyTagInput" type="text" placeholder="输入标签" style="flex: 1; height: 100%; border: none; outline: none; padding: 0 12px; font-size: 14px; color: #111;">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 500; color: #111;"><span style="color: #F53F3F; margin-right: 4px;">*</span>回复语</div>
+                    <textarea id="personalReplyTextInput" placeholder="输入回复语句" style="width: 100%; height: 120px; border: 1px solid #e5e6eb; border-radius: 12px; padding: 12px 16px; resize: none; font-size: 14px; outline: none; font-family: inherit; color: #111; transition: border 0.2s;" onfocusin="this.style.borderColor='#2970FF'" onfocusout="this.style.borderColor='#e5e6eb'"></textarea>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button style="height: 32px; padding: 0 24px; border: 1px solid #e5e6eb; background: #fff; color: #4e5969; border-radius: 100px; cursor: pointer; font-size: 14px; transition: 0.2s;" onmouseover="this.style.borderColor='#2970FF'; this.style.color='#2970FF'" onmouseout="this.style.borderColor='#e5e6eb'; this.style.color='#4e5969'" onclick="document.getElementById('personalReplyModal').style.display='none'">取消</button>
+                <button style="height: 32px; padding: 0 24px; border: none; background: #2970FF; color: #fff; border-radius: 100px; cursor: pointer; font-size: 14px; transition: 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1" onclick="savePersonalReply()">确定</button>
             </div>
         </div>
     </div>
+
+    <!-- 个人回复删除确认 Modal -->
+
+    <!-- 会话标签 Modal -->
+
     <script>
         let pendingDeleteId = null;
-        function openDeletePublicReplyModal(id) {
-            pendingDeleteId = id;
-            document.getElementById('deletePublicReplyModal').style.display = 'flex';
-        }
-        function confirmDeletePublicReply() {
-            if (pendingDeleteId !== null) {
-                // Actually splice from array
-                const idx = publicReplyData.findIndex(item => item.id === pendingDeleteId);
+        window.openDeletePublicReplyModal = function(id) {
+            window.pendingPublicDeleteId = id;
+            var existing = document.getElementById('deletePublicReplyModal');
+            if (existing) existing.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'deletePublicReplyModal';
+            modal.style.cssText = 'position:fixed!important;inset:0!important;background:rgba(0,0,0,0.5)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;display:flex!important;';
+            modal.onclick = function() { this.remove(); };
+            modal.innerHTML = '<div style="width:420px;background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.15);padding:32px 32px 24px;" onclick="event.stopPropagation()">' +
+                '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+                '<i class="ri-error-warning-fill" style="color:#FF8A00;font-size:28px;line-height:1;"></i>' +
+                '<div style="flex:1;">' +
+                '<div style="font-size:18px;font-weight:600;color:#111;margin-bottom:12px;line-height:28px;">确定删除此回复？</div>' +
+                '<div style="font-size:15px;color:#555;line-height:1.6;">删除后不可恢复，确认删除？</div>' +
+                '</div></div>' +
+                '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:32px;">' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;background:#f4f5f7;border:1px solid #e5e6eb;color:#111;font-weight:500;cursor:pointer;font-size:14px;" onclick="document.getElementById(\'deletePublicReplyModal\').remove()">取消</button>' +
+                '<button style="height:36px;padding:0 28px;border-radius:100px;border:none;background:#F53F3F;color:#fff;font-weight:500;cursor:pointer;font-size:14px;" onclick="window.confirmDeletePublicReply()">确定删除</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        };
+        window.confirmDeletePublicReply = function() {
+            if (window.pendingPublicDeleteId !== null) {
+                const idx = publicReplyData.findIndex(item => item.id === window.pendingPublicDeleteId);
                 if (idx > -1) {
                     publicReplyData.splice(idx, 1);
                     renderPublicReplies();
                     if(typeof showToast === 'function') showToast('删除成功');
                 }
-                pendingDeleteId = null;
-                document.getElementById('deletePublicReplyModal').style.display = 'none';
+                window.pendingPublicDeleteId = null;
             }
-        }
+            var modal = document.getElementById('deletePublicReplyModal');
+            if (modal) modal.remove();
+        };
         function openResetAppSecretModal() {
-            let targetDoc = window.parent ? window.parent.document : document;
+            let targetDoc = document;
+            try {
+                if (window.parent && window.parent.document) {
+                    targetDoc = window.parent.document;
+                }
+            } catch (e) {
+                console.warn('Cannot access parent document:', e);
+            }
             let modal = targetDoc.getElementById('resetAppSecretModal');
             
             if (!modal) {
@@ -8306,6 +9749,18 @@ About Baidu<br>
             }
             modal.style.display = 'flex';
         }
+    </script>
+
+    <script>
+        // Defer modal click-outside handlers to ensure modals exist
+        document.addEventListener('DOMContentLoaded', function() {
+            var prModal = document.getElementById('personalReplyModal');
+            if (prModal) prModal.addEventListener('click', function(e) { if(e.target === this) this.style.display = 'none'; });
+            var stModal = document.getElementById('sessionTagModal');
+            if (stModal) stModal.addEventListener('click', function(e) { if(e.target === this) this.style.display = 'none'; });
+            var vtModal = document.getElementById('addVisitorTagModal');
+            if (vtModal) vtModal.addEventListener('click', function(e) { if(e.target === this) this.style.display = 'none'; });
+        });
     </script>
 
     <!-- Previous inline Modal has been moved to JS for top-level window injection -->

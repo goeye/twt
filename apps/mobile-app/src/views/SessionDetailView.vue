@@ -38,7 +38,7 @@
               <span class="message-sender">{{ msg.sender }}</span>
               <span class="message-time">{{ msg.time }}</span>
             </div>
-            <div class="message-bubble">
+            <div class="message-bubble" :class="{ 'message-bubble--note': msg.type === 'note' }">
               <p class="message-text">{{ msg.content }}</p>
             </div>
           </div>
@@ -509,10 +509,6 @@ onMounted(() => {
   margin-bottom: 6px;
 }
 
-.message-meta--note .message-sender,
-.message-meta--note .message-time {
-  color: #f59e0b;
-}
 
 .message-sender {
   font-size: 12px;
@@ -535,6 +531,10 @@ onMounted(() => {
   border-radius: 4px 16px 16px 16px;
   padding: 12px;
   max-width: 260px;
+}
+
+.message-bubble--note {
+  background: #fef3c7;
 }
 
 .message-item--agent .message-bubble {

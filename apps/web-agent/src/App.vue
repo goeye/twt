@@ -528,7 +528,7 @@
               :to="{ path: '/files', query: { tab: 'all-conversations' } }"
               class="detail-history-archive-link"
             >
-              查看完整详情
+              进入档案
             </RouterLink>
           </header>
           <div class="detail-pane__content agent-scroll">
@@ -538,10 +538,7 @@
               class="detail-session-card"
               @click="detailActiveSession = item; detailHistoryView = 'detail'"
             >
-              <div class="detail-session-card__top">
-                <span class="detail-session-card__title">{{ item.title }}</span>
-                <span class="detail-session-card__badge" :class="`detail-session-card__badge--${item.statusType}`">{{ item.status }}</span>
-              </div>
+              <div class="detail-session-card__title">{{ item.title }}</div>
               <div class="detail-session-card__meta">
                 <template v-if="item.agentName">
                   <span class="detail-session-card__avatar">{{ item.agentName[0] }}</span>
@@ -551,6 +548,10 @@
               <div v-if="item.tags && item.tags.length" class="detail-session-card__tags">
                 <span v-for="(tag, i) in item.tags.slice(0, 3)" :key="i" class="detail-session-card__tag">{{ tag }}</span>
               </div>
+              <div class="detail-session-card__footer">
+                <span class="detail-session-card__badge" :class="`detail-session-card__badge--${item.statusType}`">{{ item.status }}</span>
+                <span v-if="item.createdAt" class="detail-session-card__time">{{ item.createdAt }}</span>
+              </div>
             </div>
           </div>
         </template>
@@ -558,10 +559,49 @@
         <!-- 历史会话详情视图（覆盖整个面板） -->
         <template v-else-if="detailHistoryView === 'detail' && detailActiveSession">
           <header class="detail-pane__topbar detail-pane__topbar--history">
-            <button type="button" class="detail-history-back" @click="detailHistoryView = 'sessions'">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <span class="detail-history-title">{{ detailActiveSession.title }}</span>
+            <div class="detail-history-header-left">
+              <button type="button" class="detail-history-back" @click="detailHistoryView = 'sessions'; isEditingDetailSessionTitle = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <template v-if="isEditingDetailSessionTitle">
+                <input
+                  ref="detailSessionTitleInputRef"
+                  v-model="draftDetailSessionTitle"
+                  class="detail-history-title-input"
+                  @blur="saveDetailSessionTitle"
+                  @keydown.enter.prevent="saveDetailSessionTitle"
+                  @keydown.esc.prevent="cancelEditDetailSessionTitle"
+                />
+              </template>
+              <template v-else>
+                <span class="detail-history-title">{{ detailActiveSession.title }}</span>
+                <button type="button" class="detail-history-edit-btn" aria-label="编辑会话标题" @click="startEditDetailSessionTitle">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+              </template>
+            </div>
+            <div class="detail-history-header-right">
+              <button
+                type="button"
+                class="detail-history-nav-btn"
+                :class="{ 'detail-history-nav-btn--disabled': !hasDetailPrevSession }"
+                :disabled="!hasDetailPrevSession"
+                aria-label="上一个会话"
+                @click="goToDetailPrevSession"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+              </button>
+              <button
+                type="button"
+                class="detail-history-nav-btn"
+                :class="{ 'detail-history-nav-btn--disabled': !hasDetailNextSession }"
+                :disabled="!hasDetailNextSession"
+                aria-label="下一个会话"
+                @click="goToDetailNextSession"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
           </header>
           <div class="detail-pane__content agent-scroll detail-history-messages">
             <div
@@ -2758,13 +2798,51 @@ const collapsedDetailSections = ref<string[]>([]);
 const detailHistoryView = ref<"main" | "sessions" | "detail">("main");
 const detailActiveSession = ref<{ id: number; title: string; status: string; statusType: string; agentName?: string; messages: { id: string; role: string; sender: string; content: string; time: string; avatarText?: string; avatarColor?: string }[] } | null>(null);
 const detailMockSessions = [
-  { id: 1, title: "咨询支付问题", status: "已关闭", statusType: "closed", agentName: "张三", tags: ["支付", "紧急"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好，我的支付一直失败", time: "14:02", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "张三", content: "您好，请问是哪种支付方式？", time: "14:03", avatarText: "张", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
-  { id: 2, title: "产品功能咨询", status: "已回复", statusType: "replied", agentName: "李四", tags: ["产品"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "李四", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" }] },
-  { id: 3, title: "退款申请", status: "排队中", statusType: "queueing", tags: ["退款"], messages: [{ id: "m1", role: "system", sender: "", content: "等待分配", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我要申请退款", time: "09:30", avatarText: "访", avatarColor: "#8d98a9" }] },
-  { id: 4, title: "账号登录问题", status: "待处理", statusType: "pending", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "我忘记密码了", time: "08:50", avatarText: "访", avatarColor: "#8d98a9" }] },
-  { id: 5, title: "首次访问咨询", status: "已关闭", statusType: "closed", agentName: "王五", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "王五", content: "您好，有什么可以帮您？", time: "2026-02-05 19:34", avatarText: "王", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
-  { id: 6, title: "技术支持", status: "已关闭", statusType: "closed", agentName: "赵六", tags: ["技术"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "API 接入有问题", time: "2026-02-05 19:34", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "赵六", content: "请提供您的 API Key 和报错信息", time: "2026-02-05 19:35", avatarText: "赵", avatarColor: "#2f6bff" }, { id: "m4", role: "system", sender: "", content: "会话已关闭", time: "" }] },
+  { id: 1, title: "反馈API Key格式错误", status: "排队中", statusType: "queueing", agentName: "张伟", createdAt: "2026-02-14 14:52", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好，API Key 格式不对", time: "14:52", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 2, title: "这是一个很长的会话标题这是全部显示...", status: "已回复", statusType: "replied", agentName: "李昭宁", createdAt: "2025-02-14 14:56", tags: ["有购买意向", "价格敏感", "全部显示/折叠"], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "请问你们有哪些套餐？", time: "10:15", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "agent", sender: "李昭宁", content: "我们有免费版、专业版和企业版三种套餐", time: "10:16", avatarText: "李", avatarColor: "#2f6bff" }] },
+  { id: 3, title: "已回复", status: "已回复", statusType: "replied", agentName: "粒粒", createdAt: "2025-01-02 02:48", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "02:48", avatarText: "访", avatarColor: "#8d98a9" }] },
+  { id: 4, title: "新会话", status: "已关闭", statusType: "closed", agentName: "粒粒", createdAt: "2025-12-28 19:01", tags: [], messages: [{ id: "m1", role: "system", sender: "", content: "会话开始", time: "" }, { id: "m2", role: "customer", sender: "访客", content: "你好", time: "19:01", avatarText: "访", avatarColor: "#8d98a9" }, { id: "m3", role: "system", sender: "", content: "会话已关闭", time: "" }] },
 ];
+
+const detailSessionIndex = computed(() => {
+  if (!detailActiveSession.value) return -1;
+  return detailMockSessions.findIndex((s) => s.id === detailActiveSession.value!.id);
+});
+const hasDetailPrevSession = computed(() => detailSessionIndex.value > 0);
+const hasDetailNextSession = computed(() => detailSessionIndex.value >= 0 && detailSessionIndex.value < detailMockSessions.length - 1);
+
+const goToDetailPrevSession = () => {
+  const idx = detailSessionIndex.value;
+  if (idx > 0) detailActiveSession.value = detailMockSessions[idx - 1];
+};
+
+const goToDetailNextSession = () => {
+  const idx = detailSessionIndex.value;
+  if (idx >= 0 && idx < detailMockSessions.length - 1) detailActiveSession.value = detailMockSessions[idx + 1];
+};
+
+const isEditingDetailSessionTitle = ref(false);
+const draftDetailSessionTitle = ref("");
+const detailSessionTitleInputRef = ref<HTMLInputElement | null>(null);
+
+const startEditDetailSessionTitle = () => {
+  if (!detailActiveSession.value) return;
+  draftDetailSessionTitle.value = detailActiveSession.value.title;
+  isEditingDetailSessionTitle.value = true;
+  nextTick(() => detailSessionTitleInputRef.value?.focus());
+};
+
+const saveDetailSessionTitle = () => {
+  const next = draftDetailSessionTitle.value.trim();
+  if (next && detailActiveSession.value && next !== detailActiveSession.value.title) {
+    detailActiveSession.value.title = next;
+  }
+  isEditingDetailSessionTitle.value = false;
+};
+
+const cancelEditDetailSessionTitle = () => {
+  isEditingDetailSessionTitle.value = false;
+};
 const activeSettingsNavKey = ref<SettingsNavKey>("install");
 const activeAiNavKey = ref<AiAgentNavKey>("copilot-settings");
 const activeCampaignNavKey = ref<CampaignNavKey>("campaign-chatting");
@@ -6149,9 +6227,82 @@ onBeforeUnmount(() => {
   color: var(--agent-color-text-primary);
   font-size: 14px;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.detail-pane__topbar--history { justify-content: flex-start; }
+.detail-pane__topbar--history { justify-content: space-between; }
+
+.detail-history-header-left {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-history-header-right {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.detail-history-nav-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #555;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.detail-history-nav-btn:hover { background: rgba(17,17,17,0.06); }
+
+.detail-history-nav-btn--disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.detail-history-nav-btn--disabled:hover { background: transparent; }
+
+.detail-history-edit-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #8d98a9;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.detail-history-edit-btn:hover {
+  background: rgba(17,17,17,0.06);
+  color: #555;
+}
+
+.detail-history-title-input {
+  background: #fff;
+  border: 1px solid var(--agent-color-brand-primary, #2f6bff);
+  border-radius: 6px;
+  color: var(--agent-color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  outline: none;
+  padding: 2px 8px;
+  width: 100%;
+}
 
 .detail-history-archive-link {
   color: var(--agent-color-brand-primary, #2F6BFF);
@@ -6170,19 +6321,12 @@ onBeforeUnmount(() => {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 8px;
   padding: 10px 12px;
 }
 
 .detail-session-card:hover { border-color: #c5d0e0; }
-
-.detail-session-card__top {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  justify-content: space-between;
-}
 
 .detail-session-card__title {
   color: var(--agent-color-text-primary);
@@ -6193,24 +6337,13 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.detail-session-card__badge {
-  border-radius: 4px;
-  flex-shrink: 0;
-  font-size: 11px;
-  padding: 2px 6px;
-}
-
-.detail-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
-.detail-session-card__badge--replied { background: #e6f4ea; color: #2e7d32; }
-.detail-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
-.detail-session-card__badge--pending { background: #fff3e0; color: #e65100; }
-
 .detail-session-card__meta {
   align-items: center;
   color: var(--agent-color-text-tertiary);
   display: flex;
   font-size: 12px;
   gap: 6px;
+  min-width: 0;
 }
 
 .detail-session-card__avatar {
@@ -6227,7 +6360,30 @@ onBeforeUnmount(() => {
   width: 18px;
 }
 
-.detail-session-card__sep { color: #c5cdd8; }
+.detail-session-card__footer {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.detail-session-card__badge {
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.detail-session-card__badge--closed { background: #f0f2f5; color: #7e8999; }
+.detail-session-card__badge--replied { background: #e8f0ff; color: #2f6bff; }
+.detail-session-card__badge--queueing { background: #fff3e0; color: #e65100; }
+.detail-session-card__badge--pending { background: #ffece8; color: #d4380d; }
+
+.detail-session-card__time {
+  color: var(--agent-color-text-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
 
 .detail-session-card__tags {
   display: flex;

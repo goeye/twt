@@ -19,27 +19,28 @@
   <p>页面右下角应出现聊天浮窗图标。</p>
 
   <script>
-  window.__twt__config = {
-    appid: "你的APPID",
-    lang: "zh-cn",
-    theme: "light",
-    sbs: "",
-    sbs_mm: "",
-    ranstr: "",
-    name: "",
-    nickname: "",
-    email: "",
-    phone: "",
-    icon: "1"
+  window.TWTChatWidget = window.TWTChatWidget || {
+    _q: [],
+    on: function () {
+      this._q.push(["on", Array.prototype.slice.call(arguments)]);
+    },
   };
-  (function(n, t) {
-    var e = { init: function() {
-      var n = t.createElement("script");
-      n.async = !0;
-      n.type = "text/javascript";
-      n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
-      t.head.appendChild(n);
-    }};
+
+  window.__twt__config = {
+    appid: "以项目APPID为准",
+    icon: "1",
+  };
+
+  (function (n, t) {
+    var e = {
+      init: function () {
+        var n = t.createElement("script");
+        n.async = !0;
+        n.type = "text/javascript";
+        n.src = "https://visitorchat.twt.com/install/core.js?version=v1.2";
+        t.head.appendChild(n);
+      },
+    };
     e.init();
   })(window, document);
   </script>
@@ -55,9 +56,8 @@ import { useEffect } from 'react';
 function App() {
   useEffect(() => {
     window.__twt__config = {
-      appid: '你的APPID',
-      lang: 'zh-cn',
-      theme: 'light',
+      appid: '以项目APPID为准',
+      lang: 'en',
     };
 
     const script = document.createElement('script');
@@ -90,9 +90,8 @@ let scriptEl = null;
 
 onMounted(() => {
   window.__twt__config = {
-    appid: '你的APPID',
-    lang: 'zh-cn',
-    theme: 'light',
+    appid: '以项目APPID为准',
+    lang: 'en',
   };
 
   scriptEl = document.createElement('script');
@@ -123,9 +122,8 @@ onUnmounted(() => {
 
   <script>
   window.__twt__config = {
-    appid: "你的APPID",
-    lang: "zh-cn",
-    theme: "light",
+    appid: "以项目APPID为准",
+    lang: "en",
     icon: "2"
   };
   (function(n, t) {
@@ -175,8 +173,8 @@ const sbsMm = generateSbsMm(sbs, process.env.APP_SECRET, ranstr)
 <!-- 前端：将服务端生成的值注入 config -->
 <script>
 window.__twt__config = {
-  appid: "你的APPID",
-  lang: "zh-cn",
+  appid: "以项目APPID为准",
+  lang: "en",
   sbs: "user_1001",
   sbs_mm: "服务端生成的签名",
   ranstr: "服务端生成的随机串",
@@ -208,14 +206,14 @@ window.__twt__config = {
 <html>
 <head><meta charset="UTF-8"><title>多语言切换</title></head>
 <body>
+  <button onclick="setLang('en')">English</button>
   <button onclick="setLang('zh-cn')">简体中文</button>
   <button onclick="setLang('zh-tw')">繁體中文</button>
-  <button onclick="setLang('en')">English</button>
 
   <script>
   window.__twt__config = {
-    appid: "你的APPID",
-    lang: "zh-cn"
+    appid: "以项目APPID为准",
+    lang: "en"
   };
   (function(n, t) {
     var e = { init: function() {
@@ -237,10 +235,7 @@ window.__twt__config = {
 </html>
 ```
 
-::: warning 注意
-以上示例中的 `你的APPID` 需替换为你在 TWT Chat 后台获取的真实 appid。
-:::
 
 ::: tip 还没有账号？
-[免费注册 TWT Chat](https://twt.com) 获取 APPID，3 分钟完成接入。
+[免费注册 TWT Chat](https://twt.com) 获取网站代码，快速完成接入。
 :::

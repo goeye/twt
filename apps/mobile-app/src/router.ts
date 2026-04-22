@@ -5,7 +5,7 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/chat"
+      redirect: "/session"
     },
     {
       path: "/session",
@@ -21,6 +21,12 @@ const router = createRouter({
       path: "/archive",
       name: "Archive",
       component: () => import("./views/ArchiveView.vue")
+    },
+    {
+      path: "/session/:id/history",
+      name: "HistorySessions",
+      component: () => import("./views/HistorySessionsView.vue"),
+      meta: { hideTabBar: true }
     },
     {
       path: "/profile",

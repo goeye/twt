@@ -65,9 +65,10 @@
             <svg class="card-arrow" width="7" height="10" viewBox="0 0 7 10" fill="none"><path d="M1 1L5 5L1 9" stroke="#C0C4CC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </div>
           <div class="card-divider" />
-          <div class="card-row">
+          <div class="card-row" @click="router.push(`/session/${route.params.id}/history`)">
             <span class="card-label">会话总数</span>
             <span class="card-value">3 会话</span>
+            <svg class="card-arrow" width="7" height="10" viewBox="0 0 7 10" fill="none"><path d="M1 1L5 5L1 9" stroke="#C0C4CC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </div>
         </div>
 

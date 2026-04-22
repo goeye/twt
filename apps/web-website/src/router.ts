@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { developerDocsHref } from "./constants/developerDocs";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,7 +35,13 @@ const router = createRouter({
     {
       path: "/developer-docs",
       name: "developer-docs",
-      component: () => import("./views/DeveloperDocsPage.vue"),
+      beforeEnter() {
+        if (typeof window !== "undefined") {
+          window.location.replace(developerDocsHref);
+        }
+
+        return false;
+      },
       meta: {
         marketing: true,
       },

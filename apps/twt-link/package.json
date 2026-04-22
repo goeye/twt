@@ -1,5 +1,15 @@
 {
+  "name": "twt-link",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "http-server . -p 5179 -c-1",
+    "preview": "http-server . -p 5179 -c-1"
+  },
   "dependencies": {
     "jsdom": "^29.0.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
   }
 }
