@@ -274,7 +274,6 @@
           <div class="inbox-pane__title-row">
             <button type="button" class="inbox-pane__back" aria-label="返回">‹</button>
             <h1 class="inbox-pane__title">{{ activeQueueEmoji }} {{ activeQueueLabel }}</h1>
-            <span v-if="showOnlineSessionScopeBadge" class="inbox-pane__scope-badge">{{ onlineSessionScopeLabel }}</span>
           </div>
 
           <div class="inbox-pane__search-row">
@@ -1234,6 +1233,7 @@ const currentAgentName = "客服主管";
 const hasOnlineConversationAccess = computed(() => hasPermission("conversation-online"));
 const canViewAllOnlineSessions = computed(() => hasPermission("conversation-online-scope-all"));
 const canViewPersonalOnlineSessions = computed(() => hasPermission("conversation-online-scope-personal"));
+const canViewRobotOnlineSessions = computed(() => hasPermission("conversation-online-scope-robot"));
 
 const translationLanguages = [
   { label: "英语", value: "en" },
@@ -2055,6 +2055,10 @@ const displaySessions = computed(() => allSessions.value.filter((session) => {
 
   if (canViewAllOnlineSessions.value) {
     return true;
+  }
+
+  if (canViewRobotOnlineSessions.value) {
+    return session.queueKey === "ai-agent-queue";
   }
 
   if (!canViewPersonalOnlineSessions.value) {
@@ -3067,14 +3071,6 @@ const isQueueingSessionClaimed = computed(() => isQueueingSession.value && activ
 const isProcessingSession = computed(() => activeSession.value?.queueKey === "processing");
 const isClosedSession = computed(() => activeSession.value?.closed === true);
 const isChatRoom = computed(() => activeQueueKey.value === "chat-room");
-const onlineSessionScopeLabel = computed(() => (
-  canViewAllOnlineSessions.value ? "全员数据" : "个人数据"
-));
-const showOnlineSessionScopeBadge = computed(() => (
-  hasOnlineConversationAccess.value &&
-  ["pending-reply", "queueing", "processing", "resolved", "all-online"].includes(activeQueueKey.value)
-));
-
 const currentSubnavRenderKey = computed(() => `subnav-${currentRouteName.value}`);
 const currentShellRenderKey = computed(() => `shell-${currentRouteName.value}`);
 
@@ -5384,18 +5380,6 @@ onBeforeUnmount(() => {
   font-weight: var(--agent-font-weight-semibold);
   line-height: 1.2;
   margin: 0;
-}
-
-.inbox-pane__scope-badge {
-  align-items: center;
-  background: var(--agent-color-brand-soft);
-  border-radius: 999px;
-  color: var(--agent-color-brand-primary);
-  display: inline-flex;
-  font-size: var(--agent-font-size-xs);
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1;
-  padding: 6px 10px;
 }
 
 .inbox-pane__search-row {

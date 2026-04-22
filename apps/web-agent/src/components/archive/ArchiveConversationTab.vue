@@ -2,9 +2,6 @@
   <section class="files-page__card agent-panel">
     <header class="files-page__header">
       <h1 class="files-page__title">会话记录</h1>
-      <span class="archive-scope-badge" :class="{ 'archive-scope-badge--all': canViewAllArchiveConversationData }">
-        {{ archiveConversationScopeLabel }}
-      </span>
     </header>
 
     <section class="files-page__summary summary-banner">
@@ -1063,11 +1060,9 @@ const currentArchiveAgentName = "客服主管";
 const hasArchiveConversationAccess = computed(() => hasPermission("archive-conversation"));
 const canViewPersonalArchiveConversationData = computed(() => hasPermission("archive-conversation-scope-personal"));
 const canViewAllArchiveConversationData = computed(() => hasPermission("archive-conversation-scope-all"));
+const canViewRobotArchiveConversationData = computed(() => hasPermission("archive-conversation-assign"));
 const canClaimArchiveConversation = computed(() => hasPermission("archive-conversation-claim"));
 const canAssignArchiveConversation = computed(() => hasPermission("archive-conversation-assign"));
-const archiveConversationScopeLabel = computed(() => (
-  canViewAllArchiveConversationData.value ? "全员数据" : "个人数据"
-));
 
 // Confirm dialog
 const confirmDialogOpen = ref(false);
@@ -1097,6 +1092,10 @@ const scopedConversationRows = computed(() => {
 
   if (canViewAllArchiveConversationData.value) {
     return allRows.value;
+  }
+
+  if (canViewRobotArchiveConversationData.value) {
+    return allRows.value.filter((row) => row.owner === aiAgentArchiveName);
   }
 
   if (!canViewPersonalArchiveConversationData.value) {
@@ -2814,23 +2813,6 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   width: 100%;
-}
-
-/* Scope badge */
-.archive-scope-badge {
-  align-items: center;
-  display: inline-flex;
-  background: var(--agent-color-brand-soft);
-  border-radius: 999px;
-  color: var(--agent-color-brand-primary);
-  font-size: 13px;
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1;
-  padding: 8px 12px;
-}
-
-.archive-scope-badge--all {
-  background: rgba(47, 107, 255, 0.12);
 }
 
 /* Confirm dialog */

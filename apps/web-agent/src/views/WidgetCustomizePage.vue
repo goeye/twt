@@ -127,52 +127,59 @@
         <article class="wc-accordion" :class="{ 'wc-accordion--open': openSection === 'chatPageHero' }">
           <div class="wc-accordion__trigger wc-accordion__trigger--chat-page" @click="toggleSection('chatPageHero')">
             <div class="wc-accordion__trigger-text">
-              <h3 class="wc-card__title">聊天页面欢迎语</h3>
+              <h3 class="wc-card__title">聊天页面</h3>
               <p class="wc-card__desc">设置聊天页面左侧的品牌介绍内容，关闭后聊天窗口将居中显示</p>
             </div>
             <AgentSwitch v-model="showChatPageHero" @click.stop @update:model-value="autoSave" />
             <span class="wc-accordion__chevron" />
           </div>
           <div v-if="openSection === 'chatPageHero' && showChatPageHero" class="wc-accordion__body">
-            <div class="wc-form-title-row">
-              <div class="wc-logo-wrap" @click="triggerChatPageHeroImageUpload">
-                <img :src="currentChatPageHeroImage" class="wc-logo-wrap__img" alt="聊天页面图片" />
-                <div class="wc-logo-wrap__overlay">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                  </svg>
-                  <span>替换</span>
+            <div class="wc-form-title-row wc-form-title-row--inline wc-form-title-row--image">
+              <label class="wc-label">图片</label>
+              <div class="wc-form-title-row__content">
+                <div class="wc-logo-wrap" @click="triggerChatPageHeroImageUpload">
+                  <img :src="currentChatPageHeroImage" class="wc-logo-wrap__img" alt="聊天页面图片" />
+                  <div class="wc-logo-wrap__overlay">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                    <span>替换</span>
+                  </div>
+                  <input
+                    ref="chatPageHeroImageInputRef"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    class="wc-logo-wrap__file"
+                    @change="handleChatPageHeroImageChange"
+                  />
                 </div>
+              </div>
+            </div>
+
+            <div class="wc-form-title-row wc-form-title-row--inline">
+              <label class="wc-label">标题</label>
+              <div class="wc-form-title-row__content">
                 <input
-                  ref="chatPageHeroImageInputRef"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  class="wc-logo-wrap__file"
-                  @change="handleChatPageHeroImageChange"
+                  v-model="chatPageHeroTitle[globalLang]"
+                  class="agent-input wc-input"
+                  placeholder="输入标题..."
+                  @blur="autoSave"
                 />
               </div>
             </div>
 
-            <div class="wc-form-title-row">
-              <label class="wc-label">文案标题</label>
-              <input
-                v-model="chatPageHeroTitle[globalLang]"
-                class="agent-input wc-input"
-                placeholder="输入文案标题..."
-                @blur="autoSave"
-              />
-            </div>
-
-            <div class="wc-form-title-row">
-              <label class="wc-label">文案描述</label>
-              <div class="wc-rich-editor">
-                <textarea
-                  v-model="chatPageHeroDesc[globalLang]"
-                  class="wc-rich-editor__textarea wc-chat-page-hero__textarea"
-                  rows="4"
-                  placeholder="输入文案描述..."
-                  @blur="autoSave"
-                />
+            <div class="wc-form-title-row wc-form-title-row--inline">
+              <label class="wc-label">描述</label>
+              <div class="wc-form-title-row__content">
+                <div class="wc-rich-editor">
+                  <textarea
+                    v-model="chatPageHeroDesc[globalLang]"
+                    class="wc-rich-editor__textarea wc-chat-page-hero__textarea"
+                    rows="4"
+                    placeholder="输入描述..."
+                    @blur="autoSave"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -281,7 +288,6 @@
               <p class="wc-card__desc">在访客开始会话之前收集必要的信息，帮助客服更好地提供服务</p>
             </div>
             <AgentSwitch :model-value="settings.enableSessionForm" @click.stop @update:model-value="handleSessionFormToggle" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'sessionForm' && settings.enableSessionForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
@@ -388,7 +394,6 @@
               <p class="wc-card__desc">当全部客服不在线时，访客可填写表单留下联系方式和问题</p>
             </div>
             <AgentSwitch v-model="settings.enableOfflineForm" @click.stop @update:model-value="autoSave" />
-            <span class="wc-accordion__chevron" />
           </button>
           <div v-if="openSection === 'offlineForm' && settings.enableOfflineForm" class="wc-accordion__body">
             <div class="wc-form-title-row">
@@ -3689,6 +3694,32 @@ watch(previewMode, (mode) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.wc-form-title-row--inline {
+  align-items: flex-start;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.wc-form-title-row--inline .wc-label {
+  flex-shrink: 0;
+  line-height: 32px;
+  width: 44px;
+}
+
+.wc-form-title-row__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.wc-form-title-row__content .wc-input,
+.wc-form-title-row__content .wc-rich-editor {
+  width: 100%;
+}
+
+.wc-form-title-row--image {
+  min-height: 64px;
 }
 
 .wc-form-fields-section {

@@ -16,7 +16,7 @@ export interface PermFeature {
   hiddenInRoleEditor?: boolean
   roleEditorColumn?: number
   requires?: string[]
-  scopeLevel?: 'personal' | 'all'
+  scopeLevel?: 'personal' | 'robot' | 'all'
 }
 
 export interface PermItem {
@@ -72,11 +72,18 @@ export const PERMISSION_TREE: PermGroup[] = [
           {
             key: 'conversation-online-scope-all',
             label: '全员数据',
-            exclusiveGroup: 'conversation-online-scope',
             autoSelect: false,
-            roleEditorColumn: 4,
+            roleEditorColumn: 2,
             requires: ['conversation-online-manage'],
             scopeLevel: 'all',
+          },
+          {
+            key: 'conversation-online-scope-robot',
+            label: '机器人数据',
+            autoSelect: false,
+            roleEditorColumn: 3,
+            requires: ['conversation-online-manage'],
+            scopeLevel: 'robot',
           },
         ],
       },
@@ -103,20 +110,20 @@ export const PERMISSION_TREE: PermGroup[] = [
             label: '全员数据',
             exclusiveGroup: 'archive-conversation-scope',
             autoSelect: false,
-            roleEditorColumn: 4,
+            roleEditorColumn: 2,
             scopeLevel: 'all',
           },
           {
             key: 'archive-conversation-claim',
-            label: '领取会话',
+            label: '管理',
             autoSelect: false,
             roleEditorColumn: 1,
           },
           {
             key: 'archive-conversation-assign',
-            label: '分配会话',
+            label: '机器人数据',
             autoSelect: false,
-            roleEditorColumn: 2,
+            roleEditorColumn: 3,
           },
         ],
       },
@@ -143,7 +150,7 @@ export const PERMISSION_TREE: PermGroup[] = [
             label: '全员数据',
             exclusiveGroup: 'archive-chat-scope',
             autoSelect: false,
-            roleEditorColumn: 4,
+            roleEditorColumn: 2,
             scopeLevel: 'all',
           },
         ],
@@ -332,7 +339,7 @@ export function getAllPermissionKeys(): string[] {
   return keys
 }
 
-export function getScopedPermissionKeys(scopePreference: 'personal' | 'all' = 'all'): string[] {
+export function getScopedPermissionKeys(scopePreference: 'personal' | 'robot' | 'all' = 'all'): string[] {
   const keys: string[] = []
 
   for (const group of PERMISSION_TREE) {
@@ -378,7 +385,7 @@ export function getScopedPermissionKeys(scopePreference: 'personal' | 'all' = 'a
   return keys
 }
 
-export function getScopedToggleableKeys(scopePreference: 'personal' | 'all' = 'all'): string[] {
+export function getScopedToggleableKeys(scopePreference: 'personal' | 'robot' | 'all' = 'all'): string[] {
   const keys: string[] = []
 
   for (const group of PERMISSION_TREE) {

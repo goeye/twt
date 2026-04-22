@@ -371,6 +371,13 @@ const getOrderedFeatures = (item: PermItem): PermFeature[] => {
   }
 
   return item.features.filter((feature) => !feature.hiddenInRoleEditor).sort((left, right) => {
+    const leftColumn = left.roleEditorColumn ?? Number.MAX_SAFE_INTEGER;
+    const rightColumn = right.roleEditorColumn ?? Number.MAX_SAFE_INTEGER;
+
+    if (leftColumn !== rightColumn) {
+      return leftColumn - rightColumn;
+    }
+
     const leftIsScope = Boolean(left.scopeLevel);
     const rightIsScope = Boolean(right.scopeLevel);
 

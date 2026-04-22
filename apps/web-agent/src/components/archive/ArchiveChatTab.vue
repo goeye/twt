@@ -2,9 +2,6 @@
   <section class="files-page__card agent-panel">
     <header class="files-page__header">
       <h1 class="files-page__title">聊天记录</h1>
-      <span class="archive-scope-badge" :class="{ 'archive-scope-badge--all': canViewAllArchiveChatData }">
-        {{ archiveChatScopeLabel }}
-      </span>
     </header>
 
     <section class="files-page__summary summary-banner">
@@ -377,7 +374,6 @@ import {
   type ArchivePreviewMessage,
   archiveAgentPool,
   ownerPool,
-  aiAgentArchiveName,
   getArchiveAgentProfile,
   extractKWIC
 } from "../../lib/archiveUtils";
@@ -673,9 +669,6 @@ const hasArchiveChatAccess = computed(() => hasPermission("archive-chat"));
 const canManageArchiveChat = computed(() => hasPermission("archive-chat-manage"));
 const canViewPersonalArchiveChatData = computed(() => hasPermission("archive-chat-scope-personal"));
 const canViewAllArchiveChatData = computed(() => hasPermission("archive-chat-scope-all"));
-const archiveChatScopeLabel = computed(() => (
-  canViewAllArchiveChatData.value ? "全员数据" : "个人数据"
-));
 
 const scopedChatRows = computed(() => {
   if (!hasArchiveChatAccess.value) {
@@ -989,22 +982,6 @@ onMounted(() => {
   font-weight: var(--agent-font-weight-semibold);
   line-height: 1.2;
   margin: 0;
-}
-
-.archive-scope-badge {
-  align-items: center;
-  background: var(--agent-color-brand-soft);
-  border-radius: 999px;
-  color: var(--agent-color-brand-primary);
-  display: inline-flex;
-  font-size: 13px;
-  font-weight: var(--agent-font-weight-medium);
-  line-height: 1;
-  padding: 8px 12px;
-}
-
-.archive-scope-badge--all {
-  background: rgba(47, 107, 255, 0.12);
 }
 
 .summary-banner {
