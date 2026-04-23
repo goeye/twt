@@ -1,6 +1,7 @@
 export interface ProjectFeatureFlags {
   autopilotEnabled: boolean;
   preSessionFormEnabled: boolean;
+  offlineFormEnabled: boolean;
   autoReplySuggestionEnabled: boolean;
   chatTranslationEnabled: boolean;
   writeTranslateEnabled: boolean;
@@ -45,6 +46,7 @@ export interface Project extends ProjectFeatureFlags {
 const createFeatureFlags = (overrides: Partial<ProjectFeatureFlags> = {}): ProjectFeatureFlags => ({
   autopilotEnabled: false,
   preSessionFormEnabled: false,
+  offlineFormEnabled: false,
   autoReplySuggestionEnabled: false,
   chatTranslationEnabled: false,
   writeTranslateEnabled: false,
@@ -88,6 +90,7 @@ export const projectsData: Project[] = [
     siteStatus: "启用",
     ...createFeatureFlags({
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       textPolishEnabled: true,
       sessionEvaluationEnabled: true,
@@ -128,6 +131,7 @@ export const projectsData: Project[] = [
     ...createFeatureFlags({
       autopilotEnabled: true,
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       chatTranslationEnabled: true,
       writeTranslateEnabled: true,
@@ -169,6 +173,7 @@ export const projectsData: Project[] = [
     siteStatus: "启用",
     ...createFeatureFlags({
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       sessionEvaluationEnabled: true,
       contactUsEnabled: true,
     }),
@@ -207,6 +212,7 @@ export const projectsData: Project[] = [
     ...createFeatureFlags({
       autopilotEnabled: true,
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       textPolishEnabled: true,
       sessionEvaluationEnabled: true,
@@ -246,6 +252,7 @@ export const projectsData: Project[] = [
     siteStatus: "启用",
     ...createFeatureFlags({
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       contactUsEnabled: true,
     }),
   },
@@ -318,6 +325,7 @@ export const projectsData: Project[] = [
     ...createFeatureFlags({
       autopilotEnabled: true,
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       chatTranslationEnabled: true,
       writeTranslateEnabled: true,
@@ -392,6 +400,7 @@ export const projectsData: Project[] = [
     siteStatus: "启用",
     ...createFeatureFlags({
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       textPolishEnabled: true,
       sessionEvaluationEnabled: true,
@@ -432,6 +441,7 @@ export const projectsData: Project[] = [
     ...createFeatureFlags({
       autopilotEnabled: true,
       preSessionFormEnabled: true,
+      offlineFormEnabled: true,
       autoReplySuggestionEnabled: true,
       chatTranslationEnabled: true,
       writeTranslateEnabled: true,

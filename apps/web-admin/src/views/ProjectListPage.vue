@@ -295,6 +295,12 @@ const columns = [
     customRender: ({ record }: { record: Project }) => (record.preSessionFormEnabled ? "开启" : "关闭"),
   },
   {
+    title: "全员离线表单",
+    key: "offlineFormEnabled",
+    width: 140,
+    customRender: ({ record }: { record: Project }) => (record.offlineFormEnabled ? "开启" : "关闭"),
+  },
+  {
     title: "自动推荐回复",
     key: "autoReplySuggestionEnabled",
     width: 120,
