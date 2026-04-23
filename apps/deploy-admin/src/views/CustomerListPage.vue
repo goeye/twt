@@ -27,10 +27,6 @@
         >
           <template #prefix><SearchOutlined /></template>
         </a-input>
-        <a-select v-model:value="filters.deployMode" placeholder="部署模式" style="width: 140px" allow-clear>
-          <a-select-option value="full">完全私有化</a-select-option>
-          <a-select-option value="lightweight">轻量私有化</a-select-option>
-        </a-select>
         <a-select v-model:value="filters.deployStatus" placeholder="部署状态" style="width: 120px" allow-clear>
           <a-select-option value="pending">待部署</a-select-option>
           <a-select-option value="running">运行中</a-select-option>
@@ -67,11 +63,6 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'name'">
             <a @click="handleView(record)">{{ record.name }}</a>
-          </template>
-          <template v-else-if="column.key === 'deployMode'">
-            <a-tag :color="record.deployMode === 'full' ? 'purple' : 'cyan'">
-              {{ record.deployMode === 'full' ? '完全私有化' : '轻量私有化' }}
-            </a-tag>
           </template>
           <template v-else-if="column.key === 'deployStatus'">
             <a-tag :color="getStatusColor(record.deployStatus)">
@@ -135,12 +126,6 @@
         <a-form-item label="手机号">
           <a-input v-model:value="addForm.phone" />
         </a-form-item>
-        <a-form-item label="部署模式" required>
-          <a-radio-group v-model:value="addForm.deployMode">
-            <a-radio value="lightweight">轻量私有化</a-radio>
-            <a-radio value="full">完全私有化</a-radio>
-          </a-radio-group>
-        </a-form-item>
         <a-form-item label="服务版本" required>
           <a-select v-model:value="addForm.plan">
             <a-select-option value="标准版">标准版</a-select-option>
@@ -151,7 +136,7 @@
         <a-form-item label="绑定域名" required>
           <a-input v-model:value="addForm.domain" placeholder="chat.customer.com" />
         </a-form-item>
-        <a-form-item v-if="addForm.deployMode === 'full'" label="服务器 IP">
+        <a-form-item label="服务器 IP" required>
           <a-input v-model:value="addForm.serverIp" placeholder="47.96.xx.xx" />
         </a-form-item>
         <a-form-item label="坐席上限">
@@ -209,7 +194,6 @@ const customers = ref<Customer[]>([...customersData])
 
 const filters = reactive({
   keyword: '',
-  deployMode: undefined as string | undefined,
   deployStatus: undefined as string | undefined,
   plan: undefined as string | undefined,
 })
@@ -227,7 +211,6 @@ const filteredCustomers = computed(() => {
     const kw = filters.keyword.toLowerCase()
     result = result.filter(c => c.name.toLowerCase().includes(kw) || c.id.toLowerCase().includes(kw) || c.domain.toLowerCase().includes(kw))
   }
-  if (filters.deployMode) result = result.filter(c => c.deployMode === filters.deployMode)
   if (filters.deployStatus) result = result.filter(c => c.deployStatus === filters.deployStatus)
   if (filters.plan) result = result.filter(c => c.plan === filters.plan)
   pagination.value.total = result.length
@@ -237,7 +220,7 @@ const filteredCustomers = computed(() => {
 const columns = [
   { title: '客户名称', key: 'name', width: 120 },
   { title: '域名', dataIndex: 'domain', key: 'domain', width: 180 },
-  { title: '部署模式', key: 'deployMode', width: 110 },
+  { title: '服务器 IP', dataIndex: 'serverIp', key: 'serverIp', width: 130 },
   { title: '状态', key: 'deployStatus', width: 90 },
   { title: '版本', dataIndex: 'currentVersion', key: 'currentVersion', width: 80 },
   { title: '版本', dataIndex: 'plan', key: 'plan', width: 80 },
@@ -254,7 +237,6 @@ const pagination = ref({
 
 const addForm = reactive({
   name: '', contact: '', email: '', phone: '',
-  deployMode: 'lightweight' as 'lightweight' | 'full',
   plan: '专业版', domain: '', serverIp: '', maxAgents: 20, remark: '',
 })
 
@@ -280,7 +262,6 @@ function isExpiringSoon(date: string) {
 
 function handleReset() {
   filters.keyword = ''
-  filters.deployMode = undefined
   filters.deployStatus = undefined
   filters.plan = undefined
 }
@@ -311,15 +292,15 @@ function handleEditSubmit() {
   showEditModal.value = false
 }
 function handleAdd() {
-  if (!addForm.name || !addForm.contact || !addForm.email || !addForm.domain) {
+  if (!addForm.name || !addForm.contact || !addForm.email || !addForm.domain || !addForm.serverIp) {
     message.error('请填写必填项'); return
   }
   const id = `cust-${String(customers.value.length + 1).padStart(3, '0')}`
   customers.value.push({
     key: String(customers.value.length + 1), id, name: addForm.name,
     contact: addForm.contact, email: addForm.email, phone: addForm.phone,
-    deployMode: addForm.deployMode, deployStatus: 'pending', currentVersion: '-',
-    domain: addForm.domain, serverIp: addForm.serverIp || '-',
+    deployStatus: 'pending', currentVersion: '-',
+    domain: addForm.domain, serverIp: addForm.serverIp,
     maxAgents: addForm.maxAgents, activeAgents: 0,
     licenseKey: '', licenseExpiry: '', plan: addForm.plan,
     serviceConfig: {

@@ -37,7 +37,7 @@ export const deployRecordsData: DeployRecord[] = [
     key: '3', id: 'dep-003', customerId: 'cust-003', customerName: '绿叶教育',
     action: 'deploy', fromVersion: '-', toVersion: 'v2.3.1', result: 'success',
     operator: '管理员', startedAt: '2026-03-01 09:00:00', finishedAt: '2026-03-01 09:10:00',
-    remark: '轻量部署',
+    remark: '首次部署',
   },
   {
     key: '4', id: 'dep-004', customerId: 'cust-005', customerName: '紫光医疗',
@@ -85,7 +85,7 @@ export const versionsData: VersionInfo[] = [
   },
   {
     key: '5', version: 'v2.0.0', releaseDate: '2025-08-01',
-    changelog: '全新架构重构\n多租户支持\n白标功能上线',
+    changelog: '全新架构重构\n白标功能上线\n私有化部署支持',
     customerCount: 1, isLatest: false,
   },
 ]

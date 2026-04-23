@@ -25,26 +25,6 @@
     </div>
 
     <div class="dashboard-grid">
-      <!-- 部署模式分布 -->
-      <a-card title="部署模式分布" class="chart-card">
-        <div class="mode-stats">
-          <div class="mode-item">
-            <div class="mode-label">完全私有化</div>
-            <div class="mode-bar">
-              <div class="mode-bar__fill mode-bar__fill--full" :style="{ width: fullPercent + '%' }"></div>
-            </div>
-            <div class="mode-value">{{ stats.fullDeploy }} 个</div>
-          </div>
-          <div class="mode-item">
-            <div class="mode-label">轻量私有化</div>
-            <div class="mode-bar">
-              <div class="mode-bar__fill mode-bar__fill--light" :style="{ width: lightPercent + '%' }"></div>
-            </div>
-            <div class="mode-value">{{ stats.lightDeploy }} 个</div>
-          </div>
-        </div>
-      </a-card>
-
       <!-- 版本分布 -->
       <a-card title="版本分布" class="chart-card">
         <div class="version-list">
@@ -57,9 +37,7 @@
           </div>
         </div>
       </a-card>
-    </div>
 
-    <div class="dashboard-grid">
       <!-- 最近部署记录 -->
       <a-card title="最近部署记录" class="chart-card">
         <a-table
@@ -160,13 +138,8 @@ const stats = computed(() => {
       const exp = new Date(l.expiresAt)
       return l.status === 'active' && exp <= threeMonths
     }).length,
-    fullDeploy: customers.filter(c => c.deployMode === 'full').length,
-    lightDeploy: customers.filter(c => c.deployMode === 'lightweight').length,
   }
 })
-
-const fullPercent = computed(() => stats.value.totalCustomers ? (stats.value.fullDeploy / stats.value.totalCustomers) * 100 : 0)
-const lightPercent = computed(() => stats.value.totalCustomers ? (stats.value.lightDeploy / stats.value.totalCustomers) * 100 : 0)
 
 const versionDistribution = computed(() => {
   const map: Record<string, number> = {}
@@ -235,13 +208,6 @@ function getResultText(result: string) {
   gap: 16px;
 }
 .mode-stats { display: flex; flex-direction: column; gap: 16px; }
-.mode-item { display: flex; align-items: center; gap: 12px; }
-.mode-label { width: 90px; font-size: 14px; color: #374151; }
-.mode-bar { flex: 1; height: 24px; background: #f3f4f6; border-radius: 4px; overflow: hidden; }
-.mode-bar__fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-.mode-bar__fill--full { background: #6366f1; }
-.mode-bar__fill--light { background: #10b981; }
-.mode-value { width: 50px; text-align: right; font-size: 14px; font-weight: 500; }
 .version-list { display: flex; flex-direction: column; gap: 12px; }
 .version-item { display: flex; align-items: center; gap: 12px; }
 .version-tag { width: 60px; font-size: 13px; font-weight: 500; color: #374151; }

@@ -2,7 +2,6 @@
  * 私有化部署客户模拟数据
  */
 
-export type DeployMode = 'lightweight' | 'full'
 export type DeployStatus = 'pending' | 'running' | 'suspended' | 'offline'
 export type ServiceStatus = 'connected' | 'disconnected' | 'unconfigured'
 
@@ -19,7 +18,6 @@ export interface Customer {
   contact: string
   email: string
   phone: string
-  deployMode: DeployMode
   deployStatus: DeployStatus
   currentVersion: string
   domain: string
@@ -42,7 +40,6 @@ export const customersData: Customer[] = [
     contact: '张明',
     email: 'zhangming@starcorp.com',
     phone: '13800001001',
-    deployMode: 'full',
     deployStatus: 'running',
     currentVersion: 'v2.3.1',
     domain: 'chat.starcorp.com',
@@ -67,7 +64,6 @@ export const customersData: Customer[] = [
     contact: '李婷',
     email: 'liting@blueocean.com',
     phone: '13900002002',
-    deployMode: 'full',
     deployStatus: 'running',
     currentVersion: 'v2.2.0',
     domain: 'service.blueocean.com',
@@ -92,11 +88,10 @@ export const customersData: Customer[] = [
     contact: '王强',
     email: 'wangqiang@greenedu.cn',
     phone: '13700003003',
-    deployMode: 'lightweight',
     deployStatus: 'running',
     currentVersion: 'v2.3.1',
     domain: 'help.greenedu.cn',
-    serverIp: '-',
+    serverIp: '116.62.33.45',
     maxAgents: 20,
     activeAgents: 12,
     licenseKey: 'LIC-GREEN-2026-STD',
@@ -108,7 +103,7 @@ export const customersData: Customer[] = [
       sms: { provider: 'tencent', status: 'disconnected' },
     },
     createdAt: '2026-03-01',
-    remark: '轻量私有化，使用我们的基础设施',
+    remark: '教育行业客户，运行稳定',
   },
   {
     key: '4',
@@ -117,11 +112,10 @@ export const customersData: Customer[] = [
     contact: '赵丽',
     email: 'zhaoli@redwood.shop',
     phone: '13600004004',
-    deployMode: 'lightweight',
     deployStatus: 'pending',
     currentVersion: '-',
     domain: 'support.redwood.shop',
-    serverIp: '-',
+    serverIp: '47.100.22.88',
     maxAgents: 30,
     activeAgents: 0,
     licenseKey: 'LIC-RED-2026-PRO',
@@ -142,7 +136,6 @@ export const customersData: Customer[] = [
     contact: '孙伟',
     email: 'sunwei@purplemed.com',
     phone: '13500005005',
-    deployMode: 'full',
     deployStatus: 'suspended',
     currentVersion: 'v2.1.0',
     domain: 'chat.purplemed.com',
@@ -167,7 +160,6 @@ export const customersData: Customer[] = [
     contact: '周杰',
     email: 'zhoujie@orangegame.io',
     phone: '13400006006',
-    deployMode: 'full',
     deployStatus: 'offline',
     currentVersion: 'v2.0.0',
     domain: 'cs.orangegame.io',

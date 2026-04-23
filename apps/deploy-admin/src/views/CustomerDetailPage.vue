@@ -21,11 +21,6 @@
     <!-- 部署信息 -->
     <a-card title="部署信息" class="section-card">
       <a-descriptions :column="2" bordered>
-        <a-descriptions-item label="部署模式">
-          <a-tag :color="customer.deployMode === 'full' ? 'purple' : 'cyan'">
-            {{ customer.deployMode === 'full' ? '完全私有化' : '轻量私有化' }}
-          </a-tag>
-        </a-descriptions-item>
         <a-descriptions-item label="部署状态">
           <a-tag :color="getStatusColor(customer.deployStatus)">
             {{ getStatusText(customer.deployStatus) }}
@@ -133,7 +128,7 @@ if (!customerData) {
 
 const customer = ref(customerData || {
   id: customerId, name: '未知客户', contact: '-', email: '-', phone: '-',
-  deployMode: 'lightweight' as const, deployStatus: 'offline' as const,
+  deployStatus: 'offline' as const,
   currentVersion: '-', domain: '-', serverIp: '-', maxAgents: 0, activeAgents: 0,
   licenseKey: '', licenseExpiry: '', plan: '-',
   serviceConfig: {
