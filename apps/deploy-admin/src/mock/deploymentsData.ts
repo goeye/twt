@@ -1,5 +1,5 @@
 /**
- * 部署记录模拟数据
+ * 部署记录与版本模拟数据
  */
 
 export type DeployAction = 'deploy' | 'upgrade' | 'rollback' | 'suspend' | 'resume' | 'offline'
@@ -65,27 +65,79 @@ export interface VersionInfo {
 export const versionsData: VersionInfo[] = [
   {
     key: '1', version: 'v2.3.1', releaseDate: '2026-04-08',
-    changelog: '修复邮件渠道附件上传问题\n优化会话列表加载性能\n新增访客评价统计',
+    changelog: '修复群聊消息同步延迟问题\n优化文件传输断点续传\n新增消息已读回执',
     customerCount: 2, isLatest: true,
   },
   {
     key: '2', version: 'v2.3.0', releaseDate: '2026-03-20',
-    changelog: '新增 Telegram 渠道接入\n新增 AI 机器人 Autopilot 模式\n优化移动端会话体验',
+    changelog: '新增屏幕共享功能\n新增群组公告\n优化移动端推送到达率',
     customerCount: 0, isLatest: false,
   },
   {
     key: '3', version: 'v2.2.0', releaseDate: '2026-02-01',
-    changelog: '新增 Webhook 平台集成\n新增会话内部备注功能\n优化排队分配策略',
+    changelog: '新增视频通话功能\n新增消息撤回\n优化离线消息同步',
     customerCount: 1, isLatest: false,
   },
   {
     key: '4', version: 'v2.1.0', releaseDate: '2025-12-15',
-    changelog: '新增邮箱渠道接入\n新增消息自动翻译\n新增角色权限管理',
+    changelog: '新增文件共享功能\n新增消息搜索\n新增组织架构管理',
     customerCount: 1, isLatest: false,
   },
   {
     key: '5', version: 'v2.0.0', releaseDate: '2025-08-01',
-    changelog: '全新架构重构\n白标功能上线\n私有化部署支持',
+    changelog: '全新架构重构\n端到端加密上线\n私有化部署支持',
     customerCount: 1, isLatest: false,
+  },
+]
+
+export type ClientPlatform = 'macos' | 'windows' | 'ios' | 'android'
+
+export interface ClientVersion {
+  key: string
+  version: string
+  platform: ClientPlatform
+  releaseDate: string
+  changelog: string
+  downloadUrl: string
+  minServerVersion: string
+  isLatest: boolean
+}
+
+export const clientVersionsData: ClientVersion[] = [
+  {
+    key: '1', version: 'v2.3.1', platform: 'macos', releaseDate: '2026-04-10',
+    changelog: '修复消息通知不显示问题\n优化内存占用',
+    downloadUrl: '/releases/link-desktop-2.3.1.dmg',
+    minServerVersion: 'v2.2.0', isLatest: true,
+  },
+  {
+    key: '2', version: 'v2.3.1', platform: 'windows', releaseDate: '2026-04-10',
+    changelog: '修复消息通知不显示问题\n优化内存占用',
+    downloadUrl: '/releases/link-desktop-2.3.1.exe',
+    minServerVersion: 'v2.2.0', isLatest: true,
+  },
+  {
+    key: '3', version: 'v2.3.0', platform: 'ios', releaseDate: '2026-04-08',
+    changelog: '新增屏幕共享\n优化推送到达率\n修复后台断连问题',
+    downloadUrl: '/releases/link-mobile-2.3.0.ipa',
+    minServerVersion: 'v2.2.0', isLatest: true,
+  },
+  {
+    key: '4', version: 'v2.3.0', platform: 'android', releaseDate: '2026-04-08',
+    changelog: '新增屏幕共享\n优化推送到达率\n适配 Android 15',
+    downloadUrl: '/releases/link-mobile-2.3.0.apk',
+    minServerVersion: 'v2.2.0', isLatest: true,
+  },
+  {
+    key: '5', version: 'v2.2.0', platform: 'macos', releaseDate: '2026-02-05',
+    changelog: '新增视频通话\n新增消息撤回',
+    downloadUrl: '/releases/link-desktop-2.2.0.dmg',
+    minServerVersion: 'v2.1.0', isLatest: false,
+  },
+  {
+    key: '6', version: 'v2.2.0', platform: 'windows', releaseDate: '2026-02-05',
+    changelog: '新增视频通话\n新增消息撤回',
+    downloadUrl: '/releases/link-desktop-2.2.0.exe',
+    minServerVersion: 'v2.1.0', isLatest: false,
   },
 ]

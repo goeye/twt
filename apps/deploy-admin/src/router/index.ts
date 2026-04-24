@@ -42,6 +42,11 @@ const router = createRouter({
       component: () => import('../views/VersionManagePage.vue'),
       meta: { title: '版本管理', icon: 'versions' },
     },
+    {
+      path: '/client-versions',
+      component: () => import('../views/ClientVersionPage.vue'),
+      meta: { title: '客户端版本', icon: 'client-versions' },
+    },
   ],
 })
 

@@ -1,6 +1,5 @@
 <template>
   <div class="dashboard-page">
-    <!-- 统计卡片 -->
     <div class="stats-cards">
       <a-card class="stat-card">
         <a-statistic title="客户总数" :value="stats.totalCustomers">
@@ -25,7 +24,6 @@
     </div>
 
     <div class="dashboard-grid">
-      <!-- 版本分布 -->
       <a-card title="版本分布" class="chart-card">
         <div class="version-list">
           <div v-for="v in versionDistribution" :key="v.version" class="version-item">
@@ -38,14 +36,8 @@
         </div>
       </a-card>
 
-      <!-- 最近部署记录 -->
       <a-card title="最近部署记录" class="chart-card">
-        <a-table
-          :columns="deployColumns"
-          :data-source="recentDeploys"
-          :pagination="false"
-          size="small"
-        >
+        <a-table :columns="deployColumns" :data-source="recentDeploys" :pagination="false" size="small">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'action'">
               <a-tag :color="getActionColor(record.action)">{{ getActionText(record.action) }}</a-tag>
@@ -57,35 +49,40 @@
         </a-table>
       </a-card>
 
-      <!-- 服务状态概览 -->
       <a-card title="服务状态概览" class="chart-card">
         <div class="service-overview">
           <div class="service-row">
-            <span class="service-name">OSS 存储</span>
+            <span class="service-name">文件存储</span>
             <div class="service-dots">
-              <span v-for="c in customers" :key="c.id" class="service-dot" :class="'service-dot--' + c.serviceConfig.oss.status" :title="c.name"></span>
+              <span v-for="c in customers" :key="c.id + '-storage'" class="service-dot" :class="'service-dot--' + c.serviceConfig.storage.status" :title="c.name"></span>
             </div>
-            <span class="service-count">{{ serviceStats.oss.connected }}/{{ serviceStats.oss.total }}</span>
+            <span class="service-count">{{ serviceStats.storage.connected }}/{{ serviceStats.storage.total }}</span>
           </div>
           <div class="service-row">
-            <span class="service-name">邮件服务</span>
+            <span class="service-name">APNs</span>
             <div class="service-dots">
-              <span v-for="c in customers" :key="c.id" class="service-dot" :class="'service-dot--' + c.serviceConfig.email.status" :title="c.name"></span>
+              <span v-for="c in customers" :key="c.id + '-apns'" class="service-dot" :class="'service-dot--' + c.serviceConfig.push.apns" :title="c.name"></span>
+            </div>
+            <span class="service-count">{{ serviceStats.apns.connected }}/{{ serviceStats.apns.total }}</span>
+          </div>
+          <div class="service-row">
+            <span class="service-name">FCM</span>
+            <div class="service-dots">
+              <span v-for="c in customers" :key="c.id + '-fcm'" class="service-dot" :class="'service-dot--' + c.serviceConfig.push.fcm" :title="c.name"></span>
+            </div>
+            <span class="service-count">{{ serviceStats.fcm.connected }}/{{ serviceStats.fcm.total }}</span>
+          </div>
+          <div class="service-row">
+            <span class="service-name">邮件</span>
+            <div class="service-dots">
+              <span v-for="c in customers" :key="c.id + '-email'" class="service-dot" :class="'service-dot--' + c.serviceConfig.email.status" :title="c.name"></span>
             </div>
             <span class="service-count">{{ serviceStats.email.connected }}/{{ serviceStats.email.total }}</span>
-          </div>
-          <div class="service-row">
-            <span class="service-name">短信服务</span>
-            <div class="service-dots">
-              <span v-for="c in customers" :key="c.id" class="service-dot" :class="'service-dot--' + c.serviceConfig.sms.status" :title="c.name"></span>
-            </div>
-            <span class="service-count">{{ serviceStats.sms.connected }}/{{ serviceStats.sms.total }}</span>
           </div>
         </div>
       </a-card>
     </div>
 
-    <!-- 快捷操作 -->
     <a-card title="快捷操作">
       <div class="quick-actions">
         <a-button type="primary" @click="$router.push('/customers')">
@@ -104,6 +101,10 @@
           <template #icon><TagOutlined /></template>
           发布版本
         </a-button>
+        <a-button @click="$router.push('/client-versions')">
+          <template #icon><MobileOutlined /></template>
+          客户端版本
+        </a-button>
       </div>
     </a-card>
   </div>
@@ -112,14 +113,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
-  TeamOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  WarningOutlined,
-  PlusOutlined,
-  SafetyCertificateOutlined,
-  CloudServerOutlined,
-  TagOutlined,
+  TeamOutlined, CheckCircleOutlined, ClockCircleOutlined, WarningOutlined,
+  PlusOutlined, SafetyCertificateOutlined, CloudServerOutlined, TagOutlined, MobileOutlined,
 } from '@ant-design/icons-vue'
 import { customersData } from '../mock/customersData'
 import { deployRecordsData } from '../mock/deploymentsData'
@@ -144,9 +139,7 @@ const stats = computed(() => {
 const versionDistribution = computed(() => {
   const map: Record<string, number> = {}
   customers.forEach(c => {
-    if (c.currentVersion !== '-') {
-      map[c.currentVersion] = (map[c.currentVersion] || 0) + 1
-    }
+    if (c.currentVersion !== '-') map[c.currentVersion] = (map[c.currentVersion] || 0) + 1
   })
   const total = Object.values(map).reduce((a, b) => a + b, 0)
   return Object.entries(map)
@@ -154,13 +147,12 @@ const versionDistribution = computed(() => {
     .sort((a, b) => b.count - a.count)
 })
 
-const serviceStats = computed(() => {
-  const calc = (key: 'oss' | 'email' | 'sms') => ({
-    connected: customers.filter(c => c.serviceConfig[key].status === 'connected').length,
-    total: customers.length,
-  })
-  return { oss: calc('oss'), email: calc('email'), sms: calc('sms') }
-})
+const serviceStats = computed(() => ({
+  storage: { connected: customers.filter(c => c.serviceConfig.storage.status === 'connected').length, total: customers.length },
+  apns: { connected: customers.filter(c => c.serviceConfig.push.apns === 'connected').length, total: customers.length },
+  fcm: { connected: customers.filter(c => c.serviceConfig.push.fcm === 'connected').length, total: customers.length },
+  email: { connected: customers.filter(c => c.serviceConfig.email.status === 'connected').length, total: customers.length },
+}))
 
 const recentDeploys = deployRecordsData.slice(0, 5)
 
@@ -173,41 +165,24 @@ const deployColumns = [
 ]
 
 function getActionColor(action: string) {
-  const map: Record<string, string> = { deploy: 'blue', upgrade: 'green', rollback: 'orange', suspend: 'red', resume: 'cyan', offline: 'default' }
-  return map[action] || 'default'
+  return { deploy: 'blue', upgrade: 'green', rollback: 'orange', suspend: 'red', resume: 'cyan', offline: 'default' }[action] || 'default'
 }
 function getActionText(action: string) {
-  const map: Record<string, string> = { deploy: '部署', upgrade: '升级', rollback: '回滚', suspend: '暂停', resume: '恢复', offline: '下线' }
-  return map[action] || action
+  return { deploy: '部署', upgrade: '升级', rollback: '回滚', suspend: '暂停', resume: '恢复', offline: '下线' }[action] || action
 }
 function getResultColor(result: string) {
-  const map: Record<string, string> = { success: 'green', failed: 'red', in_progress: 'blue' }
-  return map[result] || 'default'
+  return { success: 'green', failed: 'red', in_progress: 'blue' }[result] || 'default'
 }
 function getResultText(result: string) {
-  const map: Record<string, string> = { success: '成功', failed: '失败', in_progress: '进行中' }
-  return map[result] || result
+  return { success: '成功', failed: '失败', in_progress: '进行中' }[result] || result
 }
 </script>
 
 <style scoped>
-.dashboard-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.stats-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
+.dashboard-page { display: flex; flex-direction: column; gap: 16px; }
+.stats-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .stat-card { text-align: center; }
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.mode-stats { display: flex; flex-direction: column; gap: 16px; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .version-list { display: flex; flex-direction: column; gap: 12px; }
 .version-item { display: flex; align-items: center; gap: 12px; }
 .version-tag { width: 60px; font-size: 13px; font-weight: 500; color: #374151; }

@@ -10,7 +10,7 @@ export interface License {
   customerId: string
   customerName: string
   plan: string
-  maxAgents: number
+  maxUsers: number
   features: string[]
   issuedAt: string
   expiresAt: string
@@ -25,8 +25,8 @@ export const licensesData: License[] = [
     customerId: 'cust-001',
     customerName: '星辰科技',
     plan: '专业版',
-    maxAgents: 50,
-    features: ['ai-agent', 'multi-channel', 'analytics', 'custom-brand'],
+    maxUsers: 500,
+    features: ['group-chat', 'file-sharing', 'video-call', 'screen-sharing'],
     issuedAt: '2026-01-10',
     expiresAt: '2027-01-15',
     status: 'active',
@@ -38,8 +38,8 @@ export const licensesData: License[] = [
     customerId: 'cust-002',
     customerName: '蓝海金融',
     plan: '企业版',
-    maxAgents: 100,
-    features: ['ai-agent', 'multi-channel', 'analytics', 'custom-brand', 'sla', 'audit-log'],
+    maxUsers: 1000,
+    features: ['group-chat', 'file-sharing', 'video-call', 'screen-sharing', 'e2ee', 'audit-log'],
     issuedAt: '2026-02-05',
     expiresAt: '2027-06-30',
     status: 'active',
@@ -51,8 +51,8 @@ export const licensesData: License[] = [
     customerId: 'cust-003',
     customerName: '绿叶教育',
     plan: '标准版',
-    maxAgents: 20,
-    features: ['multi-channel', 'analytics'],
+    maxUsers: 200,
+    features: ['group-chat', 'file-sharing'],
     issuedAt: '2026-03-01',
     expiresAt: '2026-12-31',
     status: 'active',
@@ -64,8 +64,8 @@ export const licensesData: License[] = [
     customerId: 'cust-004',
     customerName: '红杉电商',
     plan: '专业版',
-    maxAgents: 30,
-    features: ['ai-agent', 'multi-channel', 'analytics', 'custom-brand'],
+    maxUsers: 300,
+    features: ['group-chat', 'file-sharing', 'video-call', 'screen-sharing'],
     issuedAt: '2026-04-15',
     expiresAt: '2027-04-20',
     status: 'active',
@@ -77,8 +77,8 @@ export const licensesData: License[] = [
     customerId: 'cust-005',
     customerName: '紫光医疗',
     plan: '专业版',
-    maxAgents: 40,
-    features: ['ai-agent', 'multi-channel', 'analytics', 'custom-brand'],
+    maxUsers: 400,
+    features: ['group-chat', 'file-sharing', 'video-call', 'screen-sharing'],
     issuedAt: '2025-10-20',
     expiresAt: '2026-03-31',
     status: 'expired',
@@ -90,8 +90,8 @@ export const licensesData: License[] = [
     customerId: 'cust-006',
     customerName: '橙光游戏',
     plan: '标准版',
-    maxAgents: 25,
-    features: ['multi-channel', 'analytics'],
+    maxUsers: 250,
+    features: ['group-chat', 'file-sharing'],
     issuedAt: '2025-08-15',
     expiresAt: '2025-12-31',
     status: 'revoked',

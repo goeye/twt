@@ -76,8 +76,8 @@
             <a-select-option value="企业版">企业版</a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item label="坐席上限" required>
-          <a-input-number v-model:value="issueForm.maxAgents" :min="1" :max="500" style="width: 100%" />
+        <a-form-item label="用户上限" required>
+          <a-input-number v-model:value="issueForm.maxUsers" :min="1" :max="10000" style="width: 100%" />
         </a-form-item>
         <a-form-item label="有效期" required>
           <a-select v-model:value="issueForm.duration">
@@ -130,7 +130,7 @@ const columns = [
   { title: 'License Key', key: 'licenseKey', width: 200 },
   { title: '客户', dataIndex: 'customerName', key: 'customerName', width: 100 },
   { title: '版本', dataIndex: 'plan', key: 'plan', width: 80 },
-  { title: '坐席上限', dataIndex: 'maxAgents', key: 'maxAgents', width: 80 },
+  { title: '用户上限', dataIndex: 'maxUsers', key: 'maxUsers', width: 80 },
   { title: '功能', key: 'features', width: 200 },
   { title: '到期时间', key: 'expiresAt', width: 110 },
   { title: '状态', key: 'status', width: 80 },
@@ -140,22 +140,22 @@ const columns = [
 const pagination = ref({ current: 1, pageSize: 10, showSizeChanger: true, showTotal: (t: number) => `共 ${t} 条` })
 
 const featureOptions = [
-  { label: 'AI 机器人', value: 'ai-agent' },
-  { label: '多渠道', value: 'multi-channel' },
-  { label: '数据分析', value: 'analytics' },
-  { label: '自定义品牌', value: 'custom-brand' },
-  { label: 'SLA', value: 'sla' },
+  { label: '群聊', value: 'group-chat' },
+  { label: '文件共享', value: 'file-sharing' },
+  { label: '视频通话', value: 'video-call' },
+  { label: '屏幕共享', value: 'screen-sharing' },
+  { label: '端到端加密', value: 'e2ee' },
   { label: '审计日志', value: 'audit-log' },
 ]
 
 const issueForm = reactive({
-  customerId: '', plan: '专业版', maxAgents: 20, duration: '12',
-  features: ['multi-channel', 'analytics'] as string[],
+  customerId: '', plan: '专业版', maxUsers: 200, duration: '12',
+  features: ['group-chat', 'file-sharing'] as string[],
 })
 
 const featureLabelMap: Record<string, string> = {
-  'ai-agent': 'AI', 'multi-channel': '多渠道', analytics: '分析',
-  'custom-brand': '品牌', sla: 'SLA', 'audit-log': '审计',
+  'group-chat': '群聊', 'file-sharing': '文件', 'video-call': '视频',
+  'screen-sharing': '共享', e2ee: '加密', 'audit-log': '审计',
 }
 function featureLabel(f: string) { return featureLabelMap[f] || f }
 function getStatusColor(s: string) { return { active: 'green', expired: 'orange', revoked: 'red' }[s] || 'default' }
@@ -182,7 +182,7 @@ function handleIssue() {
   licenses.value.push({
     key: String(licenses.value.length + 1), licenseKey: key,
     customerId: issueForm.customerId, customerName: customer?.name || '',
-    plan: issueForm.plan, maxAgents: issueForm.maxAgents, features: [...issueForm.features],
+    plan: issueForm.plan, maxUsers: issueForm.maxUsers, features: [...issueForm.features],
     issuedAt: new Date().toISOString().split('T')[0], expiresAt: exp.toISOString().split('T')[0],
     status: 'active', lastVerified: '-',
   })

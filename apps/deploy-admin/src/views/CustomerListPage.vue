@@ -1,6 +1,5 @@
 <template>
   <div class="customer-list-page">
-    <!-- 统计卡片 -->
     <div class="stats-cards">
       <a-card class="stat-card">
         <a-statistic title="客户总数" :value="stats.total" />
@@ -16,7 +15,6 @@
       </a-card>
     </div>
 
-    <!-- 筛选 -->
     <a-card class="filter-card">
       <div class="filter-row">
         <a-input
@@ -51,7 +49,6 @@
       </div>
     </a-card>
 
-    <!-- 客户列表 -->
     <a-card>
       <a-table
         :columns="columns"
@@ -74,19 +71,22 @@
               {{ record.licenseExpiry }}
             </span>
           </template>
-          <template v-else-if="column.key === 'agents'">
-            {{ record.activeAgents }}/{{ record.maxAgents }}
+          <template v-else-if="column.key === 'users'">
+            {{ record.activeUsers }}/{{ record.maxUsers }}
           </template>
           <template v-else-if="column.key === 'services'">
             <div class="service-indicators">
-              <a-tooltip title="OSS">
-                <span class="indicator" :class="'indicator--' + record.serviceConfig.oss.status">O</span>
+              <a-tooltip title="文件存储">
+                <span class="indicator" :class="'indicator--' + record.serviceConfig.storage.status">S</span>
+              </a-tooltip>
+              <a-tooltip title="APNs 推送">
+                <span class="indicator" :class="'indicator--' + record.serviceConfig.push.apns">A</span>
+              </a-tooltip>
+              <a-tooltip title="FCM 推送">
+                <span class="indicator" :class="'indicator--' + record.serviceConfig.push.fcm">F</span>
               </a-tooltip>
               <a-tooltip title="邮件">
                 <span class="indicator" :class="'indicator--' + record.serviceConfig.email.status">E</span>
-              </a-tooltip>
-              <a-tooltip title="短信">
-                <span class="indicator" :class="'indicator--' + record.serviceConfig.sms.status">S</span>
               </a-tooltip>
             </div>
           </template>
@@ -98,6 +98,7 @@
                 <a-button size="small">更多</a-button>
                 <template #overlay>
                   <a-menu>
+                    <a-menu-item @click="handleGenerateDeployFiles(record)">生成部署文件</a-menu-item>
                     <a-menu-item v-if="record.deployStatus === 'pending'" @click="handleDeploy(record)">执行部署</a-menu-item>
                     <a-menu-item v-if="record.deployStatus === 'running'" @click="handleSuspend(record)">暂停服务</a-menu-item>
                     <a-menu-item v-if="record.deployStatus === 'suspended'" @click="handleResume(record)">恢复服务</a-menu-item>
@@ -111,7 +112,6 @@
       </a-table>
     </a-card>
 
-    <!-- 新增客户弹窗 -->
     <a-modal v-model:open="showAddModal" title="新增客户" width="640px" @ok="handleAdd">
       <a-form :model="addForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item label="客户名称" required>
@@ -134,13 +134,13 @@
           </a-select>
         </a-form-item>
         <a-form-item label="绑定域名" required>
-          <a-input v-model:value="addForm.domain" placeholder="chat.customer.com" />
+          <a-input v-model:value="addForm.domain" placeholder="link.customer.com" />
         </a-form-item>
         <a-form-item label="服务器 IP" required>
           <a-input v-model:value="addForm.serverIp" placeholder="47.96.xx.xx" />
         </a-form-item>
-        <a-form-item label="坐席上限">
-          <a-input-number v-model:value="addForm.maxAgents" :min="1" :max="500" style="width: 100%" />
+        <a-form-item label="用户上限">
+          <a-input-number v-model:value="addForm.maxUsers" :min="1" :max="10000" style="width: 100%" />
         </a-form-item>
         <a-form-item label="备注">
           <a-textarea v-model:value="addForm.remark" :rows="3" />
@@ -148,7 +148,6 @@
       </a-form>
     </a-modal>
 
-    <!-- 编辑弹窗 -->
     <a-modal v-model:open="showEditModal" title="编辑客户" width="640px" @ok="handleEditSubmit">
       <a-form :model="editForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item label="客户 ID">
@@ -169,13 +168,44 @@
         <a-form-item label="绑定域名">
           <a-input v-model:value="editForm.domain" />
         </a-form-item>
-        <a-form-item label="坐席上限">
-          <a-input-number v-model:value="editForm.maxAgents" :min="1" :max="500" style="width: 100%" />
+        <a-form-item label="用户上限">
+          <a-input-number v-model:value="editForm.maxUsers" :min="1" :max="10000" style="width: 100%" />
         </a-form-item>
         <a-form-item label="备注">
           <a-textarea v-model:value="editForm.remark" :rows="3" />
         </a-form-item>
       </a-form>
+    </a-modal>
+
+    <a-modal v-model:open="showDeployFilesModal" title="生成部署文件" width="720px" :footer="null">
+      <a-alert type="info" style="margin-bottom: 16px">
+        <template #message>
+          为 <strong>{{ deployFilesCustomer?.name }}</strong> 生成专属部署配置文件，客户可直接用于 Docker 部署。
+        </template>
+      </a-alert>
+      <div class="deploy-files-preview">
+        <a-tabs>
+          <a-tab-pane key="env" tab=".env">
+            <pre class="code-block">{{ generatedEnv }}</pre>
+          </a-tab-pane>
+          <a-tab-pane key="compose" tab="docker-compose.yml">
+            <pre class="code-block">{{ generatedCompose }}</pre>
+          </a-tab-pane>
+          <a-tab-pane key="registry" tab="Registry 凭证">
+            <div style="padding: 16px">
+              <p><strong>Registry:</strong> {{ deployFilesCustomer?.registryCredential.registry }}</p>
+              <p><strong>用户名:</strong> {{ deployFilesCustomer?.registryCredential.username }}</p>
+              <p><strong>密码:</strong> {{ deployFilesCustomer?.registryCredential.password }}</p>
+              <a-divider />
+              <p style="color: #6b7280">客户执行以下命令登录：</p>
+              <pre class="code-block">docker login {{ deployFilesCustomer?.registryCredential.registry }} -u {{ deployFilesCustomer?.registryCredential.username }}</pre>
+            </div>
+          </a-tab-pane>
+        </a-tabs>
+        <div style="margin-top: 16px; text-align: right">
+          <a-button type="primary" @click="handleDownloadDeployFiles">下载部署文件包</a-button>
+        </div>
+      </div>
     </a-modal>
   </div>
 </template>
@@ -190,6 +220,8 @@ import { customersData, type Customer } from '../mock/customersData'
 const router = useRouter()
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showDeployFilesModal = ref(false)
+const deployFilesCustomer = ref<Customer | null>(null)
 const customers = ref<Customer[]>([...customersData])
 
 const filters = reactive({
@@ -223,11 +255,11 @@ const columns = [
   { title: '服务器 IP', dataIndex: 'serverIp', key: 'serverIp', width: 130 },
   { title: '状态', key: 'deployStatus', width: 90 },
   { title: '版本', dataIndex: 'currentVersion', key: 'currentVersion', width: 80 },
-  { title: '版本', dataIndex: 'plan', key: 'plan', width: 80 },
-  { title: '坐席', key: 'agents', width: 80 },
+  { title: '套餐', dataIndex: 'plan', key: 'plan', width: 80 },
+  { title: '用户数', key: 'users', width: 100 },
   { title: 'License 到期', key: 'licenseExpiry', width: 120 },
-  { title: '服务状态', key: 'services', width: 100 },
-  { title: '操作', key: 'action', width: 180, fixed: 'right' as const },
+  { title: '服务状态', key: 'services', width: 120 },
+  { title: '操作', key: 'action', width: 200, fixed: 'right' as const },
 ]
 
 const pagination = ref({
@@ -237,12 +269,88 @@ const pagination = ref({
 
 const addForm = reactive({
   name: '', contact: '', email: '', phone: '',
-  plan: '专业版', domain: '', serverIp: '', maxAgents: 20, remark: '',
+  plan: '专业版', domain: '', serverIp: '', maxUsers: 200, remark: '',
 })
 
 const editForm = reactive({
   id: '', name: '', contact: '', email: '', phone: '',
-  domain: '', maxAgents: 20, remark: '',
+  domain: '', maxUsers: 200, remark: '',
+})
+
+const generatedEnv = computed(() => {
+  const c = deployFilesCustomer.value
+  if (!c) return ''
+  return `# TWT-Link 私有化部署配置 - ${c.name}
+# 生成时间: ${new Date().toISOString().split('T')[0]}
+
+DOMAIN=${c.domain}
+API_PORT=8080
+IM_PORT=8443
+
+DB_HOST=database
+DB_PORT=5432
+DB_NAME=twt_link
+DB_USER=twt
+DB_PASSWORD=<请设置数据库密码>
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+STORAGE_PROVIDER=${c.serviceConfig.storage.provider || '<请配置>'}
+STORAGE_BUCKET=${c.serviceConfig.storage.bucket || '<请配置>'}
+STORAGE_REGION=${c.serviceConfig.storage.region || '<请配置>'}
+STORAGE_ACCESS_KEY=<请配置>
+STORAGE_SECRET_KEY=<请配置>
+
+LICENSE_KEY=${c.licenseKey}`
+})
+
+const generatedCompose = computed(() => {
+  return `version: "3.8"
+services:
+  nginx:
+    image: registry.twt-link.com/twt-link/nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api-server
+      - im-server
+    restart: always
+
+  api-server:
+    image: registry.twt-link.com/twt-link/api-server:latest
+    env_file: .env
+    depends_on:
+      - database
+      - redis
+    restart: always
+
+  im-server:
+    image: registry.twt-link.com/twt-link/im-server:latest
+    env_file: .env
+    ports:
+      - "\${IM_PORT:-8443}:8443"
+    depends_on:
+      - redis
+    restart: always
+
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: \${DB_NAME}
+      POSTGRES_USER: \${DB_USER}
+      POSTGRES_PASSWORD: \${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+volumes:
+  pgdata:`
 })
 
 function getStatusColor(status: string) {
@@ -277,7 +385,7 @@ function handleEdit(record: Customer) {
   editForm.email = record.email
   editForm.phone = record.phone
   editForm.domain = record.domain
-  editForm.maxAgents = record.maxAgents
+  editForm.maxUsers = record.maxUsers
   editForm.remark = record.remark
   showEditModal.value = true
 }
@@ -285,7 +393,7 @@ function handleEditSubmit() {
   const c = customers.value.find(c => c.id === editForm.id)
   if (c) {
     c.name = editForm.name; c.contact = editForm.contact; c.email = editForm.email
-    c.phone = editForm.phone; c.domain = editForm.domain; c.maxAgents = editForm.maxAgents
+    c.phone = editForm.phone; c.domain = editForm.domain; c.maxUsers = editForm.maxUsers
     c.remark = editForm.remark
     message.success('编辑成功')
   }
@@ -301,26 +409,40 @@ function handleAdd() {
     contact: addForm.contact, email: addForm.email, phone: addForm.phone,
     deployStatus: 'pending', currentVersion: '-',
     domain: addForm.domain, serverIp: addForm.serverIp,
-    maxAgents: addForm.maxAgents, activeAgents: 0,
+    maxUsers: addForm.maxUsers, activeUsers: 0,
     licenseKey: '', licenseExpiry: '', plan: addForm.plan,
     serviceConfig: {
-      oss: { provider: '', bucket: '', region: '', status: 'unconfigured' },
+      storage: { provider: '', bucket: '', region: '', status: 'unconfigured' },
+      push: { apns: 'unconfigured', fcm: 'unconfigured' },
       email: { provider: '', fromEmail: '', status: 'unconfigured' },
-      sms: { provider: '', status: 'unconfigured' },
+    },
+    registryCredential: {
+      username: addForm.name.toLowerCase().replace(/\s/g, ''),
+      password: '********',
+      registry: 'registry.twt-link.com',
+      createdAt: new Date().toISOString().split('T')[0],
     },
     createdAt: new Date().toISOString().split('T')[0], remark: addForm.remark,
   })
   message.success('新增客户成功')
   showAddModal.value = false
   addForm.name = ''; addForm.contact = ''; addForm.email = ''; addForm.phone = ''
-  addForm.domain = ''; addForm.serverIp = ''; addForm.maxAgents = 20; addForm.remark = ''
+  addForm.domain = ''; addForm.serverIp = ''; addForm.maxUsers = 200; addForm.remark = ''
+}
+function handleGenerateDeployFiles(record: Customer) {
+  deployFilesCustomer.value = record
+  showDeployFilesModal.value = true
+}
+function handleDownloadDeployFiles() {
+  message.success('部署文件包已生成，开始下载')
+  showDeployFilesModal.value = false
 }
 function handleDeploy(record: Customer) {
   record.deployStatus = 'running'; record.currentVersion = 'v2.3.1'
   message.success(`${record.name} 部署成功`)
 }
 function handleSuspend(record: Customer) {
-  record.deployStatus = 'suspended'; record.activeAgents = 0
+  record.deployStatus = 'suspended'; record.activeUsers = 0
   message.success(`${record.name} 已暂停`)
 }
 function handleResume(record: Customer) {
@@ -328,7 +450,7 @@ function handleResume(record: Customer) {
   message.success(`${record.name} 已恢复`)
 }
 function handleOffline(record: Customer) {
-  record.deployStatus = 'offline'; record.activeAgents = 0
+  record.deployStatus = 'offline'; record.activeUsers = 0
   message.success(`${record.name} 已下线`)
 }
 </script>
@@ -346,4 +468,9 @@ function handleOffline(record: Customer) {
 .indicator--connected { background: #10b981; }
 .indicator--disconnected { background: #ef4444; }
 .indicator--unconfigured { background: #d1d5db; color: #6b7280; }
+.deploy-files-preview { background: #f9fafb; border-radius: 8px; padding: 16px; }
+.code-block {
+  background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px;
+  font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre;
+}
 </style>

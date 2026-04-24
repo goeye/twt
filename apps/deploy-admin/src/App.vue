@@ -34,6 +34,10 @@
           <template #icon><TagOutlined /></template>
           <span>版本管理</span>
         </a-menu-item>
+        <a-menu-item key="client-versions" @click="$router.push('/client-versions')">
+          <template #icon><MobileOutlined /></template>
+          <span>客户端版本</span>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
 
@@ -69,6 +73,7 @@ import {
   CloudServerOutlined,
   ApiOutlined,
   TagOutlined,
+  MobileOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons-vue'
@@ -84,6 +89,7 @@ const selectedKeys = computed(() => {
   if (path === '/deployments') return ['deployments']
   if (path === '/service-config') return ['service-config']
   if (path === '/versions') return ['versions']
+  if (path === '/client-versions') return ['client-versions']
   return ['dashboard']
 })
 
@@ -94,6 +100,7 @@ const titleMap: Record<string, string> = {
   '/deployments': '部署管理',
   '/service-config': '服务配置',
   '/versions': '版本管理',
+  '/client-versions': '客户端版本',
 }
 
 const currentTitle = computed(() => {
