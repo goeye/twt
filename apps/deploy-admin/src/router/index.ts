@@ -33,9 +33,9 @@ const router = createRouter({
       meta: { title: '部署管理', icon: 'deployments' },
     },
     {
-      path: '/service-config',
-      component: () => import('../views/ServiceConfigPage.vue'),
-      meta: { title: '服务配置', icon: 'config' },
+      path: '/sms-config',
+      component: () => import('../views/SmsConfigPage.vue'),
+      meta: { title: '短信配置', icon: 'sms' },
     },
     {
       path: '/versions',

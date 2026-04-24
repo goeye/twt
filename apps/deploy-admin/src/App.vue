@@ -26,9 +26,9 @@
           <template #icon><CloudServerOutlined /></template>
           <span>部署管理</span>
         </a-menu-item>
-        <a-menu-item key="service-config" @click="$router.push('/service-config')">
-          <template #icon><ApiOutlined /></template>
-          <span>服务配置</span>
+        <a-menu-item key="sms-config" @click="$router.push('/sms-config')">
+          <template #icon><MessageOutlined /></template>
+          <span>短信配置</span>
         </a-menu-item>
         <a-menu-item key="versions" @click="$router.push('/versions')">
           <template #icon><TagOutlined /></template>
@@ -72,6 +72,7 @@ import {
   SafetyCertificateOutlined,
   CloudServerOutlined,
   ApiOutlined,
+  MessageOutlined,
   TagOutlined,
   MobileOutlined,
   MenuUnfoldOutlined,
@@ -87,7 +88,7 @@ const selectedKeys = computed(() => {
   if (path.startsWith('/customers')) return ['customers']
   if (path === '/licenses') return ['licenses']
   if (path === '/deployments') return ['deployments']
-  if (path === '/service-config') return ['service-config']
+  if (path === '/sms-config') return ['sms-config']
   if (path === '/versions') return ['versions']
   if (path === '/client-versions') return ['client-versions']
   return ['dashboard']
@@ -98,7 +99,7 @@ const titleMap: Record<string, string> = {
   '/customers': '客户管理',
   '/licenses': 'License 管理',
   '/deployments': '部署管理',
-  '/service-config': '服务配置',
+  '/sms-config': '短信配置',
   '/versions': '版本管理',
   '/client-versions': '客户端版本',
 }
